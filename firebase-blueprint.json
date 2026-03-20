@@ -1,0 +1,78 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and role information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "editor", "user"] },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "name", "role", "createdAt"]
+    },
+    "Article": {
+      "title": "Article",
+      "description": "Blog article",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "published"] },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "coverImage": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content", "status", "authorId", "authorName", "createdAt", "updatedAt"]
+    },
+    "Config": {
+      "title": "Config",
+      "description": "Site configuration",
+      "type": "object",
+      "properties": {
+        "githubRepo": { "type": "string" },
+        "githubToken": { "type": "string" },
+        "siteTitle": { "type": "string" },
+        "siteDescription": { "type": "string" }
+      },
+      "required": ["siteTitle"]
+    },
+    "Request": {
+      "title": "Request",
+      "description": "User request for role upgrade",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["role_upgrade"] },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["type", "status", "userId", "userName", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles"
+    },
+    "/articles/{articleId}": {
+      "schema": { "$ref": "#/entities/Article" },
+      "description": "Blog articles"
+    },
+    "/config/{configId}": {
+      "schema": { "$ref": "#/entities/Config" },
+      "description": "Site configuration"
+    },
+    "/requests/{requestId}": {
+      "schema": { "$ref": "#/entities/Request" },
+      "description": "User requests"
+    }
+  }
+}
