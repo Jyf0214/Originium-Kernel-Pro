@@ -1,16 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useFirebase } from '@/components/FirebaseProvider';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '@/firebase';
+import { useAuth } from '@/hooks/use-auth';
 import { Save, Github, Settings } from 'lucide-react';
 
 export default function ConfigPage() {
-  const { userRole } = useFirebase();
+  const { userRole } = useAuth();
   const [config, setConfig] = useState({
     siteTitle: 'Originium Kernel',
-    siteDescription: 'Modern Blog Framework',
+    siteDescription: 'Modern Content Platform',
     githubRepo: '',
     githubToken: '',
   });
@@ -18,17 +16,19 @@ export default function ConfigPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (userRole !== 'sudo') return;
+    // 只有 sudo 用户可以查看配置
+    if (userRole !== 'sudo' && userRole !== 'admin') {
+      setLoading(false);
+      return;
+    }
 
     const fetchConfig = async () => {
+      setLoading(true);
       try {
-        const docRef = doc(db, 'config', 'main');
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setConfig(prev => ({ ...prev, ...docSnap.data() }));
-        }
+        // TODO: 从 GitHub config.yaml 获取配置
+        console.log('Fetching config from GitHub/Redis');
       } catch (error) {
-        handleFirestoreError(error, OperationType.GET, 'config/main');
+        console.error('Fetch config failed:', error);
       } finally {
         setLoading(false);
       }
@@ -40,10 +40,12 @@ export default function ConfigPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await setDoc(doc(db, 'config', 'main'), config);
-      alert('Configuration saved successfully!');
+      // TODO: 实现同步至 GitHub config.yaml 的逻辑
+      console.log('Saving config to GitHub:', config);
+      alert('Configuration saved successfully! (Simulated)');
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, 'config/main');
+      console.error('Save config failed:', error);
+      alert('Failed to save configuration.');
     } finally {
       setSaving(false);
     }
@@ -51,8 +53,12 @@ export default function ConfigPage() {
 
   if (loading) return <div className="p-8 text-center text-zinc-500">Loading config...</div>;
 
+  if (userRole !== 'sudo' && userRole !== 'admin') {
+    return <div className="p-8 text-center text-red-500 font-bold">Access Denied. Only Sudo/Admin can access this page.</div>;
+  }
+
   return (
-    <div className="p-6 md:p-10 max-w-3xl">
+    <div className="p-6 md:p-10 max-w-3xl mx-auto">
       <div className="flex items-center gap-3 mb-8">
         <div className="w-10 h-10 bg-zinc-900 text-white rounded-xl flex items-center justify-center">
           <Settings size={20} />
@@ -73,7 +79,7 @@ export default function ConfigPage() {
               type="text" 
               value={config.siteTitle}
               onChange={e => setConfig({...config, siteTitle: e.target.value})}
-              className="lobe-input w-full"
+              className="lobe-input w-full border border-zinc-200 rounded-xl h-10 px-4 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
             />
           </div>
           
@@ -82,7 +88,7 @@ export default function ConfigPage() {
             <textarea 
               value={config.siteDescription}
               onChange={e => setConfig({...config, siteDescription: e.target.value})}
-              className="lobe-input w-full min-h-[100px] resize-y"
+              className="lobe-input w-full min-h-[100px] resize-y border border-zinc-200 rounded-xl p-4 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
             />
           </div>
         </div>
@@ -103,7 +109,7 @@ export default function ConfigPage() {
               placeholder="e.g., username/my-blog"
               value={config.githubRepo}
               onChange={e => setConfig({...config, githubRepo: e.target.value})}
-              className="lobe-input w-full"
+              className="lobe-input w-full border border-zinc-200 rounded-xl h-10 px-4 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
             />
           </div>
           
@@ -114,7 +120,7 @@ export default function ConfigPage() {
               placeholder="ghp_xxxxxxxxxxxx"
               value={config.githubToken}
               onChange={e => setConfig({...config, githubToken: e.target.value})}
-              className="lobe-input w-full"
+              className="lobe-input w-full border border-zinc-200 rounded-xl h-10 px-4 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
             />
             <p className="text-xs text-zinc-400 mt-2">
               Needs `repo` scope to create/update files.
@@ -126,7 +132,7 @@ export default function ConfigPage() {
           <button 
             onClick={handleSave}
             disabled={saving}
-            className="lobe-button bg-zinc-900 text-white hover:bg-zinc-800 flex items-center gap-2 px-8"
+            className="lobe-button bg-zinc-900 text-white hover:bg-zinc-800 flex items-center gap-2 px-8 py-3 rounded-xl transition-all"
           >
             <Save size={18} />
             <span>{saving ? 'Saving...' : 'Save Configuration'}</span>

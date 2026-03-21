@@ -1,55 +1,46 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useFirebase } from '@/components/FirebaseProvider';
-import { collection, query, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '@/firebase';
-import { ShieldAlert, Trash2, Edit2, Check, X } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { Trash2, Edit2, Check, X, User } from 'lucide-react';
 
 export default function UsersPage() {
-  const { userRole } = useFirebase();
-  const [users, setUsers] = useState<any[]>([]);
+  const { userRole } = useAuth();
+  const [users] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRole, setEditRole] = useState('');
 
   useEffect(() => {
-    if (userRole !== 'sudo') return;
-
-    const q = query(collection(db, 'users'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    if (userRole !== 'sudo' && userRole !== 'admin') {
       setLoading(false);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'users');
-    });
+      return;
+    }
 
-    return () => unsub();
+    // TODO: 实现获取用户列表的 API 调用
+    setLoading(false);
   }, [userRole]);
 
   const handleUpdateRole = async (id: string) => {
-    if (!editRole) return;
-    try {
-      await updateDoc(doc(db, 'users', id), { role: editRole });
-      setEditingId(null);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `users/${id}`);
-    }
+    console.log('Update user role:', id, editRole);
+    // TODO: 实现更新用户角色逻辑
+    setEditingId(null);
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this user?')) return;
-    try {
-      await deleteDoc(doc(db, 'users', id));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, `users/${id}`);
-    }
+    console.log('Delete user:', id);
+    // TODO: 实现删除用户逻辑
   };
 
   if (loading) return <div className="p-8 text-center text-zinc-500">Loading users...</div>;
 
+  if (userRole !== 'sudo' && userRole !== 'admin') {
+    return <div className="p-8 text-center text-red-500 font-bold">Access Denied. Only Sudo/Admin can access this page.</div>;
+  }
+
   return (
-    <div className="p-6 md:p-10">
+    <div className="p-6 md:p-10 max-w-7xl mx-auto">
       <h1 className="text-3xl font-display font-bold text-zinc-900 mb-8">Manage Users</h1>
       
       <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-sm">
@@ -68,13 +59,9 @@ export default function UsersPage() {
                 <tr key={u.id} className="hover:bg-zinc-50 transition-colors">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      {u.photoURL ? (
-                        <img src={u.photoURL} alt={u.name} className="w-8 h-8 rounded-full" />
-                      ) : (
-                        <div className="w-8 h-8 bg-zinc-200 rounded-full flex items-center justify-center text-zinc-500 font-bold">
-                          {u.name?.charAt(0)}
-                        </div>
-                      )}
+                      <div className="w-8 h-8 bg-zinc-100 rounded-full flex items-center justify-center text-zinc-500">
+                        <User size={16} />
+                      </div>
                       <span className="font-medium text-zinc-900">{u.name}</span>
                     </div>
                   </td>
@@ -84,18 +71,18 @@ export default function UsersPage() {
                       <select 
                         value={editRole}
                         onChange={(e) => setEditRole(e.target.value)}
-                        className="lobe-input py-1 text-sm w-32"
+                        className="lobe-input py-1 text-sm w-32 border border-zinc-200 rounded-md focus:ring-2 focus:ring-zinc-900 outline-none"
                       >
-                        <option value="wid">普通用户</option>
-                        <option value="sudo">管理员</option>
+                        <option value="user">普通用户</option>
+                        <option value="admin">管理员</option>
+                        <option value="sudo">超级管理员</option>
                       </select>
                     ) : (
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        u.role === 'sudo' ? 'bg-purple-100 text-purple-800' :
-                        u.role === 'editor' ? 'bg-blue-100 text-blue-800' :
+                        u.role === 'sudo' || u.role === 'admin' ? 'bg-purple-100 text-purple-800' :
                         'bg-zinc-100 text-zinc-800'
                       }`}>
-                        {u.role === 'sudo' ? '管理员' : u.role === 'editor' ? '编辑' : '普通用户'}
+                        {u.role === 'sudo' ? '超级管理员' : u.role === 'admin' ? '管理员' : '普通用户'}
                       </span>
                     )}
                   </td>
@@ -130,6 +117,13 @@ export default function UsersPage() {
                   </td>
                 </tr>
               ))}
+              {users.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-zinc-500 font-medium">
+                    No users found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

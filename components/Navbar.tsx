@@ -2,31 +2,16 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useFirebase } from './FirebaseProvider';
-import { auth } from '@/firebase';
-import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { useAuth } from '@/hooks/use-auth';
 import { LogoutOutlined, LoginOutlined, SettingOutlined, UserOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { Tag } from 'antd';
 
 export function Navbar() {
-  const { user, userRole, userWid, userProfile, isSudo } = useFirebase();
-
-  const handleLogin = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error('Login failed:', error);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
+  const { user, userRole, logout } = useAuth();
+  
+  // 临时逻辑：根据角色判断是否为管理员
+  const isSudo = userRole === 'sudo' || userRole === 'admin';
+  const userUid = user?.uid || '';
 
   return (
     <nav className="border-b border-zinc-200 bg-white sticky top-0 z-50">
@@ -45,13 +30,9 @@ export function Navbar() {
             {user ? (
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  {user.photoURL ? (
-                    <img src={user.photoURL} alt={user.displayName || 'User'} className="w-8 h-8 rounded-full" />
-                  ) : (
-                    <div className="w-8 h-8 bg-zinc-100 rounded-full flex items-center justify-center">
-                      <UserOutlined size={16} className="text-zinc-500" />
-                    </div>
-                  )}
+                  <div className="w-8 h-8 bg-zinc-100 rounded-full flex items-center justify-center">
+                    <UserOutlined className="text-zinc-500" />
+                  </div>
                   <div className="hidden md:block text-sm">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-zinc-900 leading-none">{user.displayName}</span>
@@ -60,9 +41,9 @@ export function Navbar() {
                       )}
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-zinc-500 font-mono">{userWid}</span>
-                      {userProfile?.userGroup && (
-                        <Tag color="blue" className="shrink-0 text-xs">{userProfile.userGroup}</Tag>
+                      <span className="text-xs text-zinc-500 font-mono">{userUid}</span>
+                      {user.userGroup && (
+                        <Tag color="blue" className="shrink-0 text-xs">{user.userGroup}</Tag>
                       )}
                     </div>
                   </div>
@@ -74,23 +55,21 @@ export function Navbar() {
                       <UsergroupAddOutlined className="text-lg" />
                     </Link>
                     <Link href="/admin/users" className="text-zinc-500 hover:text-zinc-900 transition-colors" title="用户管理">
-                      <SettingOutlined size={20} />
+                      <SettingOutlined className="text-lg" />
                     </Link>
                   </>
                 )}
 
-                {userRole === 'wid' && (
-                  <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-900 transition-colors" title="仪表板">
-                    <SettingOutlined size={20} />
-                  </Link>
-                )}
+                <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-900 transition-colors" title="仪表板">
+                  <SettingOutlined className="text-lg" />
+                </Link>
 
                 <button
-                  onClick={handleLogout}
+                  onClick={logout}
                   className="text-zinc-500 hover:text-zinc-900 transition-colors"
                   title="退出登录"
                 >
-                  <LogoutOutlined size={20} />
+                  <LogoutOutlined className="text-lg" />
                 </button>
               </div>
             ) : (
@@ -98,8 +77,8 @@ export function Navbar() {
                 <Link href="/login" className="text-zinc-500 hover:text-zinc-900 transition-colors">
                   登录
                 </Link>
-                <Link href="/register" className="lobe-button bg-zinc-900 text-white hover:bg-zinc-800 flex items-center gap-2">
-                  <LoginOutlined size={16} />
+                <Link href="/register" className="lobe-button bg-zinc-900 text-white hover:bg-zinc-800 flex items-center gap-2 px-4 py-2 rounded-lg">
+                  <LoginOutlined className="text-lg" />
                   <span>注册</span>
                 </Link>
               </>

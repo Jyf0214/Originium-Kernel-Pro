@@ -1,13 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useFirebase } from '@/components/FirebaseProvider';
-import { collection, getDocs } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '@/firebase';
+import { useAuth } from '@/hooks/use-auth';
 import { FileText, Users, Clock, CheckCircle } from 'lucide-react';
 
 export default function DashboardPage() {
-  const { userRole } = useFirebase();
+  const { userRole } = useAuth();
   const [stats, setStats] = useState({
     totalArticles: 0,
     publishedArticles: 0,
@@ -18,35 +16,24 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchStats = async () => {
+      setLoading(true);
       try {
-        const articlesSnapshot = await getDocs(collection(db, 'articles'));
-        const articles = articlesSnapshot.docs.map(doc => doc.data());
-        
-        const published = articles.filter(a => a.status === 'published').length;
-        const drafts = articles.filter(a => a.status === 'draft').length;
-        
-        let usersCount = 0;
-        if (userRole === 'sudo') {
-          const usersSnapshot = await getDocs(collection(db, 'users'));
-          usersCount = usersSnapshot.size;
-        }
-
+        // TODO: 实现基于 API 的统计获取逻辑
+        // 目前返回占位数据
         setStats({
-          totalArticles: articles.length,
-          publishedArticles: published,
-          draftArticles: drafts,
-          totalUsers: usersCount,
+          totalArticles: 0,
+          publishedArticles: 0,
+          draftArticles: 0,
+          totalUsers: 0,
         });
       } catch (error) {
-        handleFirestoreError(error, OperationType.GET, 'stats');
+        console.error('Failed to fetch stats:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (userRole) {
-      fetchStats();
-    }
+    fetchStats();
   }, [userRole]);
 
   if (loading) return <div className="p-8 text-center text-zinc-500">Loading dashboard...</div>;

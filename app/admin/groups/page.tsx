@@ -2,24 +2,25 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirebase } from '@/components/FirebaseProvider';
-import { 
-  createUserGroup, 
-  getAllUserGroups, 
-  assignUserToGroup, 
+import { useAuth } from '@/hooks/use-auth';
+import {
+  createUserGroup,
+  getAllUserGroups,
   getAllUsers,
   type UserGroup,
-  type UserProfile 
+  type UserProfile
 } from '@/lib/user';
 import { Button, Input, Card, Table, Modal, Form, Select, message, Tag, Space } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, UsergroupAddOutlined } from '@ant-design/icons';
+import { PlusOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
 const { TextArea } = Input;
 
 export default function UserGroupsPage() {
   const router = useRouter();
-  const { isSudo, userProfile } = useFirebase();
+  const { userRole, user } = useAuth();
+  const isSudo = userRole === 'sudo' || userRole === 'admin';
+  
   const [loading, setLoading] = useState(false);
   const [groups, setGroups] = useState<UserGroup[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -30,13 +31,18 @@ export default function UserGroupsPage() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [groupsData, usersData] = await Promise.all([
-      getAllUserGroups(),
-      getAllUsers()
-    ]);
-    setGroups(groupsData);
-    setUsers(usersData);
-    setLoading(false);
+    try {
+      const [groupsData, usersData] = await Promise.all([
+        getAllUserGroups(),
+        getAllUsers()
+      ]);
+      setGroups(groupsData);
+      setUsers(usersData);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -45,164 +51,89 @@ export default function UserGroupsPage() {
       router.push('/');
       return;
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [isSudo, router, loadData]);
 
   const handleCreateGroup = async (values: any) => {
     try {
-      await createUserGroup(values.name, values.description || '', userProfile?.uid || '');
+      await createUserGroup(values.name, values.description || '', user?.uid || '');
       message.success('用户组创建成功');
       setIsModalOpen(false);
       form.resetFields();
       loadData();
     } catch (error) {
-      message.error('创建失败，请重试');
-    }
-  };
-
-  const handleAssignUser = async (values: any) => {
-    try {
-      await assignUserToGroup(values.uid, selectedGroup!.id);
-      message.success('用户分配成功');
-      setIsAssignModalOpen(false);
-      loadData();
-    } catch (error) {
-      message.error('分配失败，请重试');
+      message.error('创建失败');
     }
   };
 
   const columns: ColumnsType<UserGroup> = [
     {
-      title: '用户组名称',
+      title: '组名',
       dataIndex: 'name',
       key: 'name',
-      render: (name) => <span className="font-medium">{name}</span>,
+      render: (text) => <span className="font-bold">{text}</span>
     },
     {
       title: '描述',
       dataIndex: 'description',
-      key: 'description',
-    },
-    {
-      title: '成员数',
-      dataIndex: 'memberCount',
-      key: 'memberCount',
-      render: (count) => (
-        <Tag color="blue">{count} 人</Tag>
-      ),
+      key: 'description'
     },
     {
       title: '创建时间',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      render: (date) => new Date(date).toLocaleDateString('zh-CN'),
-    },
-    {
-      title: '操作',
-      key: 'action',
-      render: (_, record) => (
-        <Space>
-          <Button
-            type="link"
-            icon={<UsergroupAddOutlined />}
-            onClick={() => {
-              setSelectedGroup(record);
-              setIsAssignModalOpen(true);
-            }}
-          >
-            分配用户
-          </Button>
-        </Space>
-      ),
-    },
+      render: (date) => date ? new Date(date).toLocaleDateString() : '-'
+    }
   ];
 
-  if (!isSudo) return null;
-
   return (
-    <div className="p-6 md:p-10">
+    <div className="p-6 md:p-10 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-8">
-        <div>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-zinc-900 text-white rounded-xl flex items-center justify-center">
+            <UsergroupAddOutlined style={{ fontSize: '20px' }} />
+          </div>
           <h1 className="text-3xl font-display font-bold text-zinc-900">用户组管理</h1>
-          <p className="text-zinc-500 mt-1">创建和管理用户组，分配用户到不同组别</p>
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          size="large"
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />} 
           onClick={() => setIsModalOpen(true)}
+          className="rounded-lg h-10 px-6 bg-zinc-900"
         >
-          创建用户组
+          创建新组
         </Button>
       </div>
 
-      <Card className="lobe-card">
-        <Table
-          columns={columns}
-          dataSource={groups}
-          rowKey="id"
+      <Card className="rounded-2xl border-zinc-200 shadow-sm overflow-hidden">
+        <Table 
+          columns={columns} 
+          dataSource={groups} 
           loading={loading}
-          pagination={{ pageSize: 10 }}
+          rowKey="id"
+          pagination={false}
         />
       </Card>
 
-      {/* Create Group Modal */}
       <Modal
-        title="创建用户组"
+        title="创建新用户组"
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         footer={null}
+        className="rounded-2xl"
       >
-        <Form form={form} layout="vertical" onFinish={handleCreateGroup}>
-          <Form.Item
-            name="name"
-            label="用户组名称"
-            rules={[{ required: true, message: '请输入用户组名称' }]}
-          >
-            <Input placeholder="例如：VIP 用户、高级会员" />
+        <Form form={form} layout="vertical" onFinish={handleCreateGroup} className="mt-4">
+          <Form.Item name="name" label="组名" rules={[{ required: true, message: '请输入组名' }]}>
+            <Input placeholder="例如: 核心开发组" className="rounded-lg h-10" />
           </Form.Item>
-          <Form.Item
-            name="description"
-            label="描述"
-          >
-            <TextArea rows={3} placeholder="用户组描述（可选）" />
+          <Form.Item name="description" label="描述">
+            <TextArea rows={4} placeholder="描述该用户组的权限或用途" className="rounded-lg" />
           </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>
-              创建
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      {/* Assign User Modal */}
-      <Modal
-        title={`分配用户到 "${selectedGroup?.name}"`}
-        open={isAssignModalOpen}
-        onCancel={() => setIsAssignModalOpen(false)}
-        footer={null}
-      >
-        <Form layout="vertical" onFinish={handleAssignUser}>
-          <Form.Item
-            name="uid"
-            label="选择用户"
-            rules={[{ required: true, message: '请选择用户' }]}
-          >
-            <Select placeholder="选择用户">
-              {users
-                .filter(u => !u.userGroup || u.userGroup !== selectedGroup?.id)
-                .map(user => (
-                  <Select.Option key={user.uid} value={user.uid}>
-                    {user.name} ({user.wid}) - {user.email}
-                  </Select.Option>
-                ))}
-            </Select>
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>
-              分配
-            </Button>
+          <Form.Item className="mb-0 flex justify-end gap-2">
+            <Space>
+              <Button onClick={() => setIsModalOpen(false)} className="rounded-lg h-10">取消</Button>
+              <Button type="primary" htmlType="submit" className="rounded-lg h-10 bg-zinc-900">提交</Button>
+            </Space>
           </Form.Item>
         </Form>
       </Modal>

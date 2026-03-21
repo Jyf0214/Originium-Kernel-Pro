@@ -1,37 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Sidebar } from '@/components/Sidebar';
 import { ArticleCard } from '@/components/ArticleCard';
-import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '@/firebase';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Filter, Sparkles, ArrowRight } from 'lucide-react';
+import { Search, Filter, Sparkles } from 'lucide-react';
 
 export default function HomePage() {
-  const [articles, setArticles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [articles] = useState<any[]>([]);
+  const [loading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-
-  useEffect(() => {
-    const q = query(
-      collection(db, 'articles'),
-      where('status', '==', 'published'),
-      orderBy('createdAt', 'desc'),
-      limit(20)
-    );
-
-    const unsub = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setArticles(docs);
-      setLoading(false);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'articles');
-    });
-
-    return () => unsub();
-  }, []);
 
   const filteredArticles = articles.filter(a => 
     a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -63,7 +42,7 @@ export default function HomePage() {
               transition={{ delay: 0.1 }}
               className="text-4xl md:text-6xl font-display font-black tracking-tight text-zinc-900 mb-6 leading-[1.1]"
             >
-              Modern Blog Framework <br />
+              Modern Content Platform <br />
               <span className="text-zinc-400">Powered by Node Functions.</span>
             </motion.h1>
             
@@ -80,10 +59,10 @@ export default function HomePage() {
                   placeholder="Search articles..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="lobe-input pl-12 h-14 text-lg"
+                  className="lobe-input pl-12 h-14 text-lg w-full border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900 transition-all"
                 />
               </div>
-              <button className="lobe-button bg-zinc-100 text-zinc-900 border border-zinc-200 flex items-center gap-2 hover:bg-zinc-200 h-14 px-8">
+              <button className="lobe-button bg-zinc-100 text-zinc-900 border border-zinc-200 flex items-center gap-2 hover:bg-zinc-200 h-14 px-8 rounded-xl transition-colors">
                 <Filter size={20} />
                 <span>Filters</span>
               </button>
@@ -94,7 +73,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {loading ? (
               Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="lobe-card p-6 h-64 animate-pulse bg-zinc-100" />
+                <div key={i} className="lobe-card p-6 h-64 animate-pulse bg-zinc-100 rounded-xl" />
               ))
             ) : filteredArticles.length > 0 ? (
               <AnimatePresence mode="popLayout">

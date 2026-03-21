@@ -1,6 +1,6 @@
 import type {Metadata} from 'next';
 import './globals.css'; // Global styles
-import { FirebaseProvider } from '@/components/FirebaseProvider';
+import { AuthProvider } from '@/hooks/use-auth';
 import { ConfigProvider } from '@/components/ConfigProvider';
 
 export const metadata: Metadata = {
@@ -13,9 +13,9 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
     <html lang="zh-CN">
       <body suppressHydrationWarning>
         <ConfigProvider>
-          <FirebaseProvider>
+          <AuthProvider>
             {children}
-          </FirebaseProvider>
+          </AuthProvider>
         </ConfigProvider>
       </body>
     </html>
