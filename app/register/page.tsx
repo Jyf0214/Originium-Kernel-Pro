@@ -2,13 +2,13 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Input, message, Card, Typography, Form, Divider, notification } from 'antd';
-import { UserOutlined, LockOutlined, ArrowLeftOutlined } from '@ant-design/icons';
-import { Flexbox, Text } from '@lobehub/ui';
+import { Button, Input, Form, notification, message } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import { Flexbox, Text, Icon } from '@lobehub/ui';
+import { User, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'motion/react';
-
-const { Title } = Typography;
+import AuthCard from '@/components/AuthCard';
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
@@ -46,69 +46,98 @@ export default function RegisterPage() {
     }
   };
 
+  const footer = (
+    <Flexbox gap={8}>
+      <Text type="secondary">已有账号？</Text>
+      <Link href="/login">
+        <Button type="link" style={{ padding: '0 4px' }}>立即登录</Button>
+      </Link>
+    </Flexbox>
+  );
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="min-h-screen bg-[#f5f7fa] flex items-center justify-center p-6"
     >
-      <Flexbox width={'min(100%, 440px)'} gap={16}>
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+      <Flexbox gap={16}>
+        <div style={{ marginBottom: 24 }}>
           <Link href="/">
-            <Button icon={<ArrowLeftOutlined />} type="text">返回首页</Button>
+            <Button icon={<ArrowLeftOutlined />} type="text">
+              返回首页
+            </Button>
           </Link>
         </div>
 
-        <Card 
-          variant="borderless" 
-          style={{ 
-            borderRadius: 16, 
-            boxShadow: '0 8px 32px rgba(0,0,0,0.05)',
-            background: 'white'
-          }}
+        <AuthCard
+          footer={footer}
+          subtitle="加入 Originium Kernel"
+          title="创建账号"
         >
-          <Flexbox gap={16} style={{ marginBottom: 32 }}>
-            <Title level={3} style={{ margin: 0, fontWeight: 600 }}>创建账号</Title>
-            <Text type="secondary">加入 Private Journal</Text>
-          </Flexbox>
-
           <Form 
             form={form}
-            name="register" 
             layout="vertical" 
             onFinish={onFinish} 
             autoComplete="off"
           >
-            <Form.Item 
-              name="username" 
+            <Form.Item
+              name="username"
               rules={[
-                { required: true, message: '请输入用户名' }, 
+                { required: true, message: '请输入用户名' },
                 { min: 3, message: '用户名至少 3 个字符' }
               ]}
               style={{ marginBottom: 16 }}
             >
-              <Input prefix={<UserOutlined />} placeholder="用户名" size="large" />
+              <Input
+                placeholder="用户名"
+                size="large"
+                prefix={
+                  <Icon
+                    icon={User}
+                    style={{ marginInline: 6 }}
+                  />
+                }
+              />
             </Form.Item>
-            <Form.Item 
-              name="name" 
+            <Form.Item
+              name="name"
               rules={[{ required: true, message: '请输入昵称' }]}
               style={{ marginBottom: 16 }}
             >
-              <Input prefix={<UserOutlined />} placeholder="昵称" size="large" />
+              <Input
+                placeholder="昵称"
+                size="large"
+                prefix={
+                  <Icon
+                    icon={User}
+                    style={{ marginInline: 6 }}
+                  />
+                }
+              />
             </Form.Item>
-            <Form.Item 
-              name="password" 
+            <Form.Item
+              name="password"
               rules={[
-                { required: true, message: '请输入密码' }, 
+                { required: true, message: '请输入密码' },
                 { min: 6, message: '密码至少 6 个字符' }
               ]}
               style={{ marginBottom: 16 }}
             >
-              <Input.Password prefix={<LockOutlined />} placeholder="密码" size="large" />
+              <Input.Password
+                placeholder="密码"
+                size="large"
+                prefix={
+                  <Icon
+                    icon={Lock}
+                    style={{ marginInline: 6 }}
+                  />
+                }
+              />
             </Form.Item>
-            <Form.Item 
-              name="confirm" 
-              dependencies={['password']} 
+            <Form.Item
+              name="confirm"
+              dependencies={['password']}
               rules={[
                 { required: true, message: '请确认您的密码' },
                 ({ getFieldValue }) => ({
@@ -118,32 +147,33 @@ export default function RegisterPage() {
                   },
                 }),
               ]}
-              style={{ marginBottom: 24 }}
+              style={{ marginBottom: 0 }}
             >
-              <Input.Password prefix={<LockOutlined />} placeholder="确认密码" size="large" />
-            </Form.Item>
-            <Form.Item>
-              <Button 
-                type="primary" 
-                htmlType="submit" 
-                loading={loading} 
-                block 
+              <Input.Password
+                placeholder="确认密码"
                 size="large"
-              >
+                prefix={
+                  <Icon
+                    icon={Lock}
+                    style={{ marginInline: 6 }}
+                  />
+                }
+              />
+            </Form.Item>
+
+            <Form.Item style={{ marginBottom: 0, marginTop: 24 }}>
+              <Button block htmlType="submit" loading={loading} size="large" type="primary">
                 立即注册
               </Button>
             </Form.Item>
           </Form>
+        </AuthCard>
 
-          <Divider style={{ margin: '24px 0 16px' }} />
-
-          <div style={{ textAlign: 'center' }}>
-            <Text type="secondary">已有账号？</Text>
-            <Link href="/login">
-              <Button type="link" style={{ padding: '0 4px' }}>立即登录</Button>
-            </Link>
-          </div>
-        </Card>
+        <Flexbox padding={24}>
+          <Text align="center" type="secondary">
+            Originium Kernel © {new Date().getFullYear()}
+          </Text>
+        </Flexbox>
       </Flexbox>
     </motion.div>
   );
