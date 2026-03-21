@@ -14,10 +14,10 @@ export interface AuthCardProps {
 /**
  * AuthCard Component
  * 
- * A clean authentication card component inspired by LobeChat's design language.
- * Simplified layout without Card wrapper for better performance and cleaner UI.
+ * 参考LobeChat设计语言的认证卡片组件
+ * 优化标题视觉权重、输入框样式和整体间距
  * 
- * @see https://github.com/lobehub/lobe-chat - UI design reference
+ * @see https://github.com/lobehub/lobe-chat - UI设计参考
  * @copyright LobeChat UI Design
  */
 export const AuthCard = memo<AuthCardProps>(({ children, title, subtitle, footer }) => {
@@ -25,7 +25,7 @@ export const AuthCard = memo<AuthCardProps>(({ children, title, subtitle, footer
     <Flexbox width={'min(100%, 440px)'}>
       <Flexbox gap={16}>
         {title && (
-          <Text fontSize={28} style={{ lineHeight: 1.4 }} weight={'bold'}>
+          <Text fontSize={32} style={{ lineHeight: 1.2, letterSpacing: '-0.5px' }} weight={'bold'}>
             {title}
           </Text>
         )}
@@ -35,7 +35,7 @@ export const AuthCard = memo<AuthCardProps>(({ children, title, subtitle, footer
           </Text>
         )}
       </Flexbox>
-      <Flexbox gap={4} paddingBlock={32}>
+      <Flexbox gap={8} paddingBlock={32}>
         {children}
       </Flexbox>
       {footer}

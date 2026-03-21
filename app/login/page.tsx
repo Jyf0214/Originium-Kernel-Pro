@@ -56,6 +56,12 @@ function LoginForm() {
     setEmail('');
   };
 
+  const inputStyle = { 
+    padding: 6,
+    borderRadius: 12,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+  };
+
   const renderEmailStep = () => (
     <AuthCard
       footer={
@@ -89,7 +95,7 @@ function LoginForm() {
             prefix={
               <Icon icon={Mail} style={{ marginInline: 6 }} />
             }
-            style={{ padding: 6 }}
+            style={inputStyle}
             suffix={
               <Button
                 icon={<Icon icon={ChevronRight} />}
@@ -162,7 +168,7 @@ function LoginForm() {
             prefix={
               <Icon icon={Lock} style={{ marginInline: 6 }} />
             }
-            style={{ padding: 6 }}
+            style={inputStyle}
             suffix={
               <Button
                 icon={<Icon icon={ChevronRight} />}
