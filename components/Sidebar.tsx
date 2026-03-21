@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { LayoutDashboard, FileText, Users, Settings, ShieldAlert } from 'lucide-react';
+import { Flexbox, Text } from '@lobehub/ui';
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -26,26 +27,35 @@ export function Sidebar() {
   if (filteredLinks.length === 0) return null;
 
   return (
-    <aside className="w-64 border-r border-zinc-200 bg-zinc-50/50 hidden md:block min-h-[calc(100vh-4rem)]">
+    <aside className="w-72 border-r border-zinc-200/60 bg-gradient-to-b from-zinc-50/80 to-transparent hidden md:block min-h-[calc(100vh-4rem)] backdrop-blur-sm">
       <div className="p-6">
-        <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4">Dashboard</h2>
-        <nav className="space-y-1">
+        <Flexbox gap={2} paddingBlock={8}>
+          <Text fontSize={11} weight={700} className="text-zinc-400 uppercase tracking-widest">
+            Dashboard
+          </Text>
+        </Flexbox>
+        <nav className="space-y-1 mt-4">
           {filteredLinks.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
-            
+
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                  isActive 
-                    ? 'bg-zinc-900 text-white' 
-                    : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                  isActive
+                    ? 'bg-gradient-to-r from-zinc-900 to-zinc-800 text-white shadow-md shadow-zinc-900/10'
+                    : 'text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900'
                 }`}
               >
-                <Icon size={18} />
-                <span className="font-medium text-sm">{link.label}</span>
+                <Icon 
+                  size={18} 
+                  className={`transition-colors ${isActive ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-900'}`} 
+                />
+                <Text weight={isActive ? 600 : 500} style={{ fontSize: 14 }}>
+                  {link.label}
+                </Text>
               </Link>
             );
           })}

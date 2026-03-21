@@ -38,10 +38,10 @@ export default function HomePage() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[#f8f8f8]">
       <Navbar />
 
-      <Flexbox className="flex-1 max-w-7xl mx-auto w-full">
+      <Flexbox className="flex-1 max-w-7xl mx-auto w-full" horizontal>
         <Sidebar />
 
         <main className="flex-1 p-6 md:p-10">
@@ -59,7 +59,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-5xl md:text-8xl font-display font-black tracking-tighter text-zinc-900 mb-8 leading-[0.95]"
+              className="text-5xl md:text-7xl font-display font-black tracking-tighter text-zinc-900 mb-8 leading-[0.95]"
             >
               Write. Sync. <br />
               <span className="text-zinc-300">Deploy.</span>
@@ -77,21 +77,26 @@ export default function HomePage() {
                     placeholder="Search in kernel..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-12 h-16 text-lg w-full rounded-2xl"
+                    className="pl-12 h-14 text-base w-full rounded-2xl bg-white border-zinc-200 hover:border-zinc-300 transition-colors"
                     size="large"
+                    variant="outlined"
                   />
                 </div>
-                <Button size="large" icon={<Filter size={20} />}>
+                <Button 
+                  size="large" 
+                  icon={<Filter size={20} />}
+                  className="bg-white hover:bg-zinc-50 border-zinc-200 rounded-2xl"
+                >
                   Sort
                 </Button>
               </Flexbox>
             </motion.div>
           </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {loading ? (
               Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="lobe-card p-8 h-80 animate-pulse bg-zinc-50 rounded-3xl border border-zinc-100" />
+                <div key={i} className="lobe-card p-8 h-80 animate-pulse bg-white rounded-3xl border border-zinc-100 shadow-sm" />
               ))
             ) : filteredArticles.length > 0 ? (
               <AnimatePresence mode="popLayout">
@@ -100,8 +105,8 @@ export default function HomePage() {
                 ))}
               </AnimatePresence>
             ) : (
-              <div className="col-span-full py-32 text-center bg-zinc-50/50 rounded-[3rem] border-2 border-dashed border-zinc-100">
-                <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 text-zinc-200 shadow-sm">
+              <div className="col-span-full py-32 text-center bg-white rounded-[3rem] border border-zinc-100 shadow-sm">
+                <div className="w-24 h-24 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-6 text-zinc-300">
                   <Sparkles size={40} />
                 </div>
                 <h3 className="text-2xl font-black text-zinc-900 mb-2">The kernel is empty</h3>

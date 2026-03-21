@@ -18,27 +18,32 @@ export const AuthCard = memo<AuthCardProps>(({ children, title, subtitle, footer
       bordered={false}
       style={{
         background: '#fff',
-        borderRadius: 16,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.05)',
+        borderRadius: 24,
+        boxShadow: '0 0 15px 0 rgba(0,0,0,0.04), 0 2px 30px 0 rgba(0,0,0,0.08), 0 0 0 1px rgba(227,227,227,0.4) inset',
+        padding: 32,
       }}
     >
       <Flexbox width={'min(100%, 440px)'}>
-        <Flexbox gap={16}>
+        <Flexbox gap={12}>
           {title && (
-            <Text fontSize={28} style={{ lineHeight: 1.4 }} weight={'bold'}>
+            <Text fontSize={28} style={{ lineHeight: 1.2 }} weight={'bold'}>
               {title}
             </Text>
           )}
           {subtitle && (
-            <Text fontSize={18} style={{ lineHeight: 1.4 }} type={'secondary'} weight={500}>
+            <Text fontSize={16} style={{ lineHeight: 1.4 }} type={'secondary'} weight={400}>
               {subtitle}
             </Text>
           )}
         </Flexbox>
-        <Flexbox gap={4} paddingBlock={32}>
+        <Flexbox gap={8} paddingBlock={28}>
           {children}
         </Flexbox>
-        {footer}
+        {footer && (
+          <Flexbox gap={8} paddingBlock={16}>
+            {footer}
+          </Flexbox>
+        )}
       </Flexbox>
     </Card>
   );
