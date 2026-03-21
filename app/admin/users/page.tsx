@@ -14,7 +14,7 @@ export default function UsersPage() {
   const [editRole, setEditRole] = useState('');
 
   useEffect(() => {
-    if (userRole !== 'admin') return;
+    if (userRole !== 'sudo') return;
 
     const q = query(collection(db, 'users'));
     const unsub = onSnapshot(q, (snapshot) => {
@@ -86,17 +86,16 @@ export default function UsersPage() {
                         onChange={(e) => setEditRole(e.target.value)}
                         className="lobe-input py-1 text-sm w-32"
                       >
-                        <option value="user">User</option>
-                        <option value="editor">Editor</option>
-                        <option value="admin">Admin</option>
+                        <option value="wid">普通用户</option>
+                        <option value="sudo">管理员</option>
                       </select>
                     ) : (
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        u.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                        u.role === 'sudo' ? 'bg-purple-100 text-purple-800' :
                         u.role === 'editor' ? 'bg-blue-100 text-blue-800' :
                         'bg-zinc-100 text-zinc-800'
                       }`}>
-                        {u.role}
+                        {u.role === 'sudo' ? '管理员' : u.role === 'editor' ? '编辑' : '普通用户'}
                       </span>
                     )}
                   </td>

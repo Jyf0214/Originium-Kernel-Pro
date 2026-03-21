@@ -5,10 +5,13 @@
   channel = "stable-24.05"; # or "unstable"
   # Use https://search.nixos.org/packages to find packages
   packages = [
-    pkgs.nodejs_20
+    pkgs.nodejs_22
     pkgs.yarn
     pkgs.nodePackages.pnpm
     pkgs.bun
+    pkgs.gh
+    pkgs.openssl
+    pkgs.openssh
   ];
   # Sets environment variables in the workspace
   env = {};
@@ -16,12 +19,13 @@
     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
     extensions = [
       # "vscodevim.vim"
-      "google.gemini-cli-vscode-ide-companion"
     ];
     workspace = {
       # Runs when a workspace is first created with this `dev.nix` file
       onCreate = {
         npm-install = "npm ci --no-audit --prefer-offline --no-progress --timing";
+        install-opencode = "npm install -g opencode-ai";
+        install-pm2 = "npm install -g pm2";
         # Open editors for the following files by default, if they exist:
         default.openFiles = [
           # Cover all the variations of language, src-dir, router (app/pages)

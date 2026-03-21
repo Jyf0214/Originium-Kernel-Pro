@@ -9,7 +9,7 @@ import { Save, Github, Settings } from 'lucide-react';
 export default function ConfigPage() {
   const { userRole } = useFirebase();
   const [config, setConfig] = useState({
-    siteTitle: 'Hexo PRO',
+    siteTitle: 'Originium Kernel',
     siteDescription: 'Modern Blog Framework',
     githubRepo: '',
     githubToken: '',
@@ -18,7 +18,7 @@ export default function ConfigPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (userRole !== 'admin') return;
+    if (userRole !== 'sudo') return;
 
     const fetchConfig = async () => {
       try {

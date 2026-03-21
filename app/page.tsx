@@ -54,7 +54,7 @@ export default function HomePage() {
               className="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-widest mb-4"
             >
               <Sparkles size={16} />
-              <span>Welcome to Hexo PRO</span>
+              <span>Welcome to Originium Kernel</span>
             </motion.div>
             
             <motion.h1 

@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { useFirebase } from './FirebaseProvider';
 import { auth } from '@/firebase';
 import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
-import { LogIn, LogOut, Settings, User as UserIcon } from 'lucide-react';
+import { LogoutOutlined, LoginOutlined, SettingOutlined, UserOutlined, UsergroupAddOutlined } from '@ant-design/icons';
+import { Tag } from 'antd';
 
 export function Navbar() {
-  const { user, userRole } = useFirebase();
+  const { user, userRole, userWid, userProfile, isSudo } = useFirebase();
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -34,12 +35,12 @@ export function Navbar() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2">
               <div className="w-8 h-8 bg-zinc-900 rounded-md flex items-center justify-center">
-                <span className="text-white font-bold text-xl leading-none">H</span>
+                <span className="text-white font-bold text-xl leading-none">O</span>
               </div>
-              <span className="font-display font-bold text-xl tracking-tight">Hexo PRO</span>
+              <span className="font-display font-bold text-xl tracking-tight">Originium Kernel</span>
             </Link>
           </div>
-          
+
           <div className="flex items-center gap-4">
             {user ? (
               <div className="flex items-center gap-4">
@@ -48,37 +49,60 @@ export function Navbar() {
                     <img src={user.photoURL} alt={user.displayName || 'User'} className="w-8 h-8 rounded-full" />
                   ) : (
                     <div className="w-8 h-8 bg-zinc-100 rounded-full flex items-center justify-center">
-                      <UserIcon size={16} className="text-zinc-500" />
+                      <UserOutlined size={16} className="text-zinc-500" />
                     </div>
                   )}
                   <div className="hidden md:block text-sm">
-                    <p className="font-medium text-zinc-900 leading-none">{user.displayName}</p>
-                    <p className="text-xs text-zinc-500 capitalize">{userRole || 'User'}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-zinc-900 leading-none">{user.displayName}</span>
+                      {isSudo && (
+                        <Tag color="gold" className="shrink-0">Sudo</Tag>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-zinc-500 font-mono">{userWid}</span>
+                      {userProfile?.userGroup && (
+                        <Tag color="blue" className="shrink-0 text-xs">{userProfile.userGroup}</Tag>
+                      )}
+                    </div>
                   </div>
                 </div>
-                
-                {(userRole === 'admin' || userRole === 'editor') && (
-                  <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-900 transition-colors">
-                    <Settings size={20} />
+
+                {isSudo && (
+                  <>
+                    <Link href="/admin/groups" className="text-zinc-500 hover:text-zinc-900 transition-colors" title="用户组管理">
+                      <UsergroupAddOutlined className="text-lg" />
+                    </Link>
+                    <Link href="/admin/users" className="text-zinc-500 hover:text-zinc-900 transition-colors" title="用户管理">
+                      <SettingOutlined size={20} />
+                    </Link>
+                  </>
+                )}
+
+                {userRole === 'wid' && (
+                  <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-900 transition-colors" title="仪表板">
+                    <SettingOutlined size={20} />
                   </Link>
                 )}
-                
-                <button 
+
+                <button
                   onClick={handleLogout}
                   className="text-zinc-500 hover:text-zinc-900 transition-colors"
-                  title="Logout"
+                  title="退出登录"
                 >
-                  <LogOut size={20} />
+                  <LogoutOutlined size={20} />
                 </button>
               </div>
             ) : (
-              <button 
-                onClick={handleLogin}
-                className="lobe-button bg-zinc-900 text-white hover:bg-zinc-800 flex items-center gap-2"
-              >
-                <LogIn size={16} />
-                <span>Sign In</span>
-              </button>
+              <>
+                <Link href="/login" className="text-zinc-500 hover:text-zinc-900 transition-colors">
+                  登录
+                </Link>
+                <Link href="/register" className="lobe-button bg-zinc-900 text-white hover:bg-zinc-800 flex items-center gap-2">
+                  <LoginOutlined size={16} />
+                  <span>注册</span>
+                </Link>
+              </>
             )}
           </div>
         </div>

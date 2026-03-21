@@ -13,7 +13,7 @@ export default function RequestsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (userRole !== 'admin') return;
+    if (userRole !== 'sudo') return;
 
     const q = query(collection(db, 'requests'));
     const unsub = onSnapshot(q, (snapshot) => {

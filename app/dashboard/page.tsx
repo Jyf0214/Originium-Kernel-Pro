@@ -26,7 +26,7 @@ export default function DashboardPage() {
         const drafts = articles.filter(a => a.status === 'draft').length;
         
         let usersCount = 0;
-        if (userRole === 'admin') {
+        if (userRole === 'sudo') {
           const usersSnapshot = await getDocs(collection(db, 'users'));
           usersCount = usersSnapshot.size;
         }
@@ -92,7 +92,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {userRole === 'admin' && (
+        {userRole === 'sudo' && (
           <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
