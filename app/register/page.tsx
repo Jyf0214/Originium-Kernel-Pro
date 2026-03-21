@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Input, Form, notification, message } from 'antd';
+import { ChevronRight, User, Lock, Mail } from 'lucide-react';
 import { Flexbox, Text, Icon } from '@lobehub/ui';
-import { User, Lock, Mail } from 'lucide-react';
 import Link from 'next/link';
 import AuthCard from '@/components/AuthCard';
 import AuthLayout from '@/components/AuthLayout';
@@ -12,10 +12,10 @@ import AuthLayout from '@/components/AuthLayout';
 /**
  * Register Page Component
  * 
- * Complete registration flow inspired by LobeChat's sign-up design.
- * Features clean form layout with consistent styling.
+ * 参考LobeChat设计语言的注册页面
+ * 优化标题视觉权重、输入框样式、阴影和间距
  * 
- * @see https://github.com/lobehub/lobe-chat - UI design reference
+ * @see https://github.com/lobehub/lobe-chat - UI设计参考
  * @copyright LobeChat UI Design
  */
 export default function RegisterPage() {
@@ -70,7 +70,7 @@ export default function RegisterPage() {
   const footer = (
     <Text>
       已有账号？{' '}
-      <Link href="/login" style={{ fontWeight: 500 }}>
+      <Link href="/login" style={{ fontWeight: 500, textDecoration: 'underline' }}>
         立即登录
       </Link>
     </Text>
@@ -97,6 +97,11 @@ export default function RegisterPage() {
               prefix={
                 <Icon icon={Mail} style={{ marginInline: 6 }} />
               }
+              style={{ 
+                padding: 6,
+                borderRadius: 12,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}
             />
           </Form.Item>
           
@@ -113,6 +118,11 @@ export default function RegisterPage() {
               prefix={
                 <Icon icon={User} style={{ marginInline: 6 }} />
               }
+              style={{ 
+                padding: 6,
+                borderRadius: 12,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}
             />
           </Form.Item>
           
@@ -129,6 +139,11 @@ export default function RegisterPage() {
               prefix={
                 <Icon icon={Lock} style={{ marginInline: 6 }} />
               }
+              style={{ 
+                padding: 6,
+                borderRadius: 12,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}
             />
           </Form.Item>
           
@@ -151,15 +166,38 @@ export default function RegisterPage() {
               prefix={
                 <Icon icon={Lock} style={{ marginInline: 6 }} />
               }
+              style={{ 
+                padding: 6,
+                borderRadius: 12,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}
             />
           </Form.Item>
 
-          <Form.Item>
-            <Button block htmlType="submit" loading={loading} size="large" type="primary">
+          <Form.Item style={{ marginTop: 24 }}>
+            <Button 
+              block 
+              htmlType="submit" 
+              loading={loading} 
+              size="large" 
+              type="primary"
+              style={{ borderRadius: 12, height: 48 }}
+            >
               立即注册
             </Button>
           </Form.Item>
         </Form>
+        
+        <Text fontSize={13} type={'secondary'} style={{ textAlign: 'center', marginTop: 16 }}>
+          注册即表示您同意我们的{' '}
+          <Link href="/terms" style={{ color: 'inherit', textDecoration: 'underline' }}>
+            服务条款
+          </Link>
+          {' '}和{' '}
+          <Link href="/privacy" style={{ color: 'inherit', textDecoration: 'underline' }}>
+            隐私政策
+          </Link>
+        </Text>
       </AuthCard>
     </AuthLayout>
   );
