@@ -3,37 +3,23 @@
 import { Center, Flexbox, Text } from '@lobehub/ui';
 import { type FC, type PropsWithChildren } from 'react';
 
+import { styles } from './style';
+
 /**
- * AuthLayout Component
+ * AuthContainer Component
  * 
- * 认证页面布局组件，采用 LobeChat 设计语言
- * 特点：
- * - 全屏居中布局
- * - 带边框的容器设计
- * - Logo 头部和版权页脚
- *
- * @see https://github.com/lobehub/lobe-chat - UI 设计参考
+ * 认证页面容器 - 复制自 LobeChat
+ * @see https://github.com/lobehub/lobe-chat
  * @author LobeChat Team
  * @copyright LobeHub. All rights reserved.
  */
-const AuthLayout: FC<PropsWithChildren> = ({ children }) => {
+const AuthContainer: FC<PropsWithChildren> = ({ children }) => {
   return (
-    <Flexbox
-      height={'100%'}
-      padding={8}
-      width={'100%'}
-      style={{ minHeight: '100vh' }}
-    >
+    <Flexbox className={styles.outerContainer} height={'100%'} padding={8} width={'100%'}>
       <Flexbox
+        className={styles.innerContainerLight}
         height={'100%'}
         width={'100%'}
-        style={{
-          position: 'relative',
-          overflow: 'hidden',
-          border: '1px solid var(--ant-color-border)',
-          borderRadius: 'var(--ant-border-radius)',
-          background: 'var(--ant-color-bg-container)',
-        }}
       >
         <Flexbox
           horizontal
@@ -60,4 +46,4 @@ const AuthLayout: FC<PropsWithChildren> = ({ children }) => {
   );
 };
 
-export default AuthLayout;
+export default AuthContainer;
