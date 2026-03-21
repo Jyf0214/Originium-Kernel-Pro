@@ -3,13 +3,15 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
-import { Button, Input, message, Card } from 'antd';
-import { LoginOutlined, LockOutlined, MailOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Button, Input, message, Card, Typography, Form } from 'antd';
+import { UserOutlined, LockOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 
+const { Title, Text } = Typography;
+
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -17,13 +19,13 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      return message.warning('请填写邮箱和密码');
+    if (!username || !password) {
+      return message.warning('请填写用户名和密码');
     }
 
     setLoading(true);
     try {
-      await login(email, password);
+      await login(username, password);
       router.push('/dashboard');
     } catch (error: any) {
       // Error handled in useAuth
@@ -33,70 +35,77 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
-      <Link href="/" className="absolute top-10 left-10 flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-all font-bold group">
-        <ArrowLeftOutlined className="group-hover:-translate-x-1 transition-transform" />
-        <span>Back to Home</span>
-      </Link>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
-      >
-        <div className="text-center mb-12">
-          <div className="w-24 h-24 bg-zinc-900 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-500">
-            <LoginOutlined className="text-white text-4xl" />
-          </div>
-          <h1 className="text-4xl font-display font-black text-zinc-900 tracking-tighter">Welcome Back</h1>
-          <p className="text-zinc-400 mt-4 font-bold text-sm uppercase tracking-widest">Connect to Originium Kernel</p>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen bg-[#f5f7fa] flex items-center justify-center p-6"
+    >
+      <div style={{ width: '100%', maxWidth: 400 }}>
+        <div style={{ marginBottom: 24, textAlign: 'center' }}>
+          <Link href="/">
+            <Button icon={<ArrowLeftOutlined />} type="text">返回首页</Button>
+          </Link>
         </div>
 
-        <Card className="rounded-[2.5rem] border-2 border-zinc-100 shadow-2xl shadow-zinc-200/50 p-4">
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2 ml-1">Identity (Email)</label>
-              <Input
+        <Card 
+          variant="borderless" 
+          style={{ 
+            borderRadius: 16, 
+            boxShadow: '0 8px 32px rgba(0,0,0,0.05)',
+            background: 'white'
+          }}
+        >
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <Title level={3} style={{ margin: 0, fontWeight: 800 }}>欢迎回来</Title>
+            <Text type="secondary">登录以管理您的 Private Journal</Text>
+          </div>
+
+          <Form name="login" layout="vertical" onFinish={handleLogin} autoComplete="off">
+            <Form.Item name="username" rules={[{ required: true, message: '请输入用户名' }]}>
+              <Input 
+                prefix={<UserOutlined />} 
+                placeholder="用户名" 
                 size="large"
-                prefix={<MailOutlined className="text-zinc-300 mr-2" />}
-                placeholder="email@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-14 rounded-2xl border-zinc-100 focus:border-zinc-900 hover:border-zinc-300 transition-all text-lg font-medium"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
-            </div>
-            
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2 ml-1">Access Key (Password)</label>
-              <Input.Password
+            </Form.Item>
+            <Form.Item name="password" rules={[{ required: true, message: '请输入密码' }]}>
+              <Input.Password 
+                prefix={<LockOutlined />} 
+                placeholder="密码" 
                 size="large"
-                prefix={<LockOutlined className="text-zinc-300 mr-2" />}
-                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-14 rounded-2xl border-zinc-100 focus:border-zinc-900 hover:border-zinc-300 transition-all text-lg font-medium"
               />
-            </div>
+            </Form.Item>
+            <Form.Item>
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                loading={loading} 
+                block 
+                size="large" 
+                style={{ 
+                  background: '#000', 
+                  borderColor: '#000', 
+                  height: 48,
+                  borderRadius: 8 
+                }}
+              >
+                登录
+              </Button>
+            </Form.Item>
+          </Form>
 
-            <Button
-              type="primary"
-              size="large"
-              htmlType="submit"
-              loading={loading}
-              className="w-full h-16 bg-zinc-900 hover:bg-zinc-800 rounded-2xl border-none text-lg font-black tracking-tight mt-4 shadow-xl shadow-zinc-200"
-            >
-              Initialize Session
-            </Button>
-          </form>
-
-          <div className="mt-10 pt-8 border-t border-zinc-50 text-center">
-            <p className="text-zinc-400 font-bold text-xs uppercase tracking-widest mb-4">New to this node?</p>
-            <Link href="/register" className="text-zinc-900 font-black hover:underline text-lg">
-              Generate New UID
+          <div style={{ textAlign: 'center', marginTop: 16 }}>
+            <Text type="secondary">还没有账号？</Text>
+            <Link href="/register">
+              <Button type="link" style={{ padding: '0 4px' }}>立即注册</Button>
             </Link>
           </div>
         </Card>
-      </motion.div>
-    </div>
+      </div>
+    </motion.div>
   );
 }
