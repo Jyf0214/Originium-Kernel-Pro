@@ -15,6 +15,7 @@ import { Form, Input as AntInput } from 'antd';
 import { ChevronRight, Lock, Mail } from 'lucide-react';
 import { useEffect, useRef, useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 import AuthCard from '@/components/AuthCard';
 import AuthLayout from '@/components/AuthLayout';
@@ -103,11 +104,11 @@ const SignInEmailStep = ({
         <Text type="secondary" style={{ fontSize: 14 }}>
           还没有账号？
         </Text>
-        <a href="/register">
+        <Link href="/register">
           <Text style={{ fontSize: 14, fontWeight: 500 }}>
             立即注册
           </Text>
-        </a>
+        </Link>
       </Flexbox>
     </AuthCard>
   );
