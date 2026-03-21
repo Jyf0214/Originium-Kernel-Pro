@@ -2,10 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirebase } from '@/components/FirebaseProvider';
-import { auth, db } from '@/firebase';
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from 'firebase/auth';
-import { doc, setDoc, getDoc, increment } from 'firebase/firestore';
+import { useAuth } from '@/hooks/use-auth';
 import { Button, Input, message, Card } from 'antd';
 import { UserAddOutlined, GoogleOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 
@@ -30,32 +27,16 @@ function getUserAgent(): string {
 }
 
 /**
- * Check registration limit
+ * Check registration limit (Placeholder)
  */
 async function checkRegistrationLimit(): Promise<{ allowed: boolean; count?: number; limit?: number }> {
-  try {
-    const configRef = doc(db, 'config', 'registration');
-    const configDoc = await getDoc(configRef);
-    
-    if (configDoc.exists()) {
-      const config = configDoc.data();
-      const count = config.userCount || 0;
-      const limit = config.maxUsers || Infinity;
-      
-      if (count >= limit) {
-        return { allowed: false, count, limit };
-      }
-    }
-    
-    return { allowed: true };
-  } catch {
-    return { allowed: true };
-  }
+  // TODO: 实现基于 API 的注册限制检查
+  return { allowed: true };
 }
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { user } = useFirebase();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -85,60 +66,15 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      // Create user with email/password
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Update display name
-      if (name) {
-        await updateProfile(user, { displayName: name });
-      }
-
-      // Get registration info
-      const ip = await getClientIP();
-      const userAgent = getUserAgent();
-
-      // Create user profile (wid = normal user / Boss)
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        wid: `WID-${user.uid.slice(-8).toUpperCase()}`,
-        email: user.email,
-        name: name || user.email?.split('@')[0] || 'Anonymous',
-        role: 'wid',  // Boss (普通用户)
-        photoURL: user.photoURL || '',
-        status: 'active',
-        registrationInfo: {
-          ip,
-          userAgent,
-          timestamp: new Date().toISOString(),
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-
-      // Update user count
-      const configRef = doc(db, 'config', 'registration');
-      await setDoc(configRef, {
-        userCount: increment(1),
-        updatedAt: new Date().toISOString(),
-      }, { merge: true });
-
-      message.success('注册成功！');
-      router.push('/dashboard');
+      // TODO: 实现注册 API 调用
+      // const ip = await getClientIP();
+      // const userAgent = getUserAgent();
+      
+      message.info('注册功能正在维护中，请联系管理员');
+      // router.push('/dashboard');
     } catch (error: any) {
       console.error('Registration failed:', error);
-      
-      if (error.code === 'auth/email-already-in-use') {
-        message.error('该邮箱已被注册');
-      } else if (error.code === 'auth/invalid-email') {
-        message.error('无效的邮箱地址');
-      } else if (error.code === 'auth/weak-password') {
-        message.error('密码强度不足');
-      } else if (error.code === 'auth/operation-not-allowed') {
-        message.error('注册功能未启用');
-      } else {
-        message.error('注册失败，请稍后重试');
-      }
+      message.error('注册失败，请稍后重试');
     } finally {
       setLoading(false);
     }
@@ -147,50 +83,11 @@ export default function RegisterPage() {
   const handleGoogleSignUp = async () => {
     setLoading(true);
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      // Check if user profile exists
-      const userDocRef = doc(db, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (!userDoc.exists()) {
-        // Get registration info
-        const ip = await getClientIP();
-        const userAgent = getUserAgent();
-
-        // Create profile for new user
-        await setDoc(userDocRef, {
-          uid: user.uid,
-          wid: `WID-${user.uid.slice(-8).toUpperCase()}`,
-          email: user.email,
-          name: user.displayName || user.email?.split('@')[0] || 'Anonymous',
-          role: 'wid',  // Boss (普通用户)
-          photoURL: user.photoURL || '',
-          status: 'active',
-          registrationInfo: {
-            ip,
-            userAgent,
-            timestamp: new Date().toISOString(),
-          },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
-
-        // Update user count
-        const configRef = doc(db, 'config', 'registration');
-        await setDoc(configRef, {
-          userCount: increment(1),
-          updatedAt: new Date().toISOString(),
-        }, { merge: true });
-      }
-
-      message.success('登录成功！');
-      router.push('/dashboard');
+      // TODO: 实现 Google OAuth 注册 API
+      message.info('Google 注册正在维护中');
     } catch (error: any) {
       console.error('Google sign up failed:', error);
-      message.error('Google 登录失败，请稍后重试');
+      message.error('Google 注册失败，请稍后重试');
     } finally {
       setLoading(false);
     }
@@ -203,8 +100,8 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-lg">
+    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-lg border-zinc-200">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <UserAddOutlined className="text-white text-3xl" />
@@ -256,7 +153,7 @@ export default function RegisterPage() {
             htmlType="submit"
             size="large"
             loading={loading}
-            className="w-full"
+            className="w-full bg-zinc-900 border-zinc-900 hover:bg-zinc-800"
           >
             注册账号
           </Button>

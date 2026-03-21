@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useFirebase } from '@/components/FirebaseProvider';
+import { useAuth } from '@/hooks/use-auth';
 import { getAllUserGroups } from '@/lib/user';
 import { Tag } from 'antd';
 
@@ -14,7 +14,7 @@ interface UserGroupBadgeProps {
  * Shows user's group membership
  */
 export function UserGroupBadge({ userGroupId }: UserGroupBadgeProps) {
-  const { isSudo } = useFirebase();
+  const { isSudo } = useAuth();
   const [groupName, setGroupName] = React.useState<string | undefined>();
 
   React.useEffect(() => {
@@ -42,7 +42,7 @@ export function UserGroupBadge({ userGroupId }: UserGroupBadgeProps) {
  * Shows "当前 {user} 属于 {usergroup}" on login
  */
 export function UserGroupNotification() {
-  const { userProfile, userWid, isSudo } = useFirebase();
+  const { userProfile, userWid, isSudo } = useAuth();
 
   if (!userProfile || !userProfile.userGroup) return null;
 
@@ -51,7 +51,7 @@ export function UserGroupNotification() {
       <div className="flex items-start gap-3">
         <div className="flex-1">
           <p className="text-sm text-zinc-600">
-            欢迎，<span className="font-medium text-zinc-900">{userProfile.name}</span>
+            欢迎，<span className="font-medium text-zinc-900">{userProfile.displayName}</span>
           </p>
           <p className="text-sm text-zinc-500 mt-1">
             当前 <span className="font-mono text-xs bg-zinc-100 px-1.5 py-0.5 rounded">{userWid}</span> 属于{' '}

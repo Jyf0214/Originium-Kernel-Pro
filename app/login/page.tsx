@@ -2,15 +2,13 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirebase } from '@/components/FirebaseProvider';
-import { auth } from '@/firebase';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { useAuth } from '@/hooks/use-auth';
 import { Button, Input, message, Card } from 'antd';
 import { LoginOutlined, GoogleOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user } = useFirebase();
+  const { user, login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,23 +18,12 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await login(email, password);
       message.success('登录成功！');
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Login failed:', error);
-      
-      if (error.code === 'auth/user-not-found') {
-        message.error('该邮箱未注册');
-      } else if (error.code === 'auth/wrong-password') {
-        message.error('密码错误');
-      } else if (error.code === 'auth/invalid-email') {
-        message.error('无效的邮箱地址');
-      } else if (error.code === 'auth/too-many-requests') {
-        message.error('尝试次数过多，请稍后重试');
-      } else {
-        message.error('登录失败，请稍后重试');
-      }
+      message.error('登录失败，请检查邮箱和密码');
     } finally {
       setLoading(false);
     }
@@ -45,10 +32,8 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      message.success('登录成功！');
-      router.push('/dashboard');
+      // TODO: 实现 Google OAuth 登录 API
+      message.info('Google 登录正在维护中，请使用邮箱登录');
     } catch (error: any) {
       console.error('Google sign in failed:', error);
       message.error('Google 登录失败，请稍后重试');
@@ -64,8 +49,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-lg">
+    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-lg border-zinc-200">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <LoginOutlined className="text-white text-3xl" />
@@ -99,7 +84,7 @@ export default function LoginPage() {
             htmlType="submit"
             size="large"
             loading={loading}
-            className="w-full"
+            className="w-full bg-zinc-900 border-zinc-900 hover:bg-zinc-800"
           >
             登录
           </Button>

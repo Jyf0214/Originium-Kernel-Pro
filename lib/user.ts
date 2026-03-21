@@ -6,19 +6,6 @@
  * - sudo: 特权用户/管理员 (admin)
  */
 
-import { db, handleFirestoreError, OperationType } from '@/firebase';
-import { 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
-  collection, 
-  query, 
-  where,
-  getDocs,
-  serverTimestamp 
-} from 'firebase/firestore';
-
 /**
  * User Role Types
  */
@@ -28,7 +15,7 @@ export type UserRole = 'wid' | 'sudo';
  * User Profile Interface
  */
 export interface UserProfile {
-  uid: string;          // Firebase Auth UID
+  uid: string;
   wid: string;          // User's WID (formatted user ID)
   email: string;
   name: string;
@@ -64,18 +51,8 @@ export function generateWID(uid: string): string {
  * Get user profile by UID
  */
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
-  try {
-    const userDocRef = doc(db, 'users', uid);
-    const userDoc = await getDoc(userDocRef);
-    
-    if (userDoc.exists()) {
-      return userDoc.data() as UserProfile;
-    }
-    return null;
-  } catch (error) {
-    handleFirestoreError(error, OperationType.GET, `users/${uid}`);
-    return null;
-  }
+  // TODO: 实现基于 API 的获取逻辑
+  return null;
 }
 
 /**
@@ -88,34 +65,29 @@ export async function createUserProfile(
   role: UserRole = 'wid',
   registrationInfo?: { ip: string; userAgent: string }
 ): Promise<UserProfile> {
-  try {
-    const wid = generateWID(uid);
-    const now = new Date().toISOString();
-    
-    const profile: UserProfile = {
-      uid,
-      wid,
-      email,
-      name,
-      role,
-      photoURL: '',
-      createdAt: now,
-      updatedAt: now,
-      status: 'active',
-      ...(registrationInfo && {
-        registrationInfo: {
-          ...registrationInfo,
-          timestamp: now,
-        }
-      })
-    };
-    
-    await setDoc(doc(db, 'users', uid), profile);
-    return profile;
-  } catch (error) {
-    handleFirestoreError(error, OperationType.CREATE, 'users');
-    throw error;
-  }
+  const wid = generateWID(uid);
+  const now = new Date().toISOString();
+  
+  const profile: UserProfile = {
+    uid,
+    wid,
+    email,
+    name,
+    role,
+    photoURL: '',
+    createdAt: now,
+    updatedAt: now,
+    status: 'active',
+    ...(registrationInfo && {
+      registrationInfo: {
+        ...registrationInfo,
+        timestamp: now,
+      }
+    })
+  };
+  
+  // TODO: 调用 API 保存
+  return profile;
 }
 
 /**
@@ -126,17 +98,8 @@ export async function updateUserRole(
   newRole: UserRole,
   userGroup?: string
 ): Promise<void> {
-  try {
-    const userDocRef = doc(db, 'users', uid);
-    await updateDoc(userDocRef, {
-      role: newRole,
-      userGroup,
-      updatedAt: new Date().toISOString(),
-    });
-  } catch (error) {
-    handleFirestoreError(error, OperationType.UPDATE, `users/${uid}`);
-    throw error;
-  }
+  // TODO: 实现基于 API 的更新逻辑
+  console.log('Update user role:', uid, newRole, userGroup);
 }
 
 /**
@@ -157,63 +120,30 @@ export function isWidUser(user: UserProfile | null): boolean {
  * Get all users (sudo only)
  */
 export async function getAllUsers(): Promise<UserProfile[]> {
-  try {
-    const usersRef = collection(db, 'users');
-    const snapshot = await getDocs(usersRef);
-    return snapshot.docs.map(doc => doc.data() as UserProfile);
-  } catch (error) {
-    handleFirestoreError(error, OperationType.LIST, 'users');
-    return [];
-  }
+  // TODO: 实现基于 API 的列表逻辑
+  return [];
 }
 
 /**
  * Get users by role
  */
 export async function getUsersByRole(role: UserRole): Promise<UserProfile[]> {
-  try {
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('role', '==', role));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => doc.data() as UserProfile);
-  } catch (error) {
-    handleFirestoreError(error, OperationType.LIST, 'users');
-    return [];
-  }
+  // TODO: 实现基于 API 的过滤逻辑
+  return [];
 }
 
 /**
  * Request account deletion (30-day buffer)
  */
 export async function requestAccountDeletion(uid: string): Promise<void> {
-  try {
-    const userDocRef = doc(db, 'users', uid);
-    await updateDoc(userDocRef, {
-      status: 'pending_deletion',
-      deletionRequestedAt: serverTimestamp(),
-      updatedAt: new Date().toISOString(),
-    });
-  } catch (error) {
-    handleFirestoreError(error, OperationType.UPDATE, `users/${uid}`);
-    throw error;
-  }
+  // TODO: 实现基于 API 的删除请求逻辑
 }
 
 /**
  * Confirm account deletion (sudo only)
  */
 export async function confirmAccountDeletion(uid: string): Promise<void> {
-  try {
-    const userDocRef = doc(db, 'users', uid);
-    await updateDoc(userDocRef, {
-      status: 'deleted',
-      deletionConfirmedAt: serverTimestamp(),
-      updatedAt: new Date().toISOString(),
-    });
-  } catch (error) {
-    handleFirestoreError(error, OperationType.UPDATE, `users/${uid}`);
-    throw error;
-  }
+  // TODO: 实现基于 API 的删除确认逻辑
 }
 
 /**
@@ -236,37 +166,25 @@ export async function createUserGroup(
   description: string,
   createdBy: string
 ): Promise<UserGroup> {
-  try {
-    const groupRef = doc(collection(db, 'userGroups'));
-    const group: UserGroup = {
-      id: groupRef.id,
-      name,
-      description,
-      createdAt: new Date().toISOString(),
-      createdBy,
-      memberCount: 0,
-    };
-    
-    await setDoc(groupRef, group);
-    return group;
-  } catch (error) {
-    handleFirestoreError(error, OperationType.CREATE, 'userGroups');
-    throw error;
-  }
+  const group: UserGroup = {
+    id: Math.random().toString(36).substr(2, 9),
+    name,
+    description,
+    createdAt: new Date().toISOString(),
+    createdBy,
+    memberCount: 0,
+  };
+  
+  // TODO: 调用 API 保存
+  return group;
 }
 
 /**
  * Get all user groups
  */
 export async function getAllUserGroups(): Promise<UserGroup[]> {
-  try {
-    const groupsRef = collection(db, 'userGroups');
-    const snapshot = await getDocs(groupsRef);
-    return snapshot.docs.map(doc => doc.data() as UserGroup);
-  } catch (error) {
-    handleFirestoreError(error, OperationType.LIST, 'userGroups');
-    return [];
-  }
+  // TODO: 实现基于 API 的列表逻辑
+  return [];
 }
 
 /**
@@ -276,25 +194,5 @@ export async function assignUserToGroup(
   uid: string,
   groupId: string
 ): Promise<void> {
-  try {
-    // Update user's group
-    const userDocRef = doc(db, 'users', uid);
-    await updateDoc(userDocRef, {
-      userGroup: groupId,
-      updatedAt: new Date().toISOString(),
-    });
-    
-    // Increment group member count
-    const groupDocRef = doc(db, 'userGroups', groupId);
-    const groupDoc = await getDoc(groupDocRef);
-    if (groupDoc.exists()) {
-      const currentCount = groupDoc.data().memberCount || 0;
-      await updateDoc(groupDocRef, {
-        memberCount: currentCount + 1,
-      });
-    }
-  } catch (error) {
-    handleFirestoreError(error, OperationType.UPDATE, `users/${uid}`);
-    throw error;
-  }
+  // TODO: 实现基于 API 的分配逻辑
 }

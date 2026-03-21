@@ -2,9 +2,7 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useFirebase } from '@/components/FirebaseProvider';
-import { doc, getDoc, setDoc, updateDoc, collection } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '@/firebase';
+import { useAuth } from '@/hooks/use-auth';
 import { syncToGithub } from '@/lib/github';
 import { Save, Send, ArrowLeft, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -13,7 +11,7 @@ function EditorContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const articleId = searchParams.get('id');
-  const { user, userRole } = useFirebase();
+  const { user } = useAuth();
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -26,29 +24,20 @@ function EditorContent() {
   useEffect(() => {
     if (articleId) {
       const fetchArticle = async () => {
-        try {
-          const docRef = doc(db, 'articles', articleId);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setTitle(data.title);
-            setContent(data.content);
-            setTags(data.tags?.join(', ') || '');
-            setCoverImage(data.coverImage || '');
-            setStatus(data.status);
-          }
-        } catch (error) {
-          handleFirestoreError(error, OperationType.GET, `articles/${articleId}`);
-        } finally {
-          setFetching(false);
-        }
+        setFetching(true);
+        // TODO: 从 GitHub 或 Redis 获取文章内容
+        console.log('Fetching article:', articleId);
+        setFetching(false);
       };
       fetchArticle();
     }
   }, [articleId]);
 
   const handleSave = async (newStatus: string) => {
-    if (!user) return;
+    if (!user) {
+      alert('Please login first.');
+      return;
+    }
     if (!title.trim() || !content.trim()) {
       alert('Title and content are required.');
       return;
@@ -67,42 +56,35 @@ function EditorContent() {
         updatedAt: new Date().toISOString(),
       };
 
-      let id = articleId;
+      console.log('Saving article:', articleData);
 
-      if (id) {
-        await updateDoc(doc(db, 'articles', id), articleData);
-      } else {
-        const newDocRef = doc(collection(db, 'articles'));
-        id = newDocRef.id;
-        await setDoc(newDocRef, {
-          ...articleData,
-          createdAt: new Date().toISOString(),
-        });
-      }
+      // TODO: 实现基于 Node Function 的保存逻辑
+      // 1. 提交至 GitHub
+      // 2. 更新 Redis 索引
 
       // Sync to GitHub if published
       if (newStatus === 'published') {
         try {
-          const configDoc = await getDoc(doc(db, 'config', 'main'));
-          if (configDoc.exists()) {
-            const { githubRepo, githubToken } = configDoc.data();
-            if (githubRepo && githubToken) {
-              await syncToGithub({
-                repo: githubRepo,
-                token: githubToken,
-                article: { id, ...articleData, createdAt: new Date().toISOString() } as any
-              });
-            }
+          // TODO: 从 config.yaml 获取配置
+          const githubRepo = ''; 
+          const githubToken = '';
+          
+          if (githubRepo && githubToken) {
+            await syncToGithub({
+              repo: githubRepo,
+              token: githubToken,
+              article: { id: articleId || 'new', ...articleData, createdAt: new Date().toISOString() } as any
+            });
           }
         } catch (syncError) {
           console.error('GitHub sync failed:', syncError);
-          // Don't block the save if sync fails, but maybe notify user
         }
       }
 
       router.push('/dashboard/articles');
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, 'articles');
+      console.error('Save failed:', error);
+      alert('Failed to save article.');
     } finally {
       setLoading(false);
     }
@@ -121,7 +103,7 @@ function EditorContent() {
           <button 
             onClick={() => handleSave('draft')}
             disabled={loading}
-            className="lobe-button bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 flex items-center gap-2"
+            className="lobe-button bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 flex items-center gap-2 px-4 py-2 rounded-lg"
           >
             <Save size={18} />
             <span>Save Draft</span>
@@ -129,7 +111,7 @@ function EditorContent() {
           <button 
             onClick={() => handleSave('published')}
             disabled={loading}
-            className="lobe-button bg-emerald-600 text-white hover:bg-emerald-700 flex items-center gap-2"
+            className="lobe-button bg-zinc-900 text-white hover:bg-zinc-800 flex items-center gap-2 px-4 py-2 rounded-lg"
           >
             <Send size={18} />
             <span>Publish</span>
@@ -154,7 +136,7 @@ function EditorContent() {
               placeholder="Cover Image URL (optional)" 
               value={coverImage}
               onChange={(e) => setCoverImage(e.target.value)}
-              className="lobe-input pl-10 w-full"
+              className="lobe-input pl-10 w-full border border-zinc-200 rounded-xl h-10 px-4 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
             />
           </div>
           <div className="flex-1">
@@ -163,7 +145,7 @@ function EditorContent() {
               placeholder="Tags (comma separated)" 
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              className="lobe-input w-full"
+              className="lobe-input w-full border border-zinc-200 rounded-xl h-10 px-4 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
             />
           </div>
         </div>

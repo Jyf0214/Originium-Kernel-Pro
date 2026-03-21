@@ -3,20 +3,23 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useFirebase } from './FirebaseProvider';
+import { useAuth } from '@/hooks/use-auth';
 import { LayoutDashboard, FileText, Users, Settings, ShieldAlert } from 'lucide-react';
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { userRole } = useFirebase();
+  const { userRole } = useAuth();
 
   const links = [
-    { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, roles: ['admin', 'editor', 'user'] },
-    { href: '/dashboard/articles', label: 'Articles', icon: FileText, roles: ['admin', 'editor'] },
-    { href: '/admin/users', label: 'Users', icon: Users, roles: ['admin'] },
-    { href: '/admin/requests', label: 'Requests', icon: ShieldAlert, roles: ['admin'] },
-    { href: '/admin/config', label: 'Config', icon: Settings, roles: ['admin'] },
+    { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, roles: ['admin', 'sudo', 'user'] },
+    { href: '/dashboard/articles', label: 'Articles', icon: FileText, roles: ['admin', 'sudo'] },
+    { href: '/admin/users', label: 'Users', icon: Users, roles: ['admin', 'sudo'] },
+    { href: '/admin/requests', label: 'Requests', icon: ShieldAlert, roles: ['admin', 'sudo'] },
+    { href: '/admin/config', label: 'Config', icon: Settings, roles: ['admin', 'sudo'] },
   ];
+
+  // 如果未登录，不显示侧边栏
+  if (!userRole) return null;
 
   const filteredLinks = links.filter(link => userRole && link.roles.includes(userRole));
 

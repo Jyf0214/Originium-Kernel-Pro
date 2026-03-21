@@ -1,54 +1,42 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useFirebase } from '@/components/FirebaseProvider';
-import { collection, query, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '@/firebase';
+import { useAuth } from '@/hooks/use-auth';
 import { Check, X, Clock } from 'lucide-react';
-import { format } from 'date-fns';
 
 export default function RequestsPage() {
-  const { userRole } = useFirebase();
-  const [requests, setRequests] = useState<any[]>([]);
+  const { userRole } = useAuth();
+  const [requests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (userRole !== 'sudo') return;
-
-    const q = query(collection(db, 'requests'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      setRequests(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    if (userRole !== 'sudo' && userRole !== 'admin') {
       setLoading(false);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'requests');
-    });
+      return;
+    }
 
-    return () => unsub();
+    // TODO: 实现获取申请列表的 API 调用
+    setLoading(false);
   }, [userRole]);
 
   const handleApprove = async (request: any) => {
-    try {
-      // Update user role
-      await updateDoc(doc(db, 'users', request.userId), { role: 'editor' });
-      // Update request status
-      await updateDoc(doc(db, 'requests', request.id), { status: 'approved' });
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `requests/${request.id}`);
-    }
+    console.log('Approve request:', request.id);
+    // TODO: 实现审批通过逻辑
   };
 
   const handleReject = async (id: string) => {
-    try {
-      await updateDoc(doc(db, 'requests', id), { status: 'rejected' });
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `requests/${id}`);
-    }
+    console.log('Reject request:', id);
+    // TODO: 实现审批拒绝逻辑
   };
 
   if (loading) return <div className="p-8 text-center text-zinc-500">Loading requests...</div>;
 
+  if (userRole !== 'sudo' && userRole !== 'admin') {
+    return <div className="p-8 text-center text-red-500 font-bold">Access Denied. Only Sudo/Admin can access this page.</div>;
+  }
+
   return (
-    <div className="p-6 md:p-10">
+    <div className="p-6 md:p-10 max-w-7xl mx-auto">
       <h1 className="text-3xl font-display font-bold text-zinc-900 mb-8">Role Upgrade Requests</h1>
       
       <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-sm">
@@ -59,7 +47,6 @@ export default function RequestsPage() {
                 <th className="p-4">User</th>
                 <th className="p-4">Type</th>
                 <th className="p-4">Status</th>
-                <th className="p-4">Date</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -79,9 +66,6 @@ export default function RequestsPage() {
                       {req.status === 'pending' && <Clock size={12} />}
                       {req.status}
                     </span>
-                  </td>
-                  <td className="p-4 text-sm text-zinc-500">
-                    {format(new Date(req.createdAt), 'MMM d, yyyy')}
                   </td>
                   <td className="p-4 text-right">
                     {req.status === 'pending' && (
@@ -107,7 +91,7 @@ export default function RequestsPage() {
               ))}
               {requests.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-zinc-500">
+                  <td colSpan={4} className="p-8 text-center text-zinc-500 font-medium">
                     No pending requests.
                   </td>
                 </tr>

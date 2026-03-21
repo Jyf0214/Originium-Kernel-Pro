@@ -2,58 +2,39 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useFirebase } from '@/components/FirebaseProvider';
-import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '@/firebase';
+import { useAuth } from '@/hooks/use-auth';
 import { Edit, Trash2, Plus, Eye } from 'lucide-react';
-import { format } from 'date-fns';
 
 export default function ArticlesPage() {
-  const { user, userRole } = useFirebase();
-  const [articles, setArticles] = useState<any[]>([]);
+  const { user } = useAuth();
+  const [articles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-
-    const q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'));
-    
-    const unsub = onSnapshot(q, (snapshot) => {
-      let docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Array<{ id: string; authorId?: string; [key: string]: any }>;
-
-      // Wid users only see their own articles unless they are sudo
-      if (userRole === 'wid') {
-        docs = docs.filter(doc => doc.authorId === user?.uid);
-      }
-      
-      setArticles(docs);
+    if (!user) {
       setLoading(false);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'articles');
-    });
+      return;
+    }
 
-    return () => unsub();
-  }, [user, userRole]);
+    // TODO: 实现获取文章列表的 API 调用
+    setLoading(false);
+  }, [user]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this article?')) return;
-    
-    try {
-      await deleteDoc(doc(db, 'articles', id));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, `articles/${id}`);
-    }
+    console.log('Delete article:', id);
+    // TODO: 实现删除文章逻辑
   };
 
   if (loading) return <div className="p-8 text-center text-zinc-500">Loading articles...</div>;
 
   return (
-    <div className="p-6 md:p-10">
+    <div className="p-6 md:p-10 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-display font-bold text-zinc-900">Manage Articles</h1>
         <Link 
           href="/editor" 
-          className="lobe-button bg-zinc-900 text-white hover:bg-zinc-800 flex items-center gap-2"
+          className="lobe-button bg-zinc-900 text-white hover:bg-zinc-800 flex items-center gap-2 px-4 py-2 rounded-lg transition-all"
         >
           <Plus size={18} />
           <span>New Article</span>
@@ -68,7 +49,6 @@ export default function ArticlesPage() {
                 <th className="p-4">Title</th>
                 <th className="p-4">Status</th>
                 <th className="p-4">Author</th>
-                <th className="p-4">Date</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -88,9 +68,6 @@ export default function ArticlesPage() {
                     </span>
                   </td>
                   <td className="p-4 text-sm text-zinc-600">{article.authorName}</td>
-                  <td className="p-4 text-sm text-zinc-500">
-                    {format(new Date(article.createdAt), 'MMM d, yyyy')}
-                  </td>
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Link 
@@ -120,7 +97,7 @@ export default function ArticlesPage() {
               ))}
               {articles.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-zinc-500">
+                  <td colSpan={4} className="p-8 text-center text-zinc-500 font-medium">
                     No articles found. Create your first one!
                   </td>
                 </tr>
