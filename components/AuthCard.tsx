@@ -1,45 +1,40 @@
-/**
- * AuthCard Component
- * 
- * 认证卡片组件 - 复制自 LobeChat
- * 
- * @see https://github.com/lobehub/lobe-chat - branch: canary, commit: 81bd6dc
- * @author LobeChat Team
- * @copyright LobeHub. All rights reserved.
- */
 'use client';
 
-import { type FlexboxProps } from '@lobehub/ui';
 import { Flexbox, Text } from '@lobehub/ui';
 import { type ReactNode } from 'react';
 import { memo } from 'react';
 
-export interface AuthCardProps extends Omit<FlexboxProps, 'title'> {
+export interface AuthCardProps {
+  children?: ReactNode;
   footer?: ReactNode;
   subtitle?: ReactNode;
   title?: ReactNode;
 }
 
-export const AuthCard = memo<AuthCardProps>(({ children, title, subtitle, footer, ...rest }) => {
+export const AuthCard = memo<AuthCardProps>(({ children, title, subtitle, footer }) => {
   return (
-    <Flexbox width={'min(100%,480px)'} {...rest}>
-      <Flexbox gap={24}>
+    <div style={{ width: '100%', maxWidth: 480 }}>
+      <div style={{ marginBottom: 48 }}>
         {title && (
-          <Text fontSize={32} style={{ lineHeight: 1.6, marginBottom: 0 }} weight={'bold'}>
-            {title}
-          </Text>
+          <div style={{ marginBottom: 12 }}>
+            <Text fontSize={32} weight={'bold'} style={{ lineHeight: '40px' }}>
+              {title}
+            </Text>
+          </div>
         )}
         {subtitle && (
-          <Text fontSize={18} style={{ lineHeight: 1.6 }} type={'secondary'} weight={400}>
-            {subtitle}
-          </Text>
+          <div>
+            <Text fontSize={18} type={'secondary'} style={{ lineHeight: '28px' }}>
+              {subtitle}
+            </Text>
+          </div>
         )}
-      </Flexbox>
-      <Flexbox gap={16} paddingBlock={48}>
+      </div>
+      <div style={{ marginBottom: 24 }}>
         {children}
-      </Flexbox>
+      </div>
       {footer}
-    </Flexbox>
+    </div>
   );
 });
 
