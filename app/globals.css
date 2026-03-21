@@ -26,8 +26,8 @@ body {
   font-variation-settings: var(--font-variations);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  line-height: 1;
-  color: #000;
+  line-height: 1.5;
+  color: var(--ant-color-text);
   -webkit-text-size-adjust: none;
   -moz-text-size-adjust: none;
   -ms-text-size-adjust: none;
@@ -35,7 +35,7 @@ body {
   text-rendering: optimizelegibility;
   word-wrap: break-word;
   vertical-align: baseline;
-  background-color: #f8f8f8;
+  background-color: var(--ant-color-bg-layout);
   -webkit-overflow-scrolling: touch;
   -webkit-tap-highlight-color: transparent;
 }
@@ -45,13 +45,13 @@ code, code span {
 }
 
 ::selection {
-  color: #000;
-  background: #ffef5c;
+  color: var(--ant-color-text);
+  background: var(--ant-color-primary-bg);
   -webkit-text-fill-color: unset !important;
 }
 
 * {
-  scrollbar-color: rgba(0, 0, 0, 0.12) transparent;
+  scrollbar-color: var(--ant-color-text-quaternary) transparent;
   scrollbar-width: thin;
   box-sizing: border-box;
   vertical-align: baseline;
