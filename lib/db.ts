@@ -67,7 +67,10 @@ class SqlDriver implements IDatabase {
     if (type === 'mysql') {
       this.pool = mysql.createPool(url);
     } else {
-      this.pool = new PgClient({ connectionString: url });
+      this.pool = new PgClient({ 
+        connectionString: url,
+        ssl: { rejectUnauthorized: false }
+      });
       (this.pool as PgClient).connect().catch(console.error);
     }
     this.initTable();

@@ -119,7 +119,10 @@ async function initializeDatabase() {
       sqlType = 'postgres';
       console.log('[数据库初始化] 正在连接 PostgreSQL...');
       const { Client } = require('pg');
-      connection = new Client({ connectionString: databaseUrl });
+      connection = new Client({ 
+        connectionString: databaseUrl,
+        ssl: { rejectUnauthorized: false }
+      });
       await connection.connect();
       console.log('[数据库初始化] ✓ PostgreSQL 连接成功');
     } else {
