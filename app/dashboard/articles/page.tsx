@@ -19,11 +19,11 @@ export default function ArticlesPage() {
     const q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'));
     
     const unsub = onSnapshot(q, (snapshot) => {
-      let docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      // Editors only see their own articles unless they are admins
-      if (userRole === 'editor') {
-        docs = docs.filter(doc => doc.authorId === user.uid);
+      let docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Array<{ id: string; authorId?: string; [key: string]: any }>;
+
+      // Wid users only see their own articles unless they are sudo
+      if (userRole === 'wid') {
+        docs = docs.filter(doc => doc.authorId === user?.uid);
       }
       
       setArticles(docs);
