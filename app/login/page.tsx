@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { Suspense, useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { Button, Input, Form, message } from 'antd';
@@ -10,16 +10,7 @@ import Link from 'next/link';
 import AuthCard from '@/components/AuthCard';
 import AuthLayout from '@/components/AuthLayout';
 
-/**
- * Login Page Component
- * 
- * Complete login flow inspired by LobeChat's sign-in design.
- * Features step-based authentication with clean input styling.
- * 
- * @see https://github.com/lobehub/lobe-chat - UI design reference
- * @copyright LobeChat UI Design
- */
-export default function LoginPage() {
+function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'email' | 'password'>('email');
   const [email, setEmail] = useState('');
@@ -191,5 +182,13 @@ export default function LoginPage() {
     <AuthLayout>
       {step === 'email' ? renderEmailStep() : renderPasswordStep()}
     </AuthLayout>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>加载中...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }
