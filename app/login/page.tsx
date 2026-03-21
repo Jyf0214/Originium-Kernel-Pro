@@ -19,7 +19,6 @@ import Link from 'next/link';
 
 import AuthCard from '@/components/AuthCard';
 import AuthLayout from '@/components/AuthLayout';
-import { PRIVACY_URL, TERMS_URL } from '@/const/url';
 
 type Step = 'email' | 'password';
 
@@ -40,14 +39,7 @@ const SignInEmailStep = ({
 
   const footer = (
     <Text fontSize={13} type={'secondary'}>
-      登录即表示您同意我们的{' '}
-      <a href={TERMS_URL} style={{ color: 'inherit', textDecoration: 'underline' }}>
-        服务条款
-      </a>
-      {' '}和{' '}
-      <a href={PRIVACY_URL} style={{ color: 'inherit', textDecoration: 'underline' }}>
-        隐私政策
-      </a>
+      登录即表示您同意我们的服务条款和隐私政策
     </Text>
   );
 

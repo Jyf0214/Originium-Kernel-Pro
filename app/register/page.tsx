@@ -12,7 +12,7 @@
 import { BRANDING_NAME } from '@/const/branding';
 import { Button, Flexbox, Icon, Input, Text } from '@lobehub/ui';
 import { Form, Input as AntInput } from 'antd';
-import { Lock, Mail } from 'lucide-react';
+import { ChevronRight, Lock, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -57,11 +57,8 @@ const SignUpPage = () => {
   };
 
   const footer = (
-    <Text>
-      已有账号？{' '}
-      <Link href="/login" style={{ fontWeight: 500 }}>
-        立即登录
-      </Link>
+    <Text fontSize={13} type={'secondary'}>
+      注册即表示您同意我们的服务条款和隐私政策
     </Text>
   );
 
@@ -160,6 +157,23 @@ const SignUpPage = () => {
             </Button>
           </Form.Item>
         </Form>
+
+        <Flexbox
+          horizontal
+          justify="center"
+          gap={8}
+          paddingBlock={20}
+          style={{ borderTop: '1px solid var(--ant-color-border-secondary)' }}
+        >
+          <Text type="secondary" style={{ fontSize: 14 }}>
+            已有账号？
+          </Text>
+          <Link href="/login">
+            <Text style={{ fontSize: 14, fontWeight: 500 }}>
+              立即登录
+            </Text>
+          </Link>
+        </Flexbox>
       </AuthCard>
     </AuthLayout>
   );
