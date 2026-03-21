@@ -1,9 +1,11 @@
 'use client';
 
 import { Center, Flexbox, Text } from '@lobehub/ui';
+import { cx } from 'antd-style';
 import { type FC, type PropsWithChildren } from 'react';
 
 import { styles } from './style';
+import { useIsDark } from '@/hooks/useIsDark';
 
 /**
  * AuthContainer Component
@@ -14,10 +16,11 @@ import { styles } from './style';
  * @copyright LobeHub. All rights reserved.
  */
 const AuthContainer: FC<PropsWithChildren> = ({ children }) => {
+  const isDarkMode = useIsDark();
   return (
     <Flexbox className={styles.outerContainer} height={'100%'} padding={8} width={'100%'}>
       <Flexbox
-        className={styles.innerContainerLight}
+        className={cx(isDarkMode ? styles.innerContainerDark : styles.innerContainerLight)}
         height={'100%'}
         width={'100%'}
       >
