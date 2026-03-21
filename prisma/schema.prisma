@@ -1,0 +1,39 @@
+// Prisma schema - Originium Kernel Database
+// 参考 LobeChat 数据库设计
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户表
+model User {
+  uid        String   @id @default(cuid())
+  email      String   @unique
+  name       String
+  password   String
+  role       String   @default("user")
+  userGroup  String?  @map("user_group")
+  status     String   @default("active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+  @@index([email])
+  @@index([uid])
+}
+
+// KV 存储表
+model OriginiumKV {
+  key       String   @id @map("k")
+  value     String?  @map("v")
+  expiry    BigInt?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("originium_kv")
+  @@index([key])
+}
