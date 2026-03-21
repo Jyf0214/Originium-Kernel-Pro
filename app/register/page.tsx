@@ -2,16 +2,18 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Input, message, Card, Typography, Form, notification } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Button, Input, message, Card, Typography, Form, Divider, notification } from 'antd';
+import { UserOutlined, LockOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Flexbox, Text } from '@lobehub/ui';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [form] = Form.useForm();
 
   const onFinish = async (values: any) => {
     setLoading(true);
@@ -50,8 +52,8 @@ export default function RegisterPage() {
       animate={{ opacity: 1 }}
       className="min-h-screen bg-[#f5f7fa] flex items-center justify-center p-6"
     >
-      <div style={{ width: '100%', maxWidth: 400 }}>
-        <div style={{ marginBottom: 24, textAlign: 'center' }}>
+      <Flexbox width={'min(100%, 440px)'} gap={16}>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <Link href="/">
             <Button icon={<ArrowLeftOutlined />} type="text">返回首页</Button>
           </Link>
@@ -65,24 +67,32 @@ export default function RegisterPage() {
             background: 'white'
           }}
         >
-          <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <Title level={3} style={{ margin: 0, fontWeight: 800 }}>创建账号</Title>
+          <Flexbox gap={16} style={{ marginBottom: 32 }}>
+            <Title level={3} style={{ margin: 0, fontWeight: 600 }}>创建账号</Title>
             <Text type="secondary">加入 Private Journal</Text>
-          </div>
+          </Flexbox>
 
-          <Form name="register" layout="vertical" onFinish={onFinish} autoComplete="off">
+          <Form 
+            form={form}
+            name="register" 
+            layout="vertical" 
+            onFinish={onFinish} 
+            autoComplete="off"
+          >
             <Form.Item 
               name="username" 
               rules={[
                 { required: true, message: '请输入用户名' }, 
                 { min: 3, message: '用户名至少 3 个字符' }
               ]}
+              style={{ marginBottom: 16 }}
             >
               <Input prefix={<UserOutlined />} placeholder="用户名" size="large" />
             </Form.Item>
             <Form.Item 
               name="name" 
               rules={[{ required: true, message: '请输入昵称' }]}
+              style={{ marginBottom: 16 }}
             >
               <Input prefix={<UserOutlined />} placeholder="昵称" size="large" />
             </Form.Item>
@@ -92,6 +102,7 @@ export default function RegisterPage() {
                 { required: true, message: '请输入密码' }, 
                 { min: 6, message: '密码至少 6 个字符' }
               ]}
+              style={{ marginBottom: 16 }}
             >
               <Input.Password prefix={<LockOutlined />} placeholder="密码" size="large" />
             </Form.Item>
@@ -107,6 +118,7 @@ export default function RegisterPage() {
                   },
                 }),
               ]}
+              style={{ marginBottom: 24 }}
             >
               <Input.Password prefix={<LockOutlined />} placeholder="确认密码" size="large" />
             </Form.Item>
@@ -116,27 +128,23 @@ export default function RegisterPage() {
                 htmlType="submit" 
                 loading={loading} 
                 block 
-                size="large" 
-                style={{ 
-                  background: '#000', 
-                  borderColor: '#000', 
-                  height: 48,
-                  borderRadius: 8 
-                }}
+                size="large"
               >
                 立即注册
               </Button>
             </Form.Item>
           </Form>
 
-          <div style={{ textAlign: 'center', marginTop: 16 }}>
+          <Divider style={{ margin: '24px 0 16px' }} />
+
+          <div style={{ textAlign: 'center' }}>
             <Text type="secondary">已有账号？</Text>
             <Link href="/login">
               <Button type="link" style={{ padding: '0 4px' }}>立即登录</Button>
             </Link>
           </div>
         </Card>
-      </div>
+      </Flexbox>
     </motion.div>
   );
 }

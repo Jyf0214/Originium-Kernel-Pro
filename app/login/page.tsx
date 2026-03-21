@@ -3,12 +3,13 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
-import { Button, Input, message, Card, Typography, Form } from 'antd';
+import { Button, Input, message, Card, Typography, Form, Divider } from 'antd';
 import { UserOutlined, LockOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Flexbox, Text } from '@lobehub/ui';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -17,15 +18,10 @@ export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!username || !password) {
-      return message.warning('请填写用户名和密码');
-    }
-
+  const handleLogin = async (values: any) => {
     setLoading(true);
     try {
-      await login(username, password);
+      await login(values.username, values.password);
       router.push('/dashboard');
     } catch (error: any) {
       // Error handled in useAuth
@@ -40,8 +36,8 @@ export default function LoginPage() {
       animate={{ opacity: 1 }}
       className="min-h-screen bg-[#f5f7fa] flex items-center justify-center p-6"
     >
-      <div style={{ width: '100%', maxWidth: 400 }}>
-        <div style={{ marginBottom: 24, textAlign: 'center' }}>
+      <Flexbox width={'min(100%, 440px)'} gap={16}>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <Link href="/">
             <Button icon={<ArrowLeftOutlined />} type="text">返回首页</Button>
           </Link>
@@ -55,13 +51,17 @@ export default function LoginPage() {
             background: 'white'
           }}
         >
-          <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <Title level={3} style={{ margin: 0, fontWeight: 800 }}>欢迎回来</Title>
+          <Flexbox gap={16} style={{ marginBottom: 32 }}>
+            <Title level={3} style={{ margin: 0, fontWeight: 600 }}>欢迎回来</Title>
             <Text type="secondary">登录以管理您的 Private Journal</Text>
-          </div>
+          </Flexbox>
 
           <Form name="login" layout="vertical" onFinish={handleLogin} autoComplete="off">
-            <Form.Item name="username" rules={[{ required: true, message: '请输入用户名' }]}>
+            <Form.Item 
+              name="username" 
+              rules={[{ required: true, message: '请输入用户名' }]}
+              style={{ marginBottom: 16 }}
+            >
               <Input 
                 prefix={<UserOutlined />} 
                 placeholder="用户名" 
@@ -70,7 +70,11 @@ export default function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
               />
             </Form.Item>
-            <Form.Item name="password" rules={[{ required: true, message: '请输入密码' }]}>
+            <Form.Item 
+              name="password" 
+              rules={[{ required: true, message: '请输入密码' }]}
+              style={{ marginBottom: 24 }}
+            >
               <Input.Password 
                 prefix={<LockOutlined />} 
                 placeholder="密码" 
@@ -85,27 +89,23 @@ export default function LoginPage() {
                 htmlType="submit" 
                 loading={loading} 
                 block 
-                size="large" 
-                style={{ 
-                  background: '#000', 
-                  borderColor: '#000', 
-                  height: 48,
-                  borderRadius: 8 
-                }}
+                size="large"
               >
                 登录
               </Button>
             </Form.Item>
           </Form>
 
-          <div style={{ textAlign: 'center', marginTop: 16 }}>
+          <Divider style={{ margin: '24px 0 16px' }} />
+
+          <div style={{ textAlign: 'center' }}>
             <Text type="secondary">还没有账号？</Text>
             <Link href="/register">
               <Button type="link" style={{ padding: '0 4px' }}>立即注册</Button>
             </Link>
           </div>
         </Card>
-      </div>
+      </Flexbox>
     </motion.div>
   );
 }
