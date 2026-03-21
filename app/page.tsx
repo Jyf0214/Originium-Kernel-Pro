@@ -6,6 +6,8 @@ import { Sidebar } from '@/components/Sidebar';
 import { ArticleCard } from '@/components/ArticleCard';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, Filter, Sparkles } from 'lucide-react';
+import { Input, Button } from 'antd';
+import { Flexbox, Text } from '@lobehub/ui';
 
 export default function HomePage() {
   const [articles, setArticles] = useState<any[]>([]);
@@ -30,7 +32,7 @@ export default function HomePage() {
     fetchArticles();
   }, []);
 
-  const filteredArticles = articles.filter(a => 
+  const filteredArticles = articles.filter(a =>
     a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     a.content?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -38,14 +40,13 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
-      
-      <div className="flex flex-1 max-w-7xl mx-auto w-full">
+
+      <Flexbox className="flex-1 max-w-7xl mx-auto w-full">
         <Sidebar />
-        
+
         <main className="flex-1 p-6 md:p-10">
-          {/* Hero Section */}
           <section className="mb-16">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               className="flex items-center gap-2 text-zinc-400 font-black text-[10px] uppercase tracking-[0.2em] mb-6"
@@ -53,8 +54,8 @@ export default function HomePage() {
               <div className="w-1.5 h-1.5 rounded-full bg-zinc-900 animate-pulse"></div>
               <span>Originium Kernel is Online</span>
             </motion.div>
-            
-            <motion.h1 
+
+            <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
@@ -63,31 +64,30 @@ export default function HomePage() {
               Write. Sync. <br />
               <span className="text-zinc-300">Deploy.</span>
             </motion.h1>
-            
-            <motion.div 
+
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="flex flex-col md:flex-row gap-4 items-center max-w-2xl"
             >
-              <div className="relative flex-1 w-full group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-zinc-900 transition-colors" size={20} />
-                <input 
-                  type="text" 
-                  placeholder="Search in kernel..." 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="lobe-input pl-12 h-16 text-lg w-full border-2 border-zinc-100 rounded-2xl focus:border-zinc-900 focus:outline-none transition-all placeholder:text-zinc-300 font-medium"
-                />
-              </div>
-              <button className="lobe-button bg-zinc-50 text-zinc-900 border border-zinc-100 flex items-center gap-2 hover:bg-zinc-100 h-16 px-8 rounded-2xl transition-all font-bold">
-                <Filter size={20} />
-                <span>Sort</span>
-              </button>
+              <Flexbox gap={12} horizontal className="items-center max-w-2xl">
+                <div className="relative flex-1 w-full">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-zinc-900 transition-colors" size={20} />
+                  <Input
+                    placeholder="Search in kernel..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-12 h-16 text-lg w-full rounded-2xl"
+                    size="large"
+                  />
+                </div>
+                <Button size="large" icon={<Filter size={20} />}>
+                  Sort
+                </Button>
+              </Flexbox>
             </motion.div>
           </section>
 
-          {/* Article Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {loading ? (
               Array.from({ length: 4 }).map((_, i) => (
@@ -110,7 +110,7 @@ export default function HomePage() {
             )}
           </div>
         </main>
-      </div>
+      </Flexbox>
     </div>
   );
 }
