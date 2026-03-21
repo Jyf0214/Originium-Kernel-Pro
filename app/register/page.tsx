@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Input, Form, notification, message } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, MailOutlined } from '@ant-design/icons';
 import { Flexbox, Text, Icon } from '@lobehub/ui';
 import { User, Lock } from 'lucide-react';
 import Link from 'next/link';
@@ -17,29 +17,42 @@ export default function RegisterPage() {
 
   const onFinish = async (values: any) => {
     setLoading(true);
+    console.log('[注册页面] 提交注册数据:', {
+      email: values.email,
+      name: values.name,
+      password: '***REDACTED***'
+    });
+    
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username: values.username,
+          email: values.email,
           password: values.password,
           name: values.name
         })
       });
       const data = await res.json();
+      console.log('[注册页面] 服务器响应:', data);
 
       if (res.ok && data.success) {
+        const roleMsg = data.user?.role === 'sudo' 
+          ? '您是首个注册用户，已获得管理员权限！' 
+          : '账号已创建，请前往登录';
+          
         notification.success({
           message: '注册成功',
-          description: '账号已创建，请前往登录',
+          description: roleMsg,
           placement: 'topRight',
+          duration: 5,
         });
         router.push('/login');
       } else {
-        throw new Error(data.message || '注册失败');
+        throw new Error(data.error || data.message || '注册失败');
       }
     } catch (err: unknown) {
+      console.error('[注册页面] 注册失败:', err);
       message.error(err instanceof Error ? err.message : '注册失败');
     } finally {
       setLoading(false);
@@ -75,38 +88,41 @@ export default function RegisterPage() {
           subtitle="加入 Originium Kernel"
           title="创建账号"
         >
-          <Form 
+          <Form
             form={form}
-            layout="vertical" 
-            onFinish={onFinish} 
+            layout="vertical"
+            onFinish={onFinish}
             autoComplete="off"
           >
             <Form.Item
-              name="username"
+              name="email"
+              label="电子邮箱"
               rules={[
-                { required: true, message: '请输入用户名' },
-                { min: 3, message: '用户名至少 3 个字符' }
+                { required: true, message: '请输入电子邮箱' },
+                { type: 'email', message: '请输入有效的电子邮箱地址' }
               ]}
               style={{ marginBottom: 16 }}
             >
               <Input
-                placeholder="用户名"
+                placeholder="your@email.com"
                 size="large"
                 prefix={
-                  <Icon
-                    icon={User}
-                    style={{ marginInline: 6 }}
-                  />
+                  <MailOutlined style={{ marginInline: 6 }} />
                 }
               />
             </Form.Item>
+
             <Form.Item
               name="name"
-              rules={[{ required: true, message: '请输入昵称' }]}
+              label="昵称"
+              rules={[
+                { required: true, message: '请输入昵称' },
+                { min: 2, message: '昵称至少 2 个字符' }
+              ]}
               style={{ marginBottom: 16 }}
             >
               <Input
-                placeholder="昵称"
+                placeholder="您的昵称"
                 size="large"
                 prefix={
                   <Icon
@@ -116,8 +132,10 @@ export default function RegisterPage() {
                 }
               />
             </Form.Item>
+
             <Form.Item
               name="password"
+              label="密码"
               rules={[
                 { required: true, message: '请输入密码' },
                 { min: 6, message: '密码至少 6 个字符' }
@@ -125,7 +143,7 @@ export default function RegisterPage() {
               style={{ marginBottom: 16 }}
             >
               <Input.Password
-                placeholder="密码"
+                placeholder="至少 6 个字符"
                 size="large"
                 prefix={
                   <Icon
@@ -135,8 +153,10 @@ export default function RegisterPage() {
                 }
               />
             </Form.Item>
+
             <Form.Item
               name="confirm"
+              label="确认密码"
               dependencies={['password']}
               rules={[
                 { required: true, message: '请确认您的密码' },
@@ -150,7 +170,7 @@ export default function RegisterPage() {
               style={{ marginBottom: 0 }}
             >
               <Input.Password
-                placeholder="确认密码"
+                placeholder="再次输入密码"
                 size="large"
                 prefix={
                   <Icon
