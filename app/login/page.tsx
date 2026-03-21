@@ -1,81 +1,101 @@
-/**
- * Sign In Page
- * 
- * 登录页面 - 复制自 LobeChat
- * 
- * @see https://github.com/lobehub/lobe-chat - branch: canary, commit: 81bd6dc
- * @author LobeChat Team
- * @copyright LobeHub. All rights reserved.
- */
 'use client';
 
-import { BRANDING_NAME } from '@/const/branding';
-import { Button, Flexbox, Icon, Input, Text } from '@lobehub/ui';
-import { Form, Input as AntInput } from 'antd';
+import React, { Suspense, useState, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
+import { Button, Input, Form, message } from 'antd';
 import { ChevronRight, Lock, Mail } from 'lucide-react';
-import { useEffect, useRef, useState, Suspense } from 'react';
-import { useRouter } from 'next/navigation';
+import { Flexbox, Text, Icon } from '@lobehub/ui';
 import Link from 'next/link';
-
 import AuthCard from '@/components/AuthCard';
 import AuthLayout from '@/components/AuthLayout';
 
-type Step = 'email' | 'password';
+function LoginForm() {
+  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<'email' | 'password'>('email');
+  const [email, setEmail] = useState('');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { login } = useAuth();
+  const [form] = Form.useForm();
+  const inputRef = useRef<any>(null);
 
-const SignInEmailStep = ({
-  form,
-  loading,
-  onCheckUser,
-}: {
-  form: any;
-  loading: boolean;
-  onCheckUser: (values: { email: string }) => Promise<void>;
-}) => {
-  const emailInputRef = useRef<any>(null);
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
 
   useEffect(() => {
-    emailInputRef.current?.focus();
-  }, []);
+    inputRef.current?.focus();
+  }, [step]);
 
-  const footer = (
-    <Text fontSize={13} type={'secondary'}>
-      登录即表示您同意我们的服务条款和隐私政策
-    </Text>
-  );
+  const handleCheckUser = async (values: { email: string }) => {
+    setLoading(true);
+    try {
+      setEmail(values.email);
+      setStep('password');
+    } catch (error: any) {
+      message.error(error.message || '验证用户失败');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  return (
+  const handleLogin = async (values: { password: string }) => {
+    setLoading(true);
+    try {
+      await login(email, values.password);
+      message.success('登录成功');
+      router.push(callbackUrl);
+    } catch (error: any) {
+      message.error(error.message || '登录失败，请检查用户名和密码');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBackToEmail = () => {
+    setStep('email');
+    setEmail('');
+  };
+
+  const inputStyle = {
+    padding: 12,
+    height: 52,
+    fontSize: 16,
+    lineHeight: '24px',
+    borderRadius: 8,
+  };
+
+  const renderEmailStep = () => (
     <AuthCard
-      footer={footer}
-      subtitle={`登录以管理您的 ${BRANDING_NAME}`}
+      footer={
+        <Flexbox horizontal justify="center" gap={8} paddingBlock={24}>
+          <Text type="secondary" style={{ fontSize: 14, lineHeight: '22px' }}>
+            还没有账号？
+          </Text>
+          <Link href="/register">
+            <Text style={{ fontSize: 14, fontWeight: 500, lineHeight: '22px' }}>
+              立即注册
+            </Text>
+          </Link>
+        </Flexbox>
+      }
+      subtitle={`登录以管理您的 Originium Kernel`}
       title="欢迎回来"
     >
-      <Form form={form} layout="vertical" onFinish={onCheckUser}>
+      <Form form={form} layout="vertical" onFinish={handleCheckUser}>
         <Form.Item
           name="email"
+          style={{ marginBottom: 0 }}
           rules={[
             { required: true, message: '请输入邮箱或用户名' },
             { type: 'email', message: '请输入有效的邮箱地址' }
           ]}
-          style={{ marginBottom: 0 }}
         >
           <Input
             placeholder="请输入邮箱"
-            ref={emailInputRef}
+            ref={inputRef}
             size="large"
-            prefix={
-              <Icon
-                icon={Mail}
-                style={{
-                  marginInline: 8,
-                }}
-              />
-            }
-            style={{
-              padding: 12,
-              height: 52,
-              fontSize: 16,
-              lineHeight: 1.5,
-            }}
+            prefix={<Icon icon={Mail} style={{ marginInline: 8 }} />}
+            style={inputStyle}
             suffix={
               <Button
                 icon={<Icon icon={ChevronRight} />}
@@ -88,93 +108,42 @@ const SignInEmailStep = ({
           />
         </Form.Item>
       </Form>
-
-      <Flexbox
-        horizontal
-        justify="center"
-        gap={8}
-        paddingBlock={20}
-        style={{ borderTop: '1px solid var(--ant-color-border-secondary)' }}
-      >
-        <Text type="secondary" style={{ fontSize: 14 }}>
-          还没有账号？
-        </Text>
-        <Link href="/register">
-          <Text style={{ fontSize: 14, fontWeight: 500 }}>
-            立即注册
-          </Text>
-        </Link>
-      </Flexbox>
     </AuthCard>
   );
-};
 
-const SignInPasswordStep = ({
-  email,
-  form,
-  loading,
-  onBackToEmail,
-  onSubmit,
-}: {
-  email: string;
-  form: any;
-  loading: boolean;
-  onBackToEmail: () => void;
-  onSubmit: (values: { password: string }) => Promise<void>;
-}) => {
-  const passwordInputRef = useRef<any>(null);
-
-  useEffect(() => {
-    passwordInputRef.current?.focus();
-  }, []);
-
-  return (
+  const renderPasswordStep = () => (
     <AuthCard
+      footer={
+        <Button
+          icon={<Icon icon={ChevronRight} style={{ transform: 'rotate(180deg)' }} />}
+          size={'large'}
+          style={{ marginTop: 20 }}
+          onClick={handleBackToEmail}
+        >
+          返回上一步
+        </Button>
+      }
       subtitle="输入密码完成登录"
       title="欢迎回来"
-      footer={
-        <>
-          <Button
-            icon={<Icon icon={ChevronRight} style={{ transform: 'rotate(180deg)' }} />}
-            size={'large'}
-            style={{ marginTop: 16 }}
-            onClick={onBackToEmail}
-          >
-            返回上一步
-          </Button>
-        </>
-      }
     >
-      <Text fontSize={20}>{email}</Text>
+      <Text fontSize={18} style={{ lineHeight: '28px' }}>{email}</Text>
       <Form
         form={form}
         layout="vertical"
-        style={{ marginTop: 12 }}
-        onFinish={onSubmit}
+        style={{ marginTop: 16 }}
+        onFinish={handleLogin}
       >
         <Form.Item
           name="password"
-          rules={[{ message: '请输入密码', required: true }]}
+          rules={[{ required: true, message: '请输入密码' }]}
           style={{ marginBottom: 0 }}
         >
-          <AntInput.Password
+          <Input.Password
             placeholder="请输入密码"
-            ref={passwordInputRef}
+            ref={inputRef}
             size="large"
-            prefix={
-              <Icon
-                icon={Lock}
-                style={{
-                  marginInline: 8,
-                }}
-              />
-            }
-            style={{
-              padding: 12,
-              height: 52,
-              fontSize: 16,
-              lineHeight: 1.5,
-            }}
+            prefix={<Icon icon={Lock} style={{ marginInline: 8 }} />}
+            style={inputStyle}
             suffix={
               <Button
                 icon={<Icon icon={ChevronRight} />}
@@ -190,73 +159,18 @@ const SignInPasswordStep = ({
       </Form>
     </AuthCard>
   );
-};
-
-const SignInPage = () => {
-  const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<Step>('email');
-  const [email, setEmail] = useState('');
-  const router = useRouter();
-
-  const handleCheckUser = async (values: { email: string }) => {
-    setLoading(true);
-    try {
-      setEmail(values.email);
-      setStep('password');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSignIn = async (values: { password: string }) => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: values.password }),
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        router.push('/dashboard');
-      } else {
-        throw new Error(data.error || data.message || '登录失败');
-      }
-    } catch (err: any) {
-      console.error('Sign in error:', err);
-      alert(err.message || '登录失败');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleBackToEmail = () => {
-    setStep('email');
-    setEmail('');
-  };
 
   return (
     <AuthLayout>
-      <Suspense fallback={<div>加载中...</div>}>
-        {step === 'email' ? (
-          <SignInEmailStep
-            form={form}
-            loading={loading}
-            onCheckUser={handleCheckUser}
-          />
-        ) : (
-          <SignInPasswordStep
-            email={email}
-            form={form}
-            loading={loading}
-            onBackToEmail={handleBackToEmail}
-            onSubmit={handleSignIn}
-          />
-        )}
-      </Suspense>
+      {step === 'email' ? renderEmailStep() : renderPasswordStep()}
     </AuthLayout>
   );
-};
+}
 
-export default SignInPage;
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>加载中...</div>}>
+      <LoginForm />
+    </Suspense>
+  );
+}
