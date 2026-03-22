@@ -13,6 +13,7 @@ datasource db {
 model User {
   uid        String   @id @default(cuid())
   email      String   @unique
+  username   String?  @unique
   name       String
   password   String
   role       String   @default("user")
@@ -24,9 +25,22 @@ model User {
   @@map("users")
   @@index([email])
   @@index([uid])
+  @@index([username])
 }
 
-// KV 存储表（用于缓存和其他键值对存储）
+// 用户组表
+model UserGroup {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  permissions String[] @default([])
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("user_groups")
+}
+
+// KV 存储表
 model OriginiumKV {
   key       String   @id @map("k")
   value     String?  @map("v")

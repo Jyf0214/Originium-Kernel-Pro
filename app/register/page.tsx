@@ -26,6 +26,7 @@ export default function RegisterPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: values.email,
+          username: values.username,
           password: values.password,
           name: values.name || values.email.split('@')[0],
         }),
@@ -94,6 +95,22 @@ export default function RegisterPage() {
               placeholder="your@email.com"
               size="large"
               prefix={<Icon icon={Mail} style={{ marginInline: 8 }} />}
+              style={inputStyle}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="username"
+            style={{ marginBottom: 16 }}
+            rules={[
+              { required: true, message: '请输入用户名' },
+              { pattern: /^[a-zA-Z0-9_]{3,20}$/, message: '用户名只能包含字母、数字和下划线，3-20个字符' },
+            ]}
+          >
+            <Input
+              placeholder="用户名（用于登录）"
+              size="large"
+              prefix={<Icon icon={User} style={{ marginInline: 8 }} />}
               style={inputStyle}
             />
           </Form.Item>

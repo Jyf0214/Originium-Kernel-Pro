@@ -2,17 +2,33 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { createSession } from '@/lib/auth';
 
+function hashPassword(password: string) {
+  return Buffer.from(password).toString('hex').split('').reverse().join('');
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
+    const { login, password } = await req.json();
 
-    if (!email || !password) {
-      return NextResponse.json({ error: '缺少邮箱或密码' }, { status: 400 });
+    if (!login || !password) {
+      return NextResponse.json({ error: '缺少登录信息或密码' }, { status: 400 });
     }
 
     const db = getDb();
     
-    const uid = await db.get(`user:email:${email}`);
+    // 支持邮箱或用户名登录
+    let uid: string | null = null;
+    
+    // 先尝试作为邮箱查找
+    if (login.includes('@')) {
+      uid = await db.get(`user:email:${login}`);
+    }
+    
+    // 如果没找到，尝试作为用户名查找
+    if (!uid) {
+      uid = await db.get(`user:username:${login}`);
+    }
+
     if (!uid) {
       return NextResponse.json({ error: '账号或密码错误' }, { status: 401 });
     }
@@ -23,7 +39,7 @@ export async function POST(req: NextRequest) {
     }
 
     const user = JSON.parse(userStr);
-    const hashedPassword = Buffer.from(password).toString('hex').split('').reverse().join('');
+    const hashedPassword = hashPassword(password);
     if (user.password !== hashedPassword) {
       return NextResponse.json({ error: '账号或密码错误' }, { status: 401 });
     }
@@ -35,9 +51,18 @@ export async function POST(req: NextRequest) {
       userGroup: user.userGroup,
     });
 
-    return NextResponse.json({ success: true, user: { uid: user.uid, email: user.email, name: user.name, role: user.role } });
+    return NextResponse.json({
+      success: true,
+      user: {
+        uid: user.uid,
+        email: user.email,
+        username: user.username,
+        name: user.name,
+        role: user.role
+      }
+    });
   } catch (error: any) {
-    console.error(JSON.stringify({ type: 'login_error', message: error.message, stack: error.stack }));
+    console.error(JSON.stringify({ type: 'login_error', message: error.message }));
     return NextResponse.json({ error: '登录失败' }, { status: 500 });
   }
 }
