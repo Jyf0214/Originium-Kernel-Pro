@@ -2,6 +2,7 @@
   "name": "originium-kernel",
   "version": "0.1.0",
   "private": true,
+  "telemetry": false,
   "scripts": {
     "dev": "bun run next dev",
     "type-check": "tsc --noEmit",

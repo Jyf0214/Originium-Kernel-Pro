@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'motion/react';
 import { Calendar, User, ArrowUpRight } from 'lucide-react';
 
@@ -29,10 +30,12 @@ export function ArticleCard({ article }: ArticleCardProps) {
     >
       <Link href={`/user/${article.id}`} className="block overflow-hidden aspect-[16/10] bg-zinc-50 relative">
         {article.coverImage ? (
-          <img 
+          <Image 
             src={article.coverImage} 
             alt={article.title} 
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            fill
+            className="object-cover group-hover:scale-110 transition-transform duration-700"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-zinc-100 font-black text-6xl select-none">

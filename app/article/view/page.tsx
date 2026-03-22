@@ -6,6 +6,7 @@ import { Navbar } from '@/components/Navbar';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { ArrowLeft, User, Calendar, Tag } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 function ArticleViewContent() {
   const searchParams = useSearchParams();
@@ -104,11 +105,14 @@ function ArticleViewContent() {
           </header>
 
           {article.coverImage && (
-            <div className="w-full aspect-[21/9] rounded-[2rem] overflow-hidden bg-zinc-50 mb-16 shadow-2xl shadow-zinc-200">
-              <img 
+            <div className="w-full aspect-[21/9] rounded-[2rem] overflow-hidden bg-zinc-50 mb-16 shadow-2xl shadow-zinc-200 relative">
+              <Image 
                 src={article.coverImage} 
                 alt={article.title} 
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000"
+                fill
+                className="object-cover hover:scale-105 transition-transform duration-1000"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+                unoptimized
               />
             </div>
           )}
