@@ -9,27 +9,30 @@ import {
   Activity, Menu, LogOut, BookOpen, UserCog, X
 } from 'lucide-react';
 import { Icon, Text } from '@lobehub/ui';
+import LanguageSwitcher from '@/components/LanguageSwitcher/index';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface MenuItem {
   label: string;
+  labelEn: string;
   icon: any;
   href: string;
   adminOnly?: boolean;
 }
 
 const menuItems: MenuItem[] = [
-  { label: '控制台', icon: Home, href: '/dashboard' },
-  { label: '写文章', icon: Plus, href: '/editor' },
-  { label: '文章管理', icon: BookOpen, href: '/dashboard/articles' },
-  { label: '回收站', icon: Trash2, href: '/dashboard/articles?status=pending_deletion' },
+  { label: '控制台', labelEn: 'Dashboard', icon: Home, href: '/dashboard' },
+  { label: '写文章', labelEn: 'Write Article', icon: Plus, href: '/editor' },
+  { label: '文章管理', labelEn: 'Articles', icon: BookOpen, href: '/dashboard/articles' },
+  { label: '回收站', labelEn: 'Recycle Bin', icon: Trash2, href: '/dashboard/articles?status=pending_deletion' },
 ];
 
 const adminItems: MenuItem[] = [
-  { label: '用户管理', icon: UserCog, href: '/admin/users', adminOnly: true },
-  { label: '用户组', icon: Shield, href: '/admin/groups', adminOnly: true },
-  { label: '系统配置', icon: Settings, href: '/admin/config', adminOnly: true },
-  { label: '环境变量', icon: Activity, href: '/admin/env', adminOnly: true },
-  { label: '工单管理', icon: FileText, href: '/admin/tickets', adminOnly: true },
+  { label: '用户管理', labelEn: 'Users', icon: UserCog, href: '/admin/users', adminOnly: true },
+  { label: '用户组', labelEn: 'Groups', icon: Shield, href: '/admin/groups', adminOnly: true },
+  { label: '系统配置', labelEn: 'Config', icon: Settings, href: '/admin/config', adminOnly: true },
+  { label: '环境变量', labelEn: 'Env Variables', icon: Activity, href: '/admin/env', adminOnly: true },
+  { label: '工单管理', labelEn: 'Tickets', icon: FileText, href: '/admin/tickets', adminOnly: true },
 ];
 
 interface SidebarContentProps {
@@ -40,9 +43,12 @@ interface SidebarContentProps {
   onLogout: () => void;
   showCloseButton?: boolean;
   onClose?: () => void;
+  locale: string;
 }
 
-function SidebarContent({ items, isActive, onItemClick, user, onLogout, showCloseButton, onClose }: SidebarContentProps) {
+function SidebarContent({ items, isActive, onItemClick, user, onLogout, showCloseButton, onClose, locale }: SidebarContentProps) {
+  const getLabel = (item: MenuItem) => locale === 'en' ? item.labelEn : item.label;
+  
   return (
     <div style={{
       display: 'flex',
@@ -115,7 +121,7 @@ function SidebarContent({ items, isActive, onItemClick, user, onLogout, showClos
                 color: isActive(item.href) ? 'var(--ant-color-primary)' : 'inherit',
                 fontWeight: isActive(item.href) ? 500 : 400,
               }}>
-                {item.label}
+                {getLabel(item)}
               </Text>
             </div>
           </Link>
@@ -127,6 +133,11 @@ function SidebarContent({ items, isActive, onItemClick, user, onLogout, showClos
         padding: '16px',
         borderTop: '1px solid var(--ant-color-border-secondary)',
       }}>
+        {/* 语言切换 */}
+        <div style={{ marginBottom: 12 }}>
+          <LanguageSwitcher />
+        </div>
+        
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -162,6 +173,7 @@ function Sidebar() {
   const { user, isSudo, logout } = useAuth();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const { locale } = useI18n();
 
   const allItems = isSudo ? [...menuItems, ...adminItems] : menuItems;
 
@@ -221,6 +233,7 @@ function Sidebar() {
           onItemClick={() => setIsOpen(false)}
           user={user}
           onLogout={handleLogout}
+          locale={locale}
         />
       </div>
 
@@ -264,6 +277,7 @@ function Sidebar() {
           onLogout={handleLogout}
           showCloseButton={true}
           onClose={() => setIsOpen(false)}
+          locale={locale}
         />
       </div>
 
