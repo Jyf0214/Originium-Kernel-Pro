@@ -131,7 +131,7 @@ export default function RegisterPage() {
           </Form.Item>
 
           <Form.Item
-            name="confirm"
+            name="confirmPassword"
             style={{ marginBottom: 0 }}
             dependencies={['password']}
             rules={[
