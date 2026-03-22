@@ -37,9 +37,10 @@ export async function POST(req: NextRequest) {
     const uid = generateUID();
     const userRole = isFirstUser ? 'sudo' : 'user';
 
-    // 存储用户数据
+    // 存储用户数据（密码使用与登录相同的哈希方式）
+    const hashedPassword = Buffer.from(password).toString('hex').split('').reverse().join('');
     const userPayload = {
-      uid, email, name, role: userRole, password,
+      uid, email, name, role: userRole, password: hashedPassword,
       createdAt: new Date().toISOString(),
       status: 'active',
     };
