@@ -2,30 +2,72 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { FileText, Users, Clock, CheckCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { FileText, Users, Clock, CheckCircle, Plus, Settings, BookOpen, TrendingUp, Activity, ArrowRight } from 'lucide-react';
+import { Button, Flexbox, Text, Icon } from '@lobehub/ui';
+import Link from 'next/link';
+
+interface Stats {
+  totalArticles: number;
+  publishedArticles: number;
+  draftArticles: number;
+  totalUsers: number;
+}
+
+interface RecentArticle {
+  id: string;
+  title: string;
+  status: string;
+  updatedAt: string;
+}
 
 export default function DashboardPage() {
-  const { userRole } = useAuth();
-  const [stats, setStats] = useState({
+  const { user, userRole, isSudo } = useAuth();
+  const router = useRouter();
+  const [stats, setStats] = useState<Stats>({
     totalArticles: 0,
     publishedArticles: 0,
     draftArticles: 0,
     totalUsers: 0,
   });
+  const [recentArticles, setRecentArticles] = useState<RecentArticle[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        // TODO: 实现基于 API 的统计获取逻辑
-        // 目前返回占位数据
-        setStats({
-          totalArticles: 0,
-          publishedArticles: 0,
-          draftArticles: 0,
-          totalUsers: 0,
-        });
+        // 获取文章统计
+        const articlesRes = await fetch('/api/articles');
+        if (articlesRes.ok) {
+          const articles = await articlesRes.json();
+          const published = articles.filter((a: any) => a.status === 'published').length;
+          const drafts = articles.filter((a: any) => a.status === 'draft').length;
+          
+          setStats(prev => ({
+            ...prev,
+            totalArticles: articles.length,
+            publishedArticles: published,
+            draftArticles: drafts,
+          }));
+          
+          // 最近文章
+          setRecentArticles(articles.slice(0, 5).map((a: any) => ({
+            id: a.id,
+            title: a.title,
+            status: a.status,
+            updatedAt: a.updatedAt,
+          })));
+        }
+
+        // 获取用户统计（仅管理员）
+        if (isSudo) {
+          const usersRes = await fetch('/api/users');
+          if (usersRes.ok) {
+            const users = await usersRes.json();
+            setStats(prev => ({ ...prev, totalUsers: users.length }));
+          }
+        }
       } catch (error) {
         console.error('Failed to fetch stats:', error);
       } finally {
@@ -33,65 +75,211 @@ export default function DashboardPage() {
       }
     };
 
-    fetchStats();
-  }, [userRole]);
+    fetchData();
+  }, [isSudo]);
 
-  if (loading) return <div className="p-8 text-center text-zinc-500">Loading dashboard...</div>;
+  const statCards = [
+    {
+      title: '全部文章',
+      value: stats.totalArticles,
+      icon: FileText,
+      color: 'var(--ant-color-primary)',
+      bgColor: 'var(--ant-color-primary-bg)',
+    },
+    {
+      title: '已发布',
+      value: stats.publishedArticles,
+      icon: CheckCircle,
+      color: 'var(--ant-color-success)',
+      bgColor: 'var(--ant-color-success-bg)',
+    },
+    {
+      title: '草稿箱',
+      value: stats.draftArticles,
+      icon: Clock,
+      color: 'var(--ant-color-warning)',
+      bgColor: 'var(--ant-color-warning-bg)',
+    },
+    ...(isSudo ? [{
+      title: '用户总数',
+      value: stats.totalUsers,
+      icon: Users,
+      color: 'var(--ant-color-info)',
+      bgColor: 'var(--ant-color-info-bg)',
+    }] : []),
+  ];
+
+  const quickActions = [
+    { label: '写文章', icon: Plus, href: '/editor', color: 'var(--ant-color-primary)' },
+    { label: '文章管理', icon: BookOpen, href: '/dashboard/articles', color: 'var(--ant-color-success)' },
+    { label: '系统设置', icon: Settings, href: '/admin/config', color: 'var(--ant-color-warning)' },
+  ];
+
+  if (loading) {
+    return (
+      <Flexbox align="center" justify="center" style={{ height: '100%', minHeight: 400 }}>
+        <Text type="secondary">加载中...</Text>
+      </Flexbox>
+    );
+  }
 
   return (
-    <div className="p-6 md:p-10">
-      <h1 className="text-3xl font-display font-bold text-zinc-900 mb-8">Dashboard Overview</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
-              <FileText size={24} />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-zinc-500">Total Articles</p>
-              <h3 className="text-2xl font-bold text-zinc-900">{stats.totalArticles}</h3>
-            </div>
-          </div>
-        </div>
+    <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
+      {/* 欢迎区域 */}
+      <Flexbox gap={8} style={{ marginBottom: 32 }}>
+        <Text fontSize={28} weight={'bold'}>
+          欢迎回来，{user?.name || '用户'}
+        </Text>
+        <Text fontSize={16} type={'secondary'}>
+          这是您的内容管理控制台
+        </Text>
+      </Flexbox>
 
-        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
-              <CheckCircle size={24} />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-zinc-500">Published</p>
-              <h3 className="text-2xl font-bold text-zinc-900">{stats.publishedArticles}</h3>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
-              <Clock size={24} />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-zinc-500">Drafts</p>
-              <h3 className="text-2xl font-bold text-zinc-900">{stats.draftArticles}</h3>
-            </div>
-          </div>
-        </div>
-
-        {userRole === 'sudo' && (
-          <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
-                <Users size={24} />
+      {/* 统计卡片 */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+        gap: 16,
+        marginBottom: 32
+      }}>
+        {statCards.map((card, index) => (
+          <div
+            key={index}
+            style={{
+              background: 'var(--ant-color-bg-container)',
+              borderRadius: 12,
+              padding: 20,
+              border: '1px solid var(--ant-color-border-secondary)',
+            }}
+          >
+            <Flexbox gap={16} align="flex-start">
+              <div style={{
+                width: 48,
+                height: 48,
+                borderRadius: 12,
+                background: card.bgColor,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <Icon icon={card.icon} style={{ color: card.color }} />
               </div>
               <div>
-                <p className="text-sm font-medium text-zinc-500">Total Users</p>
-                <h3 className="text-2xl font-bold text-zinc-900">{stats.totalUsers}</h3>
+                <Text type="secondary" style={{ fontSize: 14 }}>{card.title}</Text>
+                <Text fontSize={28} weight={'bold'}>{card.value}</Text>
+              </div>
+            </Flexbox>
+          </div>
+        ))}
+      </div>
+
+      {/* 快捷操作 */}
+      <div style={{ marginBottom: 32 }}>
+        <Text fontSize={18} weight={'bold'} style={{ marginBottom: 16, display: 'block' }}>
+          快捷操作
+        </Text>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 12
+        }}>
+          {quickActions.map((action, index) => (
+            <Link key={index} href={action.href} style={{ textDecoration: 'none' }}>
+              <div
+                style={{
+                  background: 'var(--ant-color-bg-container)',
+                  borderRadius: 12,
+                  padding: 16,
+                  border: '1px solid var(--ant-color-border-secondary)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = action.color;
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--ant-color-border-secondary)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <Flexbox horizontal justify="space-between" align="center">
+                  <Flexbox horizontal gap={12} align="center">
+                    <Icon icon={action.icon} style={{ color: action.color }} />
+                    <Text>{action.label}</Text>
+                  </Flexbox>
+                  <Icon icon={ArrowRight} style={{ color: 'var(--ant-color-text-tertiary)' }} />
+                </Flexbox>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* 最近文章 */}
+      <div>
+        <Flexbox horizontal justify="space-between" align="center" style={{ marginBottom: 16 }}>
+          <Text fontSize={18} weight={'bold'}>最近文章</Text>
+          <Link href="/dashboard/articles">
+            <Button size="small" icon={<Icon icon={ArrowRight} />}>
+              查看全部
+            </Button>
+          </Link>
+        </Flexbox>
+        
+        <div style={{
+          background: 'var(--ant-color-bg-container)',
+          borderRadius: 12,
+          border: '1px solid var(--ant-color-border-secondary)',
+          overflow: 'hidden'
+        }}>
+          {recentArticles.length > 0 ? (
+            recentArticles.map((article, index) => (
+              <div
+                key={article.id}
+                style={{
+                  padding: '16px 20px',
+                  borderBottom: index < recentArticles.length - 1 ? '1px solid var(--ant-color-border-secondary)' : 'none',
+                  cursor: 'pointer',
+                }}
+                onClick={() => router.push(`/editor?id=${article.id}`)}
+              >
+                <Flexbox horizontal justify="space-between" align="center">
+                  <div>
+                    <Text weight={500}>{article.title}</Text>
+                    <Text fontSize={12} type="secondary" style={{ display: 'block', marginTop: 4 }}>
+                      {new Date(article.updatedAt).toLocaleDateString('zh-CN')}
+                    </Text>
+                  </div>
+                  <span style={{
+                    padding: '4px 12px',
+                    borderRadius: 16,
+                    fontSize: 12,
+                    background: article.status === 'published' 
+                      ? 'var(--ant-color-success-bg)' 
+                      : 'var(--ant-color-warning-bg)',
+                    color: article.status === 'published'
+                      ? 'var(--ant-color-success)'
+                      : 'var(--ant-color-warning)',
+                  }}>
+                    {article.status === 'published' ? '已发布' : '草稿'}
+                  </span>
+                </Flexbox>
+              </div>
+            ))
+          ) : (
+            <div style={{ padding: 40, textAlign: 'center' }}>
+              <Text type="secondary">暂无文章</Text>
+              <div style={{ marginTop: 16 }}>
+                <Link href="/editor">
+                  <Button type="primary" icon={<Icon icon={Plus} />}>
+                    写第一篇文章
+                  </Button>
+                </Link>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
