@@ -36,11 +36,19 @@ export default function UsersPage() {
 
   const handleUpdateRole = async (id: string) => {
     try {
+      // 检查是否是首个管理员用户
+      const targetUser = users.find(u => u.uid === id);
+      if (targetUser?.role === 'sudo' && editRole !== 'sudo') {
+        alert(locale === 'zh-CN' ? '不能降级首个管理员用户' : 'Cannot downgrade the first admin user');
+        setEditingId(null);
+        return;
+      }
+      
       // TODO: 实现更新用户角色逻辑
-      console.log('更新用户角色:', id, editRole);
+      console.log(locale === 'zh-CN' ? '更新用户角色' : 'Update user role:', id, editRole);
       setEditingId(null);
     } catch (error) {
-      console.error('更新角色失败:', error);
+      console.error(locale === 'zh-CN' ? '更新角色失败' : 'Update role failed:', error);
     }
   };
 
