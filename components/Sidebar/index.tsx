@@ -178,25 +178,27 @@ function Sidebar() {
   return (
     <>
       {/* 移动端菜单按钮 */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="mobile-menu-btn"
-        style={{
-          display: 'none',
-          position: 'fixed',
-          top: 16,
-          left: 16,
-          zIndex: 1000,
-          background: 'var(--ant-color-bg-container)',
-          border: '1px solid var(--ant-color-border)',
-          borderRadius: 8,
-          padding: 10,
-          cursor: 'pointer',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        }}
-      >
-        <Icon icon={Menu} />
-      </button>
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="mobile-menu-btn"
+          style={{
+            display: 'none',
+            position: 'fixed',
+            top: 16,
+            left: 16,
+            zIndex: 997,
+            background: '#ffffff',
+            border: '1px solid #e5e5e5',
+            borderRadius: 8,
+            padding: 10,
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          }}
+        >
+          <Icon icon={Menu} />
+        </button>
+      )}
 
       {/* PC端侧边栏 */}
       <div
