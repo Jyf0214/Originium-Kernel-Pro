@@ -6,6 +6,7 @@ import { Navbar } from '@/components/Navbar';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { ArrowLeft, User } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function ArticlePage() {
   const params = useParams();
@@ -101,11 +102,14 @@ export default function ArticlePage() {
           </header>
 
           {article.coverImage && (
-            <div className="w-full aspect-video rounded-3xl overflow-hidden bg-zinc-50 mb-12 shadow-sm">
-              <img 
+            <div className="w-full aspect-video rounded-3xl overflow-hidden bg-zinc-50 mb-12 shadow-sm relative">
+              <Image 
                 src={article.coverImage} 
                 alt={article.title} 
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+                unoptimized
               />
             </div>
           )}
