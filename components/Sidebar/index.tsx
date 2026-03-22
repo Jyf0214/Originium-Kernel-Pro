@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
   Home, FileText, Plus, Settings, Shield, Trash2,
-  Activity, Menu, LogOut, BookOpen, UserCog
+  Activity, Menu, LogOut, BookOpen, UserCog, X
 } from 'lucide-react';
 import { Icon, Text } from '@lobehub/ui';
 
@@ -38,9 +38,11 @@ interface SidebarContentProps {
   onItemClick: () => void;
   user: any;
   onLogout: () => void;
+  showCloseButton?: boolean;
+  onClose?: () => void;
 }
 
-function SidebarContent({ items, isActive, onItemClick, user, onLogout }: SidebarContentProps) {
+function SidebarContent({ items, isActive, onItemClick, user, onLogout, showCloseButton, onClose }: SidebarContentProps) {
   return (
     <div style={{
       display: 'flex',
@@ -53,8 +55,26 @@ function SidebarContent({ items, isActive, onItemClick, user, onLogout }: Sideba
       <div style={{
         padding: '20px 16px',
         borderBottom: '1px solid var(--ant-color-border-secondary)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
       }}>
         <Text fontSize={18} weight={'bold'}>Originium Kernel</Text>
+        {showCloseButton && onClose && (
+          <button
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 8,
+              borderRadius: 8,
+              color: 'var(--ant-color-text-secondary)',
+            }}
+          >
+            <Icon icon={X} />
+          </button>
+        )}
       </div>
 
       {/* 菜单 */}
@@ -240,6 +260,8 @@ function Sidebar() {
           onItemClick={() => setIsOpen(false)}
           user={user}
           onLogout={handleLogout}
+          showCloseButton={true}
+          onClose={() => setIsOpen(false)}
         />
       </div>
 
