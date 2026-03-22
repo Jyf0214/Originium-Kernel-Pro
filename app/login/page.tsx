@@ -26,10 +26,10 @@ function LoginForm() {
     inputRef.current?.focus();
   }, [step]);
 
-  const handleCheckUser = async (values: { email: string }) => {
+  const handleCheckUser = async (values: { login: string }) => {
     setLoading(true);
     try {
-      setEmail(values.email);
+      setEmail(values.login);
       setStep('password');
     } catch (error: any) {
       message.error(error.message || '验证用户失败');
@@ -82,15 +82,14 @@ function LoginForm() {
     >
       <Form form={form} layout="vertical" onFinish={handleCheckUser}>
         <Form.Item
-          name="email"
+          name="login"
           style={{ marginBottom: 0 }}
           rules={[
-            { required: true, message: '请输入邮箱或用户名' },
-            { type: 'email', message: '请输入有效的邮箱地址' }
+            { required: true, message: '请输入邮箱或用户名' }
           ]}
         >
           <Input
-            placeholder="请输入邮箱"
+            placeholder="请输入邮箱或用户名"
             ref={inputRef}
             size="large"
             prefix={<Icon icon={Mail} style={{ marginInline: 8 }} />}
