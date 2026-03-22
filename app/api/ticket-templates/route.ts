@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { getFileFromGithub, updateFileInGithub } from '@/lib/github';
 
 /**
  * 工单模板 API
- * - 模板存储在 GitHub config/ticket-templates.json
- * - 数据库缓存一份
+ * - 工单模板只存储在数据库中
+ * - 不上传到 GitHub 仓库
  */
 
 // 获取所有模板
@@ -18,28 +17,8 @@ export async function GET() {
 
   try {
     const db = getDb();
-    
-    // 先从数据库读取缓存
-    let templatesStr = await db.get('config:ticket-templates');
-    let templates = templatesStr ? JSON.parse(templatesStr) : [];
-    
-    // 尝试从 GitHub 同步最新配置
-    const configStr = await db.get('config:main');
-    if (configStr) {
-      const config = JSON.parse(configStr);
-      if (config.githubRepo && config.githubToken) {
-        try {
-          const file = await getFileFromGithub(config.githubRepo, config.githubToken, 'config/ticket-templates.json');
-          if (file) {
-            templates = JSON.parse(file.content);
-            // 更新数据库缓存
-            await db.set('config:ticket-templates', JSON.stringify(templates));
-          }
-        } catch (e) {
-          // GitHub 文件不存在，使用数据库缓存
-        }
-      }
-    }
+    const templatesStr = await db.get('config:ticket-templates');
+    const templates = templatesStr ? JSON.parse(templatesStr) : [];
     
     return NextResponse.json(templates);
   } catch (error) {
@@ -75,7 +54,7 @@ export async function POST(req: NextRequest) {
       id: templateId,
       name,
       description: description || '',
-      fields, // [{ name, type, required, options }]
+      fields,
       priority: priority || 'medium',
       autoAssign: autoAssign || null,
       createdAt: id ? templates.find((t: any) => t.id === id)?.createdAt : now,
@@ -95,22 +74,7 @@ export async function POST(req: NextRequest) {
       templates.push(template);
     }
     
-    // 同步到 GitHub
-    const configStr = await db.get('config:main');
-    if (configStr) {
-      const config = JSON.parse(configStr);
-      if (config.githubRepo && config.githubToken) {
-        await updateFileInGithub({
-          repo: config.githubRepo,
-          token: config.githubToken,
-          path: 'config/ticket-templates.json',
-          content: JSON.stringify(templates, null, 2),
-          message: `chore: ${id ? 'update' : 'create'} ticket template "${name}"`,
-        });
-      }
-    }
-    
-    // 更新数据库缓存
+    // 只保存到数据库，不上传到 GitHub
     await db.set('config:ticket-templates', JSON.stringify(templates));
     
     return NextResponse.json({ success: true, template });
@@ -136,21 +100,7 @@ export async function DELETE(req: NextRequest) {
     
     templates = templates.filter((t: any) => t.id !== id);
     
-    // 同步到 GitHub
-    const configStr = await db.get('config:main');
-    if (configStr) {
-      const config = JSON.parse(configStr);
-      if (config.githubRepo && config.githubToken) {
-        await updateFileInGithub({
-          repo: config.githubRepo,
-          token: config.githubToken,
-          path: 'config/ticket-templates.json',
-          content: JSON.stringify(templates, null, 2),
-          message: `chore: delete ticket template`,
-        });
-      }
-    }
-    
+    // 只保存到数据库，不上传到 GitHub
     await db.set('config:ticket-templates', JSON.stringify(templates));
     
     return NextResponse.json({ success: true });
