@@ -187,27 +187,38 @@ export default function DashboardPage() {
           <div
             key={index}
             style={{
-              background: 'var(--ant-color-bg-container)',
-              borderRadius: 12,
-              padding: 20,
-              border: '1px solid var(--ant-color-border-secondary)',
+              background: '#ffffff',
+              borderRadius: 16,
+              padding: 24,
+              border: '1px solid #e5e5e5',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              transition: 'all 0.2s',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
+              e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
             <Flexbox gap={16} align="flex-start">
               <div style={{
-                width: 48,
-                height: 48,
-                borderRadius: 12,
+                width: 52,
+                height: 52,
+                borderRadius: 14,
                 background: card.bgColor,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-                <Icon icon={card.icon} style={{ color: card.color }} />
+                <Icon icon={card.icon} style={{ color: card.color, fontSize: 24 }} />
               </div>
               <div>
                 <Text type="secondary" style={{ fontSize: 14 }}>{card.title}</Text>
-                <Text fontSize={28} weight={'bold'}>{card.value}</Text>
+                <Text fontSize={32} weight={'bold'}>{card.value}</Text>
               </div>
             </Flexbox>
           </div>
