@@ -19,6 +19,12 @@ const nextConfig: NextConfig = {
   },
   output: 'standalone',
   transpilePackages: ['motion'],
+  // 排除不需要打包进云函数的依赖
+  serverExternalPackages: [
+    'prisma',
+    '@prisma/client',
+    'sharp',
+  ],
   turbopack: {},
   webpack: (config, {dev}) => {
     // HMR is disabled in AI Studio via DISABLE_HMR env var.
