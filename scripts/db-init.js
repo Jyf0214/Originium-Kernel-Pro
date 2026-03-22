@@ -214,45 +214,76 @@ async function main() {
       await prisma3.$disconnect()
     }
     
-    // 如果有 GitHub 配置，同步配置文件
+    // 如果有 GitHub 配置，同步站点配置文件
     if (finalGithubRepo && finalGithubToken) {
       try {
         const { Octokit } = require('octokit')
         const octokit = new Octokit({ auth: finalGithubToken })
         const [owner, repoName] = finalGithubRepo.split('/')
         
-        // 同步工单模板
+        // 获取数据库中的站点配置
         const prisma4 = new PrismaClient()
-        const templatesRecord = await prisma4.originiumKV.findUnique({
-          where: { key: 'config:ticket-templates' }
+        const configRecord = await prisma4.originiumKV.findUnique({
+          where: { key: 'config:main' }
         })
         
-        const templates = templatesRecord?.value ? JSON.parse(templatesRecord.value) : []
+        const config = configRecord?.value ? JSON.parse(configRecord.value) : {}
         
-        // 获取文件 SHA（如果存在）
+        // 站点配置（YAML 格式）
+        const yamlConfig = {
+          siteTitle: config.siteTitle || 'Originium Kernel',
+          siteDescription: config.siteDescription || '现代内容发布平台'
+        }
+        
+        // 获取 config.yaml 的 SHA（如果存在）
         let sha = null
         try {
           const { data } = await octokit.rest.repos.getContent({
             owner,
             repo: repoName,
-            path: 'config/ticket-templates.json'
+            path: 'config.yaml'
           })
           if ('sha' in data) sha = data.sha
         } catch (e) {
           // 文件不存在
         }
         
-        // 创建/更新文件
+        // 创建/更新 config.yaml
+        const yaml = require('js-yaml')
         await octokit.rest.repos.createOrUpdateFileContents({
           owner,
           repo: repoName,
-          path: 'config/ticket-templates.json',
-          message: 'chore: sync ticket templates from database',
-          content: Buffer.from(JSON.stringify(templates, null, 2)).toString('base64'),
+          path: 'config.yaml',
+          message: 'chore: sync config.yaml',
+          content: Buffer.from(yaml.dump(yamlConfig)).toString('base64'),
           sha: sha || undefined
         })
         
-        console.log('[数据库初始化] ✓ 工单模板已同步到 GitHub')
+        console.log('[数据库初始化] ✓ config.yaml 已同步到 GitHub')
+        
+        // 同时保存 config.json
+        let jsonSha = null
+        try {
+          const { data } = await octokit.rest.repos.getContent({
+            owner,
+            repo: repoName,
+            path: 'config.json'
+          })
+          if ('sha' in data) jsonSha = data.sha
+        } catch (e) {
+          // 文件不存在
+        }
+        
+        await octokit.rest.repos.createOrUpdateFileContents({
+          owner,
+          repo: repoName,
+          path: 'config.json',
+          message: 'chore: sync config.json',
+          content: Buffer.from(JSON.stringify(yamlConfig, null, 2)).toString('base64'),
+          sha: jsonSha || undefined
+        })
+        
+        console.log('[数据库初始化] ✓ config.json 已同步到 GitHub')
         
         await prisma4.$disconnect()
       } catch (error) {

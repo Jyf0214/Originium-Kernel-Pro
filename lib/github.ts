@@ -52,16 +52,31 @@ export async function updateFileInGithub({ repo, token, path, content, message }
 }
 
 /**
- * Sync config.yaml to GitHub
+ * Sync config to GitHub (支持 YAML 和 JSON 格式)
  */
 export async function syncConfigToGithub(repo: string, token: string, config: any) {
+  // 优先使用 YAML 格式（可读性高）
   const yamlContent = yaml.dump(config);
-  return await updateFileInGithub({
+  
+  // 同时保存 YAML 和 JSON 格式
+  const jsonContent = JSON.stringify(config, null, 2);
+  
+  // 保存 config.yaml
+  await updateFileInGithub({
     repo,
     token,
     path: 'config.yaml',
     content: yamlContent,
-    message: 'chore: update system configuration via Web UI',
+    message: 'chore: update config.yaml',
+  });
+  
+  // 保存 config.json（方便程序读取）
+  await updateFileInGithub({
+    repo,
+    token,
+    path: 'config.json',
+    content: jsonContent,
+    message: 'chore: update config.json',
   });
 }
 
