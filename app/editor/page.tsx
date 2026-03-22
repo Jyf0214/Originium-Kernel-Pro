@@ -3,7 +3,7 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
-import { syncArticleToGithub } from '@/lib/github';
+import { useI18n } from '@/hooks/use-i18n';
 import { Save, Send, ArrowLeft, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 
@@ -12,6 +12,7 @@ function EditorContent() {
   const router = useRouter();
   const articleId = searchParams.get('id');
   const { user } = useAuth();
+  const { locale } = useI18n();
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -25,9 +26,21 @@ function EditorContent() {
     if (articleId) {
       const fetchArticle = async () => {
         setFetching(true);
-        // TODO: 从 GitHub 或 Redis 获取文章内容
-        console.log('Fetching article:', articleId);
-        setFetching(false);
+        try {
+          const res = await fetch(`/api/articles/${articleId}`);
+          if (res.ok) {
+            const data = await res.json();
+            setTitle(data.title || '');
+            setContent(data.content || '');
+            setTags(data.tags?.join(', ') || '');
+            setCoverImage(data.coverImage || '');
+            setStatus(data.status || 'draft');
+          }
+        } catch (error) {
+          console.error('获取文章失败:', error);
+        } finally {
+          setFetching(false);
+        }
       };
       fetchArticle();
     }
@@ -35,11 +48,11 @@ function EditorContent() {
 
   const handleSave = async (newStatus: string) => {
     if (!user) {
-      alert('Please login first.');
+      alert(locale === 'zh-CN' ? '请先登录' : 'Please login first');
       return;
     }
     if (!title.trim() || !content.trim()) {
-      alert('Title and content are required.');
+      alert(locale === 'zh-CN' ? '标题和内容不能为空' : 'Title and content are required');
       return;
     }
 
@@ -53,34 +66,25 @@ function EditorContent() {
         authorName: user.displayName || 'Anonymous',
         tags: tags.split(',').map(t => t.trim()).filter(Boolean),
         coverImage,
-        updatedAt: new Date().toISOString(),
       };
 
-      console.log('Saving article:', articleData);
+      const method = articleId ? 'PATCH' : 'POST';
+      const url = articleId ? `/api/articles/${articleId}` : '/api/articles';
+      
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(articleData),
+      });
 
-      // TODO: 实现基于 Node Function 的保存逻辑
-      // 1. 提交至 GitHub
-      // 2. 更新 Redis 索引
-
-      // Sync to GitHub if published
-      if (newStatus === 'published') {
-        try {
-          // TODO: 从 config.yaml 获取配置
-          const githubRepo = ''; 
-          const githubToken = '';
-          
-          if (githubRepo && githubToken) {
-            await syncArticleToGithub(githubRepo, githubToken, { id: articleId || 'new', ...articleData, createdAt: new Date().toISOString() } as any);
-          }
-        } catch (syncError) {
-          console.error('GitHub sync failed:', syncError);
-        }
+      if (res.ok) {
+        router.push('/dashboard/articles');
+      } else {
+        alert(locale === 'zh-CN' ? '保存失败' : 'Save failed');
       }
-
-      router.push('/dashboard/articles');
     } catch (error) {
-      console.error('Save failed:', error);
-      alert('Failed to save article.');
+      console.error('保存失败:', error);
+      alert(locale === 'zh-CN' ? '保存失败' : 'Save failed');
     } finally {
       setLoading(false);
     }
