@@ -42,10 +42,9 @@ function LoginForm() {
     setLoading(true);
     try {
       await login(email, values.password);
-      message.success('登录成功');
       router.push(callbackUrl);
     } catch (error: any) {
-      message.error(error.message || '登录失败，请检查用户名和密码');
+      // 错误已在 useAuth 中处理
     } finally {
       setLoading(false);
     }
