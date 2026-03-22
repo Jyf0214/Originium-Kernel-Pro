@@ -4,103 +4,175 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { Edit, Trash2, Plus, Eye } from 'lucide-react';
+import { Icon, Text } from '@lobehub/ui';
 
 export default function ArticlesPage() {
   const { user } = useAuth();
-  const [articles] = useState<any[]>([]);
+  const [articles, setArticles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
-    // TODO: 实现获取文章列表的 API 调用
+    
+    const fetchArticles = async () => {
+      try {
+        const res = await fetch('/api/articles');
+        if (res.ok) {
+          const data = await res.json();
+          setArticles(data);
+        }
+      } catch (error) {
+        console.error('获取文章列表失败:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchArticles();
   }, [user]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this article?')) return;
-    console.log('Delete article:', id);
-    // TODO: 实现删除文章逻辑
+    if (!confirm('确定要删除这篇文章吗？')) return;
+    try {
+      const res = await fetch(`/api/articles/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setArticles(articles.filter(a => a.id !== id));
+      }
+    } catch (error) {
+      console.error('删除文章失败:', error);
+    }
   };
 
   if (!user) {
-    return <div className="p-8 text-center text-red-500 font-bold">Please log in to view articles.</div>;
+    return (
+      <div style={{ padding: 32, textAlign: 'center' }}>
+        <Text style={{ color: 'var(--ant-color-error)' }}>请登录后查看文章</Text>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div style={{ padding: 32, textAlign: 'center' }}>
+        <Text type="secondary">加载中...</Text>
+      </div>
+    );
   }
 
   return (
-    <div className="p-6 md:p-10 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-display font-bold text-zinc-900">Manage Articles</h1>
-        <Link 
-          href="/editor" 
-          className="lobe-button bg-zinc-900 text-white hover:bg-zinc-800 flex items-center gap-2 px-4 py-2 rounded-lg transition-all"
-        >
-          <Plus size={18} />
-          <span>New Article</span>
+    <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <Text fontSize={24} weight={'bold'}>文章管理</Text>
+        <Link href="/editor" style={{ textDecoration: 'none' }}>
+          <button style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '10px 20px',
+            background: '#1a1a1a',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            fontSize: 14,
+            cursor: 'pointer',
+          }}>
+            <Icon icon={Plus} />
+            <span>新建文章</span>
+          </button>
         </Link>
       </div>
 
-      <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-zinc-50 border-b border-zinc-200 text-xs uppercase tracking-wider text-zinc-500 font-bold">
-                <th className="p-4">Title</th>
-                <th className="p-4">Status</th>
-                <th className="p-4">Author</th>
-                <th className="p-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-100">
-              {articles.map((article) => (
-                <tr key={article.id} className="hover:bg-zinc-50 transition-colors">
-                  <td className="p-4">
-                    <div className="font-medium text-zinc-900 line-clamp-1">{article.title}</div>
-                  </td>
-                  <td className="p-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      article.status === 'published' 
-                        ? 'bg-emerald-100 text-emerald-800' 
-                        : 'bg-amber-100 text-amber-800'
-                    }`}>
-                      {article.status}
-                    </span>
-                  </td>
-                  <td className="p-4 text-sm text-zinc-600">{article.authorName}</td>
-                  <td className="p-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Link 
-                        href={`/article/${article.id}`}
-                        className="p-2 text-zinc-400 hover:text-blue-600 rounded-md hover:bg-blue-50 transition-colors"
-                        title="View"
-                      >
-                        <Eye size={18} />
-                      </Link>
-                      <Link 
-                        href={`/editor?id=${article.id}`}
-                        className="p-2 text-zinc-400 hover:text-emerald-600 rounded-md hover:bg-emerald-50 transition-colors"
-                        title="Edit"
-                      >
-                        <Edit size={18} />
-                      </Link>
-                      <button 
-                        onClick={() => handleDelete(article.id)}
-                        className="p-2 text-zinc-400 hover:text-red-600 rounded-md hover:bg-red-50 transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 size={18} />
+      <div style={{
+        background: '#ffffff',
+        borderRadius: 12,
+        border: '1px solid #e5e5e5',
+        overflow: 'hidden',
+      }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ 
+              background: '#fafafa',
+              borderBottom: '1px solid #e5e5e5',
+            }}>
+              <th style={{ padding: 16, textAlign: 'left', fontSize: 13, fontWeight: 600 }}>标题</th>
+              <th style={{ padding: 16, textAlign: 'left', fontSize: 13, fontWeight: 600 }}>状态</th>
+              <th style={{ padding: 16, textAlign: 'left', fontSize: 13, fontWeight: 600 }}>作者</th>
+              <th style={{ padding: 16, textAlign: 'right', fontSize: 13, fontWeight: 600 }}>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {articles.map((article) => (
+              <tr key={article.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                <td style={{ padding: 16 }}>
+                  <Text weight={500}>{article.title}</Text>
+                </td>
+                <td style={{ padding: 16 }}>
+                  <span style={{
+                    display: 'inline-block',
+                    padding: '4px 12px',
+                    borderRadius: 16,
+                    fontSize: 12,
+                    background: article.status === 'published' ? '#f6ffed' : '#fffbe6',
+                    color: article.status === 'published' ? '#52c41a' : '#faad14',
+                  }}>
+                    {article.status === 'published' ? '已发布' : '草稿'}
+                  </span>
+                </td>
+                <td style={{ padding: 16 }}>
+                  <Text type="secondary">{article.authorName}</Text>
+                </td>
+                <td style={{ padding: 16, textAlign: 'right' }}>
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                    <Link href={`/article/${article.id}`}>
+                      <button style={{ 
+                        padding: 8, 
+                        background: 'none', 
+                        border: 'none', 
+                        cursor: 'pointer',
+                        borderRadius: 6,
+                        color: '#1890ff',
+                      }} title="查看">
+                        <Icon icon={Eye} />
                       </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {articles.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="p-8 text-center text-zinc-500 font-medium">
-                    No articles found. Create your first one!
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                    </Link>
+                    <Link href={`/editor?id=${article.id}`}>
+                      <button style={{ 
+                        padding: 8, 
+                        background: 'none', 
+                        border: 'none', 
+                        cursor: 'pointer',
+                        borderRadius: 6,
+                        color: '#52c41a',
+                      }} title="编辑">
+                        <Icon icon={Edit} />
+                      </button>
+                    </Link>
+                    <button 
+                      onClick={() => handleDelete(article.id)}
+                      style={{ 
+                        padding: 8, 
+                        background: 'none', 
+                        border: 'none', 
+                        cursor: 'pointer',
+                        borderRadius: 6,
+                        color: '#ff4d4f',
+                      }} title="删除"
+                    >
+                      <Icon icon={Trash2} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {articles.length === 0 && (
+              <tr>
+                <td colSpan={4} style={{ padding: 40, textAlign: 'center' }}>
+                  <Text type="secondary">暂无文章，创建您的第一篇文章吧！</Text>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
