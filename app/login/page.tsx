@@ -57,11 +57,11 @@ function LoginForm() {
   };
 
   const inputStyle = {
-    padding: 12,
-    height: 52,
+    padding: '14px 16px',
+    height: 56,
     fontSize: 16,
-    lineHeight: '24px',
-    borderRadius: 8,
+    lineHeight: 1.6,
+    borderRadius: 12,
   };
 
   const renderEmailStep = () => (

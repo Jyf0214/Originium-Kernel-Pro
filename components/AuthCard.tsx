@@ -1,6 +1,5 @@
 'use client';
 
-import { Flexbox, Text } from '@lobehub/ui';
 import { type ReactNode } from 'react';
 import { memo } from 'react';
 
@@ -14,23 +13,34 @@ export interface AuthCardProps {
 export const AuthCard = memo<AuthCardProps>(({ children, title, subtitle, footer }) => {
   return (
     <div style={{ width: '100%', maxWidth: 480 }}>
-      <div style={{ marginBottom: 48 }}>
+      <div style={{ marginBottom: 56 }}>
         {title && (
-          <div style={{ marginBottom: 12 }}>
-            <Text fontSize={32} weight={'bold'} style={{ lineHeight: '40px' }}>
+          <div style={{ marginBottom: 20 }}>
+            <span style={{ 
+              fontSize: 36, 
+              fontWeight: 700, 
+              lineHeight: 1.6,
+              display: 'block',
+              letterSpacing: '-0.5px'
+            }}>
               {title}
-            </Text>
+            </span>
           </div>
         )}
         {subtitle && (
           <div>
-            <Text fontSize={18} type={'secondary'} style={{ lineHeight: '28px' }}>
+            <span style={{ 
+              fontSize: 18, 
+              color: 'var(--ant-color-text-secondary)',
+              lineHeight: 1.7,
+              display: 'block'
+            }}>
               {subtitle}
-            </Text>
+            </span>
           </div>
         )}
       </div>
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 32 }}>
         {children}
       </div>
       {footer}
