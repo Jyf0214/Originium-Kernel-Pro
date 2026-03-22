@@ -1,18 +1,42 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Input, Form, notification, message } from 'antd';
+import { Button, Input, Form, notification, message, Select } from 'antd';
 import { ChevronRight, User, Lock, Mail } from 'lucide-react';
 import { Flexbox, Text, Icon } from '@lobehub/ui';
 import Link from 'next/link';
 import AuthCard from '@/components/AuthCard';
 import AuthLayout from '@/components/AuthLayout';
 
+interface UserGroup {
+  id: string;
+  name: string;
+  description: string;
+  isDefault?: boolean;
+}
+
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
+  const [groups, setGroups] = useState<UserGroup[]>([]);
   const router = useRouter();
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const res = await fetch('/api/user-groups');
+        if (res.ok) {
+          const data = await res.json();
+          // 过滤掉 sudo 和 admin 组，普通用户不能选择
+          setGroups(data.filter((g: UserGroup) => g.id !== 'sudo' && g.id !== 'admin'));
+        }
+      } catch (error) {
+        console.error('获取用户组失败:', error);
+      }
+    };
+    fetchGroups();
+  }, []);
 
   const onFinish = async (values: any) => {
     setLoading(true);
@@ -29,6 +53,7 @@ export default function RegisterPage() {
           username: values.username,
           password: values.password,
           name: values.name || values.email.split('@')[0],
+          userGroup: values.userGroup || 'default',
         }),
       });
       const data = await res.json();
@@ -146,6 +171,24 @@ export default function RegisterPage() {
               style={inputStyle}
             />
           </Form.Item>
+
+          {groups.length > 0 && (
+            <Form.Item
+              name="userGroup"
+              style={{ marginBottom: 16 }}
+              initialValue="default"
+            >
+              <Select
+                size="large"
+                placeholder="选择用户组"
+                style={{ height: 56 }}
+                options={groups.map(g => ({
+                  label: g.name,
+                  value: g.id,
+                }))}
+              />
+            </Form.Item>
+          )}
 
           <Form.Item
             name="confirmPassword"
