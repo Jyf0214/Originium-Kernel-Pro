@@ -67,8 +67,15 @@ class SqlDriver implements IDatabase {
     if (type === 'mysql') {
       this.pool = mysql.createPool(url);
     } else {
+      // 自动添加 sslmode 参数（如果没有）
+      let finalUrl = url;
+      if (!url.includes('sslmode')) {
+        const separator = url.includes('?') ? '&' : '?';
+        finalUrl = `${url}${separator}sslmode=require`;
+      }
+      
       this.pool = new PgClient({ 
-        connectionString: url,
+        connectionString: finalUrl,
         ssl: { rejectUnauthorized: false }
       });
       (this.pool as PgClient).connect().catch(console.error);
