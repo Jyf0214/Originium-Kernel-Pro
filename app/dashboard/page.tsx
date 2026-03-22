@@ -137,6 +137,7 @@ export default function DashboardPage() {
     { label: '用户管理', icon: UserCog, href: '/admin/users', color: 'var(--ant-color-info)' },
     { label: '用户组', icon: Shield, href: '/admin/groups', color: 'var(--ant-color-purple)' },
     { label: '系统配置', icon: Settings, href: '/admin/config', color: 'var(--ant-color-warning)' },
+    { label: '环境变量', icon: Activity, href: '/admin/env', color: 'var(--ant-color-success)' },
     { label: '回收站管理', icon: Trash2, href: '/admin/requests', color: 'var(--ant-color-error)' },
   ];
 
