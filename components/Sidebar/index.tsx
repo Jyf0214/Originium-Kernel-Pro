@@ -32,7 +32,7 @@ const adminItems: MenuItem[] = [
   { label: '工单管理', icon: FileText, href: '/admin/tickets', adminOnly: true },
 ];
 
-export default function Sidebar() {
+function Sidebar() {
   const { user, isSudo, logout } = useAuth();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
@@ -235,3 +235,6 @@ export default function Sidebar() {
     </>
   );
 }
+
+export { Sidebar };
+export default Sidebar;
