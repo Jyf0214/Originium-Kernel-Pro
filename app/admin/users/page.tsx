@@ -2,11 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { useI18n } from '@/hooks/use-i18n';
 import { Trash2, Edit2, Check, X, User } from 'lucide-react';
 import { Icon, Text } from '@lobehub/ui';
 
 export default function UsersPage() {
   const { userRole } = useAuth();
+  const { locale } = useI18n();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
