@@ -12,7 +12,7 @@
     "db:push": "PRISMA_HIDE_UPDATE_MESSAGE=true PRISMA_HIDE_PREVIEW_FLAG_WARNINGS=true prisma db push",
     "db:migrate": "PRISMA_HIDE_UPDATE_MESSAGE=true PRISMA_HIDE_PREVIEW_FLAG_WARNINGS=true prisma migrate dev",
     "db:studio": "PRISMA_HIDE_UPDATE_MESSAGE=true PRISMA_HIDE_PREVIEW_FLAG_WARNINGS=true prisma studio",
-    "build": "npm run check && npm run db:generate && next build",
+    "build": "NEXT_TELEMETRY_DISABLED=1 npm run check && npm run db:generate && next build",
     "start": "next start",
     "clean": "next clean"
   },
