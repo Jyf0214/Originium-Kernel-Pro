@@ -90,3 +90,22 @@ export async function syncArticleToGithub(repo: string, token: string, article: 
     message: `feat: publish article "${title}"`,
   });
 }
+
+/**
+ * Delete file from GitHub
+ */
+export async function deleteFileFromGithub(repo: string, token: string, path: string) {
+  const [owner, repoName] = repo.split('/');
+  const octokit = new Octokit({ auth: token });
+
+  const existingFile = await getFileFromGithub(repo, token, path);
+  if (!existingFile) return null;
+
+  return await octokit.rest.repos.deleteFile({
+    owner,
+    repo: repoName,
+    path,
+    message: `delete: remove ${path}`,
+    sha: existingFile.sha,
+  });
+}

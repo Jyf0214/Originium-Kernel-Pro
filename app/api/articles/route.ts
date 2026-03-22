@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb, storage } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { syncArticleToGithub } from '@/lib/github';
+import { getFileFromGithub, updateFileInGithub } from '@/lib/github';
 
 /**
  * Articles API
+ * - 内容存储在 GitHub
+ * - 数据库存储元数据（用于管理、删除工单）
  */
 
 export async function GET(req: NextRequest) {
@@ -17,20 +19,20 @@ export async function GET(req: NextRequest) {
       ...JSON.parse(data),
     }));
 
-    // Sort by date desc
+    // 按日期降序排序
     articles.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return NextResponse.json(articles);
   } catch (error) {
-    console.error('List articles error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error(JSON.stringify({ type: 'list_articles_error', message: (error as Error).message }));
+    return NextResponse.json({ error: '获取文章列表失败' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
   try {
@@ -38,10 +40,18 @@ export async function POST(req: NextRequest) {
     const id = `art-${Date.now().toString(36)}`;
     const now = new Date().toISOString();
 
-    const articleData = {
+    // 获取 GitHub 配置
+    const db = getDb();
+    const configStr = await db.get('config:main');
+    let config: any = {};
+    if (configStr) {
+      config = JSON.parse(configStr);
+    }
+
+    // 文章元数据（存数据库）
+    const articleMeta = {
       id,
       title,
-      content, // Full content stored in JSON for indexing (Base64 is separate)
       authorId: session.uid,
       authorName: session.email.split('@')[0],
       tags: tags || [],
@@ -49,35 +59,39 @@ export async function POST(req: NextRequest) {
       status: status || 'draft',
       createdAt: now,
       updatedAt: now,
+      filePath: `articles/${id}.md`, // GitHub 文件路径
     };
 
-    const db = getDb();
-    
-    // 1. Save full record to DB
-    await db.set(`article:data:${id}`, JSON.stringify(articleData));
-    
-    // 2. Update index
-    const { content: _, ...metadata } = articleData; // Don't store full content in index
-    await db.hset('articles:index', id, JSON.stringify(metadata));
-    
-    // 3. Store as Base64 in storage layer (Redis)
-    await storage.saveFile(`articles/${id}.md`, content);
+    // 1. 保存元数据到数据库
+    await db.set(`article:data:${id}`, JSON.stringify(articleMeta));
+    await db.hset('articles:index', id, JSON.stringify(articleMeta));
 
-    // 4. Sync to GitHub if published
-    if (status === 'published') {
-      // Get GitHub config from DB/env
-      const configStr = await db.get('config:main');
-      if (configStr) {
-        const config = JSON.parse(configStr);
-        if (config.githubRepo && config.githubToken) {
-          await syncArticleToGithub(config.githubRepo, config.githubToken, articleData);
-        }
-      }
+    // 2. 保存内容到 GitHub
+    if (config.githubRepo && config.githubToken) {
+      const frontMatter = {
+        title,
+        author: articleMeta.authorName,
+        tags: articleMeta.tags,
+        cover: coverImage || '',
+        date: now,
+        status: status || 'draft',
+      };
+      
+      const yaml = require('js-yaml');
+      const fileContent = `---\n${yaml.dump(frontMatter)}---\n\n${content}`;
+      
+      await updateFileInGithub({
+        repo: config.githubRepo,
+        token: config.githubToken,
+        path: `articles/${id}.md`,
+        content: fileContent,
+        message: `feat: create article "${title}"`,
+      });
     }
 
     return NextResponse.json({ success: true, id });
   } catch (error) {
-    console.error('Create article error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error(JSON.stringify({ type: 'create_article_error', message: (error as Error).message }));
+    return NextResponse.json({ error: '创建文章失败' }, { status: 500 });
   }
 }
