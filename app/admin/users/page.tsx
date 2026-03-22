@@ -3,10 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Trash2, Edit2, Check, X, User } from 'lucide-react';
+import { Icon, Text } from '@lobehub/ui';
 
 export default function UsersPage() {
   const { userRole } = useAuth();
-  const [users] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRole, setEditRole] = useState('');
 
@@ -14,113 +16,211 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (!hasAccess) return;
-    // TODO: 实现获取用户列表的 API 调用
+    
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch('/api/users');
+        if (res.ok) {
+          const data = await res.json();
+          setUsers(data);
+        }
+      } catch (error) {
+        console.error('获取用户列表失败:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchUsers();
   }, [hasAccess]);
 
   const handleUpdateRole = async (id: string) => {
-    console.log('Update user role:', id, editRole);
-    // TODO: 实现更新用户角色逻辑
-    setEditingId(null);
+    try {
+      // TODO: 实现更新用户角色逻辑
+      console.log('更新用户角色:', id, editRole);
+      setEditingId(null);
+    } catch (error) {
+      console.error('更新角色失败:', error);
+    }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
-    console.log('Delete user:', id);
-    // TODO: 实现删除用户逻辑
+    if (!confirm('确定要删除此用户吗？')) return;
+    try {
+      // TODO: 实现删除用户逻辑
+      console.log('删除用户:', id);
+    } catch (error) {
+      console.error('删除用户失败:', error);
+    }
   };
 
   if (!hasAccess) {
-    return <div className="p-8 text-center text-red-500 font-bold">Access Denied. Only Sudo/Admin can access this page.</div>;
+    return (
+      <div style={{ padding: 32, textAlign: 'center' }}>
+        <Text style={{ color: 'var(--ant-color-error)' }}>无权限访问，仅管理员可访问此页面</Text>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div style={{ padding: 32, textAlign: 'center' }}>
+        <Text type="secondary">加载中...</Text>
+      </div>
+    );
   }
 
   return (
-    <div className="p-6 md:p-10 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-display font-bold text-zinc-900 mb-8">Manage Users</h1>
+    <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
+      <Text fontSize={24} weight={'bold'} style={{ marginBottom: 24, display: 'block' }}>
+        用户管理
+      </Text>
       
-      <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-zinc-50 border-b border-zinc-200 text-xs uppercase tracking-wider text-zinc-500 font-bold">
-                <th className="p-4">User</th>
-                <th className="p-4">Email</th>
-                <th className="p-4">Role</th>
-                <th className="p-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-100">
-              {users.map((u) => (
-                <tr key={u.id} className="hover:bg-zinc-50 transition-colors">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-zinc-100 rounded-full flex items-center justify-center text-zinc-500">
-                        <User size={16} />
-                      </div>
-                      <span className="font-medium text-zinc-900">{u.name}</span>
+      <div style={{
+        background: '#ffffff',
+        borderRadius: 12,
+        border: '1px solid #e5e5e5',
+        overflow: 'hidden',
+      }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ 
+              background: '#fafafa',
+              borderBottom: '1px solid #e5e5e5',
+            }}>
+              <th style={{ padding: 16, textAlign: 'left', fontSize: 13, fontWeight: 600 }}>用户</th>
+              <th style={{ padding: 16, textAlign: 'left', fontSize: 13, fontWeight: 600 }}>邮箱</th>
+              <th style={{ padding: 16, textAlign: 'left', fontSize: 13, fontWeight: 600 }}>角色</th>
+              <th style={{ padding: 16, textAlign: 'right', fontSize: 13, fontWeight: 600 }}>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u) => (
+              <tr key={u.uid || u.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                <td style={{ padding: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{
+                      width: 32,
+                      height: 32,
+                      background: '#f5f5f5',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                      <Icon icon={User} style={{ fontSize: 16, color: '#999' }} />
                     </div>
-                  </td>
-                  <td className="p-4 text-sm text-zinc-600">{u.email}</td>
-                  <td className="p-4">
-                    {editingId === u.id ? (
-                      <select 
-                        value={editRole}
-                        onChange={(e) => setEditRole(e.target.value)}
-                        className="lobe-input py-1 text-sm w-32 border border-zinc-200 rounded-md focus:ring-2 focus:ring-zinc-900 outline-none"
-                      >
-                        <option value="user">普通用户</option>
-                        <option value="admin">管理员</option>
-                        <option value="sudo">超级管理员</option>
-                      </select>
+                    <Text weight={500}>{u.name || u.username || '未设置'}</Text>
+                  </div>
+                </td>
+                <td style={{ padding: 16 }}>
+                  <Text type="secondary">{u.email}</Text>
+                </td>
+                <td style={{ padding: 16 }}>
+                  {editingId === u.uid ? (
+                    <select 
+                      value={editRole}
+                      onChange={(e) => setEditRole(e.target.value)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 6,
+                        border: '1px solid #d9d9d9',
+                        fontSize: 13,
+                      }}
+                    >
+                      <option value="user">普通用户</option>
+                      <option value="admin">管理员</option>
+                      <option value="sudo">超级管理员</option>
+                    </select>
+                  ) : (
+                    <span style={{
+                      display: 'inline-block',
+                      padding: '4px 12px',
+                      borderRadius: 16,
+                      fontSize: 12,
+                      background: u.role === 'sudo' || u.role === 'admin' ? '#f0f5ff' : '#f5f5f5',
+                      color: u.role === 'sudo' || u.role === 'admin' ? '#1890ff' : '#666',
+                    }}>
+                      {u.role === 'sudo' ? '超级管理员' : u.role === 'admin' ? '管理员' : '普通用户'}
+                    </span>
+                  )}
+                </td>
+                <td style={{ padding: 16, textAlign: 'right' }}>
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                    {editingId === u.uid ? (
+                      <>
+                        <button 
+                          onClick={() => handleUpdateRole(u.uid)}
+                          style={{ 
+                            padding: 8, 
+                            background: 'none', 
+                            border: 'none', 
+                            cursor: 'pointer',
+                            borderRadius: 6,
+                            color: '#52c41a',
+                          }}
+                        >
+                          <Icon icon={Check} />
+                        </button>
+                        <button 
+                          onClick={() => setEditingId(null)}
+                          style={{ 
+                            padding: 8, 
+                            background: 'none', 
+                            border: 'none', 
+                            cursor: 'pointer',
+                            borderRadius: 6,
+                            color: '#999',
+                          }}
+                        >
+                          <Icon icon={X} />
+                        </button>
+                      </>
                     ) : (
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        u.role === 'sudo' || u.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                        'bg-zinc-100 text-zinc-800'
-                      }`}>
-                        {u.role === 'sudo' ? '超级管理员' : u.role === 'admin' ? '管理员' : '普通用户'}
-                      </span>
+                      <>
+                        <button 
+                          onClick={() => { setEditingId(u.uid); setEditRole(u.role); }}
+                          style={{ 
+                            padding: 8, 
+                            background: 'none', 
+                            border: 'none', 
+                            cursor: 'pointer',
+                            borderRadius: 6,
+                            color: '#1890ff',
+                          }}
+                          title="编辑"
+                        >
+                          <Icon icon={Edit2} />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(u.uid)}
+                          style={{ 
+                            padding: 8, 
+                            background: 'none', 
+                            border: 'none', 
+                            cursor: 'pointer',
+                            borderRadius: 6,
+                            color: '#ff4d4f',
+                          }}
+                          title="删除"
+                        >
+                          <Icon icon={Trash2} />
+                        </button>
+                      </>
                     )}
-                  </td>
-                  <td className="p-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {editingId === u.id ? (
-                        <>
-                          <button onClick={() => handleUpdateRole(u.id)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-md">
-                            <Check size={18} />
-                          </button>
-                          <button onClick={() => setEditingId(null)} className="p-2 text-zinc-400 hover:bg-zinc-100 rounded-md">
-                            <X size={18} />
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button 
-                            onClick={() => { setEditingId(u.id); setEditRole(u.role); }}
-                            className="p-2 text-zinc-400 hover:text-blue-600 rounded-md hover:bg-blue-50 transition-colors"
-                          >
-                            <Edit2 size={18} />
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(u.id)}
-                            className="p-2 text-zinc-400 hover:text-red-600 rounded-md hover:bg-red-50 transition-colors"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {users.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="p-8 text-center text-zinc-500 font-medium">
-                    No users found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {users.length === 0 && (
+              <tr>
+                <td colSpan={4} style={{ padding: 40, textAlign: 'center' }}>
+                  <Text type="secondary">暂无用户</Text>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
