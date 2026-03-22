@@ -1,342 +1,151 @@
-import Redis from 'ioredis';
-import mysql from 'mysql2/promise';
-import { Client as PgClient } from 'pg';
-
 /**
- * Originium Kernel Database Interface
- * Supports Redis, MySQL, and PostgreSQL via DATABASE_URL
+ * 统一数据库接口 - 使用 Prisma
+ * 支持 Supabase/PostgreSQL
  */
+import { PrismaClient } from '@prisma/client'
 
-export type StorageEngine = 'redis' | 'mysql' | 'postgres';
+// 屏蔽 Prisma 广告
+process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS = 'true'
+process.env.PRISMA_HIDE_UPDATE_MESSAGE = 'true'
 
-interface IDatabase {
-  get(key: string): Promise<string | null>;
-  set(key: string, value: string, ttl?: number): Promise<void>;
-  del(key: string): Promise<void>;
-  exists(key: string): Promise<boolean>;
-  hget(key: string, field: string): Promise<string | null>;
-  hset(key: string, field: string, value: string): Promise<void>;
-  hdel(key: string, field: string): Promise<void>;
-  hgetall(key: string): Promise<Record<string, string>>;
+// 获取数据库 URL
+function getDatabaseUrl(): string {
+  return (
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_URL ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL_NON_POOLING ||
+    ''
+  )
 }
 
-class RedisDriver implements IDatabase {
-  private client: Redis;
-  constructor(url: string) {
-    console.log('[数据库] 正在初始化 Redis 连接...');
-    this.client = new Redis(url, {
-      maxRetriesPerRequest: 3, // 减少重试次数
-      retryStrategy: (times) => {
-        if (times > 3) {
-          console.error('[数据库] Redis 连接失败，已达到最大重试次数');
-          return null; // 停止重试
-        }
-        return Math.min(times * 200, 2000);
-      },
-    });
-    
-    this.client.on('error', (err) => {
-      console.error('[数据库] Redis 连接错误:', err.message);
-    });
-    
-    this.client.on('connect', () => {
-      console.log('[数据库] Redis 连接成功');
-    });
-  }
-  async get(key: string) { return this.client.get(key); }
-  async set(key: string, value: string, ttl?: number) {
-    if (ttl) await this.client.set(key, value, 'EX', ttl);
-    else await this.client.set(key, value);
-  }
-  async del(key: string) { await this.client.del(key); }
-  async exists(key: string) { return (await this.client.exists(key)) === 1; }
-  async hget(key: string, field: string) { return this.client.hget(key, field); }
-  async hset(key: string, field: string, value: string) { await this.client.hset(key, field, value); }
-  async hdel(key: string, field: string) { await this.client.hdel(key, field); }
-  async hgetall(key: string) { return this.client.hgetall(key); }
+// 创建 Prisma 客户端单例
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined
 }
 
-// MySQL and Postgres drivers
-class SqlDriver implements IDatabase {
-  private type: 'mysql' | 'postgres';
-  private pool: any;
-  private tableName = 'originium_kv';
+function createPrismaClient(): PrismaClient {
+  const url = getDatabaseUrl()
   
-  constructor(type: 'mysql' | 'postgres', url: string) {
-    this.type = type;
-    if (type === 'mysql') {
-      this.pool = mysql.createPool(url);
-    } else {
-      // 自动添加 sslmode 参数（如果没有）
-      let finalUrl = url;
-      if (!url.includes('sslmode')) {
-        const separator = url.includes('?') ? '&' : '?';
-        finalUrl = `${url}${separator}sslmode=verify-full`;
-      }
-      
-      this.pool = new PgClient({ 
-        connectionString: finalUrl,
-        ssl: { rejectUnauthorized: false }
-      });
-      (this.pool as PgClient).connect().catch(console.error);
-    }
-    this.initTable();
+  // 构建时可能没有 URL，返回一个空客户端
+  if (!url) {
+    return new PrismaClient()
   }
-
-  private async initTable() {
-    const sql = this.type === 'mysql' 
-      ? `CREATE TABLE IF NOT EXISTS ${this.tableName} (k VARCHAR(255) PRIMARY KEY, v LONGTEXT, expiry BIGINT)`
-      : `CREATE TABLE IF NOT EXISTS ${this.tableName} (k VARCHAR(255) PRIMARY KEY, v TEXT, expiry BIGINT)`;
-    await this.query(sql);
+  
+  // 自动添加 sslmode 参数
+  let finalUrl = url
+  if (url.startsWith('postgres') && !url.includes('sslmode')) {
+    const separator = url.includes('?') ? '&' : '?'
+    finalUrl = `${url}${separator}sslmode=require`
   }
+  
+  return new PrismaClient({
+    datasources: {
+      db: { url: finalUrl }
+    },
+    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+  })
+}
 
-  private async query(sql: string, params: any[] = []) {
-    if (this.type === 'mysql') {
-      const [rows] = await this.pool.execute(sql, params);
-      return rows;
-    } else {
-      const res = await (this.pool as PgClient).query(sql, params);
-      return res.rows;
-    }
-  }
+export const prisma = globalForPrisma.prisma ?? createPrismaClient()
 
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma
+}
+
+// 数据库接口定义
+export interface IDatabase {
+  get(key: string): Promise<string | null>
+  set(key: string, value: string, ttl?: number): Promise<void>
+  del(key: string): Promise<void>
+  exists(key: string): Promise<boolean>
+  hget(key: string, field: string): Promise<string | null>
+  hset(key: string, field: string, value: string): Promise<void>
+  hdel(key: string, field: string): Promise<void>
+  hgetall(key: string): Promise<Record<string, string>>
+}
+
+// Prisma 实现的数据库接口
+class PrismaDriver implements IDatabase {
   async get(key: string): Promise<string | null> {
-    const rows = await this.query(`SELECT v, expiry FROM ${this.tableName} WHERE k = ?`, [key]);
-    if (!rows.length) return null;
-    const { v, expiry } = rows[0];
-    if (expiry && expiry < Date.now()) {
-      await this.del(key);
-      return null;
+    const record = await prisma.originiumKV.findUnique({ where: { key } })
+    if (!record) return null
+    if (record.expiry && record.expiry < BigInt(Date.now())) {
+      await this.del(key)
+      return null
     }
-    return v;
+    return record.value
   }
 
   async set(key: string, value: string, ttl?: number): Promise<void> {
-    const expiry = ttl ? Date.now() + ttl * 1000 : null;
-    if (this.type === 'mysql') {
-      await this.query(`INSERT INTO ${this.tableName} (k, v, expiry) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE v = VALUES(v), expiry = VALUES(expiry)`, [key, value, expiry]);
-    } else {
-      await this.query(`INSERT INTO ${this.tableName} (k, v, expiry) VALUES ($1, $2, $3) ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v, expiry = EXCLUDED.expiry`, [key, value, expiry]);
-    }
+    const expiry = ttl ? BigInt(Date.now() + ttl * 1000) : null
+    await prisma.originiumKV.upsert({
+      where: { key },
+      update: { value, expiry },
+      create: { key, value, expiry }
+    })
   }
 
   async del(key: string): Promise<void> {
-    await this.query(`DELETE FROM ${this.tableName} WHERE k = ?`, [key]);
+    await prisma.originiumKV.delete({ where: { key } }).catch(() => {})
   }
 
   async exists(key: string): Promise<boolean> {
-    const rows = await this.query(`SELECT 1 FROM ${this.tableName} WHERE k = ?`, [key]);
-    return rows.length > 0;
+    const record = await prisma.originiumKV.findUnique({ where: { key } })
+    return !!record
   }
 
   async hget(key: string, field: string): Promise<string | null> {
-    return this.get(`${key}:${field}`);
+    return this.get(`${key}:${field}`)
   }
 
   async hset(key: string, field: string, value: string): Promise<void> {
-    await this.set(`${key}:${field}`, value);
+    await this.set(`${key}:${field}`, value)
   }
 
   async hdel(key: string, field: string): Promise<void> {
-    await this.del(`${key}:${field}`);
+    await this.del(`${key}:${field}`)
   }
 
   async hgetall(key: string): Promise<Record<string, string>> {
-    const prefix = `${key}:%`;
-    const rows = await this.query(`SELECT k, v FROM ${this.tableName} WHERE k LIKE ?`, [prefix]);
-    const result: Record<string, string> = {};
-    for (const row of rows) {
-      const field = row.k.substring(key.length + 1);
-      result[field] = row.v;
+    const records = await prisma.originiumKV.findMany({
+      where: { key: { startsWith: `${key}:` } }
+    })
+    const result: Record<string, string> = {}
+    for (const record of records) {
+      if (record.value) {
+        const field = record.key.substring(key.length + 1)
+        result[field] = record.value
+      }
     }
-    return result;
+    return result
   }
 }
 
-let dbInstance: IDatabase | null = null;
+// 获取数据库实例
+let dbInstance: IDatabase | null = null
 
 export function getDb(): IDatabase {
-  if (dbInstance) return dbInstance;
-
-  // 优先使用 Supabase 环境变量（Vercel 自动生成）
-  const url = 
-    process.env.DATABASE_URL || 
-    process.env.POSTGRES_URL || 
-    process.env.POSTGRES_PRISMA_URL ||
-    process.env.POSTGRES_URL_NON_POOLING ||
-    'redis://localhost:6379';
-  
-  if (url.startsWith('redis:')) {
-    dbInstance = new RedisDriver(url);
-  } else if (url.startsWith('mysql:')) {
-    dbInstance = new SqlDriver('mysql', url);
-  } else if (url.startsWith('postgres:') || url.startsWith('postgresql:')) {
-    dbInstance = new SqlDriver('postgres', url);
-  } else {
-    throw new Error('Unsupported DATABASE_URL protocol');
+  if (!dbInstance) {
+    dbInstance = new PrismaDriver()
   }
-
-  return dbInstance;
+  return dbInstance
 }
 
-/**
- * Storage Helpers for Base64 and Indexing
- */
+// 存储辅助函数
 export const storage = {
-  // Store file content as Base64 in Redis
   async saveFile(path: string, content: string) {
-    const db = getDb();
-    const base64 = Buffer.from(content).toString('base64');
-    await db.set(`file:${path}`, base64);
+    const db = getDb()
+    const base64 = Buffer.from(content).toString('base64')
+    await db.set(`file:${path}`, base64)
   },
 
   async getFile(path: string): Promise<string | null> {
-    const db = getDb();
-    const base64 = await db.get(`file:${path}`);
-    if (!base64) return null;
-    return Buffer.from(base64, 'base64').toString('utf-8');
-  },
-
-  // Indexing articles for fast lookup
-  async indexArticle(id: string, metadata: any) {
-    const db = getDb();
-    await db.hset('articles:index', id, JSON.stringify(metadata));
+    const db = getDb()
+    const base64 = await db.get(`file:${path}`)
+    if (!base64) return null
+    return Buffer.from(base64, 'base64').toString('utf-8')
   }
-};
+}
 
-/**
- * Database Backup System
- * Priority: config.yaml (GitHub) > Redis > Local DB
- */
-export const backup = {
-  // Backup config to Redis with timestamp
-  async backupConfig(config: any) {
-    const db = getDb();
-    const timestamp = Date.now();
-    const backupKey = `backup:config:${timestamp}`;
-    await db.set(backupKey, JSON.stringify(config));
-    
-    // Keep only last 10 backups
-    const backups = await db.hgetall('backup:config:list');
-    const backupList = Object.keys(backups).map(k => parseInt(k)).sort((a, b) => b - a);
-    backupList.push(timestamp);
-    
-    // Remove old backups beyond 10
-    while (backupList.length > 10) {
-      const oldest = backupList.pop();
-      if (oldest) {
-        await db.del(`backup:config:${oldest}`);
-      }
-    }
-    
-    await db.hset('backup:config:list', timestamp.toString(), '1');
-  },
-
-  // Restore config from Redis backup
-  async restoreConfig(timestamp?: number): Promise<any | null> {
-    const db = getDb();
-    
-    if (timestamp) {
-      const backupStr = await db.get(`backup:config:${timestamp}`);
-      if (backupStr) return JSON.parse(backupStr);
-    }
-    
-    // Get latest backup
-    const backups = await db.hgetall('backup:config:list');
-    const backupList = Object.keys(backups).map(k => parseInt(k)).sort((a, b) => b - a);
-    if (backupList.length > 0) {
-      const latest = backupList[0];
-      const backupStr = await db.get(`backup:config:${latest}`);
-      if (backupStr) return JSON.parse(backupStr);
-    }
-    
-    return null;
-  },
-
-  // Backup all user data
-  async backupUsers() {
-    const db = getDb();
-    const timestamp = Date.now();
-    const userList = await db.get('users:all:list');
-    if (!userList) return;
-    
-    const users = JSON.parse(userList);
-    const backupData: any[] = [];
-    
-    for (const uid of users) {
-      const userStr = await db.get(`user:uid:${uid}`);
-      if (userStr) {
-        backupData.push(JSON.parse(userStr));
-      }
-    }
-    
-    await db.set(`backup:users:${timestamp}`, JSON.stringify(backupData));
-    await db.hset('backup:users:list', timestamp.toString(), '1');
-  },
-
-  // Restore users from backup
-  async restoreUsers(timestamp?: number): Promise<any[] | null> {
-    const db = getDb();
-    
-    if (timestamp) {
-      const backupStr = await db.get(`backup:users:${timestamp}`);
-      if (backupStr) return JSON.parse(backupStr);
-    }
-    
-    const backups = await db.hgetall('backup:users:list');
-    const backupList = Object.keys(backups).map(k => parseInt(k)).sort((a, b) => b - a);
-    if (backupList.length > 0) {
-      const latest = backupList[0];
-      const backupStr = await db.get(`backup:users:${latest}`);
-      if (backupStr) return JSON.parse(backupStr);
-    }
-    
-    return null;
-  },
-
-  // Backup articles
-  async backupArticles() {
-    const db = getDb();
-    const timestamp = Date.now();
-    const index = await db.hgetall('articles:index');
-    
-    const backupData: any[] = [];
-    for (const [id, data] of Object.entries(index)) {
-      const article = JSON.parse(data);
-      const fullContent = await storage.getFile(`articles/${id}.md`);
-      backupData.push({ ...article, fullContent });
-    }
-    
-    await db.set(`backup:articles:${timestamp}`, JSON.stringify(backupData));
-    await db.hset('backup:articles:list', timestamp.toString(), '1');
-  },
-
-  // Restore articles from backup
-  async restoreArticles(timestamp?: number): Promise<any[] | null> {
-    const db = getDb();
-    
-    if (timestamp) {
-      const backupStr = await db.get(`backup:articles:${timestamp}`);
-      if (backupStr) return JSON.parse(backupStr);
-    }
-    
-    const backups = await db.hgetall('backup:articles:list');
-    const backupList = Object.keys(backups).map(k => parseInt(k)).sort((a, b) => b - a);
-    if (backupList.length > 0) {
-      const latest = backupList[0];
-      const backupStr = await db.get(`backup:articles:${latest}`);
-      if (backupStr) return JSON.parse(backupStr);
-    }
-    
-    return null;
-  },
-
-  // Create full system backup
-  async fullBackup() {
-    await Promise.all([
-      this.backupConfig({}),
-      this.backupUsers(),
-      this.backupArticles(),
-    ]);
-  },
-};
+export default prisma

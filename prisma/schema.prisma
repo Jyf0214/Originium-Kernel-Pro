@@ -1,5 +1,4 @@
 // Prisma schema - Originium Kernel Database
-// 参考 LobeChat 数据库设计
 
 generator client {
   provider = "prisma-client-js"
@@ -27,7 +26,7 @@ model User {
   @@index([uid])
 }
 
-// KV 存储表
+// KV 存储表（用于缓存和其他键值对存储）
 model OriginiumKV {
   key       String   @id @map("k")
   value     String?  @map("v")
