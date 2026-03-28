@@ -114,14 +114,20 @@ function LoginForm() {
   const renderPasswordStep = () => (
     <AuthCard
       footer={
-        <Button
-          icon={<Icon icon={ChevronRight} style={{ transform: 'rotate(180deg)' }} />}
-          size={'large'}
-          style={{ marginTop: 20 }}
-          onClick={handleBackToEmail}
-        >
-          {t('common.back')}
-        </Button>
+        <Flexbox gap={16}>
+          <Link href="/forgot-password">
+            <Text style={{ fontSize: 14, color: 'var(--ant-color-primary)', cursor: 'pointer' }}>
+              {t('auth.forgotPassword')}
+            </Text>
+          </Link>
+          <Button
+            icon={<Icon icon={ChevronRight} style={{ transform: 'rotate(180deg)' }} />}
+            size={'large'}
+            onClick={handleBackToEmail}
+          >
+            {t('common.back')}
+          </Button>
+        </Flexbox>
       }
       subtitle={t('auth.inputPasswordToLogin')}
       title={t('auth.welcomeBack')}
