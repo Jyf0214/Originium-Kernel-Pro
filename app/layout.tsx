@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css'; // Global styles
 import { AuthProvider } from '@/hooks/use-auth';
 import { ConfigProvider } from '@/components/ConfigProvider';
+import { BackgroundProvider } from '@/components/BackgroundProvider';
 import { validateEnv } from '@/lib/env';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
@@ -42,9 +43,11 @@ export default async function RootLayout({children}: {children: React.ReactNode}
       <body suppressHydrationWarning>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ConfigProvider>
-            <AuthProvider>
-              {children}
-            </AuthProvider>
+            <BackgroundProvider>
+              <AuthProvider>
+                {children}
+              </AuthProvider>
+            </BackgroundProvider>
           </ConfigProvider>
         </NextIntlClientProvider>
       </body>

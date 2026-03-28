@@ -3,12 +3,19 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
-import { Settings, Github, ExternalLink, CheckCircle, XCircle } from 'lucide-react';
+import { Settings, Github, ExternalLink, CheckCircle, XCircle, Image } from 'lucide-react';
 import { Icon, Text } from '@lobehub/ui';
+import { Slider } from 'antd';
+
+interface BackgroundConfig {
+  url?: string;
+  opacity?: number;
+}
 
 interface EnvStatus {
   siteTitle: string;
   siteDescription: string;
+  background: BackgroundConfig;
   githubRepo: string;
   githubToken: string;
 }
@@ -19,6 +26,7 @@ export default function ConfigPage() {
   const [config, setConfig] = useState<EnvStatus>({
     siteTitle: '',
     siteDescription: '',
+    background: { url: '', opacity: 0.8 },
     githubRepo: '',
     githubToken: '',
   });
@@ -40,6 +48,7 @@ export default function ConfigPage() {
           setConfig({
             siteTitle: data.siteTitle || 'Originium Kernel',
             siteDescription: data.siteDescription || '',
+            background: data.background || { url: '', opacity: 0.8 },
             githubRepo: data.githubRepo || '',
             githubToken: data.githubToken ? '********' : '',
           });
@@ -63,6 +72,7 @@ export default function ConfigPage() {
         body: JSON.stringify({
           siteTitle: config.siteTitle,
           siteDescription: config.siteDescription,
+          background: config.background,
         }),
       });
       
@@ -185,6 +195,76 @@ export default function ConfigPage() {
               boxSizing: 'border-box',
             }}
           />
+        </div>
+      </div>
+
+      {/* 背景设置 */}
+      <div style={{
+        background: '#ffffff',
+        borderRadius: 12,
+        border: '1px solid #e5e5e5',
+        padding: 20,
+        marginBottom: 16,
+      }}>
+        <Text fontSize={16} weight={'bold'} style={{ marginBottom: 16, display: 'block' }}>
+          <span style={{ 
+            display: 'inline-block',
+            width: 8, 
+            height: 8, 
+            borderRadius: '50%', 
+            background: '#1890ff',
+            marginRight: 8 
+          }}></span>
+          <Icon icon={Image} style={{ marginRight: 8 }} />
+          {locale === 'zh-CN' ? '背景设置' : 'Background Settings'}
+        </Text>
+        
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 500, marginBottom: 8 }}>
+            {locale === 'zh-CN' ? '背景图片URL' : 'Background Image URL'}
+          </label>
+          <input 
+            type="text" 
+            value={config.background?.url || ''}
+            onChange={e => setConfig({
+              ...config, 
+              background: { ...config.background, url: e.target.value }
+            })}
+            placeholder={locale === 'zh-CN' ? '输入图片直链地址' : 'Enter image URL'}
+            style={{
+              width: '100%',
+              height: 40,
+              padding: '0 12px',
+              border: '1px solid #d9d9d9',
+              borderRadius: 8,
+              fontSize: 14,
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
+          <Text fontSize={12} type="secondary" style={{ marginTop: 4, display: 'block' }}>
+            {locale === 'zh-CN' ? '留空则不使用自定义背景' : 'Leave empty to use default background'}
+          </Text>
+        </div>
+        
+        <div>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 500, marginBottom: 8 }}>
+            {locale === 'zh-CN' ? '蒙板透明度' : 'Overlay Opacity'}: {Math.round((config.background?.opacity ?? 0.8) * 100)}%
+          </label>
+          <Slider
+            min={0}
+            max={1}
+            step={0.05}
+            value={config.background?.opacity ?? 0.8}
+            onChange={value => setConfig({
+              ...config, 
+              background: { ...config.background, opacity: value }
+            })}
+            tooltip={{ formatter: (value) => `${Math.round((value ?? 0) * 100)}%` }}
+          />
+          <Text fontSize={12} type="secondary" style={{ marginTop: 4, display: 'block' }}>
+            {locale === 'zh-CN' ? '0% 为完全透明，100% 为完全不透明' : '0% is fully transparent, 100% is fully opaque'}
+          </Text>
         </div>
       </div>
 

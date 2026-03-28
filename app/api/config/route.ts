@@ -18,6 +18,11 @@ import yaml from 'js-yaml';
 const defaultConfig = {
   siteTitle: 'Originium Kernel',
   siteDescription: '现代内容发布平台',
+  // 背景配置
+  background: {
+    url: '',
+    opacity: 0.8,
+  },
   // GitHub 配置只从环境变量读取
   githubRepo: process.env.GITHUB_REPO || '',
   githubToken: process.env.GITHUB_TOKEN || '',
@@ -48,6 +53,7 @@ export async function GET() {
             ...config,
             siteTitle: parsed.siteTitle || config.siteTitle,
             siteDescription: parsed.siteDescription || config.siteDescription,
+            background: parsed.background || config.background,
           };
           await db.set('config:main', JSON.stringify(config));
         }
@@ -79,6 +85,7 @@ export async function POST(req: NextRequest) {
       ...existing,
       siteTitle: newConfig.siteTitle || existing.siteTitle || defaultConfig.siteTitle,
       siteDescription: newConfig.siteDescription || existing.siteDescription || defaultConfig.siteDescription,
+      background: newConfig.background !== undefined ? newConfig.background : (existing.background || defaultConfig.background),
       // GitHub 配置始终从环境变量读取
       githubRepo: process.env.GITHUB_REPO || '',
       githubToken: process.env.GITHUB_TOKEN ? '********' : '',
@@ -132,6 +139,7 @@ export async function PUT() {
         ...existing,
         siteTitle: parsed.siteTitle || existing.siteTitle || defaultConfig.siteTitle,
         siteDescription: parsed.siteDescription || existing.siteDescription || defaultConfig.siteDescription,
+        background: parsed.background || existing.background || defaultConfig.background,
         githubRepo: repo,
         githubToken: '********',
       };
