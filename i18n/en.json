@@ -111,12 +111,15 @@
     "contentConsole": "This is your content console"
   },
   "sidebar": {
+    "home": "Home",
     "dashboard": "Dashboard",
+    "settings": "Settings",
     "writeArticle": "Write Article",
     "articleManagement": "Article Management",
     "recycleBin": "Recycle Bin",
     "userManagement": "User Management",
     "userGroups": "User Groups",
+    "requests": "Requests",
     "systemConfig": "System Config",
     "envVariables": "Env Variables",
     "ticketManagement": "Ticket Management",
@@ -274,5 +277,19 @@
   "footer": {
     "copyright": "Originium Kernel © {year}",
     "poweredBy": "Powered by"
+  },
+  "settings": {
+    "title": "Personal Settings",
+    "subtitle": "Manage your personal information",
+    "avatarUrl": "Avatar URL",
+    "avatarUrlPlaceholder": "Enter direct avatar image link",
+    "avatarUrlHint": "Leave empty to use default avatar",
+    "username": "Username",
+    "usernamePlaceholder": "Username (for login)",
+    "displayName": "Nickname",
+    "displayNamePlaceholder": "Your nickname",
+    "displayNameHint": "Leave empty to use the part before @ in email by default",
+    "saveSuccess": "Settings saved successfully!",
+    "saveFailed": "Save failed, please try again"
   }
 }

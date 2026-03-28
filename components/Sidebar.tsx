@@ -4,22 +4,27 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
-import { LayoutDashboard, FileText, Users, Settings, ShieldAlert } from 'lucide-react';
+import { useI18n } from '@/hooks/use-i18n';
+import { Home, FileText, Users, Settings, ShieldAlert, Trash2, Globe, User } from 'lucide-react';
 import { Flexbox, Text } from '@lobehub/ui';
 
 export function Sidebar() {
   const pathname = usePathname();
   const { userRole } = useAuth();
+  const { t } = useI18n();
 
   const links = [
-    { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, roles: ['admin', 'sudo', 'user'] },
-    { href: '/dashboard/articles', label: 'Articles', icon: FileText, roles: ['admin', 'sudo'] },
-    { href: '/admin/users', label: 'Users', icon: Users, roles: ['admin', 'sudo'] },
-    { href: '/admin/requests', label: 'Requests', icon: ShieldAlert, roles: ['admin', 'sudo'] },
-    { href: '/admin/config', label: 'Config', icon: Settings, roles: ['admin', 'sudo'] },
+    { href: '/dashboard', label: t('sidebar.dashboard'), icon: Home, roles: ['admin', 'sudo', 'user'] },
+    { href: '/dashboard/settings', label: t('sidebar.settings'), icon: User, roles: ['admin', 'sudo', 'user'] },
+    { href: '/dashboard/articles', label: t('sidebar.articleManagement'), icon: FileText, roles: ['admin', 'sudo', 'user'] },
+    { href: '/admin/users', label: t('sidebar.userManagement'), icon: Users, roles: ['admin', 'sudo'] },
+    { href: '/admin/groups', label: t('sidebar.userGroups'), icon: Users, roles: ['admin', 'sudo'] },
+    { href: '/admin/requests', label: t('sidebar.requests'), icon: ShieldAlert, roles: ['admin', 'sudo'] },
+    { href: '/admin/tickets', label: t('sidebar.ticketManagement'), icon: ShieldAlert, roles: ['admin', 'sudo'] },
+    { href: '/admin/config', label: t('sidebar.systemConfig'), icon: Settings, roles: ['admin', 'sudo'] },
+    { href: '/admin/env', label: t('sidebar.envVariables'), icon: Globe, roles: ['admin', 'sudo'] },
   ];
 
-  // 如果未登录，不显示侧边栏
   if (!userRole) return null;
 
   const filteredLinks = links.filter(link => userRole && link.roles.includes(userRole));
@@ -31,7 +36,7 @@ export function Sidebar() {
       <div className="p-6">
         <Flexbox gap={2} paddingBlock={8}>
           <Text fontSize={11} weight={700} className="text-zinc-400 uppercase tracking-widest">
-            Dashboard
+            {t('sidebar.originiumKernel')}
           </Text>
         </Flexbox>
         <nav className="space-y-1 mt-4">

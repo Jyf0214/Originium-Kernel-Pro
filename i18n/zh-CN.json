@@ -111,12 +111,15 @@
     "contentConsole": "这是您的内容控制台"
   },
   "sidebar": {
+    "home": "首页",
     "dashboard": "控制台",
+    "settings": "个人设置",
     "writeArticle": "写文章",
     "articleManagement": "文章管理",
     "recycleBin": "回收站",
     "userManagement": "用户管理",
     "userGroups": "用户组",
+    "requests": "申请管理",
     "systemConfig": "系统配置",
     "envVariables": "环境变量",
     "ticketManagement": "工单管理",
@@ -274,5 +277,19 @@
   "footer": {
     "copyright": "Originium Kernel © {year}",
     "poweredBy": "Powered by"
+  },
+  "settings": {
+    "title": "个人设置",
+    "subtitle": "管理您的个人信息",
+    "avatarUrl": "头像URL",
+    "avatarUrlPlaceholder": "输入头像图片直链地址",
+    "avatarUrlHint": "留空则使用默认头像",
+    "username": "用户名",
+    "usernamePlaceholder": "用户名（用于登录）",
+    "displayName": "昵称",
+    "displayNamePlaceholder": "您的昵称",
+    "displayNameHint": "留空则默认使用邮箱@前的部分",
+    "saveSuccess": "设置保存成功！",
+    "saveFailed": "保存失败，请重试"
   }
 }

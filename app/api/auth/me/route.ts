@@ -30,7 +30,7 @@ export async function GET() {
         name: user.name,
         role: user.role,
         userGroup: user.userGroup,
-        photoURL: user.photoURL,
+        avatar: user.avatar || user.photoURL,
       }
     });
   } catch (error) {

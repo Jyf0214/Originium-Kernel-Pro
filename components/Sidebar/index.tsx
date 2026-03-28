@@ -25,6 +25,7 @@ const menuItems: MenuItem[] = [
   { label: '写文章', labelEn: 'Write Article', icon: Plus, href: '/editor' },
   { label: '文章管理', labelEn: 'Articles', icon: BookOpen, href: '/dashboard/articles' },
   { label: '回收站', labelEn: 'Recycle Bin', icon: Trash2, href: '/dashboard/articles?status=pending_deletion' },
+  { label: '个人设置', labelEn: 'Settings', icon: Settings, href: '/dashboard/settings' },
 ];
 
 const adminItems: MenuItem[] = [

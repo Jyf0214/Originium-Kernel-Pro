@@ -17,6 +17,7 @@ export interface User {
   displayName: string; // Map name to displayName
   role: UserRole;
   userGroup?: string;
+  avatar?: string;
 }
 
 interface AuthContextType {
