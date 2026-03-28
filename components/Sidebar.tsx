@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
-import { Home, FileText, Settings, ShieldAlert, Globe, User } from 'lucide-react';
+import { Home, LayoutDashboard, FileText, Settings, ShieldAlert, Globe, User } from 'lucide-react';
 import { Flexbox, Text } from '@lobehub/ui';
 
 export function Sidebar() {
@@ -14,7 +14,8 @@ export function Sidebar() {
   const { t } = useI18n();
 
   const links = [
-    { href: '/dashboard', label: t('sidebar.dashboard'), icon: Home, roles: ['admin', 'sudo', 'user'] },
+    { href: '/', label: t('sidebar.home'), icon: Home, roles: ['admin', 'sudo', 'user'] },
+    { href: '/dashboard', label: t('sidebar.dashboard'), icon: LayoutDashboard, roles: ['admin', 'sudo', 'user'] },
     { href: '/dashboard/settings', label: t('sidebar.settings'), icon: User, roles: ['admin', 'sudo', 'user'] },
     { href: '/dashboard/articles', label: t('sidebar.articleManagement'), icon: FileText, roles: ['admin', 'sudo', 'user'] },
     { href: '/admin/requests', label: t('sidebar.requests'), icon: ShieldAlert, roles: ['admin', 'sudo'] },
