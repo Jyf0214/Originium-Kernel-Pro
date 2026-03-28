@@ -2,6 +2,11 @@
 process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS = 'true'
 process.env.PRISMA_HIDE_UPDATE_MESSAGE = 'true'
 
+// 密码哈希函数（与登录API一致）
+function hashPassword(password) {
+  return Buffer.from(password).toString('hex').split('').reverse().join('')
+}
+
 async function main() {
   // 检查数据库 URL
   const databaseUrl = 
@@ -54,6 +59,55 @@ async function main() {
       }
       console.log('[数据库初始化] ⚠️ 数据库连接失败，跳过初始化:', errorMsg.split('\n')[0])
       return
+    }
+    
+    // 检查 ADMIN_PASSWORD 环境变量
+    if (process.env.ADMIN_PASSWORD) {
+      console.log('[数据库初始化] 检测到 ADMIN_PASSWORD，正在更新管理员密码...')
+      
+      try {
+        const { PrismaClient } = require('@prisma/client')
+        const prisma = new PrismaClient()
+        
+        const hashedPassword = hashPassword(process.env.ADMIN_PASSWORD)
+        
+        // 查找所有 admin 和 sudo 用户
+        const users = await prisma.originiumKV.findMany({
+          where: { key: { startsWith: 'user:uid:' } }
+        })
+        
+        let updatedCount = 0
+        
+        for (const record of users) {
+          if (!record.value) continue
+          
+          try {
+            const user = JSON.parse(record.value)
+            
+            if (user.role === 'admin' || user.role === 'sudo') {
+              user.password = hashedPassword
+              await prisma.originiumKV.update({
+                where: { key: record.key },
+                data: { value: JSON.stringify(user) }
+              })
+              updatedCount++
+              console.log(`[数据库初始化] ✓ 已更新用户: ${user.email || user.username || user.uid}`)
+            }
+          } catch (e) {
+            // 忽略解析错误
+          }
+        }
+        
+        await prisma.$disconnect()
+        
+        if (updatedCount > 0) {
+          console.log(`[数据库初始化] ✓ 已更新 ${updatedCount} 个管理员密码`)
+        } else {
+          console.log('[数据库初始化] ⚠️ 未找到管理员用户')
+        }
+      } catch (err) {
+        console.log('[数据库初始化] ⚠️ 更新管理员密码失败:', err.message?.split('\n')[0])
+      }
     }
     
     console.log('[数据库初始化] ✓ 全部完成')
