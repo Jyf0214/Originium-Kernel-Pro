@@ -18,14 +18,10 @@ const nextConfig: NextConfig = {
     ],
   },
   output: 'standalone',
-  transpilePackages: ['motion'],
   // 排除前端 UI 依赖，保留数据库依赖
   serverExternalPackages: [
     '@lobehub/ui',
-    'antd',
-    '@ant-design/icons',
     'antd-style',
-    'lucide-react',
     'react-markdown',
     'react-syntax-highlighter',
   ],

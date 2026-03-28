@@ -2,11 +2,6 @@
 process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS = 'true'
 process.env.PRISMA_HIDE_UPDATE_MESSAGE = 'true'
 
-// 密码哈希函数
-function hashPassword(password) {
-  return Buffer.from(password).toString('hex').split('').reverse().join('')
-}
-
 async function main() {
   // 检查数据库 URL
   const databaseUrl = 
@@ -43,14 +38,13 @@ async function main() {
     // 尝试推送 schema，如果失败则跳过
     try {
       execSync('npx prisma db push --accept-data-loss', {
-        stdio: 'pipe', // 使用 pipe 避免输出过多
+        stdio: 'pipe',
         env: { ...process.env },
-        timeout: 30000 // 30秒超时
+        timeout: 30000
       })
       console.log('[数据库初始化] ✓ Schema 推送成功')
     } catch (dbError) {
       const errorMsg = dbError.message || ''
-      // 检测连接池错误
       if (errorMsg.includes('MaxClientsInSessionMode') || 
           errorMsg.includes('max clients reached') ||
           errorMsg.includes('too many clients') ||
@@ -58,62 +52,8 @@ async function main() {
         console.log('[数据库初始化] ⚠️ 数据库连接池已满，跳过初始化')
         return
       }
-      // 其他错误也跳过
       console.log('[数据库初始化] ⚠️ 数据库连接失败，跳过初始化:', errorMsg.split('\n')[0])
       return
-    }
-    
-    // 迁移数据
-    console.log('[数据库初始化] 检查数据迁移...')
-    
-    try {
-      const { PrismaClient } = require('@prisma/client')
-      const prisma = new PrismaClient()
-      
-      const userRecords = await prisma.originiumKV.findMany({
-        where: { key: { startsWith: 'user:uid:' } }
-      })
-      
-      let migratedCount = 0
-      
-      for (const record of userRecords) {
-        if (!record.value) continue
-        
-        try {
-          const user = JSON.parse(record.value)
-          let needUpdate = false
-          
-          if (user.password && !/^[0-9a-f]{64}$/i.test(user.password)) {
-            user.password = hashPassword(user.password)
-            needUpdate = true
-          }
-          
-          if (!user.hasOwnProperty('username')) {
-            user.username = null
-            needUpdate = true
-          }
-          
-          if (needUpdate) {
-            await prisma.originiumKV.update({
-              where: { key: record.key },
-              data: { value: JSON.stringify(user) }
-            })
-            migratedCount++
-          }
-        } catch (e) {
-          // 忽略
-        }
-      }
-      
-      await prisma.$disconnect()
-      
-      if (migratedCount > 0) {
-        console.log(`[数据库初始化] ✓ 已迁移 ${migratedCount} 个用户`)
-      } else {
-        console.log('[数据库初始化] ✓ 无需迁移')
-      }
-    } catch (migrationError) {
-      console.log('[数据库初始化] ⚠️ 数据据迁移跳过')
     }
     
     console.log('[数据库初始化] ✓ 全部完成')
