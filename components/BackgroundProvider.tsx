@@ -14,18 +14,17 @@ interface BackgroundConfig {
  */
 export function BackgroundProvider({ children }: { children: React.ReactNode }) {
   const [background, setBackground] = useState<BackgroundConfig | null>(null);
-  const [mounted, setMounted] = useState(false);
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const mountedRef = useRef(false);
 
   useEffect(() => {
-    setMounted(true);
+    mountedRef.current = true;
     const fetchConfig = async () => {
       try {
         const res = await fetch('/api/site-config');
         if (res.ok) {
           const data = await res.json();
           if (data.appearance?.background?.url) {
-            setBackground(data.appearance.background);
+            if (mountedRef.current) setBackground(data.appearance.background);
             return;
           }
         }
@@ -38,9 +37,9 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
         if (res.ok) {
           const data = await res.json();
           if (data.appearance?.background?.url) {
-            setBackground(data.appearance.background);
+            if (mountedRef.current) setBackground(data.appearance.background);
           } else if (data.background?.url) {
-            setBackground(data.background);
+            if (mountedRef.current) setBackground(data.background);
           }
         }
       } catch {
@@ -48,11 +47,13 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
       }
     };
     fetchConfig();
+
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
-
     if (!background?.url) {
       document.body.style.backgroundImage = '';
       document.body.style.backgroundSize = '';
@@ -72,15 +73,14 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
       document.body.style.backgroundPosition = '';
       document.body.style.backgroundAttachment = '';
     };
-  }, [background, mounted]);
+  }, [background]);
 
   const opacity = background?.opacity ?? 0.8;
 
   return (
     <>
-      {background?.url && mounted && (
+      {background?.url && (
         <div
-          ref={overlayRef}
           style={{
             position: 'fixed',
             top: 0,
