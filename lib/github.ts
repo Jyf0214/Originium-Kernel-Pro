@@ -2,7 +2,7 @@ import { Octokit } from 'octokit';
 import yaml from 'js-yaml';
 
 /**
- * GitHub Integration for Originium Kernel
+ * GitHub 集成 — 文件推送/读取/删除
  */
 
 interface GithubSyncParams {
@@ -13,6 +13,7 @@ interface GithubSyncParams {
   message: string;
 }
 
+/** 从 GitHub 获取文件内容 */
 export async function getFileFromGithub(repo: string, token: string, path: string) {
   const [owner, repoName] = repo.split('/');
   const octokit = new Octokit({ auth: token });
@@ -35,12 +36,12 @@ export async function getFileFromGithub(repo: string, token: string, path: strin
   }
 }
 
+/** 创建或更新 GitHub 上的文件 */
 export async function updateFileInGithub({ repo, token, path, content, message }: GithubSyncParams) {
   const [owner, repoName] = repo.split('/');
   const octokit = new Octokit({ auth: token });
-
   const existingFile = await getFileFromGithub(repo, token, path);
-  
+
   return await octokit.rest.repos.createOrUpdateFileContents({
     owner,
     repo: repoName,
@@ -51,68 +52,10 @@ export async function updateFileInGithub({ repo, token, path, content, message }
   });
 }
 
-/**
- * Sync config to GitHub (支持 YAML 和 JSON 格式)
- */
-export async function syncConfigToGithub(repo: string, token: string, config: any) {
-  // 优先使用 YAML 格式（可读性高）
-  const yamlContent = yaml.dump(config);
-  
-  // 同时保存 YAML 和 JSON 格式
-  const jsonContent = JSON.stringify(config, null, 2);
-  
-  // 保存 config.yaml
-  await updateFileInGithub({
-    repo,
-    token,
-    path: 'config.yaml',
-    content: yamlContent,
-    message: 'chore: update config.yaml',
-  });
-  
-  // 保存 config.json（方便程序读取）
-  await updateFileInGithub({
-    repo,
-    token,
-    path: 'config.json',
-    content: jsonContent,
-    message: 'chore: update config.json',
-  });
-}
-
-/**
- * Sync article to GitHub
- */
-export async function syncArticleToGithub(repo: string, token: string, article: any) {
-  const { id, title, content, authorName, tags, coverImage, createdAt } = article;
-  
-  const frontMatter = {
-    title,
-    author: authorName,
-    tags: tags || [],
-    cover: coverImage || '',
-    date: createdAt,
-  };
-
-  const fileContent = `---\n${yaml.dump(frontMatter)}---\n\n${content}`;
-  const fileName = `articles/${id}.md`;
-
-  return await updateFileInGithub({
-    repo,
-    token,
-    path: fileName,
-    content: fileContent,
-    message: `feat: publish article "${title}"`,
-  });
-}
-
-/**
- * Delete file from GitHub
- */
+/** 删除 GitHub 上的文件 */
 export async function deleteFileFromGithub(repo: string, token: string, path: string) {
   const [owner, repoName] = repo.split('/');
   const octokit = new Octokit({ auth: token });
-
   const existingFile = await getFileFromGithub(repo, token, path);
   if (!existingFile) return null;
 
@@ -122,5 +65,75 @@ export async function deleteFileFromGithub(repo: string, token: string, path: st
     path,
     message: `delete: remove ${path}`,
     sha: existingFile.sha,
+  });
+}
+
+/**
+ * 将帖子以 Markdown 格式推送到 GitHub posts/ 目录
+ * 文件路径格式：posts/{category}/{slug}.md
+ */
+export async function syncPostToGithub(
+  repo: string,
+  token: string,
+  post: {
+    slug: string;
+    title: string;
+    content: string;
+    author?: string;
+    tags?: string[];
+    cover?: string;
+    date?: string;
+    description?: string;
+  },
+) {
+  const frontMatter: Record<string, any> = {
+    title: post.title,
+    author: post.author || 'Anonymous',
+    date: post.date || new Date().toISOString(),
+    tags: post.tags || [],
+  };
+  if (post.cover) frontMatter.cover = post.cover;
+  if (post.description) frontMatter.description = post.description;
+
+  const fileContent = `---\n${yaml.dump(frontMatter)}---\n\n${post.content}`;
+  const filePath = `posts${post.slug}.md`;
+
+  return await updateFileInGithub({
+    repo,
+    token,
+    path: filePath,
+    content: fileContent,
+    message: `feat: publish post "${post.title}"`,
+  });
+}
+
+/**
+ * 从 GitHub posts/ 目录删除帖子
+ */
+export async function deletePostFromGithub(repo: string, token: string, slug: string) {
+  const filePath = `posts${slug}.md`;
+  return await deleteFileFromGithub(repo, token, filePath);
+}
+
+/**
+ * 同步配置到 GitHub（YAML + JSON 双格式）
+ */
+export async function syncConfigToGithub(repo: string, token: string, config: any) {
+  const yamlContent = yaml.dump(config);
+  const jsonContent = JSON.stringify(config, null, 2);
+
+  await updateFileInGithub({
+    repo,
+    token,
+    path: 'config.yaml',
+    content: yamlContent,
+    message: 'chore: update config.yaml',
+  });
+  await updateFileInGithub({
+    repo,
+    token,
+    path: 'config.json',
+    content: jsonContent,
+    message: 'chore: update config.json',
   });
 }

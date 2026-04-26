@@ -5,8 +5,20 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
-import { Edit, Trash2, Plus, Eye, RotateCcw } from 'lucide-react';
+import { Edit, Trash2, Plus, Eye, RotateCcw, Globe, FileEdit } from 'lucide-react';
 import { Icon, Text } from '@lobehub/ui';
+
+interface ArticleItem {
+  id: string;
+  slug?: string;
+  title: string;
+  author?: string;
+  date?: string;
+  tags?: string[];
+  cover?: string;
+  description?: string;
+  status: 'published' | 'draft' | 'pending_deletion';
+}
 
 export default function ArticlesPage() {
   const { user } = useAuth();
@@ -14,22 +26,21 @@ export default function ArticlesPage() {
   const searchParams = useSearchParams();
   const status = searchParams?.get('status');
   const isRecycleBin = status === 'pending_deletion';
-  
-  const [articles, setArticles] = useState<any[]>([]);
+
+  const [articles, setArticles] = useState<ArticleItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
-    
+
     const fetchArticles = async () => {
       try {
         const res = await fetch('/api/articles');
         if (res.ok) {
           const data = await res.json();
-          // 根据状态过滤
-          const filtered = isRecycleBin 
-            ? data.filter((a: any) => a.status === 'pending_deletion')
-            : data.filter((a: any) => a.status !== 'pending_deletion');
+          const filtered = isRecycleBin
+            ? data.filter((a: ArticleItem) => a.status === 'pending_deletion')
+            : data.filter((a: ArticleItem) => a.status !== 'pending_deletion');
           setArticles(filtered);
         }
       } catch (error) {
@@ -38,17 +49,17 @@ export default function ArticlesPage() {
         setLoading(false);
       }
     };
-    
+
     fetchArticles();
   }, [user, isRecycleBin]);
 
   const handleDelete = async (id: string) => {
-    const confirmMsg = isRecycleBin 
-      ? (locale === 'zh-CN' ? '确定要永久删除这篇文章吗？此操作不可恢复！' : 'Are you sure you want to permanently delete this article? This cannot be undone!')
-      : (locale === 'zh-CN' ? '确定要删除这篇文章吗？' : 'Are you sure you want to delete this article?');
-    
+    const confirmMsg = isRecycleBin
+      ? (locale === 'zh-CN' ? '确定要永久删除这篇文章吗？此操作不可恢复！' : 'Permanently delete? This cannot be undone!')
+      : (locale === 'zh-CN' ? '确定要删除这篇文章吗？' : 'Delete this article?');
+
     if (!confirm(confirmMsg)) return;
-    
+
     try {
       const res = await fetch(`/api/articles/${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -95,33 +106,26 @@ export default function ArticlesPage() {
 
   return (
     <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
+      {/* 标题栏 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
           <Text fontSize={24} weight={'bold'}>
-            {isRecycleBin 
+            {isRecycleBin
               ? (locale === 'zh-CN' ? '回收站' : 'Recycle Bin')
-              : (locale === 'zh-CN' ? '文章管理' : 'Article Management')
-            }
+              : (locale === 'zh-CN' ? '文章管理' : 'Article Management')}
           </Text>
           {isRecycleBin && (
             <Text fontSize={14} type="secondary" style={{ display: 'block', marginTop: 4 }}>
-              {locale === 'zh-CN' ? '待删除的文章，30天后自动删除' : 'Articles pending deletion, auto-delete after 30 days'}
+              {locale === 'zh-CN' ? '待删除的文章，30天后自动删除' : 'Pending deletion, auto-delete after 30 days'}
             </Text>
           )}
         </div>
         {!isRecycleBin && (
           <Link href="/editor" style={{ textDecoration: 'none' }}>
             <button style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '10px 20px',
-              background: '#1a1a1a',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 8,
-              fontSize: 14,
-              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '10px 20px', background: '#1a1a1a', color: '#fff',
+              border: 'none', borderRadius: 8, fontSize: 14, cursor: 'pointer',
             }}>
               <Icon icon={Plus} />
               <span>{locale === 'zh-CN' ? '新建文章' : 'New Article'}</span>
@@ -130,18 +134,14 @@ export default function ArticlesPage() {
         )}
       </div>
 
+      {/* 文章表格 */}
       <div style={{
-        background: '#ffffff',
-        borderRadius: 12,
-        border: '1px solid #e5e5e5',
-        overflow: 'hidden',
+        background: '#ffffff', borderRadius: 12,
+        border: '1px solid #e5e5e5', overflow: 'hidden',
       }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ 
-              background: '#fafafa',
-              borderBottom: '1px solid #e5e5e5',
-            }}>
+            <tr style={{ background: '#fafafa', borderBottom: '1px solid #e5e5e5' }}>
               <th style={{ padding: 16, textAlign: 'left', fontSize: 13, fontWeight: 600 }}>
                 {locale === 'zh-CN' ? '标题' : 'Title'}
               </th>
@@ -164,98 +164,58 @@ export default function ArticlesPage() {
                 </td>
                 <td style={{ padding: 16 }}>
                   <span style={{
-                    display: 'inline-block',
-                    padding: '4px 12px',
-                    borderRadius: 16,
-                    fontSize: 12,
-                    background: article.status === 'published' ? '#f6ffed' 
-                      : article.status === 'pending_deletion' ? '#fff1f0'
-                      : '#fffbe6',
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    padding: '4px 12px', borderRadius: 16, fontSize: 12,
+                    background: article.status === 'published' ? '#f6ffed'
+                      : article.status === 'pending_deletion' ? '#fff1f0' : '#fffbe6',
                     color: article.status === 'published' ? '#52c41a'
-                      : article.status === 'pending_deletion' ? '#ff4d4f'
-                      : '#faad14',
+                      : article.status === 'pending_deletion' ? '#ff4d4f' : '#faad14',
                   }}>
-                    {article.status === 'published' 
-                      ? (locale === 'zh-CN' ? '已发布' : 'Published')
+                    {article.status === 'published'
+                      ? <><Icon icon={Globe} size={12} /> {locale === 'zh-CN' ? '已发布' : 'Published'}</>
                       : article.status === 'pending_deletion'
-                        ? (locale === 'zh-CN' ? '待删除' : 'Pending Delete')
-                        : (locale === 'zh-CN' ? '草稿' : 'Draft')
+                        ? <><Icon icon={Trash2} size={12} /> {locale === 'zh-CN' ? '待删除' : 'Pending Delete'}</>
+                        : <><Icon icon={FileEdit} size={12} /> {locale === 'zh-CN' ? '草稿' : 'Draft'}</>
                     }
                   </span>
                 </td>
                 <td style={{ padding: 16 }}>
-                  <Text type="secondary">{article.authorName}</Text>
+                  <Text type="secondary">{article.author || '—'}</Text>
                 </td>
                 <td style={{ padding: 16, textAlign: 'right' }}>
                   <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                     {isRecycleBin ? (
                       <>
-                        <button 
-                          onClick={() => handleRestore(article.id)}
-                          style={{ 
-                            padding: 8, 
-                            background: 'none', 
-                            border: 'none', 
-                            cursor: 'pointer',
-                            borderRadius: 6,
-                            color: '#52c41a',
-                          }} 
-                          title={locale === 'zh-CN' ? '恢复' : 'Restore'}
-                        >
+                        <button onClick={() => handleRestore(article.id)}
+                          style={{ padding: 8, background: 'none', border: 'none', cursor: 'pointer', borderRadius: 6, color: '#52c41a' }}
+                          title={locale === 'zh-CN' ? '恢复' : 'Restore'}>
                           <Icon icon={RotateCcw} />
                         </button>
-                        <button 
-                          onClick={() => handleDelete(article.id)}
-                          style={{ 
-                            padding: 8, 
-                            background: 'none', 
-                            border: 'none', 
-                            cursor: 'pointer',
-                            borderRadius: 6,
-                            color: '#ff4d4f',
-                          }} 
-                          title={locale === 'zh-CN' ? '永久删除' : 'Delete Permanently'}
-                        >
+                        <button onClick={() => handleDelete(article.id)}
+                          style={{ padding: 8, background: 'none', border: 'none', cursor: 'pointer', borderRadius: 6, color: '#ff4d4f' }}
+                          title={locale === 'zh-CN' ? '永久删除' : 'Delete Permanently'}>
                           <Icon icon={Trash2} />
                         </button>
                       </>
                     ) : (
                       <>
-                        <Link href={`/article/${article.id}`}>
-                          <button style={{ 
-                            padding: 8, 
-                            background: 'none', 
-                            border: 'none', 
-                            cursor: 'pointer',
-                            borderRadius: 6,
-                            color: '#1890ff',
-                          }} title={locale === 'zh-CN' ? '查看' : 'View'}>
-                            <Icon icon={Eye} />
-                          </button>
-                        </Link>
+                        {article.status === 'published' && article.slug && (
+                          <Link href={`/posts${article.slug}`}>
+                            <button style={{ padding: 8, background: 'none', border: 'none', cursor: 'pointer', borderRadius: 6, color: '#1890ff' }}
+                              title={locale === 'zh-CN' ? '查看' : 'View'}>
+                              <Icon icon={Eye} />
+                            </button>
+                          </Link>
+                        )}
                         <Link href={`/editor?id=${article.id}`}>
-                          <button style={{ 
-                            padding: 8, 
-                            background: 'none', 
-                            border: 'none', 
-                            cursor: 'pointer',
-                            borderRadius: 6,
-                            color: '#52c41a',
-                          }} title={locale === 'zh-CN' ? '编辑' : 'Edit'}>
+                          <button style={{ padding: 8, background: 'none', border: 'none', cursor: 'pointer', borderRadius: 6, color: '#52c41a' }}
+                            title={locale === 'zh-CN' ? '编辑' : 'Edit'}>
                             <Icon icon={Edit} />
                           </button>
                         </Link>
-                        <button 
-                          onClick={() => handleDelete(article.id)}
-                          style={{ 
-                            padding: 8, 
-                            background: 'none', 
-                            border: 'none', 
-                            cursor: 'pointer',
-                            borderRadius: 6,
-                            color: '#ff4d4f',
-                          }} title={locale === 'zh-CN' ? '删除' : 'Delete'}
-                        >
+                        <button onClick={() => handleDelete(article.id)}
+                          style={{ padding: 8, background: 'none', border: 'none', cursor: 'pointer', borderRadius: 6, color: '#ff4d4f' }}
+                          title={locale === 'zh-CN' ? '删除' : 'Delete'}>
                           <Icon icon={Trash2} />
                         </button>
                       </>
@@ -264,14 +224,13 @@ export default function ArticlesPage() {
                 </td>
               </tr>
             ))}
-            {articles.length === 0 && (
+ {articles.length === 0 && (
               <tr>
                 <td colSpan={4} style={{ padding: 40, textAlign: 'center' }}>
                   <Text type="secondary">
-                    {isRecycleBin 
+                    {isRecycleBin
                       ? (locale === 'zh-CN' ? '回收站为空' : 'Recycle bin is empty')
-                      : (locale === 'zh-CN' ? '暂无文章，创建您的第一篇文章吧！' : 'No articles yet, create your first one!')
-                    }
+                      : (locale === 'zh-CN' ? '暂无文章，创建您的第一篇文章吧！' : 'No articles yet, create your first one!')}
                   </Text>
                 </td>
               </tr>
