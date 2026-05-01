@@ -3,13 +3,10 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
+import { Spin } from 'antd';
 import Sidebar from '@/components/Sidebar/index';
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -21,13 +18,8 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-      }}>
-        <span>加载中...</span>
+      <div className="flex items-center justify-center h-screen bg-zinc-50">
+        <Spin size="large" />
       </div>
     );
   }
@@ -35,26 +27,11 @@ export default function DashboardLayout({
   if (!user) return null;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="flex min-h-screen">
       <Sidebar />
-      <main style={{
-        flex: 1,
-        marginLeft: 240,
-        minHeight: '100vh',
-        background: 'var(--ant-color-bg-layout)',
-      }}
-      className="dashboard-main"
-      >
+      <main className="flex-1 md:ml-[260px] min-h-screen bg-zinc-50">
         {children}
       </main>
-      <style jsx>{`
-        @media (max-width: 768px) {
-          .dashboard-main {
-            margin-left: 0 !important;
-            padding-top: 60px;
-          }
-        }
-      `}</style>
     </div>
   );
 }

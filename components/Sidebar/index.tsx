@@ -5,40 +5,71 @@ import { useAuth } from '@/hooks/use-auth';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Home, FileText, Plus, Settings, Shield, Trash2,
-  Activity, Menu, LogOut, BookOpen, UserCog, X, Users
+  Home,
+  BookOpen,
+  Users,
+  PenLine,
+  Archive,
+  Trash2,
+  Settings,
+  Shield,
+  Activity,
+  FileText,
+  LogOut,
+  Menu,
+  X,
+  ChevronDown,
+  ChevronRight,
+  Globe,
 } from 'lucide-react';
-import { Icon, Text } from '@lobehub/ui';
 import LanguageSwitcher from '@/components/LanguageSwitcher/index';
 import { useI18n } from '@/hooks/use-i18n';
 
 interface MenuItem {
   label: string;
   labelEn: string;
-  icon: any;
+  icon: React.ElementType;
   href: string;
   adminOnly?: boolean;
+  group?: string;
 }
 
 const menuItems: MenuItem[] = [
-  { label: '控制台', labelEn: 'Dashboard', icon: Home, href: '/dashboard' },
-  { label: '帖子', labelEn: 'Posts', icon: BookOpen, href: '/posts' },
-  { label: '通讯录', labelEn: 'Faces', icon: Users, href: '/faces' },
-  { label: '写文章', labelEn: 'Write Article', icon: Plus, href: '/editor' },
-  { label: '文章管理', labelEn: 'Articles', icon: BookOpen, href: '/dashboard/articles' },
-  { label: '回收站', labelEn: 'Recycle Bin', icon: Trash2, href: '/dashboard/articles?status=pending_deletion' },
-  { label: '个人设置', labelEn: 'Settings', icon: Settings, href: '/dashboard/settings' },
+  { label: '控制台', labelEn: 'Dashboard', icon: Home, href: '/dashboard', group: 'overview' },
+  { label: '帖子', labelEn: 'Posts', icon: BookOpen, href: '/posts', group: 'content' },
+  { label: '通讯录', labelEn: 'Faces', icon: Users, href: '/faces', group: 'content' },
+  { label: '写文章', labelEn: 'Write', icon: PenLine, href: '/editor', group: 'content' },
+  { label: '文章管理', labelEn: 'Articles', icon: Archive, href: '/dashboard/articles', group: 'manage' },
+  { label: '回收站', labelEn: 'Trash', icon: Trash2, href: '/dashboard/articles?status=pending_deletion', group: 'manage' },
+  { label: '个人设置', labelEn: 'Settings', icon: Settings, href: '/dashboard/settings', group: 'account' },
 ];
 
 const adminItems: MenuItem[] = [
-  { label: '用户管理', labelEn: 'Users', icon: UserCog, href: '/admin/users', adminOnly: true },
-  { label: '用户组', labelEn: 'Groups', icon: Shield, href: '/admin/groups', adminOnly: true },
-  { label: '系统配置', labelEn: 'Config', icon: Settings, href: '/admin/config', adminOnly: true },
-  { label: '环境变量', labelEn: 'Env Variables', icon: Activity, href: '/admin/env', adminOnly: true },
-  { label: '工单管理', labelEn: 'Tickets', icon: FileText, href: '/admin/tickets', adminOnly: true },
+  { label: '用户管理', labelEn: 'Users', icon: Users, href: '/admin/users', adminOnly: true, group: 'admin' },
+  { label: '用户组', labelEn: 'Groups', icon: Shield, href: '/admin/groups', adminOnly: true, group: 'admin' },
+  { label: '系统配置', labelEn: 'Config', icon: Settings, href: '/admin/config', adminOnly: true, group: 'admin' },
+  { label: '环境变量', labelEn: 'Env', icon: Activity, href: '/admin/env', adminOnly: true, group: 'admin' },
+  { label: '工单管理', labelEn: 'Tickets', icon: FileText, href: '/admin/tickets', adminOnly: true, group: 'admin' },
 ];
 
-interface SidebarContentProps {
+const groupLabels: Record<string, { zh: string; en: string }> = {
+  overview: { zh: '概览', en: 'Overview' },
+  content: { zh: '内容', en: 'Content' },
+  manage: { zh: '管理', en: 'Manage' },
+  account: { zh: '账户', en: 'Account' },
+  admin: { zh: '管理后台', en: 'Admin' },
+};
+
+function SidebarContent({
+  items,
+  isActive,
+  onItemClick,
+  user,
+  onLogout,
+  showCloseButton,
+  onClose,
+  locale,
+}: {
   items: MenuItem[];
   isActive: (href: string) => boolean;
   onItemClick: () => void;
@@ -47,124 +78,154 @@ interface SidebarContentProps {
   showCloseButton?: boolean;
   onClose?: () => void;
   locale: string;
-}
+}) {
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
-function SidebarContent({ items, isActive, onItemClick, user, onLogout, showCloseButton, onClose, locale }: SidebarContentProps) {
-  const getLabel = (item: MenuItem) => locale === 'en' ? item.labelEn : item.label;
-  
+  const getLabel = (item: MenuItem) => (locale === 'en' ? item.labelEn : item.label);
+  const getGroupLabel = (group: string) => {
+    const g = groupLabels[group];
+    return g ? (locale === 'en' ? g.en : g.zh) : group;
+  };
+
+  // 按分组整理菜单
+  const grouped = items.reduce<Record<string, MenuItem[]>>((acc, item) => {
+    const g = item.group || 'other';
+    if (!acc[g]) acc[g] = [];
+    acc[g].push(item);
+    return acc;
+  }, {});
+
+  const toggleGroup = (group: string) => {
+    setCollapsedGroups((prev) => ({ ...prev, [group]: !prev[group] }));
+  };
+
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      background: '#ffffff',
-      backgroundColor: '#ffffff',
-    }}>
+    <div className="flex flex-col h-full bg-white">
       {/* Logo */}
-      <div style={{
-        padding: '20px 16px',
-        borderBottom: '1px solid var(--ant-color-border-secondary)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
-        <Text fontSize={18} weight={'bold'}>Originium Kernel</Text>
+      <div className="px-5 py-5 flex items-center justify-between border-b border-zinc-100">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-gradient-to-br from-zinc-900 to-zinc-700 rounded-lg flex items-center justify-center shadow-sm">
+            <span className="text-white font-bold text-sm leading-none">O</span>
+          </div>
+          <span className="font-bold text-base tracking-tight text-zinc-900">
+            Originium
+          </span>
+        </div>
         {showCloseButton && onClose && (
           <button
             onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 8,
-              borderRadius: 8,
-              color: 'var(--ant-color-text-secondary)',
-            }}
+            className="p-1.5 rounded-lg hover:bg-zinc-100 transition-colors text-zinc-400 hover:text-zinc-600"
           >
-            <Icon icon={X} />
+            <X size={18} />
           </button>
         )}
       </div>
 
       {/* 菜单 */}
-      <div style={{ flex: 1, padding: '12px 8px', overflowY: 'auto' }}>
-        {items.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onItemClick}
-            style={{ textDecoration: 'none' }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                padding: '12px 16px',
-                borderRadius: 8,
-                marginBottom: 4,
-                background: isActive(item.href) ? 'var(--ant-color-primary-bg)' : 'transparent',
-                color: isActive(item.href) ? 'var(--ant-color-primary)' : 'var(--ant-color-text)',
-                transition: 'all 0.2s',
-                cursor: 'pointer',
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive(item.href)) {
-                  e.currentTarget.style.background = 'var(--ant-color-bg-layout)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive(item.href)) {
-                  e.currentTarget.style.background = 'transparent';
-                }
-              }}
-            >
-              <Icon icon={item.icon} />
-              <Text style={{ 
-                color: isActive(item.href) ? 'var(--ant-color-primary)' : 'inherit',
-                fontWeight: isActive(item.href) ? 500 : 400,
-              }}>
-                {getLabel(item)}
-              </Text>
-            </div>
-          </Link>
-        ))}
-      </div>
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+        {Object.entries(grouped).map(([group, groupItems]) => {
+          const isCollapsed = collapsedGroups[group];
+          const isAdminGroup = group === 'admin';
 
-      {/* 用户信息 */}
-      <div style={{
-        padding: '16px',
-        borderTop: '1px solid var(--ant-color-border-secondary)',
-      }}>
-        {/* 语言切换 */}
-        <div style={{ marginBottom: 12 }}>
-          <LanguageSwitcher />
-        </div>
-        
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-          <div>
-            <Text weight={500}>{user?.name || '用户'}</Text>
-            <Text fontSize={12} type="secondary" style={{ display: 'block' }}>
+          return (
+            <div key={group}>
+              {/* 分组标题 */}
+              <button
+                onClick={() => toggleGroup(group)}
+                className="flex items-center justify-between w-full px-2 mb-1.5 group/title"
+              >
+                <span
+                  className={`text-[10px] font-bold uppercase tracking-[0.15em] ${
+                    isAdminGroup ? 'text-amber-600' : 'text-zinc-400'
+                  }`}
+                >
+                  {getGroupLabel(group)}
+                </span>
+                <ChevronDown
+                  size={12}
+                  className={`text-zinc-300 transition-transform duration-200 ${
+                    isCollapsed ? '-rotate-90' : ''
+                  }`}
+                />
+              </button>
+
+              {/* 分组菜单项 */}
+              {!isCollapsed && (
+                <div className="space-0.5">
+                  {groupItems.map((item) => {
+                    const Icon = item.icon;
+                    const active = isActive(item.href);
+
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={onItemClick}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 group/item no-underline"
+                        style={{
+                          background: active
+                            ? isAdminGroup
+                              ? '#fffbeb'
+                              : '#f4f4f5'
+                            : 'transparent',
+                          color: active
+                            ? isAdminGroup
+                              ? '#d97706'
+                              : '#18181b'
+                            : '#71717a',
+                          fontWeight: active ? 600 : 400,
+                        }}
+                      >
+                        <Icon
+                          size={18}
+                          className={`shrink-0 transition-colors ${
+                            active
+                              ? isAdminGroup
+                                ? 'text-amber-600'
+                                : 'text-zinc-900'
+                              : 'text-zinc-400 group-hover/item:text-zinc-600'
+                          }`}
+                        />
+                        <span className="truncate">{getLabel(item)}</span>
+                        {active && (
+                          <div
+                            className={`ml-auto w-1.5 h-1.5 rounded-full ${
+                              isAdminGroup ? 'bg-amber-500' : 'bg-zinc-900'
+                            }`}
+                          />
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </nav>
+
+      {/* 底部用户区域 */}
+      <div className="border-t border-zinc-100 p-4 space-y-3">
+        <LanguageSwitcher />
+
+        <div className="flex items-center gap-3 p-2 rounded-xl bg-zinc-50">
+          <div className="w-9 h-9 bg-gradient-to-br from-zinc-200 to-zinc-100 rounded-lg flex items-center justify-center text-zinc-500 shrink-0">
+            <span className="text-sm font-bold">{(user?.name || 'U').charAt(0).toUpperCase()}</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-semibold text-zinc-800 truncate">
+              {user?.name || '用户'}
+            </div>
+            <div className="text-[11px] text-zinc-400 truncate">
               {user?.email}
-            </Text>
+            </div>
           </div>
           <button
             onClick={onLogout}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 8,
-              borderRadius: 8,
-              color: 'var(--ant-color-text-secondary)',
-            }}
+            className="p-2 rounded-lg hover:bg-zinc-200 transition-colors text-zinc-400 hover:text-red-500 shrink-0"
             title="退出登录"
           >
-            <Icon icon={LogOut} />
+            <LogOut size={16} />
           </button>
         </div>
       </div>
@@ -196,41 +257,15 @@ function Sidebar() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="mobile-menu-btn"
-          style={{
-            display: 'none',
-            position: 'fixed',
-            top: 16,
-            left: 16,
-            zIndex: 997,
-            background: '#ffffff',
-            border: '1px solid #e5e5e5',
-            borderRadius: 8,
-            padding: 10,
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          }}
+          className="md:hidden fixed top-4 left-4 z-[997] bg-white border border-zinc-200 rounded-xl p-2.5 shadow-sm hover:shadow-md transition-shadow"
         >
-          <Icon icon={Menu} />
+          <Menu size={20} className="text-zinc-600" />
         </button>
       )}
 
-      {/* PC端侧边栏 */}
-      <div
-        className="pc-sidebar"
-        style={{
-          width: 240,
-          height: '100vh',
-          position: 'fixed',
-          left: 0,
-          top: 0,
-          borderRight: '1px solid #e5e5e5',
-          zIndex: 100,
-          background: '#ffffff',
-          backgroundColor: '#ffffff',
-        }}
-      >
-        <SidebarContent 
+      {/* PC 端侧边栏 */}
+      <div className="hidden md:flex w-[260px] h-screen fixed left-0 top-0 border-r border-zinc-100 z-[100] bg-white flex-col">
+        <SidebarContent
           items={allItems}
           isActive={isActive}
           onItemClick={() => setIsOpen(false)}
@@ -243,62 +278,27 @@ function Sidebar() {
       {/* 移动端遮罩 */}
       {isOpen && (
         <div
+          className="md:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[998]"
           onClick={() => setIsOpen(false)}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.5)',
-            zIndex: 998,
-          }}
         />
       )}
 
       {/* 移动端侧边栏 */}
       <div
-        className="mobile-sidebar"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: isOpen ? 0 : -280,
-          width: 280,
-          height: '100vh',
-          zIndex: 999,
-          transition: 'left 0.3s ease',
-          boxShadow: isOpen ? '4px 0 12px rgba(0,0,0,0.1)' : 'none',
-          background: '#ffffff',
-          backgroundColor: '#ffffff',
-        }}
+        className="md:hidden fixed top-0 h-screen w-[280px] z-[999] bg-white shadow-2xl transition-transform duration-300 ease-out"
+        style={{ left: 0, transform: isOpen ? 'translateX(0)' : 'translateX(-100%)' }}
       >
-        <SidebarContent 
+        <SidebarContent
           items={allItems}
           isActive={isActive}
           onItemClick={() => setIsOpen(false)}
           user={user}
           onLogout={handleLogout}
-          showCloseButton={true}
+          showCloseButton
           onClose={() => setIsOpen(false)}
           locale={locale}
         />
       </div>
-
-      <style jsx>{`
-        @media (max-width: 768px) {
-          .pc-sidebar {
-            display: none !important;
-          }
-          .mobile-menu-btn {
-            display: flex !important;
-          }
-        }
-        @media (min-width: 769px) {
-          .mobile-sidebar {
-            display: none !important;
-          }
-        }
-      `}</style>
     </>
   );
 }
