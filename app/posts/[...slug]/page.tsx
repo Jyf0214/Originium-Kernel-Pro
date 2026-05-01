@@ -11,6 +11,12 @@ interface PageProps {
   params: Promise<{ slug: string[] }>;
 }
 
+/**
+ * 强制动态渲染：页面使用 getSession() 读取 cookie，
+ * private 内容需要运行时认证，不能静态生成
+ */
+export const dynamic = 'force-dynamic';
+
 /** 判断 slug 所在目录是否为 private */
 function isPrivateSlug(slug: string): boolean {
   const indexes = getContentIndexes('posts');
