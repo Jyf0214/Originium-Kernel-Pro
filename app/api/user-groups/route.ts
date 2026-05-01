@@ -73,6 +73,12 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// 生成用户组 ID：adc-{6位随机数字}
+function generateGroupId(): string {
+  const num = Math.floor(100000 + Math.random() * 900000); // 100000-999999
+  return `adc-${num}`;
+}
+
 // 创建用户组（仅管理员）
 export async function POST(req: NextRequest) {
   const session = await getSession();
@@ -81,17 +87,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { id, name, description } = await req.json();
+    const { name, description } = await req.json();
     
     if (!name) {
       return NextResponse.json({ error: '用户组名称不能为空' }, { status: 400 });
     }
     
-    // 不允许创建系统默认组
-    if (['sudo', 'admin', 'default'].includes(id)) {
-      return NextResponse.json({ error: '不能创建系统默认用户组' }, { status: 403 });
-    }
-
     const db = getDb();
     const groupsStr = await db.get('user-groups:list');
     let groups = groupsStr ? JSON.parse(groupsStr) : [];
@@ -104,13 +105,19 @@ export async function POST(req: NextRequest) {
       }
     }
     
-    // 检查是否已存在
-    if (groups.some((g: any) => g.id === id || g.name === name)) {
-      return NextResponse.json({ error: '用户组ID或名称已存在' }, { status: 409 });
+    // 检查名称是否已存在
+    if (groups.some((g: any) => g.name === name)) {
+      return NextResponse.json({ error: '用户组名称已存在' }, { status: 409 });
+    }
+    
+    // 生成唯一 ID
+    let newId = generateGroupId();
+    while (groups.some((g: any) => g.id === newId)) {
+      newId = generateGroupId();
     }
     
     const newGroup = {
-      id: id || `group-${Date.now().toString(36)}`,
+      id: newId,
       name,
       description: description || '',
       isDefault: false,
@@ -162,6 +169,11 @@ export async function PATCH(req: NextRequest) {
     
     // 只更新允许的字段
     if (name) {
+      // 检查名称是否与其他用户组重复（排除自己）
+      const nameExists = groups.some((g: any, idx: number) => idx !== groupIndex && g.name === name);
+      if (nameExists) {
+        return NextResponse.json({ error: '用户组名称已存在' }, { status: 409 });
+      }
       groups[groupIndex].name = name;
     }
     if (description !== undefined) {
