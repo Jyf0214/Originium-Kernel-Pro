@@ -244,7 +244,12 @@
     "saving": "保存中...",
     "save": "保存配置",
     "saveSuccess": "配置保存成功！",
-    "saveFailed": "保存失败，请重试"
+    "saveFailed": "保存失败，请重试",
+    "auth": "认证设置",
+    "allowRegistration": "允许新用户注册",
+    "allowRegistrationHint": "关闭后，新用户将无法注册账号，已有用户不受影响",
+    "registrationClosed": "注册已关闭",
+    "registrationClosedHint": "新用户暂时无法注册，如需开通请联系管理员"
   },
   "editor": {
     "loading": "加载编辑器中...",

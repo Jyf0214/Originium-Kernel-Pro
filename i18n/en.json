@@ -244,7 +244,12 @@
     "saving": "Saving...",
     "save": "Save Configuration",
     "saveSuccess": "Configuration saved successfully!",
-    "saveFailed": "Save failed, please try again"
+    "saveFailed": "Save failed, please try again",
+    "auth": "Authentication",
+    "allowRegistration": "Allow new user registration",
+    "allowRegistrationHint": "When disabled, new users cannot register. Existing users are not affected.",
+    "registrationClosed": "Registration closed",
+    "registrationClosedHint": "New users cannot register at this time. Contact the administrator if needed."
   },
   "editor": {
     "loading": "Loading editor...",
