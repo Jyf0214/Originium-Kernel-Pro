@@ -134,6 +134,15 @@ export default function UserGroupsPage() {
 
   const columns: ColumnsType<UserGroup> = [
     {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 140,
+      render: (id: string) => (
+        <code className="px-2 py-1 bg-zinc-100 rounded text-sm font-mono">{id}</code>
+      )
+    },
+    {
       title: t('groups.name'),
       dataIndex: 'name',
       key: 'name',

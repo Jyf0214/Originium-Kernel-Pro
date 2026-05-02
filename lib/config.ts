@@ -39,11 +39,18 @@ export interface AccessConfig {
   };
 }
 
+/** 认证配置 */
+export interface AuthConfig {
+  /** 是否允许新用户注册 */
+  allowRegistration: boolean;
+}
+
 /** 完整应用配置 */
 export interface AppConfig {
   site: SiteConfig;
   appearance: AppearanceConfig;
   access: AccessConfig;
+  auth: AuthConfig;
 }
 
 /** 默认配置（config.json 不存在时使用） */
@@ -61,6 +68,9 @@ const defaultConfig: AppConfig = {
   access: {
     posts: { public: ['*'], private: [] },
     faces: { public: ['*'], private: [] },
+  },
+  auth: {
+    allowRegistration: true,
   },
 };
 
@@ -86,6 +96,9 @@ export function loadConfig(): AppConfig {
           customHead: parsed.appearance?.customHead ?? defaultConfig.appearance.customHead,
         },
         access: { ...defaultConfig.access, ...parsed.access },
+          auth: {
+            allowRegistration: parsed.auth?.allowRegistration ?? defaultConfig.auth.allowRegistration,
+          },
       };
     } else {
       cachedConfig = { ...defaultConfig };
@@ -128,9 +141,8 @@ export async function loadConfigAsync(): Promise<AppConfig> {
         customCSS: dbConfig.customCSS ?? fileConfig.appearance.customCSS,
         customHead: dbConfig.customHead ?? fileConfig.appearance.customHead,
       },
-      access: dbConfig.access
-        ? { ...fileConfig.access, ...dbConfig.access }
-        : fileConfig.access,
+      access: dbConfig.access ? { ...fileConfig.access, ...dbConfig.access } : fileConfig.access,
+      auth: dbConfig.auth ? { ...fileConfig.auth, ...dbConfig.auth } : fileConfig.auth,
     };
   } catch {
     return fileConfig;
@@ -152,6 +164,7 @@ export async function saveConfigToDb(config: AppConfig): Promise<void> {
     customCSS: config.appearance.customCSS,
     customHead: config.appearance.customHead,
     access: config.access,
+    auth: config.auth,
   };
   await db.set('config:main', JSON.stringify(dbData));
   // 清除同步缓存，下次 loadConfig 会重新读取

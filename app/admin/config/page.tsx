@@ -3,31 +3,33 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
-import { Settings, Github, ExternalLink, CheckCircle, XCircle, Image } from 'lucide-react';
-import { Slider, Button } from 'antd';
+import { Settings, Github, ExternalLink, CheckCircle, XCircle, Image, Shield } from 'lucide-react';
+import { Slider, Button, Switch } from 'antd';
 
 interface BackgroundConfig {
   url?: string;
   opacity?: number;
 }
 
-interface EnvStatus {
+interface ConfigState {
   siteTitle: string;
   siteDescription: string;
   background: BackgroundConfig;
   githubRepo: string;
   githubToken: string;
+  allowRegistration: boolean;
 }
 
 export default function ConfigPage() {
   const { userRole } = useAuth();
   const { t } = useI18n();
-  const [config, setConfig] = useState<EnvStatus>({
+  const [config, setConfig] = useState<ConfigState>({
     siteTitle: '',
     siteDescription: '',
     background: { url: '', opacity: 0.8 },
     githubRepo: '',
     githubToken: '',
+    allowRegistration: true,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -44,11 +46,12 @@ export default function ConfigPage() {
         if (res.ok) {
           const data = await res.json();
           setConfig({
-            siteTitle: data.siteTitle || 'Originium Kernel',
-            siteDescription: data.siteDescription || '',
-            background: data.background || { url: '', opacity: 0.8 },
+            siteTitle: data.siteTitle || data.site?.title || 'Originium Kernel',
+            siteDescription: data.siteDescription || data.site?.description || '',
+            background: data.background || data.appearance?.background || { url: '', opacity: 0.8 },
             githubRepo: data.githubRepo || '',
             githubToken: data.githubToken ? '********' : '',
+            allowRegistration: data.auth?.allowRegistration !== false,
           });
         }
       } catch (error) {
@@ -70,6 +73,7 @@ export default function ConfigPage() {
           siteTitle: config.siteTitle,
           siteDescription: config.siteDescription,
           background: config.background,
+          auth: { allowRegistration: config.allowRegistration },
         }),
       });
       if (res.ok) {
@@ -139,6 +143,34 @@ export default function ConfigPage() {
             className="w-full min-h-[100px] p-3 border border-zinc-200 rounded-lg text-sm resize-vertical outline-none focus:border-zinc-400 transition-colors"
           />
         </div>
+      </div>
+
+      {/* 认证设置 */}
+      <div className="bg-white rounded-2xl border border-zinc-100 p-6 mb-4">
+        <h2 className="text-base font-bold text-zinc-900 mb-4 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-amber-500" />
+          <Shield size={16} />
+          {t('config.auth')}
+        </h2>
+        <div className="flex items-center justify-between py-3 px-4 bg-zinc-50 rounded-xl">
+          <div>
+            <div className="text-sm font-medium text-zinc-900">{t('config.allowRegistration')}</div>
+            <div className="text-xs text-zinc-400 mt-0.5">{t('config.allowRegistrationHint')}</div>
+          </div>
+          <Switch
+            checked={config.allowRegistration}
+            onChange={checked => setConfig({ ...config, allowRegistration: checked })}
+          />
+        </div>
+        {!config.allowRegistration && (
+          <div className="mt-3 p-3 bg-amber-50 border border-amber-100 rounded-xl flex items-start gap-2">
+            <Shield size={16} className="text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm text-amber-800 font-medium">{t('config.registrationClosed')}</p>
+              <p className="text-xs text-amber-600 mt-0.5">{t('config.registrationClosedHint')}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 背景设置 */}

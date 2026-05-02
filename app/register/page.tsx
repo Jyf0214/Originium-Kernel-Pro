@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Button, Input, Form, notification, message, Select } from 'antd';
-import { User, Lock, Mail } from 'lucide-react';
+import { Button, Input, Form, notification, message, Select, Spin } from 'antd';
+import { User, Lock, Mail, UserX } from 'lucide-react';
 import AuthCard from '@/components/AuthCard';
 import AuthLayout from '@/components/AuthLayout';
 
@@ -18,10 +18,21 @@ interface UserGroup {
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [groups, setGroups] = useState<UserGroup[]>([]);
+  const [registrationOpen, setRegistrationOpen] = useState<boolean | null>(null);
   const router = useRouter();
   const [form] = Form.useForm();
 
   useEffect(() => {
+    // 检查是否允许注册
+    fetch('/api/config')
+      .then(res => res.json())
+      .then(data => {
+        setRegistrationOpen(data.auth?.allowRegistration !== false);
+      })
+      .catch(() => {
+        setRegistrationOpen(true); // 获取失败时默认允许
+      });
+
     const fetchGroups = async () => {
       try {
         const res = await fetch('/api/user-groups');
@@ -58,6 +69,8 @@ export default function RegisterPage() {
         const roleMsg = data.user?.role === 'sudo' ? '您是首个注册用户，已获得管理员权限！' : '账号已创建，请前往登录';
         notification.success({ message: '注册成功', description: roleMsg, placement: 'topRight', duration: 5 });
         router.push('/login');
+      } else if (data.errorKey === 'registration_closed') {
+        setRegistrationOpen(false);
       } else {
         throw new Error(data.error || data.message || '注册失败');
       }
@@ -77,6 +90,52 @@ export default function RegisterPage() {
     borderRadius: 12,
   };
 
+  // 正在加载配置
+  if (registrationOpen === null) {
+    return (
+      <AuthLayout>
+        <div className="flex items-center justify-center py-20">
+          <Spin size="large" />
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  // 注册已关闭
+  if (!registrationOpen) {
+    return (
+      <AuthLayout>
+        <AuthCard
+          footer={
+            <div className="flex items-center justify-center gap-2 py-6">
+              <span className="text-sm text-zinc-400">已有账号？</span>
+              <Link href="/login">
+                <span className="text-sm font-medium text-zinc-900">立即登录</span>
+              </Link>
+            </div>
+          }
+          subtitle="管理员已关闭新用户注册"
+          title="注册已关闭"
+        >
+          <div className="flex flex-col items-center py-8 text-center">
+            <div className="w-16 h-16 bg-zinc-100 rounded-2xl flex items-center justify-center mb-4">
+              <UserX size={28} className="text-zinc-400" />
+            </div>
+            <p className="text-zinc-400 text-sm mb-6">
+              当前站点不接受新用户注册。如有疑问，请联系管理员。
+            </p>
+            <Link href="/login">
+              <Button type="primary" size="large" className="bg-zinc-900 rounded-xl h-12 px-8">
+                返回登录
+              </Button>
+            </Link>
+          </div>
+        </AuthCard>
+      </AuthLayout>
+    );
+  }
+
+  // 注册开放
   return (
     <AuthLayout>
       <AuthCard

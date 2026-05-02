@@ -21,5 +21,8 @@
       "public": ["*"],
       "private": []
     }
+  },
+  "auth": {
+    "allowRegistration": true
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { generateUID, createSession } from '@/lib/auth';
+import { loadConfigAsync } from '@/lib/config';
 
 function hashPassword(password: string) {
   return Buffer.from(password).toString('hex').split('').reverse().join('');
@@ -8,6 +9,15 @@ function hashPassword(password: string) {
 
 export async function POST(req: NextRequest) {
   try {
+    // 检查是否允许注册
+    const config = await loadConfigAsync();
+    if (!config.auth.allowRegistration) {
+      return NextResponse.json(
+        { error: '管理员已关闭注册', errorKey: 'registration_closed' },
+        { status: 403 }
+      );
+    }
+
     const { email, password, name, username, userGroup } = await req.json();
 
     if (!email || !password || !name) {
@@ -22,7 +32,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '密码至少6个字符' }, { status: 400 });
     }
 
-    // 验证用户名格式（如果提供）
     if (username) {
       if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
         return NextResponse.json({ error: '用户名只能包含字母、数字和下划线，3-20个字符' }, { status: 400 });
@@ -30,11 +39,11 @@ export async function POST(req: NextRequest) {
     }
 
     const db = getDb();
-    
+
     // 检查是否是第一个用户
     const userListStr = await db.get('users:all:list');
     const isFirstUser = !userListStr || JSON.parse(userListStr).length === 0;
-    
+
     // 检查邮箱是否已注册
     const existingEmail = await db.get(`user:email:${email}`);
     if (existingEmail) {
@@ -50,7 +59,7 @@ export async function POST(req: NextRequest) {
     }
 
     const uid = generateUID();
-    
+
     // 第一个用户自动成为 sudo
     let userRole = isFirstUser ? 'sudo' : 'user';
     let finalUserGroup = isFirstUser ? 'admin' : (userGroup || null);
@@ -76,7 +85,7 @@ export async function POST(req: NextRequest) {
 
     await db.set(`user:uid:${uid}`, JSON.stringify(userPayload));
     await db.set(`user:email:${email}`, uid);
-    
+
     // 存储用户名映射
     if (username) {
       await db.set(`user:username:${username}`, uid);

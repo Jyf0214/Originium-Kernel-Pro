@@ -47,10 +47,13 @@ export async function POST(req: NextRequest) {
       },
       access: newConfig.access
         ? {
-            posts: { ...currentConfig.access.posts, ...newConfig.access.posts },
-            faces: { ...currentConfig.access.faces, ...newConfig.access.faces },
-          }
+          posts: { ...currentConfig.access.posts, ...newConfig.access.posts },
+          faces: { ...currentConfig.access.faces, ...newConfig.access.faces },
+        }
         : currentConfig.access,
+      auth: newConfig.auth
+        ? { ...currentConfig.auth, ...newConfig.auth }
+        : currentConfig.auth,
     };
 
     // 保存到数据库
@@ -82,7 +85,6 @@ export async function PUT() {
   if (!db) {
     return NextResponse.json({ error: '数据库未配置' }, { status: 400 });
   }
-
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
   if (!repo || !token) {
@@ -94,7 +96,6 @@ export async function PUT() {
     if (!remote) {
       return NextResponse.json({ error: 'config.yaml 不存在' }, { status: 404 });
     }
-
     const parsed = yaml.load(remote.content) as any;
     const currentConfig = await loadConfigAsync();
 
@@ -114,10 +115,13 @@ export async function PUT() {
       },
       access: parsed.access
         ? {
-            posts: { ...currentConfig.access.posts, ...parsed.access.posts },
-            faces: { ...currentConfig.access.faces, ...parsed.access.faces },
-          }
+          posts: { ...currentConfig.access.posts, ...parsed.access.posts },
+          faces: { ...currentConfig.access.faces, ...parsed.access.faces },
+        }
         : currentConfig.access,
+      auth: parsed.auth
+        ? { ...currentConfig.auth, ...parsed.auth }
+        : currentConfig.auth,
     };
 
     await saveConfigToDb(mergedConfig);
