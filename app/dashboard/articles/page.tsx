@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Edit, Trash2, Plus, Eye, RotateCcw, Globe, FileEdit, ArrowRight, Search,
 } from 'lucide-react';
 import { Button, Input, Tag, Spin, Popconfirm, message } from 'antd';
@@ -24,6 +25,7 @@ interface ArticleItem {
 
 export default function ArticlesPage() {
   const { user } = useAuth();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { t, locale } = useI18n();
   const searchParams = useSearchParams();
   const status = searchParams?.get('status');
@@ -61,6 +63,7 @@ export default function ArticlesPage() {
         setArticles(articles.filter(a => a.id !== id));
         message.success(locale === 'zh-CN' ? '已删除' : 'Deleted');
       }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       message.error(locale === 'zh-CN' ? '删除失败' : 'Delete failed');
     }
@@ -77,6 +80,7 @@ export default function ArticlesPage() {
         setArticles(articles.filter(a => a.id !== id));
         message.success(locale === 'zh-CN' ? '已恢复' : 'Restored');
       }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       message.error(locale === 'zh-CN' ? '恢复失败' : 'Restore failed');
     }

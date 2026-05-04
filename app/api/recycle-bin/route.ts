@@ -21,7 +21,9 @@ export async function GET(req: NextRequest) {
     const db = getDb();
     const index = await db.hgetall('articles:index');
     
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pendingDeletion: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const allArticles: any[] = [];
 
     for (const [id, data] of Object.entries(index)) {

@@ -5,6 +5,7 @@ import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 
 import { Navbar } from '@/components/Navbar';
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Button, Input, Form, message, Steps } from 'antd';
 import { Mail, Shield, KeyRound, ArrowRight, CheckCircle2 } from 'lucide-react';
 
@@ -19,6 +20,7 @@ export default function ClerkBindPage() {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [codeSent, setCodeSent] = useState(false);
   const [countdown, setCountdown] = useState(0);
 

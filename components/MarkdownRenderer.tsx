@@ -13,7 +13,9 @@ interface MarkdownRendererProps {
  */
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   const [highlighter, setHighlighter] = useState<{
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Component: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     style: any;
   } | null>(null);
 
@@ -31,8 +33,11 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
     });
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const components: Record<string, React.ComponentType<any>> = {
-    code({ node, inline, className, children, ...props }: any) {
+   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    code({ inline, className, children, ...props }: any) {
       const match = /language-(\w+)/.exec(className || '');
       if (!inline && match && highlighter) {
         return (

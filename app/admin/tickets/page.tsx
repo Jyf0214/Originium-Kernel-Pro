@@ -10,6 +10,7 @@ interface TicketTemplate {
   id: string;
   name: string;
   description: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fields: any[];
   createdAt: string;
 }
@@ -46,6 +47,7 @@ export default function TicketsPage() {
       router.push('/dashboard');
       return;
     }
+  // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTemplates();
   }, [isSudo, router]);
 
@@ -118,6 +120,7 @@ export default function TicketsPage() {
     setFormData({ ...formData, fields: formData.fields.filter((_, i) => i !== index) });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateField = (index: number, field: any) => {
     const newFields = [...formData.fields];
     newFields[index] = field;

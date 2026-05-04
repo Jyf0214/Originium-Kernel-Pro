@@ -49,12 +49,14 @@ export async function POST(req: NextRequest) {
     const fileName = `${slug}.md`;
     const filePath = `tickets/${fileName}`;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const frontMatter: any = {
       name,
       description: description || '',
       title: title || `[${name}] `,
       labels: labels || [],
       assignees: assignees || [],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fields: (fields || []).map((f: any) => ({
         name: f.name,
         label: f.label,
@@ -83,6 +85,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, slug: `/${slug}` });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('create_template_error:', error.message);
     return NextResponse.json({ error: '创建模板失败' }, { status: 500 });

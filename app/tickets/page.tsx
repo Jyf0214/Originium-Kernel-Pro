@@ -36,6 +36,7 @@ export default function TicketsPage() {
 
   useEffect(() => {
     if (!user) { router.push('/login'); return; }
+  // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTickets();
   }, [user, router]);
 

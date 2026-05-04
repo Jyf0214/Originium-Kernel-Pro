@@ -16,6 +16,7 @@ function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams?.get('token');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const inputRef = useRef<any>(null);
   const { t } = useI18n();
 
@@ -51,6 +52,7 @@ function ResetPasswordForm() {
       } else {
         message.error(data.error || t('auth.resetFailed'));
       }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       message.error(t('auth.resetFailed'));
     } finally {

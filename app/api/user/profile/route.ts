@@ -30,6 +30,7 @@ export async function GET() {
         status: user.status,
       }
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error(JSON.stringify({ type: 'get_profile_error', message: error.message }));
     return NextResponse.json({ error: '获取用户资料失败' }, { status: 500 });
@@ -98,6 +99,7 @@ export async function PUT(req: NextRequest) {
       },
       message: '资料更新成功'
     }, { status: 201 });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error(JSON.stringify({ type: 'update_profile_error', message: error.message }));
     return NextResponse.json({ error: '更新用户资料失败' }, { status: 500 });

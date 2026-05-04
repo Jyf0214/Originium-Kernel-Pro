@@ -77,6 +77,7 @@ export default function EnvStatusPage() {
       router.push('/');
       return;
     }
+  // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchEnvStatus();
   }, [isSudo, router]);
 

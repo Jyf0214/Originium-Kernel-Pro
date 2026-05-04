@@ -28,7 +28,7 @@ interface HomePostGridProps {
 /**
  * 首页帖子网格 — 客户端组件，负责搜索/筛选交互
  */
-export function HomePostGrid({ posts, postCount, facesCount, siteTitle, siteDescription }: HomePostGridProps) {
+export function HomePostGrid({ posts, postCount, facesCount }: HomePostGridProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredPosts = posts.filter((p) => {

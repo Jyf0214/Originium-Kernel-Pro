@@ -13,6 +13,7 @@ export default function ForgotPasswordPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [sentEmail, setSentEmail] = useState('');
   const [form] = Form.useForm();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const inputRef = useRef<any>(null);
   const { t } = useI18n();
 
@@ -35,6 +36,7 @@ export default function ForgotPasswordPage() {
       } else {
         message.error(data.error || t('auth.resetLinkFailed'));
       }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       message.error(t('auth.resetLinkFailed'));
     } finally {

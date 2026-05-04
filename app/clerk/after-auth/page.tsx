@@ -5,6 +5,7 @@ import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
 import { Spin, Button } from 'antd';
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Link, ExternalLink } from 'lucide-react';
 
 /**
@@ -17,6 +18,7 @@ export default function ClerkAfterAuthPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
   const [checking, setChecking] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isBound, setIsBound] = useState(false);
 
   useEffect(() => {

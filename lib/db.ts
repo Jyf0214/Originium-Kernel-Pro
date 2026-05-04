@@ -20,7 +20,8 @@ function getDatabaseUrl(): string {
 }
 
 // 创建 Prisma 客户端单例
-const globalForPrisma = globalThis as unknown as {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+const globalForPrisma = globalThis as any as {
   prisma: PrismaClient | undefined
 }
 

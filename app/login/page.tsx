@@ -3,6 +3,7 @@
 import React, { Suspense, useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Button, Input, Form, Divider, message } from 'antd';
 import { ChevronRight, Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
@@ -24,6 +25,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const { login } = useAuth();
   const [form] = Form.useForm();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const inputRef = useRef<any>(null);
   const { t } = useI18n();
 

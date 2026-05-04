@@ -10,6 +10,7 @@ const defaultGroups = [
 ];
 
 // 计算用户组的成员数量
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function calculateMemberCount(db: any, groupId: string): Promise<number> {
   const userListStr = await db.get('users:all:list');
   if (!userListStr) return 0;
@@ -43,9 +44,10 @@ export async function GET(req: NextRequest) {
     const groupId = searchParams.get('id');
     
     const groupsStr = await db.get('user-groups:list');
-    let groups = groupsStr ? JSON.parse(groupsStr) : [];
+    const groups = groupsStr ? JSON.parse(groupsStr) : [];
     
     // 确保默认用户组存在
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const existingIds = groups.map((g: any) => g.id);
     for (const defaultGroup of defaultGroups) {
       if (!existingIds.includes(defaultGroup.id)) {
@@ -60,6 +62,7 @@ export async function GET(req: NextRequest) {
     
     // 如果指定了 id，返回单个用户组
     if (groupId) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const group = groups.find((g: any) => g.id === groupId);
       if (!group) {
         return NextResponse.json({ error: '用户组不存在' }, { status: 404 });
@@ -68,7 +71,8 @@ export async function GET(req: NextRequest) {
     }
     
     return NextResponse.json(groups);
-  } catch (error: any) {
+   
+  } catch {
     return NextResponse.json({ error: '获取用户组失败' }, { status: 500 });
   }
 }
@@ -95,9 +99,10 @@ export async function POST(req: NextRequest) {
     
     const db = getDb();
     const groupsStr = await db.get('user-groups:list');
-    let groups = groupsStr ? JSON.parse(groupsStr) : [];
+    const groups = groupsStr ? JSON.parse(groupsStr) : [];
     
     // 确保默认用户组存在
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const existingIds = groups.map((g: any) => g.id);
     for (const defaultGroup of defaultGroups) {
       if (!existingIds.includes(defaultGroup.id)) {
@@ -106,12 +111,14 @@ export async function POST(req: NextRequest) {
     }
     
     // 检查名称是否已存在
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (groups.some((g: any) => g.name === name)) {
       return NextResponse.json({ error: '用户组名称已存在' }, { status: 409 });
     }
     
     // 生成唯一 ID
     let newId = generateGroupId();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     while (groups.some((g: any) => g.id === newId)) {
       newId = generateGroupId();
     }
@@ -130,7 +137,8 @@ export async function POST(req: NextRequest) {
     await db.set('user-groups:list', JSON.stringify(groups));
     
     return NextResponse.json({ success: true, group: newGroup });
-  } catch (error: any) {
+   
+  } catch {
     return NextResponse.json({ error: '创建用户组失败' }, { status: 500 });
   }
 }
@@ -160,8 +168,9 @@ export async function PATCH(req: NextRequest) {
 
     const db = getDb();
     const groupsStr = await db.get('user-groups:list');
-    let groups = groupsStr ? JSON.parse(groupsStr) : [];
+    const groups = groupsStr ? JSON.parse(groupsStr) : [];
     
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const groupIndex = groups.findIndex((g: any) => g.id === id);
     if (groupIndex === -1) {
       return NextResponse.json({ error: '用户组不存在' }, { status: 404 });
@@ -170,6 +179,7 @@ export async function PATCH(req: NextRequest) {
     // 只更新允许的字段
     if (name) {
       // 检查名称是否与其他用户组重复（排除自己）
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const nameExists = groups.some((g: any, idx: number) => idx !== groupIndex && g.name === name);
       if (nameExists) {
         return NextResponse.json({ error: '用户组名称已存在' }, { status: 409 });
@@ -183,7 +193,8 @@ export async function PATCH(req: NextRequest) {
     await db.set('user-groups:list', JSON.stringify(groups));
     
     return NextResponse.json({ success: true, group: groups[groupIndex] });
-  } catch (error: any) {
+   
+  } catch {
     return NextResponse.json({ error: '更新用户组失败' }, { status: 500 });
   }
 }
@@ -207,11 +218,13 @@ export async function DELETE(req: NextRequest) {
     const groupsStr = await db.get('user-groups:list');
     const groups = groupsStr ? JSON.parse(groupsStr) : [];
     
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filtered = groups.filter((g: any) => g.id !== id);
     await db.set('user-groups:list', JSON.stringify(filtered));
     
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+   
+  } catch {
     return NextResponse.json({ error: '删除用户组失败' }, { status: 500 });
   }
 }

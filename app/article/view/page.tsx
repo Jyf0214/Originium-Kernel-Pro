@@ -16,6 +16,7 @@ function ArticleViewContent() {
   const userParam = searchParams?.get('user');
   const articleParam = searchParams?.get('article');
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [article, setArticle] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 

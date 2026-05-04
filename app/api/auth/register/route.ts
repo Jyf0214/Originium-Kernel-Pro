@@ -61,8 +61,8 @@ export async function POST(req: NextRequest) {
     const uid = generateUID();
 
     // 第一个用户自动成为 sudo
-    let userRole = isFirstUser ? 'sudo' : 'user';
-    let finalUserGroup = isFirstUser ? 'admin' : (userGroup || null);
+    const userRole = isFirstUser ? 'sudo' : 'user';
+    const finalUserGroup = isFirstUser ? 'admin' : (userGroup || null);
 
     // 非第一个用户不能选择管理员组
     if (!isFirstUser && finalUserGroup === 'admin') {
@@ -103,6 +103,7 @@ export async function POST(req: NextRequest) {
       user: { uid, email, username, name, role: userRole, userGroup: finalUserGroup },
       message: isFirstUser ? '注册成功！您是首个用户，已获得管理员权限。' : '注册成功！'
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error(JSON.stringify({ type: 'register_error', message: error.message }));
     return NextResponse.json({ error: error.message || '注册失败' }, { status: 500 });

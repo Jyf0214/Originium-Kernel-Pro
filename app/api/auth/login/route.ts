@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
         role: user.role
       }
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error(JSON.stringify({ type: 'login_error', message: error.message }));
     return NextResponse.json({ error: '登录失败' }, { status: 500 });

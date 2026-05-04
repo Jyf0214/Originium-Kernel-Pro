@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { Button, Input, Form, message, Avatar } from 'antd';
-import { User, AtSign, Image, Save } from 'lucide-react';
+import { User, AtSign, Image as ImageIcon, Save } from 'lucide-react';
 
 export default function SettingsPage() {
   const { user, refresh } = useAuth();
@@ -22,6 +22,7 @@ export default function SettingsPage() {
     }
   }, [user, form]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSave = async (values: any) => {
     setLoading(true);
     try {
@@ -41,6 +42,7 @@ export default function SettingsPage() {
       } else {
         message.error(data.error || t('settings.saveFailed'));
       }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       message.error(error.message || t('settings.saveFailed'));
     } finally {
@@ -85,7 +87,7 @@ export default function SettingsPage() {
             name="avatarUrl"
             label={
               <div className="flex items-center gap-2 text-sm font-semibold text-zinc-700">
-                <Image size={14} />
+                <ImageIcon size={14} />
                 {t('settings.avatarUrl')}
               </div>
             }

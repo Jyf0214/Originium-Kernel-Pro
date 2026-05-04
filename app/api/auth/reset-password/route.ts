@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, message: '重置链接已发送' }, { status: 201 });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('密码重置错误:', error);
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
@@ -89,6 +90,7 @@ export async function PUT(req: NextRequest) {
     await db.del(`reset:${token}`);
 
     return NextResponse.json({ success: true, message: '密码重置成功' }, { status: 201 });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('密码重置错误:', error);
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });

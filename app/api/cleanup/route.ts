@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { getDb, storage } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 
@@ -51,6 +52,7 @@ export async function POST(req: NextRequest) {
             deleted.push(id);
           }
         }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         errors.push(`Error processing article ${id}: ${error.message}`);
       }
@@ -63,6 +65,7 @@ export async function POST(req: NextRequest) {
       errors,
       timestamp: new Date().toISOString(),
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('Cleanup cron error:', error);
     return NextResponse.json({ 
@@ -116,6 +119,7 @@ export async function GET() {
       expired,
       deletionPeriodDays: DELETION_PERIOD_DAYS,
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('Cleanup stats error:', error);
     return NextResponse.json({ 

@@ -9,6 +9,7 @@ import { Button, Tag, Popconfirm, Spin, Select } from 'antd';
 export default function UsersPage() {
   const { userRole } = useAuth();
   const { t } = useI18n();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -41,6 +42,7 @@ export default function UsersPage() {
         setEditingId(null);
         return;
       }
+  // eslint-disable-next-line no-console
       console.log(t('admin.updateRole'), id, editRole);
       setEditingId(null);
     } catch (error) {
@@ -55,6 +57,7 @@ export default function UsersPage() {
       return;
     }
     try {
+  // eslint-disable-next-line no-console
       console.log(t('admin.deleteUser'), id);
     } catch (error) {
       console.error(t('admin.deleteUserFailed'), error);

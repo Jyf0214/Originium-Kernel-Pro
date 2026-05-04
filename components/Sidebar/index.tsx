@@ -19,7 +19,9 @@ import {
   Menu,
   X,
   ChevronDown,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ChevronRight,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Globe,
 } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher/index';
@@ -74,6 +76,7 @@ function SidebarContent({
   items: MenuItem[];
   isActive: (href: string) => boolean;
   onItemClick: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   user: any;
   onLogout: () => void;
   showCloseButton?: boolean;

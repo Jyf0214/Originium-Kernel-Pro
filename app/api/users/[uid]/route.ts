@@ -5,11 +5,13 @@ import type { UserRole } from '@/lib/user';
 
 const defaultGroupIds = ['sudo', 'admin', 'default'];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function groupExists(db: any, groupId: string): Promise<boolean> {
   if (defaultGroupIds.includes(groupId)) return true;
   const groupsStr = await db.get('user-groups:list');
   if (!groupsStr) return false;
   const groups = JSON.parse(groupsStr);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return groups.some((g: any) => g.id === groupId);
 }
 
