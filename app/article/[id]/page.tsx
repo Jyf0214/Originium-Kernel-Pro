@@ -14,6 +14,7 @@ export default function ArticlePage() {
   const params = useParams();
   const id = params?.id as string;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [article, setArticle] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 

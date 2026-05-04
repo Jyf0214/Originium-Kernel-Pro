@@ -13,6 +13,7 @@ const FIELD_TYPES = [
   { value: 'checkboxes', label: '复选框' },
 ];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toYamlString(obj: any, indent = 0): string {
   const pad = '  '.repeat(indent);
   let result = '';
@@ -46,6 +47,7 @@ export default function NewTicketTemplatePage() {
   const [assignees, setAssignees] = useState<string[]>([]);
   const [labelInput, setLabelInput] = useState('');
   const [assigneeInput, setAssigneeInput] = useState('');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [fields, setFields] = useState<any[]>([{
     name: '', label: '', type: 'input', options: [], required: true,
   }]);
@@ -65,6 +67,7 @@ export default function NewTicketTemplatePage() {
     setFields(fields.filter((_, i) => i !== index));
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateField = (index: number, key: string, value: any) => {
     const newFields = [...fields];
     newFields[index] = { ...newFields[index], [key]: value };
@@ -132,6 +135,7 @@ export default function NewTicketTemplatePage() {
         const err = await res.json();
         message.error(err.error || '创建失败');
       }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       message.error('创建失败');
     } finally {

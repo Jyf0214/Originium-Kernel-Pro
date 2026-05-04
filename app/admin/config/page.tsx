@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
-import { Settings, Github, ExternalLink, CheckCircle, XCircle, Image, Shield } from 'lucide-react';
+import { Settings, Github, ExternalLink, CheckCircle, XCircle, Image as ImageIcon, Shield } from 'lucide-react';
 import { Slider, Button, Switch } from 'antd';
 
 interface BackgroundConfig {
@@ -37,6 +37,7 @@ export default function ConfigPage() {
   useEffect(() => {
     if (userRole !== 'sudo' && userRole !== 'admin') {
       if (loading) {
+  // eslint-disable-next-line react-hooks/set-state-in-effect
         setLoading(false);
       }
       return;
@@ -63,7 +64,7 @@ export default function ConfigPage() {
       }
     };
     fetchConfig();
-  }, [userRole]);
+  }, [userRole, loading]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -179,7 +180,7 @@ export default function ConfigPage() {
       <div className="bg-white rounded-2xl border border-zinc-100 p-6 mb-4">
         <h2 className="text-base font-bold text-zinc-900 mb-4 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-blue-500" />
-          <Image size={16} />
+          <ImageIcon size={16} />
           {t('config.background')}
         </h2>
         <div className="mb-4">

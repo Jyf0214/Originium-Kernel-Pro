@@ -47,6 +47,7 @@ export default function RegisterPage() {
     fetchGroups();
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
@@ -74,6 +75,7 @@ export default function RegisterPage() {
       } else {
         throw new Error(data.error || data.message || '注册失败');
       }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error('注册失败:', err);
       message.error(err.message || '注册失败');

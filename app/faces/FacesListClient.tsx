@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Search, Users, Sparkles, UserCircle } from 'lucide-react';
 import { Input } from 'antd';
 

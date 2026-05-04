@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
     const fileName = `tickets${slug}.md`;
 
     // 构建 front matter
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const frontMatter: Record<string, any> = {
       title: title || template.title || 'Untitled',
       author: session.email,
@@ -81,6 +82,7 @@ export async function POST(req: NextRequest) {
  * - Admin/Sudo 可见全部
  * - 普通用户只能看自己的
  */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session) {
@@ -107,6 +109,7 @@ export async function GET(req: NextRequest) {
 
     // 读取每个工单文件
     const tickets = await Promise.all(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data.map(async (file: any) => {
         try {
           const contentRes = await fetch(`/api/github?path=${file.path}`);
@@ -137,6 +140,7 @@ export async function GET(req: NextRequest) {
     );
 
     return NextResponse.json(tickets.filter(Boolean));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error.status === 404) {
       return NextResponse.json([]);

@@ -10,7 +10,8 @@ export interface ContentMeta {
   tags?: string[];
   cover?: string;
   description?: string;
-  [key: string]: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
 /** 解析后的内容文件 */

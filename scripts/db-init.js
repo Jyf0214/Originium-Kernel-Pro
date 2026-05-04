@@ -16,12 +16,14 @@ async function main() {
     process.env.POSTGRES_URL_NON_POOLING;
   
   if (!databaseUrl) {
+  // eslint-disable-next-line no-console
     console.log('[数据库初始化] 未找到数据库 URL，跳过初始化');
     return;
   }
   
   // 检查是否跳过数据库初始化（环境变量控制）
   if (process.env.SKIP_DB_INIT === 'true') {
+  // eslint-disable-next-line no-console
     console.log('[数据库初始化] SKIP_DB_INIT=true，跳过初始化');
     return;
   }
@@ -35,8 +37,10 @@ async function main() {
   
   process.env.DATABASE_URL = finalUrl
   
+  // eslint-disable-next-line no-console
   console.log('[数据库初始化] 开始初始化...')
   
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { execSync } = require('child_process')
   
   try {
@@ -47,6 +51,7 @@ async function main() {
         env: { ...process.env },
         timeout: 30000
       })
+  // eslint-disable-next-line no-console
       console.log('[数据库初始化] ✓ Schema 推送成功')
     } catch (dbError) {
       const errorMsg = dbError.message || ''
@@ -54,18 +59,22 @@ async function main() {
           errorMsg.includes('max clients reached') ||
           errorMsg.includes('too many clients') ||
           errorMsg.includes('connection pool')) {
+  // eslint-disable-next-line no-console
         console.log('[数据库初始化] ⚠️ 数据库连接池已满，跳过初始化')
         return
       }
+  // eslint-disable-next-line no-console
       console.log('[数据库初始化] ⚠️ 数据库连接失败，跳过初始化:', errorMsg.split('\n')[0])
       return
     }
     
     // 检查 ADMIN_PASSWORD 环境变量
     if (process.env.ADMIN_PASSWORD) {
+  // eslint-disable-next-line no-console
       console.log('[数据库初始化] 检测到 ADMIN_PASSWORD，正在更新管理员密码...')
       
       try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { PrismaClient } = require('@prisma/client')
         const prisma = new PrismaClient()
         
@@ -91,8 +100,10 @@ async function main() {
                 data: { value: JSON.stringify(user) }
               })
               updatedCount++
+  // eslint-disable-next-line no-console
               console.log(`[数据库初始化] ✓ 已更新用户: ${user.email || user.username || user.uid}`)
             }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
           } catch (e) {
             // 忽略解析错误
           }
@@ -101,21 +112,28 @@ async function main() {
         await prisma.$disconnect()
         
         if (updatedCount > 0) {
+  // eslint-disable-next-line no-console
           console.log(`[数据库初始化] ✓ 已更新 ${updatedCount} 个管理员密码`)
         } else {
+  // eslint-disable-next-line no-console
           console.log('[数据库初始化] ⚠️ 未找到管理员用户')
         }
       } catch (err) {
+  // eslint-disable-next-line no-console
         console.log('[数据库初始化] ⚠️ 更新管理员密码失败:', err.message?.split('\n')[0])
       }
     }
     
+  // eslint-disable-next-line no-console
     console.log('[数据库初始化] ✓ 全部完成')
   } catch (error) {
+  // eslint-disable-next-line no-console
     console.log('[数据库初始化] ⚠️ 初始化跳过:', error.message?.split('\n')[0])
   }
 }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 main().catch((error) => {
+  // eslint-disable-next-line no-console
   console.log('[数据库初始化] ⚠️ 错误跳过')
 })

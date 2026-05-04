@@ -10,6 +10,7 @@ export interface FrontMatter {
   tags?: string[];
   cover?: string;
   date?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
@@ -28,6 +29,7 @@ export function parseMarkdown(markdown: string): ParsedMarkdown {
       content,
       frontMatter: data as FrontMatter,
     };
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     // If parsing fails, return full content without front matter
     return {

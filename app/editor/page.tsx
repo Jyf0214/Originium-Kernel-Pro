@@ -46,7 +46,7 @@ function EditorContent() {
       };
       fetchArticle();
     }
-  }, [articleId]);
+  }, [articleId, t]);
 
   /**
    * 保存草稿到数据库

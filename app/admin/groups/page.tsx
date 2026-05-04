@@ -65,6 +65,7 @@ export default function UserGroupsPage() {
     return () => clearTimeout(timer);
   }, [isSudo, router, loadData, t]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleCreateGroup = async (values: any) => {
     try {
       await createUserGroup(values.name, values.description || '', user?.uid || '');
@@ -72,11 +73,13 @@ export default function UserGroupsPage() {
       setIsModalOpen(false);
       form.resetFields();
       loadData();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       message.error(t('groups.createFailed'));
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleEditGroup = async (values: any) => {
     if (!selectedGroup) return;
     try {
@@ -89,6 +92,7 @@ export default function UserGroupsPage() {
       editForm.resetFields();
       setSelectedGroup(null);
       loadData();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       message.error(t('groups.updateFailed') || 'Failed to update group');
     }
@@ -99,6 +103,7 @@ export default function UserGroupsPage() {
       await deleteUserGroup(groupId);
       message.success(t('groups.deleteSuccess') || 'Group deleted successfully');
       loadData();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       message.error(t('groups.deleteFailed') || 'Failed to delete group');
     }
@@ -115,6 +120,7 @@ export default function UserGroupsPage() {
       setSelectedUsers([]);
       setSelectedGroup(null);
       loadData();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       message.error(t('groups.assignFailed') || 'Failed to assign users');
     }

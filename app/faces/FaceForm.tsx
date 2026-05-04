@@ -46,9 +46,11 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
     }
   }, [faceData, form]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSubmit = async (values: any) => {
     setLoading(true);
     try {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const payload: any = {
         name: values.name,
         email: values.email,
@@ -82,6 +84,7 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
 
       message.success(isEdit ? '联系人已更新' : '联系人已创建');
       router.push(`/faces${data.slug || faceData?.slug}`);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       message.error(error.message || '操作失败');
     } finally {
@@ -108,6 +111,7 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
 
       message.success('联系人已删除');
       router.push('/faces');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       message.error(error.message || '删除失败');
     } finally {

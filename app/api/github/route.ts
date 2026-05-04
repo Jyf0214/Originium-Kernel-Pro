@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
       try {
         const { data } = await octokit.rest.repos.getContent({ owner, repo, path });
         if ('sha' in data) sha = data.sha;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         if (e.status !== 404) throw e;
       }
@@ -44,6 +45,7 @@ export async function POST(req: NextRequest) {
     // 构建文件内容
     let fileContent = content || '';
     if (frontMatter && body !== undefined) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
       const yaml = require('js-yaml');
       fileContent = `---\n${yaml.dump(frontMatter)}---\n\n${body}`;
     }
@@ -67,6 +69,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true, data: result.data });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('github_sync_error:', error.message);
     return NextResponse.json({ error: '操作失败' }, { status: 500 });
@@ -104,6 +107,7 @@ export async function GET(req: NextRequest) {
     // Handle file content
     if ('content' in data) {
       const raw = Buffer.from(data.content, 'base64').toString('utf-8');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
       const matter = require('gray-matter');
       const { data: frontMatter, content: body } = matter(raw);
 
@@ -111,6 +115,7 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({ error: '无效路径' }, { status: 400 });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error.status === 404) return NextResponse.json({ error: '文件不存在' }, { status: 404 });
     console.error('github_read_error:', error.message);

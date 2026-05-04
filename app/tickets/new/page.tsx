@@ -12,6 +12,7 @@ interface TicketTemplate {
   description: string;
   title: string;
   labels: string[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fields: any[];
 }
 

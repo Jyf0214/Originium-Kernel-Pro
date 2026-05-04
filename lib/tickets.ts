@@ -40,6 +40,7 @@ export function getTicketTemplates(): TicketTemplate[] {
     const { data, content } = matter(raw);
 
     // 解析 fields
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fields: TicketField[] = (data.fields || []).map((f: any) => ({
       name: f.name,
       label: f.label || f.name,

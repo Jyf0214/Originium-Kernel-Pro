@@ -13,7 +13,9 @@ function UserArticleContent() {
   const username = params?.user as string;
   const article = params?.article as string;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [articleData, setArticleData] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 

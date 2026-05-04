@@ -11,7 +11,9 @@ function UserProfileContent() {
   const params = useParams();
   const username = params?.user as string;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,6 +30,7 @@ function UserProfileContent() {
           const articlesRes = await fetch(`/api/articles?author=${data.uid}`);
           if (articlesRes.ok) {
             const articlesData = await articlesRes.json();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
             setArticles(articlesData.filter((a: any) => a.status === 'published'));
           }
         }

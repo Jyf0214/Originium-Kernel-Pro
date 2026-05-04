@@ -53,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setUser(null);
       }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       setUser(null);
     } finally {
@@ -83,6 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         message.error(data.error || '登录失败');
         throw new Error(data.error);
       }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error('Login error:', err);
       throw err;
@@ -107,6 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         message.error(data.error || '注册失败');
         throw new Error(data.error);
       }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error('Register error:', err);
       throw err;

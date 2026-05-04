@@ -14,6 +14,7 @@ export function useIsMobile() {
     
     const initialValue = window.innerWidth < MOBILE_BREAKPOINT;
     if (isMobile !== initialValue) {
+  // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsMobile(initialValue);
     }
     

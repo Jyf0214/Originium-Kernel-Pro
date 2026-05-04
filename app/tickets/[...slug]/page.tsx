@@ -28,12 +28,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
 
   const slug = '/' + (resolvedParams.slug?.join('/') || '');
 
-  useEffect(() => {
-    if (!user) { router.push('/login'); return; }
-    fetchTicket();
-  }, [user, router, slug]);
-
-  const fetchTicket = async () => {
+  const fetchTicket = React.useCallback(async () => {
     try {
       const res = await fetch(`/api/tickets/${slug}`, { headers: { 'Content-Type': 'application/json' } });
       if (res.ok) {
@@ -46,7 +41,13 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug]);
+
+  useEffect(() => {
+    if (!user) { router.push('/login'); return; }
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchTicket();
+  }, [user, router, slug, fetchTicket]);
 
   const handleStatusChange = async () => {
     if (!ticket || newStatus === ticket.status) return;

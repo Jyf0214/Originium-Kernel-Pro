@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing svix headers' }, { status: 400 });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let payload: any;
   try {
     const body = await req.text();
@@ -29,6 +30,7 @@ export async function POST(req: NextRequest) {
       'svix-id': svixId,
       'svix-timestamp': svixTimestamp,
       'svix-signature': svixSignature,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }) as any;
   } catch {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });

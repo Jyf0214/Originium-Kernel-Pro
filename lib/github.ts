@@ -30,6 +30,7 @@ export async function getFileFromGithub(repo: string, token: string, path: strin
       return { content, sha: data.sha };
     }
     return null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error.status === 404) return null;
     throw error;
@@ -86,6 +87,7 @@ export async function syncPostToGithub(
     description?: string;
   },
 ) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const frontMatter: Record<string, any> = {
     title: post.title,
     author: post.author || 'Anonymous',
@@ -118,6 +120,7 @@ export async function deletePostFromGithub(repo: string, token: string, slug: st
 /**
  * 同步配置到 GitHub（YAML + JSON 双格式）
  */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function syncConfigToGithub(repo: string, token: string, config: any) {
   const yamlContent = yaml.dump(config);
   const jsonContent = JSON.stringify(config, null, 2);

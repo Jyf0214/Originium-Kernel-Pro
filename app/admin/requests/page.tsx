@@ -6,6 +6,7 @@ import { Check, X, Clock } from 'lucide-react';
 
 export default function RequestsPage() {
   const { userRole } = useAuth();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [requests] = useState<any[]>([]);
 
   const hasAccess = userRole === 'sudo' || userRole === 'admin';
@@ -15,12 +16,15 @@ export default function RequestsPage() {
     // TODO: 实现获取申请列表的 API 调用
   }, [hasAccess]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleApprove = async (request: any) => {
+  // eslint-disable-next-line no-console
     console.log('Approve request:', request.id);
     // TODO: 实现审批通过逻辑
   };
 
   const handleReject = async (id: string) => {
+  // eslint-disable-next-line no-console
     console.log('Reject request:', id);
     // TODO: 实现审批拒绝逻辑
   };

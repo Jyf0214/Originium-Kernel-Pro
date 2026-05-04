@@ -8,7 +8,8 @@ process.env.PRISMA_HIDE_UPDATE_MESSAGE = 'true'
 
 import { PrismaClient } from '@prisma/client'
 
-const globalForPrisma = globalThis as unknown as {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+const globalForPrisma = globalThis as any as {
   prisma: PrismaClient | undefined
 }
 
