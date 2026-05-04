@@ -1,59 +1,49 @@
-import { getContentFile, getAllSlugs } from '@/lib/content';
-import { canAccess, hasDatabase, loadConfigAsync } from '@/lib/config';
-import { getSession } from '@/lib/auth';
+'use client';
+
+import React from 'react';
+import { type ContentFile } from '@/types/content';
 import { Navbar } from '@/components/Navbar';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
+import { useI18n } from '@/hooks/use-i18n';
 
-interface PageProps {
-  params: Promise<{ slug: string[] }>;
-}
+export default function FaceDetailPage() {
+  const params = useParams();
+  const slugArray = params?.slug as string[] || [];
+  const fullPath = '/' + slugArray.join('/');
+  const { t } = useI18n();
 
-export async function generateStaticParams() {
-  const slugs = getAllSlugs('faces');
-  return slugs
-    .filter((slug) => canAccess('faces', slug, false, false))
-    .map((slug) => ({
-      slug: slug.slice(1).split('/'),
-    }));
-}
+  const [file, setFile] = React.useState<ContentFile | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const fullPath = '/' + slug.join('/');
-  const file = getContentFile('faces', fullPath);
-  if (!file) return { title: '未找到' };
-  return {
-    title: `${file.meta.title} - 通讯录`,
-    description: file.meta.description || file.content.slice(0, 160),
-  };
-}
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`/api/faces${fullPath}`);
+        if (res.ok) {
+          const contentFile = await res.json();
+          setFile(contentFile);
+        } else if (res.status === 404) {
+          setFile(null);
+        }
+      } catch (err) {
+        console.error('Failed to fetch face details:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [fullPath]);
 
-export default async function FaceDetailPage({ params }: PageProps) {
-  const { slug } = await params;
-  const fullPath = '/' + slug.join('/');
-  const session = await getSession();
-  const isAuthenticated = !!session;
-  const dbAvailable = hasDatabase();
-  const config = await loadConfigAsync();
-  const isAdmin = session?.role === 'admin' || session?.role === 'sudo';
-
-  const file = getContentFile('faces', fullPath);
+  if (loading) return null;
   if (!file) notFound();
 
-  if (!isAdmin) {
-    if (!canAccess('faces', fullPath, isAuthenticated, dbAvailable, config) || file.meta.public !== true) {
-      notFound();
-    }
-  }
-
-  const breadcrumbs = slug.map((segment, index) => ({
+  const breadcrumbs = slugArray.map((segment, index) => ({
     label: segment,
-    href: '/faces/' + slug.slice(0, index + 1).join('/'),
-    isLast: index === slug.length - 1,
+    href: '/faces/' + slugArray.slice(0, index + 1).join('/'),
+    isLast: index === slugArray.length - 1,
   }));
 
   return (
@@ -64,7 +54,7 @@ export default async function FaceDetailPage({ params }: PageProps) {
         <nav className="flex items-center gap-2 text-sm text-zinc-400 mb-8 flex-wrap">
           <Link href="/faces" className="hover:text-zinc-900 transition-colors flex items-center gap-1">
             <ArrowLeft size={14} />
-            通讯录
+            {t('nav.faces')}
           </Link>
           {breadcrumbs.map((crumb) => (
             <span key={crumb.href} className="flex items-center gap-2">
@@ -96,7 +86,7 @@ export default async function FaceDetailPage({ params }: PageProps) {
             )}
             {file.meta.tags && file.meta.tags.length > 0 && (
               <div className="flex flex-wrap justify-center gap-2 mt-4">
-                {file.meta.tags.map((tag) => (
+                {file.meta.tags.map((tag: string) => (
                   <span
                     key={tag}
                     className="px-3 py-1 bg-zinc-50 text-zinc-500 text-xs font-bold uppercase tracking-widest rounded-full border border-zinc-100"

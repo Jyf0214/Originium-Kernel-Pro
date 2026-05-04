@@ -4,14 +4,17 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useParams } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
-import { ArrowLeft, User, Calendar, Tag } from 'lucide-react';
+import { Avatar } from '@/components/Avatar';
+import { ArrowLeft, Calendar, Tag } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useI18n } from '@/hooks/use-i18n';
 
 function UserArticleContent() {
   const params = useParams();
   const username = params?.user as string;
   const article = params?.article as string;
+  const { t } = useI18n();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [articleData, setArticleData] = useState<any>(null);
@@ -51,10 +54,10 @@ function UserArticleContent() {
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="text-4xl font-display font-black text-zinc-900 mb-4">404</h1>
-        <p className="text-zinc-500 mb-8">Article not found in this kernel.</p>
+        <h1 className="text-4xl font-display font-black text-zinc-900 mb-4">{t('error.404')}</h1>
+        <p className="text-zinc-500 mb-8">{t('error.notFound')}</p>
         <Link href="/" className="lobe-button bg-zinc-900 text-white px-8 py-3 rounded-xl">
-          Back Home
+          {t('common.back')}
         </Link>
       </div>
     </div>
@@ -87,9 +90,7 @@ function UserArticleContent() {
 
             <div className="flex flex-wrap items-center gap-6 text-zinc-400 border-y border-zinc-100 py-8">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-white">
-                  <User size={20} />
-                </div>
+                <Avatar name={articleData.authorName} avatarUrl={userData?.avatar} size={48} />
                 <div>
                   <div className="font-black text-zinc-900 leading-none mb-1">{articleData.authorName}</div>
                   <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">@{username}</div>

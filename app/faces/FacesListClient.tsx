@@ -7,7 +7,7 @@ import { Search, Users, UserCircle } from 'lucide-react';
 import { Input } from 'antd';
 import { useI18n } from '@/hooks/use-i18n';
 
-interface FaceItem {
+export interface FaceItem {
   slug: string;
   title: string;
   date?: string;
@@ -15,7 +15,7 @@ interface FaceItem {
   description?: string;
 }
 
-interface GroupItem {
+export interface GroupItem {
   slug: string;
   title: string;
   description?: string;

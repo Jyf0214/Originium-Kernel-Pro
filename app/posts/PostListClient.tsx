@@ -3,9 +3,10 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Filter, Sparkles, Calendar, User, ArrowUpRight } from 'lucide-react';
+import { Search, Filter, Sparkles, Calendar, User, ArrowUpRight, ArrowRight } from 'lucide-react';
 import { Input, Button } from 'antd';
 import Image from 'next/image';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface PostItem {
   slug: string;
@@ -33,6 +34,7 @@ interface PostListClientProps {
 export function PostListClient({ posts, groups }: PostListClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
+  const { t, locale } = useI18n();
 
   const filteredPosts = posts.filter((p) => {
     const matchesSearch = !searchTerm ||
@@ -52,7 +54,7 @@ export function PostListClient({ posts, groups }: PostListClientProps) {
         <div className="relative flex-1 min-w-[240px]">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={20} />
           <Input
-            placeholder="搜索帖子..."
+            placeholder={t('home.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-12 h-12 text-base w-full rounded-2xl bg-white border-zinc-200"
@@ -65,7 +67,7 @@ export function PostListClient({ posts, groups }: PostListClientProps) {
           icon={<Filter size={18} />}
           className="bg-white hover:bg-zinc-50 border-zinc-200 rounded-2xl"
         >
-          筛选
+          {t('common.sort')}
         </Button>
       </div>
 
@@ -80,7 +82,7 @@ export function PostListClient({ posts, groups }: PostListClientProps) {
                 : 'bg-white text-zinc-600 border border-zinc-200 hover:border-zinc-300'
             }`}
           >
-            全部
+            {t('faces.allFaces')}
           </button>
           {groupNames.map((name) => (
             <button
@@ -147,23 +149,30 @@ export function PostListClient({ posts, groups }: PostListClientProps) {
                     {post.title}
                   </h2>
                 </Link>
-                <p className="text-zinc-400 text-sm line-clamp-2 mb-8 font-medium leading-relaxed">
+                <p className="text-zinc-600 text-sm line-clamp-2 mb-4 font-medium leading-relaxed">
                   {post.description || ''}
                 </p>
+                <Link 
+                  href={`/posts${post.slug}`} 
+                  className="inline-flex items-center gap-1.5 text-zinc-900 font-black mb-8 group/more transition-colors hover:text-zinc-600"
+                >
+                  <span className="text-[10px] uppercase tracking-[0.15em]">{t('common.learnMore')}</span>
+                  <ArrowRight size={14} className="group-hover/more:translate-x-1 transition-transform" />
+                </Link>
                 <div className="mt-auto pt-8 border-t border-zinc-50 flex items-center justify-between text-zinc-400">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-zinc-50 rounded-xl flex items-center justify-center text-zinc-900 group-hover:bg-zinc-900 group-hover:text-white transition-colors duration-500">
                       <User size={14} />
                     </div>
                     <span className="text-xs font-bold text-zinc-900 uppercase tracking-tighter">
-                      {post.author || '匿名'}
+                      {post.author || t('home.anonymous')}
                     </span>
                   </div>
                   {post.date && (
                     <div className="flex items-center gap-2 text-[10px] font-black">
                       <Calendar size={12} />
                       <span>
-                        {new Date(post.date).toLocaleDateString('zh-CN', {
+                        {new Date(post.date).toLocaleDateString(locale, {
                           month: 'short',
                           day: 'numeric',
                         })}
@@ -182,8 +191,8 @@ export function PostListClient({ posts, groups }: PostListClientProps) {
           <div className="w-24 h-24 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-6 text-zinc-300">
             <Sparkles size={40} />
           </div>
-          <h3 className="text-2xl font-black text-zinc-900 mb-2">暂无帖子</h3>
-          <p className="text-zinc-400 font-medium">在 /posts 目录下添加 Markdown 文件即可发布内容</p>
+          <h3 className="text-2xl font-black text-zinc-900 mb-2">{t('home.emptyTitle')}</h3>
+          <p className="text-zinc-400 font-medium">{t('home.noPosts')}</p>
         </div>
       )}
     </div>
