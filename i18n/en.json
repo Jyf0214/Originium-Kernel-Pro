@@ -452,6 +452,8 @@
   },
   "nav": {
     "posts": "Posts",
-    "faces": "Faces"
+    "faces": "Faces",
+    "settings": "Settings",
+    "logout": "Logout"
   }
 }
