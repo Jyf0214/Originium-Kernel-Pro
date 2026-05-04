@@ -253,6 +253,25 @@ export function filterAccessibleSlugs(
 
 /**
  * 从 config.json 获取指定用户的头像
+ * 优先级：数据库 > config.json
+ */
+export async function getUserAvatarAsync(uid: string): Promise<string | null> {
+  const config = loadConfig();
+  const fileAvatar = config.users?.[uid]?.avatar || null;
+
+  if (!hasDatabase()) return fileAvatar;
+
+  try {
+    const db = getDb();
+    const dbAvatar = await db.get(`user:avatar:${uid}`);
+    return dbAvatar || fileAvatar;
+  } catch {
+    return fileAvatar;
+  }
+}
+
+/**
+ * 获取指定用户的头像（同步，仅用于构建时）
  */
 export function getUserAvatar(uid: string): string | null {
   const config = loadConfig();
@@ -260,17 +279,11 @@ export function getUserAvatar(uid: string): string | null {
 }
 
 /**
- * 保存用户头像到 config.json
+ * 保存用户头像到数据库
+ * config.json 为构建时源，运行时写入数据库
  */
 export async function saveUserAvatar(uid: string, avatar: string): Promise<void> {
-  const configPath = path.join(process.cwd(), 'config.json');
-  const raw = fs.readFileSync(configPath, 'utf-8');
-  const config = JSON.parse(raw);
-
-  if (!config.users) config.users = {};
-  if (!config.users[uid]) config.users[uid] = {};
-  config.users[uid].avatar = avatar;
-
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-  cachedConfig = null;
+  if (!hasDatabase()) return;
+  const db = getDb();
+  await db.set(`user:avatar:${uid}`, avatar);
 }
