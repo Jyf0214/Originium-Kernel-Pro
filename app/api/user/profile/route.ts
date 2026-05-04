@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { getUserAvatar, saveUserAvatar } from '@/lib/config';
+import { getUserAvatarAsync, saveUserAvatar } from '@/lib/config';
 
 export async function GET() {
   try {
@@ -17,7 +17,7 @@ export async function GET() {
     }
 
     const user = JSON.parse(userStr);
-    const avatar = getUserAvatar(session.uid);
+    const avatar = await getUserAvatarAsync(session.uid);
 
     return NextResponse.json({
       success: true,
@@ -26,7 +26,7 @@ export async function GET() {
         email: user.email,
         username: user.username,
         name: user.name,
-        avatar: avatar || user.avatar || undefined,
+        avatar: avatar || undefined,
         role: user.role,
         userGroup: user.userGroup,
         createdAt: user.createdAt,
@@ -91,7 +91,7 @@ export async function PUT(req: NextRequest) {
       await db.set(`user:username:${username}`, session.uid);
     }
 
-    const currentAvatar = getUserAvatar(session.uid);
+    const currentAvatar = await getUserAvatarAsync(session.uid);
 
     return NextResponse.json({
       success: true,
