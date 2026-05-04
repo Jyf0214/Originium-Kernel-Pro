@@ -57,14 +57,6 @@ export default function EnvStatusPage() {
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    if (!isSudo) {
-      router.push('/');
-      return;
-    }
-    fetchEnvStatus();
-  }, [isSudo, router]);
-
   const fetchEnvStatus = async () => {
     setLoading(true);
     try {
@@ -79,6 +71,14 @@ export default function EnvStatusPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!isSudo) {
+      router.push('/');
+      return;
+    }
+    fetchEnvStatus();
+  }, [isSudo, router]);
 
   if (!isSudo) return null;
 
