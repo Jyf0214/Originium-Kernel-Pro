@@ -127,6 +127,34 @@ function SidebarContent({
         )}
       </div>
 
+      {/* 底部用户区域 */}
+      <div className="p-4 space-y-4 bg-zinc-50/50 border-b border-zinc-100">
+        <div className="px-2">
+          <LanguageSwitcher />
+        </div>
+
+        <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-white border border-zinc-100 shadow-sm group">
+          <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-zinc-100 group-hover:scale-105 transition-transform">
+            <span className="text-sm font-black">{(user?.name || 'U').charAt(0).toUpperCase()}</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold text-zinc-900 truncate">
+              {user?.name || '用户'}
+            </div>
+            <div className="text-[10px] font-bold text-zinc-400 truncate uppercase tracking-tighter">
+              {user?.role === 'sudo' ? t('user.sudo') : user?.role === 'admin' ? t('user.admin') : t('user.user')}
+            </div>
+          </div>
+          <button
+            onClick={onLogout}
+            className="p-2.5 rounded-xl hover:bg-red-50 transition-all text-zinc-300 hover:text-red-500 shrink-0"
+            title={t('auth.logout')}
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
+      </div>
+
       {/* 菜单 */}
       <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-7 custom-scrollbar">
         {Object.entries(grouped).map(([group, groupItems]) => {
@@ -201,33 +229,6 @@ function SidebarContent({
         })}
       </nav>
 
-      {/* 底部用户区域 */}
-      <div className="p-4 space-y-4 bg-zinc-50/50 border-t border-zinc-100">
-        <div className="px-2">
-          <LanguageSwitcher />
-        </div>
-
-        <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-white border border-zinc-100 shadow-sm group">
-          <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-zinc-100 group-hover:scale-105 transition-transform">
-            <span className="text-sm font-black">{(user?.name || 'U').charAt(0).toUpperCase()}</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-bold text-zinc-900 truncate">
-              {user?.name || '用户'}
-            </div>
-            <div className="text-[10px] font-bold text-zinc-400 truncate uppercase tracking-tighter">
-              {user?.role === 'sudo' ? t('user.sudo') : user?.role === 'admin' ? t('user.admin') : t('user.user')}
-            </div>
-          </div>
-          <button
-            onClick={onLogout}
-            className="p-2.5 rounded-xl hover:bg-red-50 transition-all text-zinc-300 hover:text-red-500 shrink-0"
-            title={t('auth.logout')}
-          >
-            <LogOut size={18} />
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
