@@ -1,0 +1,49 @@
+name:  Sync Data
+
+on:
+  push:
+    branches:
+      - main  # 如果你的默认分支是 master，请修改为 master
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync to Target Repo
+        env:
+          SYNC_PAT: ${{ secrets.SYNC_PAT }}
+        run: |
+          CURRENT_REPO="${{ github.repository }}"
+          BRANCH_NAME="${{ github.ref_name }}"
+          CURRENT_SHA="${{ github.sha }}"
+          
+          # 1. 动态判断当前是哪个仓库，从而决定目标仓库
+          if[ "$CURRENT_REPO" == "Jyf0214/ZhouZBoss-Web-AI" ]; then
+            TARGET_REPO="Jyf0214/ZhouZBoss-Web"
+          elif[ "$CURRENT_REPO" == "Jyf0214/ZhouZBoss-Web" ]; then
+            TARGET_REPO="Jyf0214/ZhouZBoss-Web-AI"
+          else
+            echo "❌ 未知仓库：$CURRENT_REPO"
+            exit 1
+          fi
+
+          TARGET_URL="https://${SYNC_PAT}@github.com/${TARGET_REPO}.git"
+          
+          # 2. 检查目标仓库同一分支的最新的 Commit SHA
+          TARGET_COMMIT=$(git ls-remote "$TARGET_URL" "refs/heads/$BRANCH_NAME" | awk '{print $1}')
+          
+          # 3. 防止无限循环机制：如果目标仓库已经是当前最新提交，直接终止，不再推送
+          if [ "$TARGET_COMMIT" == "$CURRENT_SHA" ]; then
+            echo "✅ 目标仓库[$TARGET_REPO] 已是最新提交 ($CURRENT_SHA)，跳过同步以防无限循环。"
+            exit 0
+          fi
+
+          # 4. 开始同步。普通的 git push，如果提交历史不一致(分叉)，将会报错退出并拒绝同步
+          echo "🔄 当前在 [$CURRENT_REPO]，准备同步到[$TARGET_REPO]..."
+          git remote add target "$TARGET_URL"
+          git push target HEAD:"refs/heads/$BRANCH_NAME"
