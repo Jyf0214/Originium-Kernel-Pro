@@ -53,8 +53,10 @@ export default function TicketsPage() {
 
   useEffect(() => {
     if (isSudo) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      fetchTemplates();
+      const timer = setTimeout(() => {
+        fetchTemplates();
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [isSudo]);
 

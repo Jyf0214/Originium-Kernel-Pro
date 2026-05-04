@@ -22,8 +22,6 @@ interface HomePostGridProps {
   posts: PostItem[];
   postCount: number;
   facesCount: number;
-  siteTitle: string;
-  siteDescription: string;
 }
 
 /**

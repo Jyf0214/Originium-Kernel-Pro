@@ -36,11 +36,10 @@ export default function ConfigPage() {
 
   useEffect(() => {
     if (userRole !== 'sudo' && userRole !== 'admin') {
-      if (loading) {
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+      const timer = setTimeout(() => {
         setLoading(false);
-      }
-      return;
+      }, 0);
+      return () => clearTimeout(timer);
     }
     const fetchConfig = async () => {
       setLoading(true);
@@ -64,7 +63,7 @@ export default function ConfigPage() {
       }
     };
     fetchConfig();
-  }, [userRole, loading]);
+  }, [userRole]);
 
   const handleSave = async () => {
     setSaving(true);
