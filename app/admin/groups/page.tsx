@@ -59,8 +59,11 @@ export default function UserGroupsPage() {
       router.push('/');
       return;
     }
-    loadData();
-  }, [isSudo, router, loadData]);
+    const timer = setTimeout(() => {
+      loadData();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [isSudo, router, loadData, t]);
 
   const handleCreateGroup = async (values: any) => {
     try {

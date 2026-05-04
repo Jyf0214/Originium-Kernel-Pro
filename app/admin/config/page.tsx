@@ -36,7 +36,9 @@ export default function ConfigPage() {
 
   useEffect(() => {
     if (userRole !== 'sudo' && userRole !== 'admin') {
-      setLoading(false);
+      if (loading) {
+        setLoading(false);
+      }
       return;
     }
     const fetchConfig = async () => {

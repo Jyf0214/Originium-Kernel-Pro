@@ -23,11 +23,6 @@ export default function TicketsPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  useEffect(() => {
-    if (!user) { router.push('/login'); return; }
-    fetchTickets();
-  }, [user, router]);
-
   const fetchTickets = async () => {
     try {
       const res = await fetch('/api/tickets');
@@ -38,6 +33,11 @@ export default function TicketsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!user) { router.push('/login'); return; }
+    fetchTickets();
+  }, [user, router]);
 
   const filteredTickets = statusFilter === 'all' ? tickets : tickets.filter(t => t.status === statusFilter);
 

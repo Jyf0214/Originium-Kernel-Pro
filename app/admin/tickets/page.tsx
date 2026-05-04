@@ -27,14 +27,6 @@ export default function TicketsPage() {
     fields: [{ name: '', type: 'text', required: true }],
   });
 
-  useEffect(() => {
-    if (!isSudo) {
-      router.push('/dashboard');
-      return;
-    }
-    fetchTemplates();
-  }, [isSudo, router]);
-
   const fetchTemplates = async () => {
     try {
       const res = await fetch('/api/ticket-templates');
@@ -48,6 +40,14 @@ export default function TicketsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!isSudo) {
+      router.push('/dashboard');
+      return;
+    }
+    fetchTemplates();
+  }, [isSudo, router]);
 
   const handleCreate = () => {
     setEditingTemplate(null);

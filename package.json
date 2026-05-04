@@ -4,18 +4,18 @@
   "private": true,
   "telemetry": false,
   "scripts": {
-    "dev": "bun run next dev",
+    "dev": "next dev",
     "type-check": "tsc --noEmit",
     "lint": "eslint .",
-    "check": "bun run type-check && bun run lint",
+    "check": "npm run type-check && npm run lint",
     "db:init": "node scripts/db-init.js",
     "db:generate": "PRISMA_HIDE_UPDATE_MESSAGE=true PRISMA_HIDE_PREVIEW_FLAG_WARNINGS=true prisma generate",
     "db:push": "PRISMA_HIDE_UPDATE_MESSAGE=true PRISMA_HIDE_PREVIEW_FLAG_WARNINGS=true prisma db push",
     "db:migrate": "PRISMA_HIDE_UPDATE_MESSAGE=true PRISMA_HIDE_PREVIEW_FLAG_WARNINGS=true prisma migrate dev",
     "db:studio": "PRISMA_HIDE_UPDATE_MESSAGE=true PRISMA_HIDE_PREVIEW_FLAG_WARNINGS=true prisma studio",
-    "build": "NEXT_TELEMETRY_DISABLED=1 bun run check && bun run db:generate && bun run db:init && bun run next build",
-    "start": "bun run next start",
-    "clean": "bun run next clean"
+    "build": "NEXT_TELEMETRY_DISABLED=1 npm run check && npm run db:generate && npm run db:init && next build",
+    "start": "next start",
+    "clean": "next clean"
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.0",

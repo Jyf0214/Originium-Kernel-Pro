@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, Clock, AlertCircle, Save } from 'lucide-react';
@@ -17,15 +17,16 @@ interface Ticket {
   content: string;
 }
 
-export default function TicketDetailPage({ params }: { params: { slug: string[] } }) {
+export default function TicketDetailPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { user } = useAuth();
   const router = useRouter();
+  const resolvedParams = use(params);
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
   const [newStatus, setNewStatus] = useState<string>('');
   const [saving, setSaving] = useState(false);
 
-  const slug = '/' + (params.slug?.join('/') || '');
+  const slug = '/' + (resolvedParams.slug?.join('/') || '');
 
   useEffect(() => {
     if (!user) { router.push('/login'); return; }

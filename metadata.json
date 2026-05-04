@@ -1,5 +1,6 @@
 {
-  "name": "Originium Kernel",
-  "description": "A modern blog framework with GitHub integration and Node functions.",
-  "requestFramePermissions": []
+  "name": "",
+  "description": "",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
 }
