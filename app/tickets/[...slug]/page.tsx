@@ -4,7 +4,8 @@ import React, { useEffect, useState, use } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, Clock, AlertCircle, Save } from 'lucide-react';
-import { Button, Spin } from 'antd';
+import { Button, Spin, message } from 'antd';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface Ticket {
   slug: string;
@@ -21,6 +22,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
   const { user } = useAuth();
   const router = useRouter();
   const resolvedParams = use(params);
+  const { t, locale } = useI18n();
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
   const [newStatus, setNewStatus] = useState<string>('');
@@ -44,10 +46,17 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
   }, [slug]);
 
   useEffect(() => {
-    if (!user) { router.push('/login'); return; }
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchTicket();
-  }, [user, router, slug, fetchTicket]);
+    if (!user) {
+      router.push('/login');
+    }
+  }, [user, router]);
+
+  useEffect(() => {
+    if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchTicket();
+    }
+  }, [user, fetchTicket]);
 
   const handleStatusChange = async () => {
     if (!ticket || newStatus === ticket.status) return;
@@ -60,11 +69,13 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
       });
       if (res.ok) {
         setTicket({ ...ticket, status: newStatus });
-        alert('状态更新成功');
+        message.success(t('common.success'));
+      } else {
+        message.error(t('common.error'));
       }
     } catch (error) {
       console.error('Failed to update status:', error);
-      alert('更新失败');
+      message.error(t('common.error'));
     } finally {
       setSaving(false);
     }
@@ -81,9 +92,9 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'open': return '待处理';
-      case 'in-progress': return '处理中';
-      case 'closed': return '已关闭';
+      case 'open': return t('tickets.statusOpen');
+      case 'in-progress': return t('tickets.statusInProgress');
+      case 'closed': return t('tickets.statusClosed');
       default: return status;
     }
   };
@@ -95,7 +106,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Spin size="large" />
+        <Spin size="large" tip={t('common.loading')} />
       </div>
     );
   }
@@ -103,7 +114,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
   if (!ticket) {
     return (
       <div className="flex items-center justify-center h-96">
-        <span className="text-zinc-400">工单不存在或无权限访问</span>
+        <span className="text-zinc-400">{t('tickets.notFound')}</span>
       </div>
     );
   }
@@ -112,7 +123,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
     <div className="p-6 md:p-10 max-w-3xl mx-auto">
       <div className="flex items-center gap-3 mb-8">
         <Button size="small" icon={<ArrowLeft size={14} />} onClick={() => router.push('/tickets')} className="rounded-lg" />
-        <h1 className="text-2xl font-bold text-zinc-900">工单详情</h1>
+        <h1 className="text-2xl font-bold text-zinc-900">{t('tickets.details')}</h1>
       </div>
 
       <div className="bg-white rounded-2xl border border-zinc-100 p-6">
@@ -136,7 +147,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
         {/* 元信息 */}
         <div className="mb-5 p-4 bg-zinc-50 rounded-xl">
           <p className="text-xs text-zinc-400">
-            作者: {ticket.author} · 创建时间: {new Date(ticket.date).toLocaleString('zh-CN')} · 模板: {ticket.template}
+            {t('tickets.author')}: {ticket.author} · {t('common.createdAt') || t('tickets.date')}: {new Date(ticket.date).toLocaleString(locale)} · {t('tickets.template')}: {ticket.template}
           </p>
           {ticket.labels.length > 0 && (
             <div className="mt-2 flex gap-1">
@@ -156,15 +167,15 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
         {isAdmin && (
           <div className="mt-6 pt-5 border-t border-zinc-100">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-zinc-700">更新状态:</span>
+              <span className="text-sm font-medium text-zinc-700">{t('tickets.updateStatus')}:</span>
               <select
                 value={newStatus}
                 onChange={e => setNewStatus(e.target.value)}
                 className="h-9 px-3 border border-zinc-200 rounded-lg text-sm"
               >
-                <option value="open">待处理</option>
-                <option value="in-progress">处理中</option>
-                <option value="closed">已关闭</option>
+                <option value="open">{t('tickets.statusOpen')}</option>
+                <option value="in-progress">{t('tickets.statusInProgress')}</option>
+                <option value="closed">{t('tickets.statusClosed')}</option>
               </select>
               <Button
                 type="primary"
@@ -174,7 +185,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
                 disabled={newStatus === ticket.status}
                 className="bg-zinc-900 rounded-xl"
               >
-                保存
+                {t('common.save')}
               </Button>
             </div>
           </div>

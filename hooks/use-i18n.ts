@@ -6,10 +6,13 @@ import en from '@/i18n/en.json';
 
 type Locale = 'zh-CN' | 'en';
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const translations: Record<Locale, any> = {
-  'zh-CN': zhCN,
-  'en': en,
+type I18nKeys = {
+  [key: string]: string | I18nKeys;
+};
+
+const translations: Record<Locale, I18nKeys> = {
+  'zh-CN': zhCN as I18nKeys,
+  'en': en as I18nKeys,
 };
 
 function getInitialLocale(): Locale {
@@ -18,6 +21,10 @@ function getInitialLocale(): Locale {
     if (savedLocale && translations[savedLocale]) {
       return savedLocale;
     }
+    // Detect from browser
+    const browserLocale = navigator.language;
+    if (browserLocale.startsWith('zh')) return 'zh-CN';
+    if (browserLocale.startsWith('en')) return 'en';
   }
   return 'zh-CN';
 }
@@ -36,13 +43,14 @@ export function useI18n() {
     setLocaleState(newLocale);
     if (typeof window !== 'undefined') {
       localStorage.setItem('locale', newLocale);
+      // Optional: update html lang attribute
+      document.documentElement.lang = newLocale;
     }
   }, []);
 
-  const t = useCallback((key: string): string => {
+  const t = useCallback((key: string, params?: Record<string, string | number>): string => {
     const keys = key.split('.');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let value: any = translations[locale];
+    let value: string | I18nKeys | undefined = translations[locale];
     
     for (const k of keys) {
       if (value && typeof value === 'object' && k in value) {
@@ -52,7 +60,18 @@ export function useI18n() {
       }
     }
     
-    return typeof value === 'string' ? value : key;
+    if (typeof value === 'string') {
+      if (params) {
+        let result = value;
+        Object.entries(params).forEach(([k, v]) => {
+          result = result.replace(new RegExp(`{${k}}`, 'g'), String(v));
+        });
+        return result;
+      }
+      return value;
+    }
+    
+    return key;
   }, [locale]);
 
   return { locale, setLocale, t };

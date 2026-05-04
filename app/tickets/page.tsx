@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Tag, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button, Spin } from 'antd';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface Ticket {
   slug: string;
@@ -19,6 +20,7 @@ interface Ticket {
 export default function TicketsPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const { t, locale } = useI18n();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -35,12 +37,19 @@ export default function TicketsPage() {
   };
 
   useEffect(() => {
-    if (!user) { router.push('/login'); return; }
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchTickets();
+    if (!user) {
+      router.push('/login');
+    }
   }, [user, router]);
 
-  const filteredTickets = statusFilter === 'all' ? tickets : tickets.filter(t => t.status === statusFilter);
+  useEffect(() => {
+    if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchTickets();
+    }
+  }, [user]);
+
+  const filteredTickets = statusFilter === 'all' ? tickets : tickets.filter(ti => ti.status === statusFilter);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -53,9 +62,10 @@ export default function TicketsPage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'open': return '待处理';
-      case 'in-progress': return '处理中';
-      case 'closed': return '已关闭';
+      case 'open': return t('tickets.statusOpen');
+      case 'in-progress': return t('tickets.statusInProgress');
+      case 'closed': return t('tickets.statusClosed');
+      case 'all': return t('tickets.statusAll');
       default: return status;
     }
   };
@@ -65,7 +75,7 @@ export default function TicketsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Spin size="large" />
+        <Spin size="large" tip={t('common.loading')} />
       </div>
     );
   }
@@ -74,11 +84,11 @@ export default function TicketsPage() {
     <div className="p-6 md:p-10 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900">工单列表</h1>
-          <p className="text-sm text-zinc-400 mt-1">查看和管理工单</p>
+          <h1 className="text-2xl font-bold text-zinc-900">{t('tickets.list')}</h1>
+          <p className="text-sm text-zinc-400 mt-1">{t('tickets.viewAndManage')}</p>
         </div>
         <Button type="primary" onClick={() => router.push('/tickets/new')} className="bg-zinc-900 rounded-xl">
-          创建工单
+          {t('tickets.createTicket')}
         </Button>
       </div>
 
@@ -86,7 +96,7 @@ export default function TicketsPage() {
       <div className="mb-4 flex gap-2">
         {['all', 'open', 'in-progress', 'closed'].map(status => (
           <Button key={status} size="small" type={statusFilter === status ? 'primary' : 'default'} onClick={() => setStatusFilter(status)} className="rounded-lg">
-            {status === 'all' ? '全部' : getStatusText(status)}
+            {getStatusText(status)}
           </Button>
         ))}
       </div>
@@ -108,7 +118,7 @@ export default function TicketsPage() {
                       <span className="font-medium text-sm text-zinc-900">{ticket.title}</span>
                     </div>
                     <p className="text-xs text-zinc-400">
-                      {ticket.template} · {ticket.author} · {new Date(ticket.date).toLocaleDateString('zh-CN')}
+                      {ticket.template} · {ticket.author} · {new Date(ticket.date).toLocaleDateString(locale)}
                     </p>
                     {ticket.labels.length > 0 && (
                       <div className="mt-2 flex gap-1">
@@ -125,7 +135,7 @@ export default function TicketsPage() {
           </div>
         ) : (
           <div className="py-16 text-center">
-            <span className="text-zinc-400">暂无工单</span>
+            <span className="text-zinc-400">{t('common.noData')}</span>
           </div>
         )}
       </div>

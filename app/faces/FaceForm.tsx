@@ -6,6 +6,7 @@ import { motion } from 'motion/react';
 import { Save, Trash2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Input, Button, Form, message, Popconfirm } from 'antd';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface GroupItem {
   slug: string;
@@ -33,6 +34,7 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const { t } = useI18n();
 
   useEffect(() => {
     if (faceData) {
@@ -78,15 +80,15 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        message.error(data.error || '操作失败');
+        message.error(data.error || t('common.error'));
         return;
       }
 
-      message.success(isEdit ? '联系人已更新' : '联系人已创建');
+      message.success(isEdit ? t('common.success') : t('common.success'));
       router.push(`/faces${data.slug || faceData?.slug}`);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      message.error(error.message || '操作失败');
+      message.error(error.message || t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -105,15 +107,15 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        message.error(data.error || '删除失败');
+        message.error(data.error || t('common.error'));
         return;
       }
 
-      message.success('联系人已删除');
+      message.success(t('common.success'));
       router.push('/faces');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      message.error(error.message || '删除失败');
+      message.error(error.message || t('common.error'));
     } finally {
       setDeleteLoading(false);
     }
@@ -140,26 +142,26 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Form.Item
-            label={<span className="text-zinc-700 font-medium">姓名 *</span>}
+            label={<span className="text-zinc-700 font-medium">{t('auth.username')} *</span>}
             name="name"
-            rules={[{ required: true, message: '请输入姓名' }]}
+            rules={[{ required: true, message: t('validation.required') }]}
           >
             <Input
-              placeholder="请输入姓名"
+              placeholder={t('auth.usernamePlaceholder')}
               className="h-12 rounded-xl"
               size="large"
             />
           </Form.Item>
 
           <Form.Item
-            label={<span className="text-zinc-700 font-medium">邮箱</span>}
+            label={<span className="text-zinc-700 font-medium">{t('auth.email')}</span>}
             name="email"
             rules={[
-              { type: 'email', message: '请输入有效的邮箱地址' },
+              { type: 'email', message: t('validation.emailInvalid') },
             ]}
           >
             <Input
-              placeholder="请输入邮箱"
+              placeholder={t('auth.inputEmailPlaceholder')}
               className="h-12 rounded-xl"
               size="large"
             />
@@ -168,20 +170,20 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Form.Item
-            label={<span className="text-zinc-700 font-medium">电话</span>}
+            label={<span className="text-zinc-700 font-medium">{t('article.phone') || 'Phone'}</span>}
             name="phone"
           >
             <Input
-              placeholder="请输入电话号码"
+              placeholder={t('article.phonePlaceholder') || 'Phone'}
               className="h-12 rounded-xl"
               size="large"
             />
           </Form.Item>
 
           <Form.Item
-            label={<span className="text-zinc-700 font-medium">分组 *</span>}
+            label={<span className="text-zinc-700 font-medium">{t('faces.groupName')} *</span>}
             name="group"
-            rules={[{ required: true, message: '请选择分组' }]}
+            rules={[{ required: true, message: t('validation.required') }]}
           >
             <select
               className="w-full h-12 rounded-xl border border-zinc-200 px-4 text-zinc-900 bg-white focus:outline-none focus:border-zinc-400 transition-colors"
@@ -201,11 +203,11 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
         </div>
 
         <Form.Item
-          label={<span className="text-zinc-700 font-medium">备注信息</span>}
+          label={<span className="text-zinc-700 font-medium">{t('article.content')}</span>}
           name="content"
         >
           <textarea
-            placeholder="请输入备注信息（支持 Markdown 格式）"
+            placeholder={t('editor.contentPlaceholder')}
             className="w-full min-h-[200px] rounded-xl border border-zinc-200 p-4 text-zinc-900 bg-white focus:outline-none focus:border-zinc-400 transition-colors resize-y"
             style={{ fontSize: '16px', fontFamily: 'inherit' }}
           />
@@ -218,18 +220,18 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
               icon={<ArrowLeft size={16} />}
               className="h-12 px-6 rounded-xl"
             >
-              返回
+              {t('common.back')}
             </Button>
           </Link>
 
           <div className="flex gap-3">
             {isEdit && (
               <Popconfirm
-                title="确认删除"
-                description="删除后无法恢复，确定要删除此联系人吗？"
+                title={t('common.confirm')}
+                description={t('article.deleteConfirm')}
                 onConfirm={handleDelete}
-                okText="确定"
-                cancelText="取消"
+                okText={t('common.confirm')}
+                cancelText={t('common.cancel')}
                 okButtonProps={{ danger: true }}
               >
                 <Button
@@ -239,7 +241,7 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
                   loading={deleteLoading}
                   className="h-12 px-6 rounded-xl"
                 >
-                  删除
+                  {t('common.delete')}
                 </Button>
               </Popconfirm>
             )}
@@ -250,7 +252,7 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
               loading={loading}
               className="h-12 px-8 rounded-xl bg-zinc-900 hover:bg-zinc-800"
             >
-              {isEdit ? '保存修改' : '创建联系人'}
+              {isEdit ? t('common.save') : t('common.create')}
             </Button>
           </div>
         </div>

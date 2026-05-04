@@ -180,8 +180,9 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
+  const { t } = useI18n();
   return (
-    <Suspense fallback={<div>加载中...</div>}>
+    <Suspense fallback={<div>{t('common.loading')}</div>}>
       <LoginForm />
     </Suspense>
   );

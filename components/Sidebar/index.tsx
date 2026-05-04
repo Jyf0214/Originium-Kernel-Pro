@@ -28,39 +28,38 @@ import LanguageSwitcher from '@/components/LanguageSwitcher/index';
 import { useI18n } from '@/hooks/use-i18n';
 
 interface MenuItem {
-  label: string;
-  labelEn: string;
+  key: string;
   icon: React.ElementType;
   href: string;
   adminOnly?: boolean;
-  group?: string;
+  group: string;
 }
 
 const menuItems: MenuItem[] = [
-  { label: '控制台', labelEn: 'Dashboard', icon: Home, href: '/dashboard', group: 'overview' },
-  { label: '帖子', labelEn: 'Posts', icon: BookOpen, href: '/posts', group: 'content' },
-  { label: '通讯录', labelEn: 'Faces', icon: Users, href: '/faces', group: 'content' },
-  { label: '写文章', labelEn: 'Write', icon: PenLine, href: '/editor', group: 'content' },
-  { label: '文章管理', labelEn: 'Articles', icon: Archive, href: '/dashboard/articles', group: 'manage' },
-  { label: '回收站', labelEn: 'Trash', icon: Trash2, href: '/dashboard/articles?status=pending_deletion', group: 'manage' },
-  { label: '个人设置', labelEn: 'Settings', icon: Settings, href: '/dashboard/settings', group: 'account' },
+  { key: 'sidebar.dashboard', icon: Home, href: '/dashboard', group: 'overview' },
+  { key: 'sidebar.posts', icon: BookOpen, href: '/posts', group: 'content' },
+  { key: 'sidebar.faces', icon: Users, href: '/faces', group: 'content' },
+  { key: 'sidebar.write', icon: PenLine, href: '/editor', group: 'content' },
+  { key: 'sidebar.articleManagement', icon: Archive, href: '/dashboard/articles', group: 'manage' },
+  { key: 'sidebar.trash', icon: Trash2, href: '/dashboard/articles?status=pending_deletion', group: 'manage' },
+  { key: 'sidebar.settings', icon: Settings, href: '/dashboard/settings', group: 'account' },
 ];
 
 const adminItems: MenuItem[] = [
-  { label: '用户管理', labelEn: 'Users', icon: Users, href: '/admin/users', adminOnly: true, group: 'admin' },
-  { label: '用户组', labelEn: 'Groups', icon: Shield, href: '/admin/groups', adminOnly: true, group: 'admin' },
-  { label: '系统配置', labelEn: 'Config', icon: Settings, href: '/admin/config', adminOnly: true, group: 'admin' },
-  { label: '环境变量', labelEn: 'Env', icon: Activity, href: '/admin/env', adminOnly: true, group: 'admin' },
-  { label: '工单管理', labelEn: 'Tickets', icon: FileText, href: '/admin/tickets', adminOnly: true, group: 'admin' },
-  { label: '新建模板', labelEn: 'New Template', icon: FileText, href: '/admin/tickets/new', adminOnly: true, group: 'admin' },
+  { key: 'sidebar.userManagement', icon: Users, href: '/admin/users', adminOnly: true, group: 'admin' },
+  { key: 'sidebar.userGroups', icon: Shield, href: '/admin/groups', adminOnly: true, group: 'admin' },
+  { key: 'sidebar.systemConfig', icon: Settings, href: '/admin/config', adminOnly: true, group: 'admin' },
+  { key: 'sidebar.envVariables', icon: Activity, href: '/admin/env', adminOnly: true, group: 'admin' },
+  { key: 'sidebar.tickets', icon: FileText, href: '/admin/tickets', adminOnly: true, group: 'admin' },
+  { key: 'sidebar.writeArticle', icon: FileText, href: '/admin/tickets/new', adminOnly: true, group: 'admin' },
 ];
 
-const groupLabels: Record<string, { zh: string; en: string }> = {
-  overview: { zh: '概览', en: 'Overview' },
-  content: { zh: '内容', en: 'Content' },
-  manage: { zh: '管理', en: 'Manage' },
-  account: { zh: '账户', en: 'Account' },
-  admin: { zh: '管理后台', en: 'Admin' },
+const groupKeys: Record<string, string> = {
+  overview: 'dashboard.overview',
+  content: 'dashboard.contentManagement',
+  manage: 'dashboard.articles',
+  account: 'user.settings',
+  admin: 'dashboard.adminConsole',
 };
 
 function SidebarContent({
@@ -71,7 +70,7 @@ function SidebarContent({
   onLogout,
   showCloseButton,
   onClose,
-  locale,
+  t,
 }: {
   items: MenuItem[];
   isActive: (href: string) => boolean;
@@ -81,14 +80,12 @@ function SidebarContent({
   onLogout: () => void;
   showCloseButton?: boolean;
   onClose?: () => void;
-  locale: string;
+  t: (key: string) => string;
 }) {
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
-  const getLabel = (item: MenuItem) => (locale === 'en' ? item.labelEn : item.label);
   const getGroupLabel = (group: string) => {
-    const g = groupLabels[group];
-    return g ? (locale === 'en' ? g.en : g.zh) : group;
+    return t(groupKeys[group] || group);
   };
 
   // 按分组整理菜单
@@ -104,21 +101,26 @@ function SidebarContent({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-white border-r border-zinc-100">
       {/* Logo */}
-      <div className="px-5 py-5 flex items-center justify-between border-b border-zinc-100">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-zinc-900 to-zinc-700 rounded-lg flex items-center justify-center shadow-sm">
-            <span className="text-white font-bold text-sm leading-none">O</span>
+      <div className="px-5 py-6 flex items-center justify-between border-b border-zinc-50/50">
+        <Link href="/" className="flex items-center gap-3 group no-underline">
+          <div className="w-9 h-9 bg-zinc-900 rounded-xl flex items-center justify-center shadow-lg shadow-zinc-200 group-hover:scale-105 transition-transform duration-300">
+            <span className="text-white font-black text-lg tracking-tighter">OK</span>
           </div>
-          <span className="font-bold text-base tracking-tight text-zinc-900">
-            Originium
-          </span>
-        </div>
+          <div className="flex flex-col">
+            <span className="font-bold text-sm tracking-tight text-zinc-900 leading-none mb-0.5">
+              Originium
+            </span>
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none">
+              Kernel
+            </span>
+          </div>
+        </Link>
         {showCloseButton && onClose && (
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-zinc-100 transition-colors text-zinc-400 hover:text-zinc-600"
+            className="p-2 rounded-xl hover:bg-zinc-100 transition-colors text-zinc-400 hover:text-zinc-600"
           >
             <X size={18} />
           </button>
@@ -126,28 +128,28 @@ function SidebarContent({
       </div>
 
       {/* 菜单 */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+      <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-7 custom-scrollbar">
         {Object.entries(grouped).map(([group, groupItems]) => {
           const isCollapsed = collapsedGroups[group];
           const isAdminGroup = group === 'admin';
 
           return (
-            <div key={group}>
+            <div key={group} className="space-y-1.5">
               {/* 分组标题 */}
               <button
                 onClick={() => toggleGroup(group)}
-                className="flex items-center justify-between w-full px-2 mb-1.5 group/title"
+                className="flex items-center justify-between w-full px-3 mb-1 group/title"
               >
                 <span
-                  className={`text-[10px] font-bold uppercase tracking-[0.15em] ${
-                    isAdminGroup ? 'text-amber-600' : 'text-zinc-400'
+                  className={`text-[10px] font-black uppercase tracking-[0.2em] ${
+                    isAdminGroup ? 'text-amber-500' : 'text-zinc-300'
                   }`}
                 >
                   {getGroupLabel(group)}
                 </span>
                 <ChevronDown
                   size={12}
-                  className={`text-zinc-300 transition-transform duration-200 ${
+                  className={`text-zinc-200 transition-transform duration-300 ${
                     isCollapsed ? '-rotate-90' : ''
                   }`}
                 />
@@ -155,7 +157,7 @@ function SidebarContent({
 
               {/* 分组菜单项 */}
               {!isCollapsed && (
-                <div className="space-0.5">
+                <div className="space-y-0.5">
                   {groupItems.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item.href);
@@ -165,20 +167,13 @@ function SidebarContent({
                         key={item.href}
                         href={item.href}
                         onClick={onItemClick}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 group/item no-underline"
-                        style={{
-                          background: active
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-300 group/item no-underline ${
+                          active
                             ? isAdminGroup
-                              ? '#fffbeb'
-                              : '#f4f4f5'
-                            : 'transparent',
-                          color: active
-                            ? isAdminGroup
-                              ? '#d97706'
-                              : '#18181b'
-                            : '#71717a',
-                          fontWeight: active ? 600 : 400,
-                        }}
+                              ? 'bg-amber-50 text-amber-700 shadow-sm shadow-amber-100/50'
+                              : 'bg-zinc-900 text-white shadow-lg shadow-zinc-200'
+                            : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900'
+                        }`}
                       >
                         <Icon
                           size={18}
@@ -186,17 +181,15 @@ function SidebarContent({
                             active
                               ? isAdminGroup
                                 ? 'text-amber-600'
-                                : 'text-zinc-900'
-                              : 'text-zinc-400 group-hover/item:text-zinc-600'
+                                : 'text-white'
+                              : 'text-zinc-300 group-hover/item:text-zinc-500'
                           }`}
                         />
-                        <span className="truncate">{getLabel(item)}</span>
-                        {active && (
-                          <div
-                            className={`ml-auto w-1.5 h-1.5 rounded-full ${
-                              isAdminGroup ? 'bg-amber-500' : 'bg-zinc-900'
-                            }`}
-                          />
+                        <span className={`truncate ${active ? 'font-bold' : 'font-medium'}`}>
+                          {t(item.key)}
+                        </span>
+                        {active && !isAdminGroup && (
+                          <div className="ml-auto w-1 h-4 bg-white/20 rounded-full" />
                         )}
                       </Link>
                     );
@@ -209,27 +202,29 @@ function SidebarContent({
       </nav>
 
       {/* 底部用户区域 */}
-      <div className="border-t border-zinc-100 p-4 space-y-3">
-        <LanguageSwitcher />
+      <div className="p-4 space-y-4 bg-zinc-50/50 border-t border-zinc-100">
+        <div className="px-2">
+          <LanguageSwitcher />
+        </div>
 
-        <div className="flex items-center gap-3 p-2 rounded-xl bg-zinc-50">
-          <div className="w-9 h-9 bg-gradient-to-br from-zinc-200 to-zinc-100 rounded-lg flex items-center justify-center text-zinc-500 shrink-0">
-            <span className="text-sm font-bold">{(user?.name || 'U').charAt(0).toUpperCase()}</span>
+        <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-white border border-zinc-100 shadow-sm group">
+          <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-zinc-100 group-hover:scale-105 transition-transform">
+            <span className="text-sm font-black">{(user?.name || 'U').charAt(0).toUpperCase()}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-semibold text-zinc-800 truncate">
+            <div className="text-sm font-bold text-zinc-900 truncate">
               {user?.name || '用户'}
             </div>
-            <div className="text-[11px] text-zinc-400 truncate">
-              {user?.email}
+            <div className="text-[10px] font-bold text-zinc-400 truncate uppercase tracking-tighter">
+              {user?.role === 'sudo' ? t('user.sudo') : user?.role === 'admin' ? t('user.admin') : t('user.user')}
             </div>
           </div>
           <button
             onClick={onLogout}
-            className="p-2 rounded-lg hover:bg-zinc-200 transition-colors text-zinc-400 hover:text-red-500 shrink-0"
-            title="退出登录"
+            className="p-2.5 rounded-xl hover:bg-red-50 transition-all text-zinc-300 hover:text-red-500 shrink-0"
+            title={t('auth.logout')}
           >
-            <LogOut size={16} />
+            <LogOut size={18} />
           </button>
         </div>
       </div>
@@ -241,13 +236,14 @@ function Sidebar() {
   const { user, isSudo, logout } = useAuth();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const { locale } = useI18n();
+  const { t } = useI18n();
 
   const allItems = isSudo ? [...menuItems, ...adminItems] : menuItems;
 
   const isActive = (href: string) => {
-    if (href === '/dashboard') return pathname === '/dashboard';
-    return (pathname ?? '').startsWith(href.split('?')[0]);
+    const path = href.split('?')[0];
+    if (path === '/dashboard') return pathname === '/dashboard';
+    return (pathname ?? '').startsWith(path);
   };
 
   const handleLogout = async () => {
@@ -261,35 +257,35 @@ function Sidebar() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="md:hidden fixed top-4 left-4 z-[997] bg-white border border-zinc-200 rounded-xl p-2.5 shadow-sm hover:shadow-md transition-shadow"
+          className="md:hidden fixed top-6 right-6 z-[997] bg-zinc-900 text-white rounded-2xl p-3.5 shadow-2xl shadow-zinc-900/20 hover:scale-110 active:scale-95 transition-all"
         >
-          <Menu size={20} className="text-zinc-600" />
+          <Menu size={22} />
         </button>
       )}
 
       {/* PC 端侧边栏 */}
-      <div className="hidden md:flex w-[260px] h-screen fixed left-0 top-0 border-r border-zinc-100 z-[100] bg-white flex-col">
+      <div className="hidden md:flex w-[280px] h-screen fixed left-0 top-0 z-[100] bg-white flex-col">
         <SidebarContent
           items={allItems}
           isActive={isActive}
           onItemClick={() => setIsOpen(false)}
           user={user}
           onLogout={handleLogout}
-          locale={locale}
+          t={t}
         />
       </div>
 
       {/* 移动端遮罩 */}
       {isOpen && (
         <div
-          className="md:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[998]"
+          className="md:hidden fixed inset-0 bg-zinc-900/40 backdrop-blur-md z-[998] transition-opacity duration-300"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* 移动端侧边栏 */}
       <div
-        className="md:hidden fixed top-0 h-screen w-[280px] z-[999] bg-white shadow-2xl transition-transform duration-300 ease-out"
+        className="md:hidden fixed top-0 h-screen w-[300px] z-[999] bg-white shadow-[20px_0_60px_-15px_rgba(0,0,0,0.3)] transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1)"
         style={{ left: 0, transform: isOpen ? 'translateX(0)' : 'translateX(-100%)' }}
       >
         <SidebarContent
@@ -300,7 +296,7 @@ function Sidebar() {
           onLogout={handleLogout}
           showCloseButton
           onClose={() => setIsOpen(false)}
-          locale={locale}
+          t={t}
         />
       </div>
     </>
