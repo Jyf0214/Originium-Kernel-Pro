@@ -24,10 +24,6 @@ export function UserMenu() {
       key: 'settings',
       label: t('nav.settings'),
       icon: <SettingOutlined />,
-      onClick: () => {
-        setIsOpen(false);
-        window.location.href = '/dashboard/settings';
-      },
     },
     {
       type: 'divider',
@@ -36,12 +32,17 @@ export function UserMenu() {
       key: 'logout',
       label: t('nav.logout'),
       icon: <LogoutOutlined />,
-      onClick: () => {
-        setIsOpen(false);
-        logout();
-      },
     },
   ];
+
+  const handleMenuClick: MenuProps['onClick'] = (e) => {
+    const { key } = e;
+    if (key === 'settings') {
+      window.location.href = '/dashboard/settings';
+    } else if (key === 'logout') {
+      logout();
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -62,7 +63,7 @@ export function UserMenu() {
   return (
     <div ref={menuRef} className="relative">
       <Dropdown
-        menu={{ items }}
+        menu={{ items, onClick: handleMenuClick }}
         open={isOpen}
         onOpenChange={setIsOpen}
         trigger={['click']}
