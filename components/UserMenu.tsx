@@ -1,6 +1,5 @@
 'use client';
 
-import React, { useState } from 'react';
 import { Avatar } from '@/components/Avatar';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
