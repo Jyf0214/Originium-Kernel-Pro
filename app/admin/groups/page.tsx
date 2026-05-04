@@ -20,6 +20,11 @@ import type { ColumnsType } from 'antd/es/table';
 
 const { TextArea } = Input;
 
+interface GroupFormValues {
+  name: string;
+  description?: string;
+}
+
 export default function UserGroupsPage() {
   const router = useRouter();
   const { userRole, user } = useAuth();
@@ -65,22 +70,19 @@ export default function UserGroupsPage() {
     return () => clearTimeout(timer);
   }, [isSudo, router, loadData, t]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleCreateGroup = async (values: any) => {
+  const handleCreateGroup = async (values: GroupFormValues) => {
     try {
       await createUserGroup(values.name, values.description || '', user?.uid || '');
       message.success(t('groups.createSuccess'));
       setIsModalOpen(false);
       form.resetFields();
       loadData();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+    } catch {
       message.error(t('groups.createFailed'));
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleEditGroup = async (values: any) => {
+  const handleEditGroup = async (values: GroupFormValues) => {
     if (!selectedGroup) return;
     try {
       await updateUserGroup(selectedGroup.id, {
@@ -92,8 +94,7 @@ export default function UserGroupsPage() {
       editForm.resetFields();
       setSelectedGroup(null);
       loadData();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+    } catch {
       message.error(t('groups.updateFailed') || 'Failed to update group');
     }
   };
@@ -103,8 +104,7 @@ export default function UserGroupsPage() {
       await deleteUserGroup(groupId);
       message.success(t('groups.deleteSuccess') || 'Group deleted successfully');
       loadData();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+    } catch {
       message.error(t('groups.deleteFailed') || 'Failed to delete group');
     }
   };
@@ -120,8 +120,7 @@ export default function UserGroupsPage() {
       setSelectedUsers([]);
       setSelectedGroup(null);
       loadData();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+    } catch {
       message.error(t('groups.assignFailed') || 'Failed to assign users');
     }
   };

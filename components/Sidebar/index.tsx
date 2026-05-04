@@ -264,7 +264,7 @@ function Sidebar() {
       )}
 
       {/* PC 端侧边栏 */}
-      <div className="hidden md:flex w-[280px] h-screen fixed left-0 top-0 z-[100] bg-white flex-col">
+      <div className="hidden md:flex w-[280px] min-h-screen z-[100] bg-white flex-col">
         <SidebarContent
           items={allItems}
           isActive={isActive}
