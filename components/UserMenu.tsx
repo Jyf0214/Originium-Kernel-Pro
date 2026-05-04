@@ -1,23 +1,27 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Avatar } from '@/components/Avatar';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { Button, Dropdown } from 'antd';
 import { SettingOutlined, LogoutOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
+import { useRouter } from 'next/navigation';
 
 export function UserMenu() {
   const { user, userRole, logout } = useAuth();
   const { t } = useI18n();
-  const [isOpen, setIsOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const isSudo = userRole === 'sudo' || userRole === 'admin';
   const userUid = user?.uid || '';
   const displayName = user?.name || user?.displayName || 'User';
   const avatarUrl = user?.avatar;
+
+  const handleLogout = () => {
+    logout();
+  };
 
   const items: MenuProps['items'] = [
     {
@@ -32,42 +36,25 @@ export function UserMenu() {
       key: 'logout',
       label: t('nav.logout'),
       icon: <LogoutOutlined />,
+      danger: true,
     },
   ];
 
-  const handleMenuClick: MenuProps['onClick'] = (e) => {
-    const { key } = e;
+  const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
     if (key === 'settings') {
-      window.location.href = '/dashboard/settings';
+      router.push('/dashboard/settings');
     } else if (key === 'logout') {
-      logout();
+      handleLogout();
     }
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
-
   return (
-    <div ref={menuRef} className="relative">
+    <div>
       <Dropdown
         menu={{ items, onClick: handleMenuClick }}
-        open={isOpen}
-        onOpenChange={setIsOpen}
         trigger={['click']}
         placement="bottomRight"
+        arrow
       >
         <Button type="text" className="flex items-center gap-2">
           <Avatar name={displayName} avatarUrl={avatarUrl} size={36} />
