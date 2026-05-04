@@ -1,7 +1,8 @@
 import { getContentFiles, getContentIndexes } from '@/lib/content';
-import { loadConfig } from '@/lib/config';
+import { loadConfig, hasDatabase, canAccess } from '@/lib/config';
 import { Navbar } from '@/components/Navbar';
 import { HomePostGrid } from './HomePostGrid';
+import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -13,10 +14,12 @@ export const metadata: Metadata = {
  * 首页 — 服务端组件，直接从文件系统读取帖子索引
  * 仅展示 public 内容，不查数据库
  */
-export default function HomePage() {
+export default async function HomePage() {
   const config = loadConfig();
   const allFiles = getContentFiles('posts');
   const indexes = getContentIndexes('posts');
+  const session = await getSession();
+  const isAdmin = session?.role === 'admin' || session?.role === 'sudo';
 
   // 仅展示 public 的帖子（首页不显示 private 内容）
   const publicPosts = allFiles.filter((file) => {
@@ -37,10 +40,20 @@ export default function HomePage() {
     description: f.meta.description,
   }));
 
+  // facesCount
   const facesCount = (() => {
     try {
       const faceFiles = getContentFiles('faces');
-      return faceFiles.length;
+      const dbAvailable = hasDatabase();
+      const publicFaces = faceFiles.filter(file => {
+        if (isAdmin) return true;
+        const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
+        
+        return canAccess('faces', file.slug, false, dbAvailable, config) &&
+               canAccess('faces', dirSlug || '/', false, dbAvailable, config) &&
+               file.meta.public === true;
+      });
+      return publicFaces.length;
     } catch {
       return 0;
     }
