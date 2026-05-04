@@ -3,14 +3,15 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
+import { useI18n } from '@/hooks/use-i18n';
 import { Plus, Trash2, Eye, Code } from 'lucide-react';
 import { Button, message } from 'antd';
 
 const FIELD_TYPES = [
-  { value: 'input', label: '文本输入' },
-  { value: 'textarea', label: '多行文本' },
-  { value: 'dropdown', label: '下拉选择' },
-  { value: 'checkboxes', label: '复选框' },
+  { value: 'input', labelKey: 'tickets.typeText' },
+  { value: 'textarea', labelKey: 'tickets.typeTextarea' },
+  { value: 'dropdown', labelKey: 'tickets.typeSelect' },
+  { value: 'checkboxes', labelKey: 'tickets.typeSelect' }, // Assuming checkboxes is same as select in i18n for now
 ];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,6 +39,7 @@ function toYamlString(obj: any, indent = 0): string {
 
 export default function NewTicketTemplatePage() {
   const { userRole } = useAuth();
+  const { t } = useI18n();
   const router = useRouter();
 
   const [name, setName] = useState('');
@@ -56,7 +58,7 @@ export default function NewTicketTemplatePage() {
   const [saving, setSaving] = useState(false);
 
   if (userRole !== 'sudo' && userRole !== 'admin') {
-    return <div className="p-8 text-center text-red-500">需要管理员权限</div>;
+    return <div className="p-8 text-center text-red-500">{t('tickets.accessDenied')}</div>;
   }
 
   const addField = () => {
@@ -116,7 +118,7 @@ export default function NewTicketTemplatePage() {
 
   const handleSave = async () => {
     if (!name || !body) {
-      message.error('请填写模板名称和正文');
+      message.error(t('tickets.fillNameAndBody'));
       return;
     }
     setSaving(true);
@@ -129,15 +131,15 @@ export default function NewTicketTemplatePage() {
         }),
       });
       if (res.ok) {
-        message.success('模板创建成功');
+        message.success(t('tickets.saveSuccess'));
         router.push('/admin/config');
       } else {
         const err = await res.json();
-        message.error(err.error || '创建失败');
+        message.error(err.error || t('tickets.saveFailed'));
       }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
-      message.error('创建失败');
+      message.error(t('tickets.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -150,35 +152,35 @@ export default function NewTicketTemplatePage() {
           <Plus size={18} className="text-white" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900">新建工单模板</h1>
-          <p className="text-sm text-zinc-400">创建自定义工单模板</p>
+          <h1 className="text-2xl font-bold text-zinc-900">{t('tickets.newTemplate')}</h1>
+          <p className="text-sm text-zinc-400">{t('tickets.customTemplateDesc')}</p>
         </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-zinc-100 p-6 mb-4">
-        <h2 className="text-base font-bold text-zinc-900 mb-4">基本信息</h2>
+        <h2 className="text-base font-bold text-zinc-900 mb-4">{t('tickets.basicInfo')}</h2>
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">模板名称</label>
+          <label className="block text-sm font-medium mb-2">{t('tickets.templateName')}</label>
           <input
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="例如：功能请求"
+            placeholder={t('tickets.placeholderName')}
             className="w-full h-10 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400"
           />
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">描述</label>
+          <label className="block text-sm font-medium mb-2">{t('tickets.templateDescription')}</label>
           <input
             type="text"
             value={description}
             onChange={e => setDescription(e.target.value)}
-            placeholder="模板描述"
+            placeholder={t('tickets.placeholderDesc')}
             className="w-full h-10 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-2">标题格式</label>
+          <label className="block text-sm font-medium mb-2">{t('tickets.titleFormat')}</label>
           <input
             type="text"
             value={titleFormat}
@@ -190,11 +192,11 @@ export default function NewTicketTemplatePage() {
       </div>
 
       <div className="bg-white rounded-2xl border border-zinc-100 p-6 mb-4">
-        <h2 className="text-base font-bold text-zinc-900 mb-4">字段定义</h2>
+        <h2 className="text-base font-bold text-zinc-900 mb-4">{t('tickets.formFields')}</h2>
         {fields.map((field, index) => (
           <div key={index} className="mb-4 p-4 bg-zinc-50 rounded-xl">
             <div className="flex justify-between items-center mb-3">
-              <span className="text-sm font-medium">字段 {index + 1}</span>
+              <span className="text-sm font-medium">{t('tickets.fieldName')} {index + 1}</span>
               {fields.length > 1 && (
                 <button onClick={() => removeField(index)} className="text-red-500">
                   <Trash2 size={16} />
@@ -203,7 +205,7 @@ export default function NewTicketTemplatePage() {
             </div>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
-                <label className="block text-xs mb-1">字段名</label>
+                <label className="block text-xs mb-1">{t('tickets.fieldName')}</label>
                 <input
                   type="text"
                   value={field.name}
@@ -213,7 +215,7 @@ export default function NewTicketTemplatePage() {
                 />
               </div>
               <div>
-                <label className="block text-xs mb-1">显示标签</label>
+                <label className="block text-xs mb-1">{t('tickets.inputLabel')}</label>
                 <input
                   type="text"
                   value={field.label}
@@ -225,14 +227,14 @@ export default function NewTicketTemplatePage() {
             </div>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
-                <label className="block text-xs mb-1">类型</label>
+                <label className="block text-xs mb-1">{t('tickets.fieldType')}</label>
                 <select
                   value={field.type}
                   onChange={e => updateField(index, 'type', e.target.value)}
                   className="w-full h-9 px-3 border border-zinc-200 rounded-lg text-sm"
                 >
-                  {FIELD_TYPES.map(t => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
+                  {FIELD_TYPES.map(t_type => (
+                    <option key={t_type.value} value={t_type.value}>{t(t_type.labelKey)}</option>
                   ))}
                 </select>
               </div>
@@ -243,42 +245,42 @@ export default function NewTicketTemplatePage() {
                     checked={field.required}
                     onChange={e => updateField(index, 'required', e.target.checked)}
                   />
-                  必填
+                  {t('tickets.required')}
                 </label>
               </div>
             </div>
             {(field.type === 'dropdown' || field.type === 'checkboxes') && (
               <div>
-                <label className="block text-xs mb-1">选项（每行一个）</label>
+                <label className="block text-xs mb-1">{t('tickets.options')}</label>
                 <textarea
                   value={(field.options || []).join('\n')}
                   onChange={e => updateField(index, 'options', e.target.value.split('\n').filter(Boolean))}
                   className="w-full min-h-[60px] p-2 border border-zinc-200 rounded-lg text-sm"
-                  placeholder="选项1\n选项2"
+                  placeholder={t('tickets.placeholderOptions')}
                 />
               </div>
             )}
           </div>
         ))}
         <Button onClick={addField} icon={<Plus size={14} />} className="rounded-xl">
-          添加字段
+          {t('tickets.addField')}
         </Button>
       </div>
 
       <div className="bg-white rounded-2xl border border-zinc-100 p-6 mb-4">
-        <h2 className="text-base font-bold text-zinc-900 mb-4">标签与指派人</h2>
+        <h2 className="text-base font-bold text-zinc-900 mb-4">{t('tickets.labels')}与{t('tickets.assignees')}</h2>
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">标签</label>
+          <label className="block text-sm font-medium mb-2">{t('tickets.labels')}</label>
           <div className="flex gap-2 mb-2">
             <input
               type="text"
               value={labelInput}
               onChange={e => setLabelInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addLabel()}
-              placeholder="输入标签"
+              placeholder={t('tickets.enterLabel')}
               className="flex-1 h-9 px-3 border border-zinc-200 rounded-lg text-sm"
             />
-            <Button onClick={addLabel} size="small">添加</Button>
+            <Button onClick={addLabel} size="small">{t('tickets.add')}</Button>
           </div>
           <div className="flex flex-wrap gap-2">
             {labels.map(l => (
@@ -290,17 +292,17 @@ export default function NewTicketTemplatePage() {
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-2">默认指派人</label>
+          <label className="block text-sm font-medium mb-2">{t('tickets.assignees')}</label>
           <div className="flex gap-2 mb-2">
             <input
               type="text"
               value={assigneeInput}
               onChange={e => setAssigneeInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addAssignee()}
-              placeholder="用户名"
+              placeholder={t('tickets.username')}
               className="flex-1 h-9 px-3 border border-zinc-200 rounded-lg text-sm"
             />
-            <Button onClick={addAssignee} size="small">添加</Button>
+            <Button onClick={addAssignee} size="small">{t('tickets.add')}</Button>
           </div>
           <div className="flex flex-wrap gap-2">
             {assignees.map(a => (
@@ -315,13 +317,13 @@ export default function NewTicketTemplatePage() {
 
       <div className="bg-white rounded-2xl border border-zinc-100 p-6 mb-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-zinc-900">模板正文</h2>
+          <h2 className="text-base font-bold text-zinc-900">{t('tickets.markdownBody')}</h2>
           <button
             onClick={() => setShowPreview(!showPreview)}
             className="flex items-center gap-1 text-sm text-zinc-500"
           >
             {showPreview ? <Code size={14} /> : <Eye size={14} />}
-            {showPreview ? '编辑' : '预览'}
+            {showPreview ? t('tickets.editor') : t('tickets.preview')}
           </button>
         </div>
         {showPreview ? (
@@ -333,20 +335,20 @@ export default function NewTicketTemplatePage() {
             value={body}
             onChange={e => setBody(e.target.value)}
             className="w-full min-h-[200px] p-3 border border-zinc-200 rounded-lg text-sm font-mono"
-            placeholder="使用 {{fieldName}} 作为占位符"
+            placeholder={t('tickets.placeholderBody')}
           />
         )}
       </div>
 
       <div className="flex justify-end gap-3">
-        <Button onClick={() => router.back()} className="rounded-xl">取消</Button>
+        <Button onClick={() => router.back()} className="rounded-xl">{t('tickets.cancel')}</Button>
         <Button
           type="primary"
           onClick={handleSave}
           loading={saving}
           className="bg-zinc-900 hover:bg-zinc-800 rounded-xl"
         >
-          创建模板
+          {t('tickets.createTemplate')}
         </Button>
       </div>
     </div>

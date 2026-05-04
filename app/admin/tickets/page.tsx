@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
+import { useI18n } from '@/hooks/use-i18n';
 import { Plus, Trash2, Edit2, FileText, X, Save } from 'lucide-react';
 import { Button, Spin, Modal } from 'antd';
 
@@ -17,6 +18,7 @@ interface TicketTemplate {
 
 export default function TicketsPage() {
   const { isSudo } = useAuth();
+  const { t } = useI18n();
   const router = useRouter();
   const [templates, setTemplates] = useState<TicketTemplate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,9 +49,14 @@ export default function TicketsPage() {
       router.push('/dashboard');
       return;
     }
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchTemplates();
   }, [isSudo, router]);
+
+  useEffect(() => {
+    if (isSudo) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchTemplates();
+    }
+  }, [isSudo]);
 
   const handleCreate = () => {
     setEditingTemplate(null);
@@ -69,7 +76,7 @@ export default function TicketsPage() {
 
   const handleSave = async () => {
     if (!formData.name) {
-      alert('请输入模板名称');
+      alert(t('tickets.nameRequired'));
       return;
     }
     try {
@@ -86,18 +93,18 @@ export default function TicketsPage() {
       if (res.ok) {
         setShowModal(false);
         fetchTemplates();
-        alert(editingTemplate ? '模板已更新' : '模板已创建');
+        alert(editingTemplate ? t('tickets.saveSuccess') : t('tickets.saveSuccess'));
       } else {
-        alert('保存失败');
+        alert(t('tickets.saveFailed'));
       }
     } catch (error) {
       console.error('Failed to save template:', error);
-      alert('保存失败');
+      alert(t('tickets.saveFailed'));
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('确定要删除这个工单模板吗？')) return;
+    if (!confirm(t('tickets.deleteConfirm'))) return;
     try {
       const res = await fetch('/api/ticket-templates', {
         method: 'DELETE',
@@ -142,11 +149,11 @@ export default function TicketsPage() {
       {/* 标题 */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900">工单管理</h1>
-          <p className="text-sm text-zinc-400 mt-1">管理工单模板和规则</p>
+          <h1 className="text-2xl font-bold text-zinc-900">{t('tickets.management')}</h1>
+          <p className="text-sm text-zinc-400 mt-1">{t('tickets.subtitle')}</p>
         </div>
         <Button type="primary" icon={<Plus size={14} />} onClick={handleCreate} className="bg-zinc-900 rounded-xl">
-          创建模板
+          {t('tickets.createTemplate')}
         </Button>
       </div>
 
@@ -163,13 +170,13 @@ export default function TicketsPage() {
                   <div>
                     <span className="font-medium text-sm text-zinc-900">{template.name}</span>
                     <p className="text-xs text-zinc-400 mt-0.5">
-                      {template.description || '暂无描述'} · {template.fields?.length || 0} 个字段
+                      {template.description || t('tickets.noDescription')} · {t('tickets.fieldsCount', { count: template.fields?.length || 0 })}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button size="small" icon={<Edit2 size={13} />} onClick={() => handleEdit(template)} className="rounded-lg">编辑</Button>
-                  <Button size="small" danger icon={<Trash2 size={13} />} onClick={() => handleDelete(template.id)} className="rounded-lg">删除</Button>
+                  <Button size="small" icon={<Edit2 size={13} />} onClick={() => handleEdit(template)} className="rounded-lg">{t('tickets.edit')}</Button>
+                  <Button size="small" danger icon={<Trash2 size={13} />} onClick={() => handleDelete(template.id)} className="rounded-lg">{t('tickets.delete')}</Button>
                 </div>
               </div>
             ))}
@@ -177,9 +184,9 @@ export default function TicketsPage() {
         ) : (
           <div className="py-16 text-center">
             <FileText size={48} className="text-zinc-200 mx-auto mb-4" />
-            <p className="text-zinc-400 mb-4">暂无工单模板</p>
+            <p className="text-zinc-400 mb-4">{t('tickets.noTemplates')}</p>
             <Button type="primary" icon={<Plus size={14} />} onClick={handleCreate} className="bg-zinc-900 rounded-xl">
-              创建第一个模板
+              {t('tickets.createFirst')}
             </Button>
           </div>
         )}
@@ -187,39 +194,39 @@ export default function TicketsPage() {
 
       {/* 创建/编辑弹窗 */}
       <Modal
-        title={editingTemplate ? '编辑模板' : '创建模板'}
+        title={editingTemplate ? t('tickets.editTemplate') : t('tickets.createTemplate')}
         open={showModal}
         onCancel={() => setShowModal(false)}
         onOk={handleSave}
-        okText="保存"
-        cancelText="取消"
+        okText={t('tickets.save')}
+        cancelText={t('tickets.cancel')}
         okButtonProps={{ icon: <Save size={14} /> }}
         width={500}
       >
         <div className="space-y-4 mt-4">
           <div>
-            <label className="block text-sm font-medium mb-2">模板名称 *</label>
+            <label className="block text-sm font-medium mb-2">{t('tickets.templateName')} *</label>
             <input
               type="text"
               value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
-              placeholder="例如：删除文章申请"
+              placeholder={t('tickets.placeholderName')}
               className="w-full h-10 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400 transition-colors"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">模板描述</label>
+            <label className="block text-sm font-medium mb-2">{t('tickets.templateDescription')}</label>
             <textarea
               value={formData.description}
               onChange={e => setFormData({ ...formData, description: e.target.value })}
-              placeholder="描述这个模板的用途"
+              placeholder={t('tickets.placeholderDesc')}
               className="w-full min-h-[80px] p-3 border border-zinc-200 rounded-lg text-sm resize-vertical outline-none focus:border-zinc-400 transition-colors"
             />
           </div>
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium">表单字段</label>
-              <Button size="small" icon={<Plus size={12} />} onClick={addField} className="rounded-lg">添加字段</Button>
+              <label className="text-sm font-medium">{t('tickets.formFields')}</label>
+              <Button size="small" icon={<Plus size={12} />} onClick={addField} className="rounded-lg">{t('tickets.addField')}</Button>
             </div>
             {formData.fields.map((field, index) => (
               <div key={index} className="flex items-center gap-2 mb-2">
@@ -227,7 +234,7 @@ export default function TicketsPage() {
                   type="text"
                   value={field.name}
                   onChange={e => updateField(index, { ...field, name: e.target.value })}
-                  placeholder="字段名称"
+                  placeholder={t('tickets.fieldName')}
                   className="flex-1 h-9 px-3 border border-zinc-200 rounded-md text-sm outline-none"
                 />
                 <select
@@ -235,14 +242,14 @@ export default function TicketsPage() {
                   onChange={e => updateField(index, { ...field, type: e.target.value })}
                   className="h-9 px-2 border border-zinc-200 rounded-md text-sm"
                 >
-                  <option value="text">文本</option>
-                  <option value="textarea">长文本</option>
-                  <option value="number">数字</option>
-                  <option value="select">下拉选择</option>
+                  <option value="text">{t('tickets.typeText')}</option>
+                  <option value="textarea">{t('tickets.typeTextarea')}</option>
+                  <option value="number">{t('tickets.typeNumber')}</option>
+                  <option value="select">{t('tickets.typeSelect')}</option>
                 </select>
                 <label className="flex items-center gap-1 text-xs">
                   <input type="checkbox" checked={field.required} onChange={e => updateField(index, { ...field, required: e.target.checked })} />
-                  必填
+                  {t('tickets.required')}
                 </label>
                 {formData.fields.length > 1 && (
                   <button onClick={() => removeField(index)} className="p-1 text-red-400 hover:text-red-500">

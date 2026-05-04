@@ -61,11 +61,10 @@ export default function ArticlesPage() {
       const res = await fetch(`/api/articles/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setArticles(articles.filter(a => a.id !== id));
-        message.success(locale === 'zh-CN' ? '已删除' : 'Deleted');
+        message.success(t('common.success'));
       }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      message.error(locale === 'zh-CN' ? '删除失败' : 'Delete failed');
+    } catch {
+      message.error(t('common.error'));
     }
   };
 
@@ -78,11 +77,10 @@ export default function ArticlesPage() {
       });
       if (res.ok) {
         setArticles(articles.filter(a => a.id !== id));
-        message.success(locale === 'zh-CN' ? '已恢复' : 'Restored');
+        message.success(t('common.success'));
       }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      message.error(locale === 'zh-CN' ? '恢复失败' : 'Restore failed');
+    } catch {
+      message.error(t('common.error'));
     }
   };
 
@@ -95,7 +93,7 @@ export default function ArticlesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <Spin size="large" />
+        <Spin size="large" tip={t('common.loading')} />
       </div>
     );
   }
@@ -107,12 +105,12 @@ export default function ArticlesPage() {
         <div>
           <h1 className="text-2xl font-black tracking-tight text-zinc-900">
             {isRecycleBin
-              ? locale === 'zh-CN' ? '回收站' : 'Recycle Bin'
-              : locale === 'zh-CN' ? '文章管理' : 'Article Management'}
+              ? t('sidebar.recycleBin')
+              : t('sidebar.articleManagement')}
           </h1>
           {isRecycleBin && (
             <p className="text-zinc-400 text-sm mt-1">
-              {locale === 'zh-CN' ? '待删除的文章，30天后自动删除' : 'Pending deletion, auto-delete after 30 days'}
+              {t('dashboard.recycleBinHint') || t('dashboard.recycleBinDesc')}
             </p>
           )}
         </div>
@@ -120,7 +118,7 @@ export default function ArticlesPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
             <Input
-              placeholder={locale === 'zh-CN' ? '搜索文章...' : 'Search articles...'}
+              placeholder={t('common.searchArticles') || t('article.search')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 h-10 rounded-xl w-52"
@@ -130,7 +128,7 @@ export default function ArticlesPage() {
           {!isRecycleBin && (
             <Link href="/editor">
               <Button type="primary" icon={<Plus size={14} />} className="bg-zinc-900 rounded-xl h-10">
-                {locale === 'zh-CN' ? '新建文章' : 'New Article'}
+                {t('sidebar.writeArticle')}
               </Button>
             </Link>
           )}
@@ -141,10 +139,10 @@ export default function ArticlesPage() {
       <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
         {/* 表头 */}
         <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-zinc-50 border-b border-zinc-100 text-xs font-bold text-zinc-500 uppercase tracking-wider">
-          <div className="col-span-5">{locale === 'zh-CN' ? '标题' : 'Title'}</div>
-          <div className="col-span-2">{locale === 'zh-CN' ? '状态' : 'Status'}</div>
-          <div className="col-span-2">{locale === 'zh-CN' ? '作者' : 'Author'}</div>
-          <div className="col-span-3 text-right">{locale === 'zh-CN' ? '操作' : 'Actions'}</div>
+          <div className="col-span-5">{t('common.title')}</div>
+          <div className="col-span-2">{t('common.status')}</div>
+          <div className="col-span-2">{t('common.author')}</div>
+          <div className="col-span-3 text-right">{t('common.actions')}</div>
         </div>
 
         {filteredArticles.length > 0 ? (
@@ -175,10 +173,10 @@ export default function ArticlesPage() {
                     }
                   >
                     {article.status === 'published'
-                      ? locale === 'zh-CN' ? '已发布' : 'Published'
+                      ? t('article.published')
                       : article.status === 'pending_deletion'
-                      ? locale === 'zh-CN' ? '待删除' : 'Pending'
-                      : locale === 'zh-CN' ? '草稿' : 'Draft'}
+                      ? t('article.pendingDeletion')
+                      : t('article.draft')}
                   </Tag>
                 </div>
 
@@ -197,17 +195,17 @@ export default function ArticlesPage() {
                         onClick={() => handleRestore(article.id)}
                         className="rounded-lg text-emerald-600 border-emerald-200 hover:border-emerald-400"
                       >
-                        {locale === 'zh-CN' ? '恢复' : 'Restore'}
+                        {t('common.restore') || 'Restore'}
                       </Button>
                       <Popconfirm
-                        title={locale === 'zh-CN' ? '永久删除？此操作不可恢复！' : 'Permanently delete?'}
+                        title={t('article.permanentlyDeleteConfirm') || t('article.deleteConfirm')}
                         onConfirm={() => handleDelete(article.id)}
-                        okText={locale === 'zh-CN' ? '删除' : 'Delete'}
-                        cancelText={locale === 'zh-CN' ? '取消' : 'Cancel'}
+                        okText={t('common.delete')}
+                        cancelText={t('common.cancel')}
                         okButtonProps={{ danger: true }}
                       >
                         <Button size="small" danger icon={<Trash2 size={13} />} className="rounded-lg">
-                          {locale === 'zh-CN' ? '永久删除' : 'Delete'}
+                          {t('common.permanentlyDelete') || 'Delete'}
                         </Button>
                       </Popconfirm>
                     </>
@@ -216,20 +214,20 @@ export default function ArticlesPage() {
                       {article.status === 'published' && article.slug && (
                         <Link href={`/posts${article.slug}`}>
                           <Button size="small" icon={<Eye size={13} />} className="rounded-lg">
-                            {locale === 'zh-CN' ? '查看' : 'View'}
+                            {t('common.view')}
                           </Button>
                         </Link>
                       )}
                       <Link href={`/editor?id=${article.id}`}>
                         <Button size="small" icon={<Edit size={13} />} className="rounded-lg">
-                          {locale === 'zh-CN' ? '编辑' : 'Edit'}
+                          {t('common.edit')}
                         </Button>
                       </Link>
                       <Popconfirm
-                        title={locale === 'zh-CN' ? '确定删除这篇文章？' : 'Delete this article?'}
+                        title={t('article.deleteConfirm')}
                         onConfirm={() => handleDelete(article.id)}
-                        okText={locale === 'zh-CN' ? '删除' : 'Delete'}
-                        cancelText={locale === 'zh-CN' ? '取消' : 'Cancel'}
+                        okText={t('common.delete')}
+                        cancelText={t('common.cancel')}
                         okButtonProps={{ danger: true }}
                       >
                         <Button size="small" danger icon={<Trash2 size={13} />} className="rounded-lg" />
@@ -244,13 +242,13 @@ export default function ArticlesPage() {
           <div className="py-16 text-center">
             <p className="text-zinc-400">
               {isRecycleBin
-                ? locale === 'zh-CN' ? '回收站为空' : 'Recycle bin is empty'
-                : locale === 'zh-CN' ? '暂无文章' : 'No articles yet'}
+                ? t('dashboard.recycleBinEmpty') || 'Recycle bin is empty'
+                : t('dashboard.noArticles')}
             </p>
             {!isRecycleBin && (
               <Link href="/editor" className="mt-4 inline-block">
                 <Button type="primary" icon={<Plus size={14} />} className="bg-zinc-900 rounded-xl mt-4">
-                  {locale === 'zh-CN' ? '创建第一篇文章' : 'Create first article'}
+                  {t('dashboard.writeFirstArticle')}
                 </Button>
               </Link>
             )}

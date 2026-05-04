@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, FileText } from 'lucide-react';
-import { Button, Input } from 'antd';
+import { Button, Input, message } from 'antd';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface TicketTemplate {
   slug: string;
@@ -19,6 +20,7 @@ interface TicketTemplate {
 export default function NewTicketPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const { t } = useI18n();
   const [templates, setTemplates] = useState<TicketTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<TicketTemplate | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
@@ -45,7 +47,7 @@ export default function NewTicketPage() {
       .filter(f => f.required && !formData[f.name])
       .map(f => f.label);
     if (missingFields.length > 0) {
-      alert(`请填写必填字段: ${missingFields.join(', ')}`);
+      message.error(t('tickets.fillRequired', { fields: missingFields.join(', ') }));
       return;
     }
     setSubmitting(true);
@@ -56,14 +58,14 @@ export default function NewTicketPage() {
         body: JSON.stringify({ templateSlug: selectedTemplate.slug, formData, title }),
       });
       if (res.ok) {
-        alert('工单创建成功！');
+        message.success(t('tickets.createSuccess'));
         router.push('/tickets');
       } else {
-        alert('创建工单失败');
+        message.error(t('tickets.createFailed'));
       }
     } catch (error) {
       console.error('Failed to create ticket:', error);
-      alert('创建工单失败');
+      message.error(t('tickets.createFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -75,7 +77,7 @@ export default function NewTicketPage() {
     <div className="p-6 md:p-10 max-w-3xl mx-auto">
       <div className="flex items-center gap-3 mb-8">
         <Button size="small" icon={<ArrowLeft size={14} />} onClick={() => router.back()} className="rounded-lg" />
-        <h1 className="text-2xl font-bold text-zinc-900">{selectedTemplate ? '填写工单' : '选择模板'}</h1>
+        <h1 className="text-2xl font-bold text-zinc-900">{selectedTemplate ? t('tickets.fillTicket') : t('tickets.selectTemplate')}</h1>
       </div>
 
       {!selectedTemplate ? (
@@ -104,8 +106,8 @@ export default function NewTicketPage() {
       ) : (
         <div className="bg-white rounded-2xl border border-zinc-100 p-6">
           <div className="mb-5">
-            <label className="block text-sm font-medium mb-2">工单标题 *</label>
-            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="输入工单标题" className="rounded-xl" />
+            <label className="block text-sm font-medium mb-2">{t('tickets.title')} *</label>
+            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder={t('tickets.placeholderTitle')} className="rounded-xl" />
           </div>
           {selectedTemplate.fields.map(field => (
             <div key={field.name} className="mb-5">
@@ -113,13 +115,13 @@ export default function NewTicketPage() {
                 {field.label} {field.required && <span className="text-red-500">*</span>}
               </label>
               {field.type === 'input' && (
-                <Input value={formData[field.name] || ''} onChange={e => setFormData({ ...formData, [field.name]: e.target.value })} placeholder={`输入${field.label}`} className="rounded-xl" />
+                <Input value={formData[field.name] || ''} onChange={e => setFormData({ ...formData, [field.name]: e.target.value })} placeholder={`${t('common.input')}${field.label}`} className="rounded-xl" />
               )}
               {field.type === 'textarea' && (
                 <textarea
                   value={formData[field.name] || ''}
                   onChange={e => setFormData({ ...formData, [field.name]: e.target.value })}
-                  placeholder={`输入${field.label}`}
+                  placeholder={`${t('common.input')}${field.label}`}
                   className="w-full min-h-[100px] p-3 border border-zinc-200 rounded-xl text-sm resize-vertical outline-none focus:border-zinc-400"
                 />
               )}
@@ -129,7 +131,7 @@ export default function NewTicketPage() {
                   onChange={e => setFormData({ ...formData, [field.name]: e.target.value })}
                   className="w-full h-10 px-3 border border-zinc-200 rounded-lg text-sm"
                 >
-                  <option value="">请选择</option>
+                  <option value="">{t('common.select')}</option>
                   {field.options?.map((opt: string) => (
                     <option key={opt} value={opt}>{opt}</option>
                   ))}
@@ -138,9 +140,9 @@ export default function NewTicketPage() {
             </div>
           ))}
           <div className="flex justify-end gap-3">
-            <Button onClick={() => setSelectedTemplate(null)}>返回</Button>
+            <Button onClick={() => setSelectedTemplate(null)}>{t('common.back')}</Button>
             <Button type="primary" onClick={handleSubmit} loading={submitting} className="bg-zinc-900 rounded-xl">
-              提交工单
+              {t('tickets.submit')}
             </Button>
           </div>
         </div>

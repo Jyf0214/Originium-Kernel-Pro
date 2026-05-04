@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Search, Filter, Sparkles, BookOpen, Users, ArrowRight, Calendar, User as UserIcon } from 'lucide-react';
 import { Input, Button } from 'antd';
 import Image from 'next/image';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface PostItem {
   slug: string;
@@ -30,6 +31,7 @@ interface HomePostGridProps {
  */
 export function HomePostGrid({ posts, postCount, facesCount }: HomePostGridProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const { t, locale } = useI18n();
 
   const filteredPosts = posts.filter((p) => {
     if (!searchTerm) return true;
@@ -37,7 +39,7 @@ export function HomePostGrid({ posts, postCount, facesCount }: HomePostGridProps
     return (
       p.title.toLowerCase().includes(q) ||
       p.description?.toLowerCase().includes(q) ||
-      p.tags?.some((t) => t.toLowerCase().includes(q))
+      p.tags?.some((tag) => tag.toLowerCase().includes(q))
     );
   });
 
@@ -51,7 +53,7 @@ export function HomePostGrid({ posts, postCount, facesCount }: HomePostGridProps
           className="flex items-center gap-2 text-zinc-400 font-black text-[10px] uppercase tracking-[0.2em] mb-6"
         >
           <div className="w-1.5 h-1.5 rounded-full bg-zinc-900 animate-pulse"></div>
-          <span>Originium Kernel is Online</span>
+          <span>{t('home.siteStatus')}</span>
         </motion.div>
 
         <motion.h1
@@ -60,8 +62,8 @@ export function HomePostGrid({ posts, postCount, facesCount }: HomePostGridProps
           transition={{ delay: 0.1 }}
           className="text-5xl md:text-7xl font-display font-black tracking-tighter text-zinc-900 mb-8 leading-[0.95]"
         >
-          Write. Sync. <br />
-          <span className="text-zinc-300">Deploy.</span>
+          {t('home.heroTitleLine1')} <br />
+          <span className="text-zinc-300">{t('home.heroTitleLine2')}</span>
         </motion.h1>
 
         <motion.div
@@ -73,7 +75,7 @@ export function HomePostGrid({ posts, postCount, facesCount }: HomePostGridProps
             <div className="relative flex-1 w-full">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-zinc-900 transition-colors" size={20} />
               <Input
-                placeholder="搜索内容..."
+                placeholder={t('home.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-12 h-14 text-base w-full rounded-2xl bg-white border-zinc-200 hover:border-zinc-300 transition-colors"
@@ -82,7 +84,7 @@ export function HomePostGrid({ posts, postCount, facesCount }: HomePostGridProps
               />
             </div>
             <Button size="large" icon={<Filter size={20} />} className="bg-white hover:bg-zinc-50 border-zinc-200 rounded-2xl">
-              排序
+              {t('common.sort')}
             </Button>
           </div>
         </motion.div>
@@ -99,9 +101,9 @@ export function HomePostGrid({ posts, postCount, facesCount }: HomePostGridProps
                 </div>
                 <ArrowRight size={20} className="text-zinc-300 group-hover:text-zinc-900 group-hover:translate-x-1 transition-all" />
               </div>
-              <h2 className="text-xl font-bold text-zinc-900 mb-1">帖子</h2>
+              <h2 className="text-xl font-bold text-zinc-900 mb-1">{t('nav.posts')}</h2>
               <p className="text-zinc-400 text-sm">
-                {postCount > 0 ? `${postCount} 篇帖子` : '浏览所有帖子'}
+                {t('home.postsDesc', { count: postCount })}
               </p>
             </div>
           </Link>
@@ -113,9 +115,9 @@ export function HomePostGrid({ posts, postCount, facesCount }: HomePostGridProps
                 </div>
                 <ArrowRight size={20} className="text-zinc-300 group-hover:text-zinc-900 group-hover:translate-x-1 transition-all" />
               </div>
-              <h2 className="text-xl font-bold text-zinc-900 mb-1">通讯录</h2>
+              <h2 className="text-xl font-bold text-zinc-900 mb-1">{t('nav.faces')}</h2>
               <p className="text-zinc-400 text-sm">
-                {facesCount > 0 ? `${facesCount} 位联系人` : '浏览通讯录'}
+                {t('home.facesDesc', { count: facesCount })}
               </p>
             </div>
           </Link>
@@ -125,10 +127,10 @@ export function HomePostGrid({ posts, postCount, facesCount }: HomePostGridProps
       {/* 帖子列表 */}
       <section>
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold text-zinc-900">最新帖子</h2>
+          <h2 className="text-2xl font-bold text-zinc-900">{t('home.latestPosts')}</h2>
           {posts.length > 0 && (
             <Link href="/posts" className="text-sm text-zinc-400 hover:text-zinc-900 flex items-center gap-1 transition-colors">
-              查看全部 <ArrowRight size={14} />
+              {t('home.viewAll')} <ArrowRight size={14} />
             </Link>
           )}
         </div>
@@ -185,14 +187,14 @@ export function HomePostGrid({ posts, postCount, facesCount }: HomePostGridProps
                             <UserIcon size={14} />
                           </div>
                           <span className="text-xs font-bold text-zinc-900 uppercase tracking-tighter">
-                            {post.author || '匿名'}
+                            {post.author || t('home.anonymous')}
                           </span>
                         </div>
                         {post.date && (
                           <div className="flex items-center gap-2 text-[10px] font-black">
                             <Calendar size={12} />
                             <span>
-                              {new Date(post.date).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}
+                              {new Date(post.date).toLocaleDateString(locale, { month: 'short', day: 'numeric' })}
                             </span>
                           </div>
                         )}
@@ -205,9 +207,9 @@ export function HomePostGrid({ posts, postCount, facesCount }: HomePostGridProps
                     <div className="w-24 h-24 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-6 text-zinc-300">
                       <Sparkles size={40} />
                     </div>
-                    <h3 className="text-2xl font-black text-zinc-900 mb-2">The kernel is empty</h3>
-                    <p className="text-zinc-400 font-medium">
-                      在 /posts 目录下添加 Markdown 文件即可发布内容
+                    <h3 className="text-2xl font-black text-zinc-900 mb-2">{t('home.emptyTitle')}</h3>
+                    <p className="text-zinc-400 font-medium whitespace-pre-line">
+                      {t('home.noPosts')}
                     </p>
                   </div>
                 )}

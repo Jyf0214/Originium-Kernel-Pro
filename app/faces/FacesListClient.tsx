@@ -3,9 +3,9 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Search, Users, Sparkles, UserCircle } from 'lucide-react';
+import { Search, Users, UserCircle } from 'lucide-react';
 import { Input } from 'antd';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface FaceItem {
   slug: string;
@@ -31,6 +31,7 @@ interface FacesListClientProps {
 export function FacesListClient({ faces, groups }: FacesListClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
+  const { t } = useI18n();
 
   const filteredFaces = faces.filter((f) => {
     const matchesSearch = !searchTerm ||
@@ -50,7 +51,7 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
         <div className="relative flex-1 min-w-[240px]">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={20} />
           <Input
-            placeholder="搜索联系人..."
+            placeholder={t('faces.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-12 h-12 text-base w-full rounded-2xl bg-white border-zinc-200"
@@ -71,7 +72,7 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
                 : 'bg-white text-zinc-600 border border-zinc-200 hover:border-zinc-300'
             }`}
           >
-            全部
+            {t('faces.allFaces')}
           </button>
           {groupNames.map((name) => (
             <button
@@ -139,8 +140,8 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
           <div className="w-24 h-24 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-6 text-zinc-300">
             <Users size={40} />
           </div>
-          <h3 className="text-2xl font-black text-zinc-900 mb-2">暂无联系人</h3>
-          <p className="text-zinc-400 font-medium">在 /faces 目录下添加 Markdown 文件即可创建联系人</p>
+          <h3 className="text-2xl font-black text-zinc-900 mb-2">{t('faces.noFaces')}</h3>
+          <p className="text-zinc-400 font-medium">{t('faces.noFacesHint')}</p>
         </div>
       )}
     </div>

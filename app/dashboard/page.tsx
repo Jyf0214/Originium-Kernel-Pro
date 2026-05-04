@@ -100,16 +100,16 @@ export default function DashboardPage() {
   ];
 
   const userActions = [
-    { label: t('sidebar.writeArticle'), icon: PenLine, href: '/editor', desc: locale === 'zh-CN' ? '创建新内容' : 'Create new content' },
-    { label: t('sidebar.articleManagement'), icon: BookOpen, href: '/dashboard/articles', desc: locale === 'zh-CN' ? '管理所有文章' : 'Manage all articles' },
-    { label: t('sidebar.recycleBin'), icon: Trash2, href: '/dashboard/articles?status=pending_deletion', desc: locale === 'zh-CN' ? '恢复或永久删除' : 'Restore or permanently delete' },
+    { label: t('sidebar.writeArticle'), icon: PenLine, href: '/editor', desc: t('dashboard.writeArticleDesc') },
+    { label: t('sidebar.articleManagement'), icon: BookOpen, href: '/dashboard/articles', desc: t('dashboard.articleManagementDesc') },
+    { label: t('sidebar.recycleBin'), icon: Trash2, href: '/dashboard/articles?status=pending_deletion', desc: t('dashboard.recycleBinDesc') },
   ];
 
   const adminActions = [
-    { label: t('sidebar.userManagement'), icon: UserCog, href: '/admin/users', desc: locale === 'zh-CN' ? '用户与权限' : 'Users & permissions' },
-    { label: t('sidebar.userGroups'), icon: Shield, href: '/admin/groups', desc: locale === 'zh-CN' ? '用户组配置' : 'Group configuration' },
-    { label: t('sidebar.systemConfig'), icon: Settings, href: '/admin/config', desc: locale === 'zh-CN' ? '站点与外观' : 'Site & appearance' },
-    { label: t('sidebar.envVariables'), icon: Activity, href: '/admin/env', desc: locale === 'zh-CN' ? '检查配置状态' : 'Check config status' },
+    { label: t('sidebar.userManagement'), icon: UserCog, href: '/admin/users', desc: t('dashboard.userManagementDesc') },
+    { label: t('sidebar.userGroups'), icon: Shield, href: '/admin/groups', desc: t('dashboard.userGroupsDesc') },
+    { label: t('sidebar.systemConfig'), icon: Settings, href: '/admin/config', desc: t('dashboard.systemConfigDesc') },
+    { label: t('sidebar.envVariables'), icon: Activity, href: '/admin/env', desc: t('dashboard.envVariablesDesc') },
   ];
 
   const quickActions = isSudo ? [...userActions, ...adminActions] : userActions;
