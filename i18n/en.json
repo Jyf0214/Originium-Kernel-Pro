@@ -34,7 +34,8 @@
     "actions": "Actions",
     "yes": "Yes",
     "no": "No",
-    "user": "User"
+    "user": "User",
+    "learnMore": "Learn More"
   },
   "auth": {
     "login": "Login",

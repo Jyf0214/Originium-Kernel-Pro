@@ -2,6 +2,7 @@
 
 import { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { message } from 'antd';
+import { useI18n } from './use-i18n';
 
 /**
  * Originium Kernel Authentication Hook (Frontend)
@@ -38,6 +39,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { t } = useI18n();
   const clerkAvailable = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
   const refresh = useCallback(async () => {
@@ -76,12 +78,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ login: email, password: pass }),
       });
+      
+      if (res.status === 500) {
+        message.error(t('error.500'));
+        throw new Error(t('error.500'));
+      }
+
       const data = await res.json();
       if (res.ok && data.success) {
         setUser({ ...data.user, displayName: data.user.name });
-        message.success('登录成功');
+        message.success(t('auth.loginSuccess'));
       } else {
-        message.error(data.error || '登录失败');
+        message.error(data.error || t('auth.loginFailed'));
         throw new Error(data.error);
       }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -101,12 +109,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password: pass, name }),
       });
+
+      if (res.status === 500) {
+        message.error(t('error.500'));
+        throw new Error(t('error.500'));
+      }
+
       const data = await res.json();
       if (res.ok && data.success) {
         setUser({ ...data.user, displayName: data.user.name });
-        message.success('注册成功');
+        message.success(t('auth.registerSuccess'));
       } else {
-        message.error(data.error || '注册失败');
+        message.error(data.error || t('auth.registerFailed'));
         throw new Error(data.error);
       }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -122,7 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       setUser(null);
-      message.info('已登出');
+      message.info(t('common.info'));
     } catch (err) {
       console.error('Logout error:', err);
     }

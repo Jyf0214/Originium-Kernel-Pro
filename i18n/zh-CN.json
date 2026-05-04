@@ -34,7 +34,8 @@
     "actions": "操作",
     "yes": "是",
     "no": "否",
-    "user": "用户"
+    "user": "用户",
+    "learnMore": "了解更多"
   },
   "auth": {
     "login": "登录",

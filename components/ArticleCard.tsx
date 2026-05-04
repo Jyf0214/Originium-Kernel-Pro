@@ -4,19 +4,13 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'motion/react';
-import { Calendar, User, ArrowUpRight } from 'lucide-react';
+import { Calendar, ArrowUpRight } from 'lucide-react';
+import { Avatar } from './Avatar';
+
+import { type Article } from '@/types/content';
 
 interface ArticleCardProps {
-  article: {
-    id: string;
-    title: string;
-    content?: string;
-    authorName: string;
-    tags: string[];
-    coverImage?: string;
-    createdAt: string;
-    status: string;
-  };
+  article: Article;
 }
 
 export function ArticleCard({ article }: ArticleCardProps) {
@@ -68,9 +62,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
         </p>
         <div className="mt-auto pt-8 border-t border-zinc-50 flex items-center justify-between text-zinc-400">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-zinc-50 rounded-xl flex items-center justify-center text-zinc-900 group-hover:bg-zinc-900 group-hover:text-white transition-colors duration-500">
-              <User size={14} />
-            </div>
+            <Avatar name={article.authorName} avatarUrl={article.authorAvatar} size={32} />
             <span className="text-xs font-bold text-zinc-900 uppercase tracking-tighter">{article.authorName}</span>
           </div>
           <div className="flex items-center gap-2 text-[10px] font-black">

@@ -6,6 +6,7 @@ import { Navbar } from '@/components/Navbar';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { ArrowLeft, User } from 'lucide-react';
 import Link from 'next/link';
+import { useI18n } from '@/hooks/use-i18n';
 
 /**
  * 文章详情页 — 通过 API 获取内容（草稿从数据库，已发布从 GitHub）
@@ -13,6 +14,7 @@ import Link from 'next/link';
 export default function ArticlePage() {
   const params = useParams();
   const id = params?.id as string;
+  const { t } = useI18n();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [article, setArticle] = useState<any>(null);
@@ -55,10 +57,10 @@ export default function ArticlePage() {
         <div className="w-20 h-20 bg-zinc-50 rounded-full flex items-center justify-center mb-6 text-zinc-300">
           <User size={40} />
         </div>
-        <h1 className="text-3xl font-display font-bold text-zinc-900 mb-4">Article not found</h1>
-        <p className="text-zinc-500 mb-8 max-w-md">The article you are looking for might have been removed or is temporarily unavailable.</p>
+        <h1 className="text-3xl font-display font-bold text-zinc-900 mb-4">{t('error.notFound')}</h1>
+        <p className="text-zinc-500 mb-8 max-w-md">{t('error.networkError')}</p>
         <Link href="/" className="bg-zinc-900 text-white px-8 py-3 rounded-xl hover:bg-zinc-800 transition-all">
-          Return to home
+          {t('common.back')}
         </Link>
       </div>
     </div>
