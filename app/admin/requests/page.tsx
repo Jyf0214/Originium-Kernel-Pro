@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { Check, X, Clock, FileText, Trash2 } from 'lucide-react';
+import { X, Clock, FileText, Trash2 } from 'lucide-react';
 
 interface Request {
   id: string;
