@@ -2,58 +2,133 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { Check, X, Clock } from 'lucide-react';
+import { Check, X, Clock, FileText, Trash2 } from 'lucide-react';
+
+interface Request {
+  id: string;
+  userId: string;
+  userName: string;
+  postSlug: string;
+  postTitle: string;
+  reason: string | null;
+  status: string;
+  createdAt: string;
+}
 
 export default function RequestsPage() {
   const { userRole } = useAuth();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [requests] = useState<any[]>([]);
+  const [requests, setRequests] = useState<Request[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const hasAccess = userRole === 'sudo' || userRole === 'admin';
 
   useEffect(() => {
     if (!hasAccess) return;
-    // TODO: 实现获取申请列表的 API 调用
+
+    const fetchRequests = async () => {
+      try {
+        const response = await fetch('/api/requests?status=pending');
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || '获取申请列表失败');
+        }
+
+        setRequests(data.requests || []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '获取申请列表失败');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRequests();
   }, [hasAccess]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleApprove = async (request: any) => {
-  // eslint-disable-next-line no-console
-    console.log('Approve request:', request.id);
-    // TODO: 实现审批通过逻辑
+  const handleApprove = async (request: Request) => {
+    try {
+      const response = await fetch(`/api/requests/${request.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'approve' })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || '审批失败');
+      }
+
+      setRequests(requests.filter(req => req.id !== request.id));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '审批失败');
+    }
   };
 
   const handleReject = async (id: string) => {
-  // eslint-disable-next-line no-console
-    console.log('Reject request:', id);
-    // TODO: 实现审批拒绝逻辑
+    try {
+      const response = await fetch(`/api/requests/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reject' })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || '拒绝失败');
+      }
+
+      setRequests(requests.filter(req => req.id !== id));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '拒绝失败');
+    }
   };
 
   if (!hasAccess) {
     return <div className="p-8 text-center text-red-500 font-bold">Access Denied. Only Sudo/Admin can access this page.</div>;
   }
 
+  if (loading) {
+    return <div className="p-8 text-center text-zinc-500">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="p-8 text-center text-red-500">{error}</div>;
+  }
+
   return (
     <div className="p-6 md:p-10 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-display font-bold text-zinc-900 mb-8">Role Upgrade Requests</h1>
-      
+      <h1 className="text-3xl font-display font-bold text-zinc-900 mb-8">文章删除申请</h1>
+
       <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-zinc-50 border-b border-zinc-200 text-xs uppercase tracking-wider text-zinc-500 font-bold">
-                <th className="p-4">User</th>
-                <th className="p-4">Type</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right">Actions</th>
+                <th className="p-4">申请人</th>
+                <th className="p-4">文章</th>
+                <th className="p-4">原因</th>
+                <th className="p-4">状态</th>
+                <th className="p-4 text-right">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100">
               {requests.map((req) => (
                 <tr key={req.id} className="hover:bg-zinc-50 transition-colors">
                   <td className="p-4 font-medium text-zinc-900">{req.userName}</td>
-                  <td className="p-4 text-sm text-zinc-600">
-                    <span className="bg-zinc-100 px-2 py-1 rounded text-xs">{req.type}</span>
+                  <td className="p-4">
+                    <div className="flex items-center gap-2">
+                      <FileText size={16} className="text-zinc-400" />
+                      <div>
+                        <div className="font-medium text-zinc-900">{req.postTitle}</div>
+                        <div className="text-xs text-zinc-500">{req.postSlug}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-4 text-sm text-zinc-600 max-w-xs truncate">
+                    {req.reason || '-'}
                   </td>
                   <td className="p-4">
                     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -62,23 +137,23 @@ export default function RequestsPage() {
                       'bg-amber-100 text-amber-800'
                     }`}>
                       {req.status === 'pending' && <Clock size={12} />}
-                      {req.status}
+                      {req.status === 'pending' ? '待处理' : req.status === 'approved' ? '已批准' : '已拒绝'}
                     </span>
                   </td>
                   <td className="p-4 text-right">
                     {req.status === 'pending' && (
                       <div className="flex items-center justify-end gap-2">
-                        <button 
+                        <button
                           onClick={() => handleApprove(req)}
                           className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
-                          title="Approve"
+                          title="批准删除"
                         >
-                          <Check size={18} />
+                          <Trash2 size={18} />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleReject(req.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                          title="Reject"
+                          title="拒绝"
                         >
                           <X size={18} />
                         </button>
@@ -89,8 +164,8 @@ export default function RequestsPage() {
               ))}
               {requests.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-zinc-500 font-medium">
-                    No pending requests.
+                  <td colSpan={5} className="p-8 text-center text-zinc-500 font-medium">
+                    没有待处理的申请
                   </td>
                 </tr>
               )}

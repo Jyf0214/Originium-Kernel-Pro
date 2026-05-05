@@ -254,7 +254,7 @@ function Sidebar() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="md:hidden fixed top-6 left-6 z-[997] bg-zinc-900 text-white rounded-2xl p-3.5 shadow-2xl shadow-zinc-900/20 hover:scale-110 active:scale-95 transition-all"
+          className="md:hidden fixed top-6 left-6 z-[9999] bg-zinc-900 text-white rounded-2xl p-3.5 shadow-2xl shadow-zinc-900/20 hover:scale-110 active:scale-95 transition-all"
         >
           <Menu size={22} />
         </button>

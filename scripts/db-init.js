@@ -161,11 +161,35 @@ async function main() {
       
       await prisma.$disconnect()
     } catch (err) {
-  // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console
       console.log('[数据库初始化] ⚠️ 初始管理员流程失败:', err.message?.split('\n')[0])
     }
-    
-  // eslint-disable-next-line no-console
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { PrismaClient } = require('@prisma/client')
+      const prisma = new PrismaClient()
+
+      // 检查并删除 GitHub 同步成功标志
+      const syncFlag = await prisma.originiumKV.findUnique({
+        where: { key: 'github:sync:success' }
+      })
+
+      if (syncFlag) {
+        await prisma.originiumKV.delete({
+          where: { key: 'github:sync:success' }
+        })
+        // eslint-disable-next-line no-console
+        console.log('[数据库初始化] ✓ 已删除 GitHub 同步成功标志')
+      }
+
+      await prisma.$disconnect()
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.log('[数据库初始化] ⚠️ 删除同步标志失败:', err.message?.split('\n')[0])
+    }
+
+    // eslint-disable-next-line no-console
     console.log('[数据库初始化] ✓ 全部完成')
   } catch (error) {
   // eslint-disable-next-line no-console

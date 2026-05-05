@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { loadConfigAsync, saveConfigToDb, hasDatabase } from '@/lib/config';
 import type { AppConfig } from '@/lib/config';
-import { getFileFromGithub, syncConfigToGithub } from '@/lib/github';
+import { getFileFromGithub } from '@/lib/github';
 import yaml from 'js-yaml';
+import { getDb } from '@/lib/db';
 
 /**
  * System Configuration API
@@ -30,6 +31,18 @@ export async function POST(req: NextRequest) {
   try {
     const newConfig = await req.json() as Partial<AppConfig>;
     const currentConfig = await loadConfigAsync();
+
+    // 检查 GitHub 同步成功标志
+    if (hasDatabase()) {
+      const db = getDb();
+      const syncFlag = await db.get('github:sync:success');
+      if (syncFlag) {
+        return NextResponse.json(
+          { error: '配置已同步到 GitHub，请等待构建完成后再次提交' },
+          { status: 409 }
+        );
+      }
+    }
 
     // 合并配置，保留未修改的字段
     const mergedConfig: AppConfig = {
@@ -65,11 +78,23 @@ export async function POST(req: NextRequest) {
     const githubRepo = process.env.GITHUB_REPO;
     const githubToken = process.env.GITHUB_TOKEN;
     if (githubRepo && githubToken) {
-      const yamlConfig = {
-        siteTitle: mergedConfig.site.title,
-        siteDescription: mergedConfig.site.description,
-      };
-      await syncConfigToGithub(githubRepo, githubToken, yamlConfig);
+      try {
+        const syncRes = await fetch('/api/github/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'config', data: mergedConfig }),
+        });
+        const syncData = await syncRes.json();
+        if (!syncRes.ok) {
+          throw new Error(syncData.error || '同步配置到 GitHub 失败');
+        }
+      } catch (error) {
+        console.error('同步配置到 GitHub 失败:', error);
+        return NextResponse.json(
+          { error: error instanceof Error ? error.message : '同步配置到 GitHub 失败' },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json({ success: true, config: mergedConfig });
