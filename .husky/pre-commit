@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+echo "🔍 运行 Pre-commit 检查..."
+echo ""
+
+# 1. 对暂存区的文件运行 ESLint (Type Check 由 build 过程统一处理)
+HUSKY=0 npx lint-staged || exit 1
+
+# 2. 安全检查：扫描敏感信息
+echo ""
+node scripts/security-check.js || exit 1
+
+echo ""
+echo "✅ Pre-commit 检查通过！"

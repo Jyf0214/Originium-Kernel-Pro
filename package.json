@@ -16,7 +16,8 @@
     "build": "NEXT_TELEMETRY_DISABLED=1 npm run check && vitest run && npm run db:generate && npm run db:init && next build",
     "test": "vitest run",
     "start": "next start",
-    "clean": "next clean"
+    "clean": "next clean",
+    "prepare": "husky"
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
@@ -59,9 +60,16 @@
     "eslint-config-next": "16.1.6",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
     "tailwindcss": "^4.2.2",
     "typescript": "5.9.3",
-    "typescript-eslint": "^8.59.1",
+    "typescript-eslint": "8.59.1",
     "vitest": "^4.1.5"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix"
+    ]
   }
 }
