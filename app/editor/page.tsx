@@ -55,8 +55,8 @@ function EditorContent() {
         if (res.ok) {
           const data = await res.json();
           const githubVars = data.groups?.github?.variables || [];
-          const repoSet = githubVars.find(v => v.name === 'GITHUB_REPO')?.isSet;
-          const tokenSet = githubVars.find(v => v.name === 'GITHUB_TOKEN')?.isSet;
+          const repoSet = githubVars.find((v: { name: string; isSet: boolean }) => v.name === 'GITHUB_REPO')?.isSet;
+          const tokenSet = githubVars.find((v: { name: string; isSet: boolean }) => v.name === 'GITHUB_TOKEN')?.isSet;
           setGithubConfigured(!!(repoSet && tokenSet));
         }
       } catch (error) {
