@@ -31,17 +31,17 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { type = 'config', data } = body;
 
-    console.log(`[GitHub Sync] 开始同步: type=${type}`);
+    console.warn(`[GitHub Sync] 开始同步: type=${type}`);
 
     if (type === 'config') {
       const config = data || await loadConfigAsync();
       await syncConfigToGithub(githubRepo, githubToken, config);
-      console.log(`[GitHub Sync] 配置同步成功`);
+      console.warn(`[GitHub Sync] 配置同步成功`);
 
       if (hasDatabase()) {
         const db = getDb();
         await db.set('github:sync:success', Date.now().toString());
-        console.log(`[GitHub Sync] 已存储同步成功标志`);
+        console.warn(`[GitHub Sync] 已存储同步成功标志`);
       }
 
       return NextResponse.json({ success: true, message: '配置同步成功' });
