@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { createSession } from '@/lib/auth';
+import { getUserAvatarAsync } from '@/lib/config';
 
 function hashPassword(password: string) {
   return Buffer.from(password).toString('hex').split('').reverse().join('');
@@ -44,6 +45,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '账号或密码错误' }, { status: 401 });
     }
 
+    const avatar = await getUserAvatarAsync(user.uid);
+
     await createSession({
       uid: user.uid,
       email: user.email,
@@ -58,7 +61,8 @@ export async function POST(req: NextRequest) {
         email: user.email,
         username: user.username,
         name: user.name,
-        role: user.role
+        role: user.role,
+        avatar: avatar || undefined
       }
     });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
