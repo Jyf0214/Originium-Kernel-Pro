@@ -86,14 +86,15 @@ export default function ConfigPage() {
           auth: { allowRegistration: config.allowRegistration },
         }),
       });
+      const data = await res.json();
       if (res.ok) {
         alert(t('config.saveSuccess'));
       } else {
-        alert(t('config.saveFailed'));
+        alert(`${t('config.saveFailed')}: ${data.error || '未知错误'}`);
       }
     } catch (error) {
       console.error('保存配置失败:', error);
-      alert(t('config.saveFailed'));
+      alert(`${t('config.saveFailed')}: ${error instanceof Error ? error.message : '未知错误'}`);
     } finally {
       setSaving(false);
     }

@@ -120,23 +120,34 @@ export async function deletePostFromGithub(repo: string, token: string, slug: st
 /**
  * 同步配置到 GitHub（YAML + JSON 双格式）
  */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function syncConfigToGithub(repo: string, token: string, config: any) {
   const yamlContent = yaml.dump(config);
   const jsonContent = JSON.stringify(config, null, 2);
 
-  await updateFileInGithub({
-    repo,
-    token,
-    path: 'config.yaml',
-    content: yamlContent,
-    message: 'chore: update config.yaml',
-  });
-  await updateFileInGithub({
-    repo,
-    token,
-    path: 'config.json',
-    content: jsonContent,
-    message: 'chore: update config.json',
-  });
+  try {
+    await updateFileInGithub({
+      repo,
+      token,
+      path: 'config.yaml',
+      content: yamlContent,
+      message: 'chore: update config.yaml',
+    });
+  } catch (error) {
+    console.error('同步 config.yaml 到 GitHub 失败:', error);
+    throw new Error('同步 config.yaml 到 GitHub 失败');
+  }
+
+  try {
+    await updateFileInGithub({
+      repo,
+      token,
+      path: 'config.json',
+      content: jsonContent,
+      message: 'chore: update config.json',
+    });
+  } catch (error) {
+    console.error('同步 config.json 到 GitHub 失败:', error);
+    throw new Error('同步 config.json 到 GitHub 失败');
+  }
 }

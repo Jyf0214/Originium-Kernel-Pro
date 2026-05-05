@@ -53,3 +53,21 @@ model OriginiumKV {
   @@map("originium_kv")
   @@index([key])
 }
+
+// 文章删除申请表
+model Request {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  userName  String   @map("user_name")
+  postSlug  String   @map("post_slug")
+  postTitle String   @map("post_title")
+  reason    String?
+  status    String   @default("pending")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("requests")
+  @@index([userId])
+  @@index([status])
+  @@index([postSlug])
+}
