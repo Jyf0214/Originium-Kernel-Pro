@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { notFound, useParams } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
+import { showError } from '@/lib/error';
 
 export default function FaceDetailPage() {
   const params = useParams();
@@ -29,7 +30,8 @@ export default function FaceDetailPage() {
           setFile(null);
         }
       } catch (err) {
-        console.error('Failed to fetch face details:', err);
+		console.error('Failed to fetch face details:', err);
+		showError('联系人详情加载失败');
       } finally {
         setLoading(false);
       }

@@ -18,10 +18,6 @@ import {
   Menu,
   X,
   ChevronDown,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  ChevronRight,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Globe,
 } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher/index';
 import { useI18n } from '@/hooks/use-i18n';
@@ -74,8 +70,7 @@ function SidebarContent({
   items: MenuItem[];
   isActive: (href: string) => boolean;
   onItemClick: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  user: any;
+  user?: { name?: string; avatar?: string; role?: string };
   onLogout: () => void;
   showCloseButton?: boolean;
   onClose?: () => void;
@@ -267,7 +262,7 @@ function Sidebar() {
           items={allItems}
           isActive={isActive}
           onItemClick={() => setIsOpen(false)}
-          user={user}
+          user={user ?? undefined}
           onLogout={handleLogout}
           t={t}
         />
@@ -290,7 +285,7 @@ function Sidebar() {
           items={allItems}
           isActive={isActive}
           onItemClick={() => setIsOpen(false)}
-          user={user}
+          user={user ?? undefined}
           onLogout={handleLogout}
           showCloseButton
           onClose={() => setIsOpen(false)}

@@ -1,6 +1,6 @@
 /**
- * User Identity System - UID Management (Client-Side Wrapper)
- * Originium Kernel - Pure Client Logic
+ * 用户身份系统 — UID 管理（客户端封装）
+ * Originium Kernel — 纯客户端逻辑
  */
 
 export type UserRole = 'user' | 'admin' | 'sudo';
@@ -28,7 +28,7 @@ export interface UserGroup {
 }
 
 /**
- * Get user profile by UID
+ * 根据 UID 获取用户资料
  */
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   const res = await fetch(`/api/users/${uid}`);
@@ -37,7 +37,7 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 }
 
 /**
- * Update user role (sudo only)
+ * 更新用户角色（仅超级管理员）
  */
 export async function updateUserRole(
   uid: string, 
@@ -49,11 +49,11 @@ export async function updateUserRole(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ role: newRole, userGroup }),
   });
-  if (!res.ok) throw new Error('Failed to update role');
+  if (!res.ok) throw new Error('更新角色失败');
 }
 
 /**
- * Get all users (sudo only)
+ * 获取所有用户（仅超级管理员）
  */
 export async function getAllUsers(): Promise<UserProfile[]> {
   const res = await fetch('/api/users');
@@ -62,7 +62,7 @@ export async function getAllUsers(): Promise<UserProfile[]> {
 }
 
 /**
- * Create user group (sudo only)
+ * 创建用户组（仅超级管理员）
  */
 export async function createUserGroup(
   name: string,
@@ -74,12 +74,12 @@ export async function createUserGroup(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, description, createdBy }),
   });
-  if (!res.ok) throw new Error('Failed to create group');
+  if (!res.ok) throw new Error('创建用户组失败');
   return res.json();
 }
 
 /**
- * Get all user groups
+ * 获取所有用户组
  */
 export async function getAllUserGroups(): Promise<UserGroup[]> {
   const res = await fetch('/api/groups');
@@ -88,7 +88,7 @@ export async function getAllUserGroups(): Promise<UserGroup[]> {
 }
 
 /**
- * Assign user to group (sudo only)
+ * 分配用户到用户组（仅超级管理员）
  */
 export async function assignUserToGroup(
   uid: string,
@@ -99,11 +99,11 @@ export async function assignUserToGroup(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userGroup: groupId }),
   });
-  if (!res.ok) throw new Error('Failed to assign group');
+  if (!res.ok) throw new Error('分配用户组失败');
 }
 
 /**
- * Update user group (sudo only)
+ * 更新用户组（仅超级管理员）
  */
 export async function updateUserGroup(
   id: string,
@@ -114,16 +114,16 @@ export async function updateUserGroup(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Failed to update group');
+  if (!res.ok) throw new Error('更新用户组失败');
   return res.json();
 }
 
 /**
- * Delete user group (sudo only)
+ * 删除用户组（仅超级管理员）
  */
 export async function deleteUserGroup(id: string): Promise<void> {
   const res = await fetch(`/api/groups/${id}`, {
     method: 'DELETE',
   });
-  if (!res.ok) throw new Error('Failed to delete group');
+  if (!res.ok) throw new Error('删除用户组失败');
 }

@@ -5,12 +5,12 @@ import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { useRouter } from 'next/navigation';
 import {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  FileText, Users, Clock, CheckCircle, Plus, Settings,
+  FileText, Users, Clock, Plus, Settings,
   BookOpen, ArrowRight, Trash2, Activity,
   Globe, PenLine, Sparkles,
 } from 'lucide-react';
 import { Button, Spin, Tag } from 'antd';
+import { showError } from '@/lib/error';
 import Link from 'next/link';
 
 interface Stats {
@@ -87,7 +87,8 @@ export default function DashboardPage() {
           }
         }
       } catch (error) {
-        console.error('Failed to fetch stats:', error);
+		console.error('Failed to fetch stats:', error);
+		showError('仪表盘数据加载失败');
       } finally {
         setLoading(false);
       }

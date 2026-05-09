@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Tag, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button, Spin } from 'antd';
+import { showError } from '@/lib/error';
 import { useI18n } from '@/hooks/use-i18n';
 
 interface Ticket {
@@ -30,7 +31,8 @@ export default function TicketsPage() {
       const res = await fetch('/api/tickets');
       if (res.ok) { const data = await res.json(); setTickets(data); }
     } catch (error) {
-      console.error('Failed to fetch tickets:', error);
+		console.error('Failed to fetch tickets:', error);
+		showError('工单列表加载失败');
     } finally {
       setLoading(false);
     }

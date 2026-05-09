@@ -5,15 +5,21 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
 import { Plus, Trash2, Edit2, FileText, X, Save } from 'lucide-react';
-import { Button, Spin, Modal } from 'antd';
+import { Button, Spin, Modal, message } from 'antd';
+import { showError } from '@/lib/error';
 
 interface TicketTemplate {
   id: string;
   name: string;
   description: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  fields: any[];
+  fields: TicketField[];
   createdAt: string;
+}
+
+interface TicketField {
+  name: string;
+  type: string;
+  required: boolean;
 }
 
 export default function TicketsPage() {
@@ -22,6 +28,7 @@ export default function TicketsPage() {
   const router = useRouter();
   const [templates, setTemplates] = useState<TicketTemplate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<TicketTemplate | null>(null);
   const [formData, setFormData] = useState({
@@ -37,9 +44,10 @@ export default function TicketsPage() {
         const data = await res.json();
         setTemplates(data);
       }
-    } catch (error) {
-      console.error('Failed to fetch templates:', error);
-    } finally {
+	} catch (error) {
+		console.error('Failed to fetch templates:', error);
+		showError('工单模板加载失败');
+	} finally {
       setLoading(false);
     }
   };
@@ -78,9 +86,10 @@ export default function TicketsPage() {
 
   const handleSave = async () => {
     if (!formData.name) {
-      alert(t('tickets.nameRequired'));
+      message.warning(t('tickets.nameRequired'));
       return;
     }
+    setSaving(true);
     try {
       const res = await fetch('/api/ticket-templates', {
         method: 'POST',
@@ -95,32 +104,38 @@ export default function TicketsPage() {
       if (res.ok) {
         setShowModal(false);
         fetchTemplates();
-        alert(editingTemplate ? t('tickets.saveSuccess') : t('tickets.saveSuccess'));
+        message.success(t('tickets.saveSuccess'));
       } else {
-        alert(t('tickets.saveFailed'));
+        const data = await res.json();
+        showError(`${t('tickets.saveFailed')}: ${data.error || ''}`);
       }
     } catch (error) {
-      console.error('Failed to save template:', error);
-      alert(t('tickets.saveFailed'));
+		console.error('Failed to save template:', error);
+		showError(`${t('tickets.saveFailed')}: ${error instanceof Error ? error.message : ''}`);
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
+const handleDelete = async (id: string) => {
     if (!confirm(t('tickets.deleteConfirm'))) return;
+    const originalTemplates = [...templates];
+    setTemplates(templates.filter(t => t.id !== id));
     try {
       const res = await fetch('/api/ticket-templates', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       });
-      if (res.ok) {
-        setTemplates(templates.filter(t => t.id !== id));
-      } else {
-        alert(t('tickets.deleteFailed') || 'Delete failed');
+      if (!res.ok) {
+        const data = await res.json();
+        showError(`${t('tickets.deleteFailed')}: ${data.error || ''}`);
+        setTemplates(originalTemplates);
       }
     } catch (error) {
-      console.error('Failed to delete template:', error);
-      alert(t('tickets.deleteFailed') || 'Delete failed');
+		console.error('Failed to delete template:', error);
+		showError(`${t('tickets.deleteFailed')}: ${error instanceof Error ? error.message : ''}`);
+      setTemplates(originalTemplates);
     }
   };
 
@@ -132,8 +147,7 @@ export default function TicketsPage() {
     setFormData({ ...formData, fields: formData.fields.filter((_, i) => i !== index) });
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateField = (index: number, field: any) => {
+  const updateField = (index: number, field: TicketField) => {
     const newFields = [...formData.fields];
     newFields[index] = field;
     setFormData({ ...formData, fields: newFields });
@@ -205,7 +219,7 @@ export default function TicketsPage() {
         onOk={handleSave}
         okText={t('tickets.save')}
         cancelText={t('tickets.cancel')}
-        okButtonProps={{ icon: <Save size={14} /> }}
+        okButtonProps={{ icon: <Save size={14} />, loading: saving }}
         width={500}
       >
         <div className="space-y-4 mt-4">

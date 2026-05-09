@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { getDraft, saveDraft, deleteDraft } from '@/lib/draft-storage';
 
 /**
  * Article Detail API (GET, PATCH, DELETE)
@@ -24,10 +25,14 @@ export async function GET(
     if (metaStr) {
       const meta = JSON.parse(metaStr);
 
-      // 草稿：内容直接在数据库
-      if (meta.status === 'draft') {
-        return NextResponse.json(meta);
+    // 草稿：内容存文件系统，数据库仅存元数据
+    if (meta.status === 'draft') {
+      if (!meta.content) {
+        const fileContent = await getDraft(id);
+        meta.content = fileContent || '';
       }
+      return NextResponse.json(meta);
+    }
 
       // 已发布：通过 /api/github GET 端点获取内容
       if (meta.status === 'published' && meta.slug) {
@@ -148,9 +153,13 @@ export async function PATCH(
       return NextResponse.json({ success: true, slug: postSlug });
     }
 
-    // 草稿更新：存数据库
-    await db.set(`article:data:${id}`, JSON.stringify(updated));
-    await db.hset('articles:drafts', id, JSON.stringify(updated));
+  // 草稿更新：正文存文件系统，数据库仅存元数据
+  if (updated.content) {
+    await saveDraft(id, updated.content);
+  }
+  updated.content = '';
+  await db.set(`article:data:${id}`, JSON.stringify(updated));
+  await db.hset('articles:drafts', id, JSON.stringify(updated));
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -190,12 +199,19 @@ export async function DELETE(
         });
       }
 
-      // 删除数据库记录
-      await db.del(`article:data:${id}`);
-      await db.hdel('articles:drafts', id);
-      await db.hdel('articles:published', id);
+    // 删除数据库记录
+    await db.del(`article:data:${id}`);
+    await db.hdel('articles:drafts', id);
+    await db.hdel('articles:published', id);
 
-      return NextResponse.json({ success: true, message: '已永久删除' });
+    // 清理草稿文件
+    try {
+      await deleteDraft(id);
+    } catch {
+      // 文件清理失败不影响删除流程
+    }
+
+    return NextResponse.json({ success: true, message: '已永久删除' });
     }
 
     // 普通用户：进入删除队列

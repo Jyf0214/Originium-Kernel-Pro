@@ -1,11 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-
-interface BackgroundConfig {
-  url?: string;
-  opacity?: number;
-}
+import type { AppearanceConfig } from '@/lib/config';
 
 /**
  * 背景图提供组件
@@ -13,7 +9,7 @@ interface BackgroundConfig {
  * 使用 React 状态管理替代直接 DOM 操作
  */
 export function BackgroundProvider({ children }: { children: React.ReactNode }) {
-  const [background, setBackground] = useState<BackgroundConfig | null>(null);
+  const [background, setBackground] = useState<AppearanceConfig['background'] | null>(null);
   const mountedRef = useRef(false);
 
   useEffect(() => {
@@ -28,23 +24,23 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
             return;
           }
         }
-      } catch {
-        // 忽略
-      }
+	} catch (error) {
+			console.error('背景配置加载失败:', error);
+		}
 
-      try {
-        const res = await fetch('/api/config');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.appearance?.background?.url) {
-            if (mountedRef.current) setBackground(data.appearance.background);
-          } else if (data.background?.url) {
-            if (mountedRef.current) setBackground(data.background);
-          }
-        }
-      } catch {
-        // 忽略
-      }
+		try {
+			const res = await fetch('/api/config');
+			if (res.ok) {
+				const data = await res.json();
+				if (data.appearance?.background?.url) {
+					if (mountedRef.current) setBackground(data.appearance.background);
+				} else if (data.background?.url) {
+					if (mountedRef.current) setBackground(data.background);
+				}
+			}
+		} catch (error) {
+			console.error('背景配置加载失败:', error);
+		}
     };
     fetchConfig();
 

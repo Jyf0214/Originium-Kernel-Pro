@@ -1,5 +1,5 @@
 /**
- * Environment Variable Validation for Originium Kernel
+ * Originium Kernel 环境变量验证
  * 延迟验证，只在实际使用时检查
  */
 
@@ -23,7 +23,7 @@ export function getEnvConfig(): EnvConfig {
     process.env.POSTGRES_URL_NON_POOLING ||
     '';
 
-  const authSecret = process.env.AUTH_SECRET || 'fallback-secret-at-least-32-chars-long';
+  const authSecret = process.env.AUTH_SECRET || (process.env.NODE_ENV === 'production' ? '' : 'fallback-secret-at-least-32-chars-long');
   const appUrl = process.env.APP_URL;
   const githubRepo = process.env.GITHUB_REPO;
   const githubToken = process.env.GITHUB_TOKEN;
@@ -47,13 +47,11 @@ export function validateEnv(): EnvConfig {
   const errors: string[] = [];
 
   if (!config.databaseUrl) {
-    errors.push('DATABASE_URL is required');
+    errors.push('DATABASE_URL 为必填项');
   }
 
-  if (!config.authSecret || config.authSecret === 'fallback-secret-at-least-32-chars-long') {
-    if (process.env.NODE_ENV === 'production') {
-      errors.push('AUTH_SECRET is required');
-    }
+  if (!config.authSecret) {
+    errors.push('AUTH_SECRET 为必填项');
   }
 
   if (process.env.NODE_ENV === 'production' && errors.length > 0) {
@@ -64,7 +62,7 @@ export function validateEnv(): EnvConfig {
 }
 
 /**
- * Check if GitHub integration is configured
+ * 检查 GitHub 集成是否已配置
  */
 export function isGitHubConfigured(): boolean {
   const config = getEnvConfig();
@@ -72,7 +70,7 @@ export function isGitHubConfigured(): boolean {
 }
 
 /**
- * Check if cron jobs are enabled
+ * 检查定时任务是否启用
  */
 export function isCronEnabled(): boolean {
   const config = getEnvConfig();

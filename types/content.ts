@@ -6,8 +6,8 @@ export interface ContentMeta {
   tags?: string[];
   cover?: string;
   description?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
+  // 允许动态属性（用于扩展字段）
+  [key: string]: string | number | boolean | string[] | undefined;
 }
 
 /** 解析后的内容文件 */

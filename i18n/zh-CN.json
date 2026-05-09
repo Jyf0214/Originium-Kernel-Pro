@@ -91,8 +91,9 @@
     "emailSent": "邮件已发送",
     "resendEmail": "重新发送",
     "backToLogin": "返回登录",
-    "clerkLogin": "使用 Clerk 登录",
-    "or": "或"
+"clerkLogin": "使用 Clerk 登录",
+    "or": "或",
+    "inputVerificationCode": "请输入验证码"
   },
   "validation": {
     "required": "此项为必填项",
@@ -351,6 +352,7 @@
     "githubConfigured": "GitHub 已配置",
     "githubNotConfigured": "GitHub 未配置",
     "githubHint": "请在环境变量中配置 GitHub 仓库和令牌",
+    "pleaseConfigureGithub": "请先配置 GitHub",
     "envVars": "需要配置的环境变量：",
     "githubRepoFormat": "格式：用户名/仓库名",
     "githubTokenHint": "需要 repo 权限的 Personal Access Token",
@@ -367,6 +369,10 @@
     "registrationClosedHint": "新用户暂时无法注册，如需开通请联系管理员"
   },
   "editor": {
+    "slugPlaceholder": "文章别名（URL 友好）",
+    "descriptionPlaceholder": "文章描述（用于 SEO）",
+    "updateSuccess": "更新成功",
+    "saveSuccess": "草稿已保存",
     "loading": "加载编辑器中...",
     "back": "返回文章列表",
     "saveDraft": "保存草稿",

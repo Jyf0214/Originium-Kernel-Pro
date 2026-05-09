@@ -14,7 +14,8 @@ import {
   type UserGroup,
   type UserProfile
 } from '@/lib/user';
-import { Button, Input, Card, Table, Modal, Form, message, Tag, Space, Checkbox, Popconfirm } from 'antd';
+import { Button, Input, Card, Table, Modal, Form, Tag, Space, Checkbox, Popconfirm, message } from 'antd';
+import { showError } from '@/lib/error';
 import { PlusOutlined, UsergroupAddOutlined, EditOutlined, DeleteOutlined, UserOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -52,7 +53,8 @@ export default function UserGroupsPage() {
       setGroups(groupsData);
       setUsers(usersData);
     } catch (error) {
-      console.error('Failed to load data:', error);
+		console.error('Failed to load data:', error);
+		showError('用户组数据加载失败');
     } finally {
       setLoading(false);
     }
@@ -60,7 +62,7 @@ export default function UserGroupsPage() {
 
   useEffect(() => {
     if (!isSudo) {
-      message.error(t('groups.adminOnly'));
+      showError(t('groups.adminOnly'));
       router.push('/');
       return;
     }
@@ -78,7 +80,7 @@ export default function UserGroupsPage() {
       form.resetFields();
       loadData();
     } catch {
-      message.error(t('groups.createFailed'));
+      showError(t('groups.createFailed'));
     }
   };
 
@@ -95,7 +97,7 @@ export default function UserGroupsPage() {
       setSelectedGroup(null);
       loadData();
     } catch {
-      message.error(t('groups.updateFailed') || 'Failed to update group');
+      showError(t('groups.updateFailed') || 'Failed to update group');
     }
   };
 
@@ -105,7 +107,7 @@ export default function UserGroupsPage() {
       message.success(t('groups.deleteSuccess') || 'Group deleted successfully');
       loadData();
     } catch {
-      message.error(t('groups.deleteFailed') || 'Failed to delete group');
+      showError(t('groups.deleteFailed') || 'Failed to delete group');
     }
   };
 
@@ -121,7 +123,7 @@ export default function UserGroupsPage() {
       setSelectedGroup(null);
       loadData();
     } catch {
-      message.error(t('groups.assignFailed') || 'Failed to assign users');
+      showError(t('groups.assignFailed') || 'Failed to assign users');
     }
   };
 

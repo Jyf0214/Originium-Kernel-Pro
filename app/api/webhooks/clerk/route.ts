@@ -21,18 +21,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing svix headers' }, { status: 400 });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let payload: any;
-  try {
-    const body = await req.text();
-    const wh = new Webhook(WEBHOOK_SECRET);
-    payload = wh.verify(body, {
-      'svix-id': svixId,
-      'svix-timestamp': svixTimestamp,
-      'svix-signature': svixSignature,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }) as any;
-  } catch {
+  interface ClerkWebhookPayload {
+  type: string;
+  data: {
+    id: string;
+    email_addresses?: Array<{ email_address?: string }>;
+  };
+}
+
+// svix webhook payload 格式由外部定义，结构未知
+let payload: ClerkWebhookPayload;
+try {
+  const body = await req.text();
+  const wh = new Webhook(WEBHOOK_SECRET);
+  const verified = wh.verify(body, {
+    'svix-id': svixId,
+    'svix-timestamp': svixTimestamp,
+    'svix-signature': svixSignature,
+  });
+  payload = verified as ClerkWebhookPayload;
+} catch {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
@@ -74,7 +82,9 @@ export async function POST(req: NextRequest) {
               where: { clerkId },
               data: { clerkId: null, clerkLinkedAt: null },
             });
-          } catch {}
+	} catch (error) {
+			console.error('清除 Prisma clerkId 失败:', error);
+		}
         }
         break;
       }

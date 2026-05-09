@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
-import { Button, Input, Form, message, Avatar } from 'antd';
+import { Button, Input, Form, Avatar, message } from 'antd';
+import { showError } from '@/lib/error';
 import { User, AtSign, Image as ImageIcon, Save, ArrowLeft, Check } from 'lucide-react';
 import Link from 'next/link';
 
@@ -40,11 +41,11 @@ export default function SettingsPage() {
         message.success(t('settings.saveSuccess'));
         await refresh();
       } else {
-        message.error(data.error || t('settings.saveFailed'));
+        showError(data.error || t('settings.saveFailed'));
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : t('settings.saveFailed');
-      message.error(msg);
+      showError(msg);
     } finally {
       setLoading(false);
     }

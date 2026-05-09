@@ -7,6 +7,7 @@ import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { ArrowLeft, User } from 'lucide-react';
 import Link from 'next/link';
 import { useI18n } from '@/hooks/use-i18n';
+import { showError } from '@/lib/error';
 
 /**
  * 文章详情页 — 通过 API 获取内容（草稿从数据库，已发布从 GitHub）
@@ -30,7 +31,8 @@ export default function ArticlePage() {
           setArticle(data);
         }
       } catch (error) {
-        console.error('Fetch article failed:', error);
+		console.error('Fetch article failed:', error);
+		showError('文章加载失败');
       } finally {
         setLoading(false);
       }

@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { getDb, storage } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { DELETION_PERIOD_DAYS } from '@/lib/constants';
 
 /**
  * Cleanup Cron Job API
  * Automatically deletes articles that have been in pending_deletion status for more than 30 days
- * 
+ *
  * This should be called periodically (e.g., daily) by a cron scheduler
  */
-
-const DELETION_PERIOD_DAYS = 30;
 
 export async function POST(req: NextRequest) {
   try {
@@ -51,10 +49,9 @@ export async function POST(req: NextRequest) {
             await db.del(`file:articles/${id}.md`);
             deleted.push(id);
           }
-        }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        errors.push(`Error processing article ${id}: ${error.message}`);
+      }
+      } catch (error: unknown) {
+      errors.push(`Error processing article ${id}: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 
@@ -64,13 +61,12 @@ export async function POST(req: NextRequest) {
       deleted,
       errors,
       timestamp: new Date().toISOString(),
-    });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    console.error('Cleanup cron error:', error);
-    return NextResponse.json({ 
-      error: 'Internal server error', 
-      details: error.message 
+  });
+  } catch (error: unknown) {
+  console.error('Cleanup cron error:', error);
+  return NextResponse.json({
+  error: 'Internal server error',
+  details: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }
 }
@@ -118,13 +114,12 @@ export async function GET() {
       expiringSoon,
       expired,
       deletionPeriodDays: DELETION_PERIOD_DAYS,
-    });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    console.error('Cleanup stats error:', error);
-    return NextResponse.json({ 
-      error: 'Internal server error', 
-      details: error.message 
+  });
+  } catch (error: unknown) {
+  console.error('Cleanup stats error:', error);
+  return NextResponse.json({
+  error: 'Internal server error',
+  details: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }
 }

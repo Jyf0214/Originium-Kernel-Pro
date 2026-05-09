@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Button, Input, Form, message } from 'antd';
+import { showError } from '@/lib/error';
 import { ChevronRight, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
 import AuthCard from '@/components/AuthCard';
@@ -13,8 +14,7 @@ export default function ForgotPasswordPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [sentEmail, setSentEmail] = useState('');
   const [form] = Form.useForm();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const inputRef = useRef<any>(null);
+  const inputRef = useRef<React.ComponentRef<typeof Input>>(null);
   const { t } = useI18n();
 
   useEffect(() => { inputRef.current?.focus(); }, []);
@@ -34,11 +34,10 @@ export default function ForgotPasswordPage() {
         setEmailSent(true);
         message.success(t('auth.resetLinkSent'));
       } else {
-        message.error(data.error || t('auth.resetLinkFailed'));
+        showError(data.error || t('auth.resetLinkFailed'));
       }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      message.error(t('auth.resetLinkFailed'));
+  } catch {
+    showError(t('auth.resetLinkFailed'));
     } finally {
       setLoading(false);
     }

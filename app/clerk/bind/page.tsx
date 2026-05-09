@@ -5,8 +5,8 @@ import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 
 import { Navbar } from '@/components/Navbar';
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Button, Input, Form, message, Steps } from 'antd';
+  import { Button, Input, Steps, message } from 'antd';
+import { showError } from '@/lib/error';
 import { Mail, Shield, KeyRound, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 /**
@@ -20,14 +20,13 @@ export default function ClerkBindPage() {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [codeSent, setCodeSent] = useState(false);
+  const [, setCodeSent] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
   /** 发送验证码 */
   const handleSendCode = async () => {
     if (!email.includes('@')) {
-      message.error('请输入有效的邮箱地址');
+      showError('请输入有效的邮箱地址');
       return;
     }
     setLoading(true);
@@ -51,10 +50,10 @@ export default function ClerkBindPage() {
           });
         }, 1000);
       } else {
-        message.error(data.error || '发送失败');
+        showError(data.error || '发送失败');
       }
     } catch {
-      message.error('网络错误');
+      showError('网络错误');
     } finally {
       setLoading(false);
     }
@@ -63,7 +62,7 @@ export default function ClerkBindPage() {
   /** 验证并绑定 */
   const handleVerifyAndBind = async () => {
     if (!code || code.length < 4) {
-      message.error('请输入验证码');
+      showError('请输入验证码');
       return;
     }
     setLoading(true);
@@ -79,10 +78,10 @@ export default function ClerkBindPage() {
         message.success('账户绑定成功！');
         setTimeout(() => router.push('/dashboard'), 1500);
       } else {
-        message.error(data.error || '验证失败');
+        showError(data.error || '验证失败');
       }
     } catch {
-      message.error('网络错误');
+      showError('网络错误');
     } finally {
       setLoading(false);
     }

@@ -5,6 +5,7 @@ import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Lock, Calendar, Tag } from 'lucide-react';
+import { showError } from '@/lib/error';
 
 interface DiaryItem {
   slug: string;
@@ -44,10 +45,10 @@ export default function DiaryPage() {
             groups: Array.isArray(json.indexes) ? json.indexes : []
           });
         } else {
-          console.error('API response not ok:', res.status);
+			console.error('API response not ok:', res.status); showError('日记列表加载失败');
         }
       } catch (err) {
-        console.error('Failed to fetch diaries:', err);
+			console.error('Failed to fetch diaries:', err); showError('日记列表加载失败');
       } finally {
         setLoading(false);
       }

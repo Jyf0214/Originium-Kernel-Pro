@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { getDraft, saveDraft } from '@/lib/draft-storage';
 
 /**
  * Articles API
@@ -36,8 +37,14 @@ export async function GET() {
       status: 'published',
     }));
 
-    // 草稿：从数据库读取
-    const drafts = await getDraftsFromDb();
+  // 草稿：从数据库读取
+  const drafts = await getDraftsFromDb();
+  for (const draft of drafts) {
+    if (draft.status === 'draft' && !draft.content) {
+      const fileContent = await getDraft(draft.id);
+      draft.content = fileContent || '';
+    }
+  }
 
     // 合并，按日期降序
     const all = [
@@ -119,10 +126,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, id, slug: postSlug });
     }
 
-    // 草稿状态：仅存数据库
-    const db = getDb();
-    await db.set(`article:data:${id}`, JSON.stringify(articleMeta));
-    await db.hset('articles:drafts', id, JSON.stringify(articleMeta));
+  // 草稿状态：正文存文件系统，数据库仅存元数据
+  const db = getDb();
+  if (content) {
+    await saveDraft(id, content);
+  }
+  const draftMeta = { ...articleMeta, content: '' };
+  await db.set(`article:data:${id}`, JSON.stringify(draftMeta));
+  await db.hset('articles:drafts', id, JSON.stringify(draftMeta));
 
     return NextResponse.json({ success: true, id });
   } catch (error) {

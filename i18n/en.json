@@ -92,7 +92,8 @@
     "resendEmail": "Resend",
     "backToLogin": "Back to Login",
     "clerkLogin": "Login with Clerk",
-    "or": "or"
+    "or": "or",
+    "inputVerificationCode": "Please enter verification code"
   },
   "validation": {
     "required": "This field is required",
@@ -169,6 +170,7 @@
     "systemConfig": "System Config",
     "envVariables": "Env Variables",
     "tickets": "Tickets",
+    "diary": "Private Diary",
     "originiumKernel": "Originium Kernel"
   },
   "tickets": {
@@ -350,6 +352,7 @@
     "githubConfigured": "GitHub Configured",
     "githubNotConfigured": "GitHub Not Configured",
     "githubHint": "Please configure GitHub repository and token in environment variables",
+    "pleaseConfigureGithub": "Please configure GitHub first",
     "envVars": "Environment variables to configure:",
     "githubRepoFormat": "Format: username/repository",
     "githubTokenHint": "Personal Access Token with repo permission",
@@ -366,6 +369,10 @@
     "registrationClosedHint": "New users cannot register at this time. Contact the administrator if needed."
   },
   "editor": {
+    "slugPlaceholder": "Article slug (URL-friendly)",
+    "descriptionPlaceholder": "Article description (for SEO)",
+    "updateSuccess": "Update successful",
+    "saveSuccess": "Draft saved",
     "loading": "Loading editor...",
     "back": "Back to article list",
     "saveDraft": "Save Draft",

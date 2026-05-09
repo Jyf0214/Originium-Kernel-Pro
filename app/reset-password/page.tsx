@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Input, Form, message } from 'antd';
+import { showError } from '@/lib/error';
 import { ChevronRight, Lock, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
 import AuthCard from '@/components/AuthCard';
@@ -16,13 +17,12 @@ function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams?.get('token');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const inputRef = useRef<any>(null);
+  const inputRef = useRef<React.ComponentRef<typeof Input>>(null);
   const { t } = useI18n();
 
   useEffect(() => {
     if (!token) {
-      message.error(t('auth.invalidToken'));
+      showError(t('auth.invalidToken'));
       router.push('/login');
     }
     inputRef.current?.focus();
@@ -31,11 +31,11 @@ function ResetPasswordForm() {
   const handleSubmit = async (values: { password: string; confirmPassword: string }) => {
     if (loading || !token) return;
     if (values.password !== values.confirmPassword) {
-      message.error(t('validation.passwordMismatch'));
+      showError(t('validation.passwordMismatch'));
       return;
     }
     if (values.password.length < 6) {
-      message.error(t('validation.passwordTooShort'));
+      showError(t('validation.passwordTooShort'));
       return;
     }
     setLoading(true);
@@ -50,11 +50,10 @@ function ResetPasswordForm() {
         setResetSuccess(true);
         message.success(t('auth.resetSuccess'));
       } else {
-        message.error(data.error || t('auth.resetFailed'));
+        showError(data.error || t('auth.resetFailed'));
       }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      message.error(t('auth.resetFailed'));
+  } catch {
+    showError(t('auth.resetFailed'));
     } finally {
       setLoading(false);
     }

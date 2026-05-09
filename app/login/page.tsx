@@ -3,8 +3,8 @@
 import React, { Suspense, useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Button, Input, Form, Divider, message } from 'antd';
+  import { Button, Input, Form } from 'antd';
+import { showError } from '@/lib/error';
 import { ChevronRight, Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
@@ -25,8 +25,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const { login } = useAuth();
   const [form] = Form.useForm();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const inputRef = useRef<any>(null);
+  const inputRef = useRef<React.ComponentRef<typeof Input>>(null);
   const { t } = useI18n();
 
   const callbackUrl = searchParams?.get('callbackUrl') || '/dashboard';
@@ -42,7 +41,7 @@ function LoginForm() {
       setEmail(values.login);
       setStep('password');
     } catch {
-      message.error(t('auth.loginFailed'));
+      showError(t('auth.loginFailed'));
     } finally {
       setLoading(false);
     }

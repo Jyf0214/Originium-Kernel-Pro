@@ -26,7 +26,8 @@ export default async function proxy(req: NextRequest) {
     const handler = clerkMiddleware(async () => {});
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (handler as any)(req, undefined);
-  } catch {
-    return NextResponse.next();
-  }
+	} catch (error) {
+		console.error('Clerk 中间件加载失败，跳过 Clerk 处理:', error);
+		return NextResponse.next();
+	}
 }

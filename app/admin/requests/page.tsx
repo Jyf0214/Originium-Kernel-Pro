@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { message } from 'antd';
+import { showError } from '@/lib/error';
 import { X, Clock, FileText, Trash2 } from 'lucide-react';
 
 interface Request {
@@ -20,6 +22,7 @@ export default function RequestsPage() {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [operating, setOperating] = useState<string | null>(null);
 
   const hasAccess = userRole === 'sudo' || userRole === 'admin';
 
@@ -47,6 +50,7 @@ export default function RequestsPage() {
   }, [hasAccess]);
 
   const handleApprove = async (request: Request) => {
+    setOperating(request.id);
     try {
       const response = await fetch(`/api/requests/${request.id}`, {
         method: 'PATCH',
@@ -60,13 +64,17 @@ export default function RequestsPage() {
         throw new Error(data.error || '审批失败');
       }
 
+      message.success('已批准删除申请');
       setRequests(requests.filter(req => req.id !== request.id));
     } catch (err) {
-      alert(err instanceof Error ? err.message : '审批失败');
+      showError(err instanceof Error ? err.message : '审批失败');
+    } finally {
+      setOperating(null);
     }
   };
 
   const handleReject = async (id: string) => {
+    setOperating(id);
     try {
       const response = await fetch(`/api/requests/${id}`, {
         method: 'PATCH',
@@ -80,9 +88,12 @@ export default function RequestsPage() {
         throw new Error(data.error || '拒绝失败');
       }
 
+      message.success('已拒绝');
       setRequests(requests.filter(req => req.id !== id));
     } catch (err) {
-      alert(err instanceof Error ? err.message : '拒绝失败');
+      showError(err instanceof Error ? err.message : '拒绝失败');
+    } finally {
+      setOperating(null);
     }
   };
 
@@ -145,14 +156,16 @@ export default function RequestsPage() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleApprove(req)}
-                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
+                          disabled={operating === req.id}
+                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors disabled:opacity-50"
                           title="批准删除"
                         >
                           <Trash2 size={18} />
                         </button>
                         <button
                           onClick={() => handleReject(req.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                          disabled={operating === req.id}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
                           title="拒绝"
                         >
                           <X size={18} />

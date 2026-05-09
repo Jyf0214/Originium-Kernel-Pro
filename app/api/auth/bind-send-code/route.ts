@@ -57,23 +57,14 @@ export async function POST(req: NextRequest) {
             </div>
           `,
         });
-      } catch (mailErr) {
-        console.error('SMTP 发送失败:', mailErr);
-        // SMTP 失败不阻塞流程，开发环境可查看日志
-        if (process.env.NODE_ENV === 'development') {
-  // eslint-disable-next-line no-console
-          console.log(`[DEV] 验证码: ${code} → ${email}`);
-        }
-      }
-    } else {
-      // 未配置 SMTP，开发环境打印验证码
-      if (process.env.NODE_ENV === 'development') {
-  // eslint-disable-next-line no-console
-        console.log(`[DEV] 验证码: ${code} → ${email}`);
-      } else {
-        return NextResponse.json({ error: '邮件服务未配置' }, { status: 500 });
-      }
-    }
+	} catch (mailErr) {
+		console.error('SMTP 发送失败:', mailErr);
+		const message = mailErr instanceof Error ? mailErr.message : String(mailErr);
+		return NextResponse.json({ error: `验证码发送失败: ${message}` }, { status: 500 });
+	}
+	} else {
+		return NextResponse.json({ error: '邮件服务未配置，无法发送验证码' }, { status: 500 });
+	}
 
     return NextResponse.json({ success: true });
   } catch (error) {

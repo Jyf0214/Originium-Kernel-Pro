@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { Trash2, Edit2, Check, X, User } from 'lucide-react';
-import { Button, Tag, Popconfirm, Spin, Select } from 'antd';
+import { Button, Tag, Popconfirm, Spin, Select, message } from 'antd';
+import { showError } from '@/lib/error';
 
 export default function UsersPage() {
   const { userRole } = useAuth();
@@ -14,6 +15,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRole, setEditRole] = useState('');
+  const [operating, setOperating] = useState<string | null>(null);
   const hasAccess = userRole === 'sudo' || userRole === 'admin';
 
   useEffect(() => {
@@ -26,7 +28,8 @@ export default function UsersPage() {
           setUsers(data);
         }
       } catch (error) {
-        console.error('获取用户列表失败:', error);
+		console.error('获取用户列表失败:', error);
+		showError('用户列表加载失败');
       } finally {
         setLoading(false);
       }
@@ -35,32 +38,57 @@ export default function UsersPage() {
   }, [hasAccess]);
 
   const handleUpdateRole = async (id: string) => {
-    try {
-      const targetUser = users.find(u => u.uid === id);
-      if (targetUser?.role === 'sudo' && editRole !== 'sudo') {
-        alert(t('admin.cannotDemoteFirstAdmin'));
-        setEditingId(null);
-        return;
-      }
-  // eslint-disable-next-line no-console
-      console.log(t('admin.updateRole'), id, editRole);
+    const targetUser = users.find(u => u.uid === id);
+    if (targetUser?.role === 'sudo' && editRole !== 'sudo') {
+      message.warning(t('admin.cannotDemoteFirstAdmin'));
       setEditingId(null);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/users/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: editRole }),
+      });
+      if (res.ok) {
+        message.success(t('common.success') || '更新成功');
+        setUsers(users.map(u => u.uid === id ? { ...u, role: editRole } : u));
+      } else {
+        const data = await res.json();
+        showError(data.error || t('admin.updateRoleFailed'));
+      }
     } catch (error) {
-      console.error(t('admin.updateRoleFailed'), error);
+      showError(t('admin.updateRoleFailed'));
+      console.error('更新角色失败:', error);
+    } finally {
+      setEditingId(null);
+      setOperating(null);
     }
   };
 
   const handleDelete = async (id: string) => {
     const targetUser = users.find(u => u.uid === id);
     if (targetUser?.role === 'sudo') {
-      alert(t('admin.cannotDeleteFirstAdmin'));
+      message.warning(t('admin.cannotDeleteFirstAdmin'));
       return;
     }
+    setOperating(id);
     try {
-  // eslint-disable-next-line no-console
-      console.log(t('admin.deleteUser'), id);
+      const res = await fetch(`/api/users/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        message.success(t('common.success') || '删除成功');
+        setUsers(users.filter(u => u.uid !== id));
+      } else {
+        const data = await res.json();
+        showError(data.error || t('admin.deleteUserFailed'));
+      }
     } catch (error) {
-      console.error(t('admin.deleteUserFailed'), error);
+      showError(t('admin.deleteUserFailed'));
+      console.error('删除用户失败:', error);
+    } finally {
+      setOperating(null);
     }
   };
 
@@ -133,18 +161,18 @@ export default function UsersPage() {
                 <div className="col-span-2 flex items-center gap-1 justify-end">
                   {editingId === u.uid ? (
                     <>
-                      <Button size="small" type="text" icon={<Check size={14} className="text-emerald-500" />} onClick={() => handleUpdateRole(u.uid)} />
-                      <Button size="small" type="text" icon={<X size={14} className="text-zinc-400" />} onClick={() => setEditingId(null)} />
+                      <Button size="small" type="text" icon={<Check size={14} className="text-emerald-500" />} onClick={() => handleUpdateRole(u.uid)} disabled={operating === u.uid} />
+                      <Button size="small" type="text" icon={<X size={14} className="text-zinc-400" />} onClick={() => setEditingId(null)} disabled={operating === u.uid} />
                     </>
                   ) : (
                     <>
-                      <Button size="small" type="text" icon={<Edit2 size={14} className="text-blue-500" />} onClick={() => { setEditingId(u.uid); setEditRole(u.role); }} title={t('common.edit')} />
+                      <Button size="small" type="text" icon={<Edit2 size={14} className="text-blue-500" />} onClick={() => { setEditingId(u.uid); setEditRole(u.role); }} disabled={operating === u.uid} title={t('common.edit')} />
                       <Popconfirm
                         title={t('admin.deleteConfirm')}
                         onConfirm={() => handleDelete(u.uid)}
                         okButtonProps={{ danger: true }}
                       >
-                        <Button size="small" type="text" danger icon={<Trash2 size={14} />} title={t('common.delete')} />
+                        <Button size="small" type="text" danger icon={<Trash2 size={14} />} disabled={operating === u.uid} title={t('common.delete')} />
                       </Popconfirm>
                     </>
                   )}

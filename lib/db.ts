@@ -20,8 +20,8 @@ function getDatabaseUrl(): string {
 }
 
 // 创建 Prisma 客户端单例
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const globalForPrisma = globalThis as any as {
+   
+const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
@@ -88,7 +88,7 @@ class PrismaDriver implements IDatabase {
   }
 
   async del(key: string): Promise<void> {
-    await prisma.originiumKV.delete({ where: { key } }).catch(() => {})
+		await prisma.originiumKV.delete({ where: { key } }).catch((error) => { console.error('删除数据库记录失败:', key, error); })
   }
 
   async exists(key: string): Promise<boolean> {
