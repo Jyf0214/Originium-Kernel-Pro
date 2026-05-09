@@ -24,11 +24,13 @@ export async function ensureAdminUser(): Promise<{ created: boolean; error?: str
     return initResult;
   }
 
-  const db = getDb();
+const db = getDb();
+    console.warn('[运行时初始化] 检查管理员是否存在:', { adminEmail, hasPassword: !!adminPassword });
 
-  try {
-    const uid = await db.get(`user:email:${adminEmail}`);
-    if (uid) {
+    try {
+      const uid = await db.get(`user:email:${adminEmail}`);
+      console.warn('[运行时初始化] 查找结果:', { uid });
+      if (uid) {
       initResult = { created: false };
       return initResult;
     }
@@ -53,9 +55,14 @@ export async function ensureAdminUser(): Promise<{ created: boolean; error?: str
       updatedAt: now,
     };
 
+    console.warn('[运行时初始化] 创建管理员:', { newUid, username });
+    
     await db.set(`user:uid:${newUid}`, JSON.stringify(newAdmin));
+    console.warn('[运行时初始化] user:uid 设置成功');
     await db.set(`user:email:${adminEmail}`, newUid);
+    console.warn('[运行时初始化] user:email 设置成功');
     await db.set(`user:username:${username}`, newUid);
+    console.warn('[运行时初始化] user:username 设置成功');
 
     console.error(`[数据库初始化] ✓ 运行时创建管理员: ${adminEmail}`);
     initResult = { created: true };

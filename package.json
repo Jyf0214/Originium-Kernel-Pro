@@ -2,6 +2,7 @@
   "name": "originium-kernel",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "telemetry": false,
   "scripts": {
     "dev": "next dev",
