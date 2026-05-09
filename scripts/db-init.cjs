@@ -2,9 +2,15 @@
 process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS = 'true'
 process.env.PRISMA_HIDE_UPDATE_MESSAGE = 'true'
 
-// 密码哈希函数（与登录API一致）
+const crypto = require('crypto');
+const ITERATIONS = 100000;
+const SALT_LENGTH = 16;
+const KEY_LENGTH = 64;
+
 function hashPassword(password) {
-  return Buffer.from(password).toString('hex').split('').reverse().join('')
+  const salt = crypto.randomBytes(SALT_LENGTH).toString('hex');
+  const hash = crypto.pbkdf2Sync(password, salt, ITERATIONS, KEY_LENGTH, 'sha256').toString('hex');
+  return `${salt}:${hash}`;
 }
 
 async function main() {
@@ -103,9 +109,9 @@ async function main() {
             }
           }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (e) {
-          // 忽略解析错误
-        }
+	} catch (e) {
+			console.error('用户数据解析失败:', record.key, e.message);
+		}
       }
       
       if (!hasAdmin) {
@@ -124,8 +130,6 @@ async function main() {
         
   // eslint-disable-next-line no-console
         console.log(`[数据库初始化] 正在根据环境变量创建初始管理员: ${adminEmail}...`);
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const crypto = require('crypto');
         const hashedPassword = hashPassword(adminPassword);
         const uid = crypto.randomUUID();
         const now = new Date().toISOString();

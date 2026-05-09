@@ -28,9 +28,9 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
         Component: prismMod.default,
         style: stylesMod.vscDarkPlus,
       });
-    }).catch(() => {
-      // 高亮加载失败时静默降级
-    });
+	}).catch((error) => {
+		console.error('代码高亮模块加载失败，降级为普通代码块:', error);
+	});
   }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

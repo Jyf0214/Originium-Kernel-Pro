@@ -5,8 +5,8 @@ import { message } from 'antd';
 import { useI18n } from './use-i18n';
 
 /**
- * Originium Kernel Authentication Hook (Frontend)
- * Calls Backend APIs at /api/auth/*
+ * Originium Kernel 认证 Hook（前端）
+ * 调用后端 /api/auth/* 接口
  * 兼容自定义 JWT 和 Clerk 双认证
  */
 
@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      console.error('Login error:', err);
+      console.error('登录错误:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -125,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      console.error('Register error:', err);
+      console.error('注册错误:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -138,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       message.info(t('common.info'));
     } catch (err) {
-      console.error('Logout error:', err);
+      console.error('登出错误:', err);
     }
   };
 
@@ -164,10 +164,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth 必须在 AuthProvider 内使用');
   }
   return context;
 };
 
-// Compatibility export
-export const useFirebase = useAuth;
+

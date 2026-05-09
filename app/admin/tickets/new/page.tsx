@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
 import { Plus, Trash2, Eye, Code } from 'lucide-react';
 import { Button, message } from 'antd';
+import { showError } from '@/lib/error';
 
 const FIELD_TYPES = [
   { value: 'input', labelKey: 'tickets.typeText' },
@@ -14,8 +15,16 @@ const FIELD_TYPES = [
   { value: 'checkboxes', labelKey: 'tickets.typeSelect' }, // Assuming checkboxes is same as select in i18n for now
 ];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toYamlString(obj: any, indent = 0): string {
+  interface TicketFieldDef {
+  name: string;
+  label: string;
+  type: string;
+  options: string[];
+  required: boolean;
+  [key: string]: unknown;
+}
+
+function toYamlString(obj: Record<string, unknown>, indent = 0): string {
   const pad = '  '.repeat(indent);
   let result = '';
   for (const [key, value] of Object.entries(obj)) {
@@ -28,8 +37,8 @@ function toYamlString(obj: any, indent = 0): string {
           result += `${pad}  - ${item}\n`;
         }
       }
-    } else if (typeof value === 'object' && value !== null) {
-      result += `${pad}${key}:\n${toYamlString(value, indent + 1)}`;
+    } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      result += `${pad}${key}:\n${toYamlString(value as Record<string, unknown>, indent + 1)}`;
     } else {
       result += `${pad}${key}: ${value}\n`;
     }
@@ -49,8 +58,7 @@ export default function NewTicketTemplatePage() {
   const [assignees, setAssignees] = useState<string[]>([]);
   const [labelInput, setLabelInput] = useState('');
   const [assigneeInput, setAssigneeInput] = useState('');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [fields, setFields] = useState<any[]>([{
+  const [fields, setFields] = useState<TicketFieldDef[]>([{
     name: '', label: '', type: 'input', options: [], required: true,
   }]);
   const [body, setBody] = useState('## 描述\n{{description}}\n');
@@ -69,8 +77,7 @@ export default function NewTicketTemplatePage() {
     setFields(fields.filter((_, i) => i !== index));
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateField = (index: number, key: string, value: any) => {
+  const updateField = (index: number, key: string, value: string | boolean | string[]) => {
     const newFields = [...fields];
     newFields[index] = { ...newFields[index], [key]: value };
     setFields(newFields);
@@ -118,7 +125,7 @@ export default function NewTicketTemplatePage() {
 
   const handleSave = async () => {
     if (!name || !body) {
-      message.error(t('tickets.fillNameAndBody'));
+      showError(t('tickets.fillNameAndBody'));
       return;
     }
     setSaving(true);
@@ -135,11 +142,11 @@ export default function NewTicketTemplatePage() {
         router.push('/admin/config');
       } else {
         const err = await res.json();
-        message.error(err.error || t('tickets.saveFailed'));
+        showError(err.error || t('tickets.saveFailed'));
       }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
-      message.error(t('tickets.saveFailed'));
+      showError(t('tickets.saveFailed'));
     } finally {
       setSaving(false);
     }

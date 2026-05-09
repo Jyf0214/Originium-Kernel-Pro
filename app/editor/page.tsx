@@ -5,6 +5,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { Save, Send, ArrowLeft, Image as ImageIcon, XCircle } from 'lucide-react';
+import { message } from 'antd';
+import { showError } from '@/lib/error';
 import Link from 'next/link';
 
 function EditorContent() {
@@ -70,8 +72,8 @@ function EditorContent() {
    * 保存草稿到数据库
    */
   const handleSaveDraft = async () => {
-    if (!user) { alert(t('editor.pleaseLogin')); return; }
-    if (!title.trim() || !content.trim()) { alert(t('editor.titleContentRequired')); return; }
+    if (!user) { message.warning(t('editor.pleaseLogin')); return; }
+    if (!title.trim() || !content.trim()) { message.warning(t('editor.titleContentRequired')); return; }
 
     setLoading(true);
     try {
@@ -95,14 +97,16 @@ function EditorContent() {
         body: JSON.stringify(articleData),
       });
 
-      if (res.ok) {
+if (res.ok) {
+        message.success(articleId ? t('editor.updateSuccess') : t('editor.saveSuccess'));
         router.push('/dashboard/articles');
       } else {
-        alert(t('editor.saveFailed'));
+        const data = await res.json();
+        showError(`${t('editor.saveFailed')}: ${data.error || ''}`);
       }
     } catch (error) {
       console.error(t('editor.saveFailed'), error);
-      alert(t('editor.saveFailed'));
+      showError(t('editor.saveFailed'));
     } finally {
       setLoading(false);
     }
@@ -112,8 +116,8 @@ function EditorContent() {
    * 发布文章：推送到 GitHub posts/ 目录
    */
   const handlePublish = async () => {
-    if (!user) { alert(t('editor.pleaseLogin')); return; }
-    if (!title.trim() || !content.trim()) { alert(t('editor.titleContentRequired')); return; }
+    if (!user) { message.warning(t('editor.pleaseLogin')); return; }
+    if (!title.trim() || !content.trim()) { message.warning(t('editor.titleContentRequired')); return; }
 
     setLoading(true);
     try {
@@ -144,13 +148,14 @@ function EditorContent() {
       const data = await res.json();
 
       if (res.ok) {
+        message.success(t('editor.publishSuccess') || '发布成功');
         router.push('/dashboard/articles');
       } else {
-        alert(data.error || t('editor.saveFailed'));
+        showError(`${t('editor.saveFailed')}: ${data.error || ''}`);
       }
     } catch (error) {
       console.error(t('editor.saveFailed'), error);
-      alert(t('editor.saveFailed'));
+      showError(`${t('editor.saveFailed')}: ${error instanceof Error ? error.message : ''}`);
     } finally {
       setLoading(false);
     }

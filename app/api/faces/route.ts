@@ -2,15 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { loadConfigAsync, canAccess, hasDatabase } from '@/lib/config';
 import { getSession, SessionPayload } from '@/lib/auth';
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { getEnvConfig } from '@/lib/env';
 
 /**
  * 通讯录列表 API
  * 根据认证状态和数据库可用性返回可访问的通讯录条目
  */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function GET(req: NextRequest) {
+export async function GET() {
   const config = await loadConfigAsync();
   const session = await getSession();
   const isAuthenticated = !!session;
@@ -55,8 +52,7 @@ export async function GET(req: NextRequest) {
 /**
  * 检查用户是否有权限管理指定联系人
  */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function canManageFace(session: SessionPayload | null, faceEmail: string, faceSlug: string): boolean {
+function canManageFace(session: SessionPayload | null): boolean {
   if (!session) return false;
   return session.role === 'admin' || session.role === 'sudo';
 }
@@ -141,10 +137,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.error || '创建联系人失败' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, slug: `/${group}/${slug}` });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    console.error('create_face_error:', error.message);
+  return NextResponse.json({ success: true, slug: `/${group}/${slug}` });
+  } catch (error: unknown) {
+  console.error('create_face_error:', error instanceof Error ? error.message : error);
     return NextResponse.json({ error: '创建联系人失败' }, { status: 500 });
   }
 }
@@ -177,9 +172,9 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: '联系人不存在' }, { status: 404 });
     }
 
-    const { sha, email: oldEmail } = fileData;
+    const { sha } = fileData;
 
-    if (!canManageFace(session, oldEmail, slug)) {
+    if (!canManageFace(session)) {
       return NextResponse.json({ error: '无权修改此联系人' }, { status: 403 });
     }
 
@@ -253,10 +248,9 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: error.error || '更新联系人失败' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, slug: `/${group}/${newSlug}` });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    console.error('update_face_error:', error.message);
+  return NextResponse.json({ success: true, slug: `/${group}/${newSlug}` });
+  } catch (error: unknown) {
+  console.error('update_face_error:', error instanceof Error ? error.message : error);
     return NextResponse.json({ error: '更新联系人失败' }, { status: 500 });
   }
 }
@@ -307,10 +301,9 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: error.error || '删除联系人失败' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    console.error('delete_face_error:', error.message);
+  return NextResponse.json({ success: true });
+  } catch (error: unknown) {
+  console.error('delete_face_error:', error instanceof Error ? error.message : error);
     return NextResponse.json({ error: '删除联系人失败' }, { status: 500 });
   }
 }

@@ -21,7 +21,7 @@ function getInitialLocale(): Locale {
     if (savedLocale && translations[savedLocale]) {
       return savedLocale;
     }
-    // Detect from browser
+    // 从浏览器检测语言
     const browserLocale = navigator.language;
     if (browserLocale.startsWith('zh')) return 'zh-CN';
     if (browserLocale.startsWith('en')) return 'en';
@@ -43,7 +43,7 @@ export function useI18n() {
     setLocaleState(newLocale);
     if (typeof window !== 'undefined') {
       localStorage.setItem('locale', newLocale);
-      // Optional: update html lang attribute
+      // 可选：更新 html lang 属性
       document.documentElement.lang = newLocale;
     }
   }, []);

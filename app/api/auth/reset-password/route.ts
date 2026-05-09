@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { sendMail, generateResetEmailHtml, isSmtpConfigured } from '@/lib/mail';
 import { randomBytes } from 'crypto';
-
-function hashPassword(password: string) {
-  return Buffer.from(password).toString('hex').split('').reverse().join('');
-}
+import { hashPassword } from '@/lib/hash';
 
 export async function POST(req: NextRequest) {
   try {
@@ -84,7 +81,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const user = JSON.parse(userStr);
-    user.password = hashPassword(password);
+    user.password = await hashPassword(password);
 
     await db.set(`user:uid:${uid}`, JSON.stringify(user));
     await db.del(`reset:${token}`);

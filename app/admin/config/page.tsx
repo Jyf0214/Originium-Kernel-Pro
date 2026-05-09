@@ -4,12 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { Settings, Github, ExternalLink, CheckCircle, XCircle, Image as ImageIcon, Shield } from 'lucide-react';
-import { Slider, Button, Switch } from 'antd';
+import { Slider, Button, Switch, message } from 'antd';
+import { showError } from '@/lib/error';
+import type { AppearanceConfig } from '@/lib/config';
 
-interface BackgroundConfig {
-  url?: string;
-  opacity?: number;
-}
+type BackgroundConfig = AppearanceConfig['background'];
 
 interface ConfigState {
   siteTitle: string;
@@ -55,8 +54,8 @@ export default function ConfigPage() {
           setConfig({
             siteTitle: data.siteTitle || data.site?.title || 'Originium Kernel',
             siteDescription: data.siteDescription || data.site?.description || '',
-            heroTitleLine1: data.heroTitleLine1 || data.site?.heroTitleLine1 || '书写。同步。',
-            heroTitleLine2: data.heroTitleLine2 || data.site?.heroTitleLine2 || '部署。',
+            heroTitleLine1: data.heroTitleLine1 || data.site?.heroTitleLine1 || '',
+            heroTitleLine2: data.heroTitleLine2 || data.site?.heroTitleLine2 || '',
             background: data.background || data.appearance?.background || { url: '', opacity: 0.8 },
             githubRepo: data.githubRepo || '',
             githubToken: data.githubToken ? '********' : '',
@@ -66,13 +65,14 @@ export default function ConfigPage() {
           setGithubConfigured(!!(data.githubRepo && data.githubToken));
         }
       } catch (error) {
-        console.error('获取配置失败:', error);
+		console.error('获取配置失败:', error);
+		showError(`${t('config.loadFailed')}: ${error instanceof Error ? error.message : ''}`);
       } finally {
         setLoading(false);
       }
     };
     fetchConfig();
-  }, [userRole]);
+  }, [userRole, t]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -91,13 +91,13 @@ export default function ConfigPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        alert(t('config.saveSuccess'));
+        message.success(t('config.saveSuccess'));
       } else {
-        alert(`${t('config.saveFailed')}: ${data.error || '未知错误'}`);
+        showError(`${t('config.saveFailed')}: ${data.error || '未知错误'}`);
       }
     } catch (error) {
       console.error('保存配置失败:', error);
-      alert(`${t('config.saveFailed')}: ${error instanceof Error ? error.message : '未知错误'}`);
+      showError(`${t('config.saveFailed')}: ${error instanceof Error ? error.message : ''}`);
     } finally {
       setSaving(false);
     }

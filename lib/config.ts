@@ -119,9 +119,10 @@ export function loadConfig(): AppConfig {
     } else {
       cachedConfig = { ...defaultConfig };
     }
-  } catch {
-    cachedConfig = { ...defaultConfig };
-  }
+	} catch (error) {
+		console.error('配置文件加载失败，使用默认配置:', error);
+		cachedConfig = { ...defaultConfig };
+	}
   return cachedConfig;
 }
 
@@ -162,9 +163,10 @@ export async function loadConfigAsync(): Promise<AppConfig> {
       access: dbConfig.access ? { ...fileConfig.access, ...dbConfig.access } : fileConfig.access,
       auth: dbConfig.auth ? { ...fileConfig.auth, ...dbConfig.auth } : fileConfig.auth,
     };
-  } catch {
-    return fileConfig;
-  }
+	} catch (error) {
+		console.error('数据库配置加载失败，使用文件配置:', error);
+		return fileConfig;
+	}
 }
 
 /**
@@ -270,9 +272,10 @@ export async function getUserAvatarAsync(uid: string): Promise<string | null> {
     const db = getDb();
     const dbAvatar = await db.get(`user:avatar:${uid}`);
     return dbAvatar || fileAvatar;
-  } catch {
-    return fileAvatar;
-  }
+	} catch (error) {
+		console.error('数据库头像获取失败，使用文件配置:', error);
+		return fileAvatar;
+	}
 }
 
 /**

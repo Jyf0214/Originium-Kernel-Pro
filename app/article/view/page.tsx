@@ -7,6 +7,7 @@ import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { ArrowLeft, User, Calendar, Tag } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { showError } from '@/lib/error';
 
 /**
  * 文章查看页 — 通过 API 获取内容
@@ -29,7 +30,8 @@ function ArticleViewContent() {
           setArticle(data);
         }
       } catch (error) {
-        console.error('Fetch article error:', error);
+		console.error('Fetch article error:', error);
+		showError('文章加载失败');
       } finally {
         setLoading(false);
       }

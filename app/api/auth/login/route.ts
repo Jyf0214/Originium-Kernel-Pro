@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { createSession } from '@/lib/auth';
 import { getUserAvatarAsync } from '@/lib/config';
-
-function hashPassword(password: string) {
-  return Buffer.from(password).toString('hex').split('').reverse().join('');
-}
+import { verifyPassword, verifyLegacyPassword, hashPassword } from '@/lib/hash';
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,11 +36,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '用户数据异常' }, { status: 500 });
     }
 
-    const user = JSON.parse(userStr);
-    const hashedPassword = hashPassword(password);
-    if (user.password !== hashedPassword) {
-      return NextResponse.json({ error: '账号或密码错误' }, { status: 401 });
+  const user = JSON.parse(userStr);
+  const isNewHash = user.password.includes(':');
+  const passwordMatch = isNewHash
+    ? await verifyPassword(password, user.password)
+    : verifyLegacyPassword(password, user.password);
+
+  if (!passwordMatch) {
+    return NextResponse.json({ error: '账号或密码错误' }, { status: 401 });
+  }
+
+  if (!isNewHash) {
+    try {
+      user.password = await hashPassword(password);
+      await db.set(`user:uid:${user.uid}`, JSON.stringify(user));
+    } catch {
+      console.error('密码哈希升级失败:', user.uid);
     }
+  }
 
     const avatar = await getUserAvatarAsync(user.uid);
 

@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, Clock, AlertCircle, Save } from 'lucide-react';
 import { Button, Spin, message } from 'antd';
+import { showError } from '@/lib/error';
 import { useI18n } from '@/hooks/use-i18n';
 
 interface Ticket {
@@ -39,7 +40,8 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
         setNewStatus(data.status || 'open');
       }
     } catch (error) {
-      console.error('Failed to fetch ticket:', error);
+		console.error('Failed to fetch ticket:', error);
+		showError('工单详情加载失败');
     } finally {
       setLoading(false);
     }
@@ -71,11 +73,11 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
         setTicket({ ...ticket, status: newStatus });
         message.success(t('common.success'));
       } else {
-        message.error(t('common.error'));
+        showError(t('common.error'));
       }
     } catch (error) {
-      console.error('Failed to update status:', error);
-      message.error(t('common.error'));
+		console.error('Failed to update status:', error);
+		showError('工单状态更新失败');
     } finally {
       setSaving(false);
     }

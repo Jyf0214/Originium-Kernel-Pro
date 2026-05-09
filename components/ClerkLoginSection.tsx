@@ -11,8 +11,7 @@ import { Button } from 'antd';
  * variant="compact": 用于导航栏，紧凑按钮
  */
 export function ClerkLoginSection({ variant = 'full' }: { variant?: 'full' | 'compact' }) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { openSignIn } = useClerk();
+  useClerk();
 
   if (variant === 'compact') {
     return (

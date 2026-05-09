@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession, requireAdmin } from '@/lib/auth';
+import { DELETION_PERIOD_DAYS } from '@/lib/constants';
 
 /**
  * Recycle Bin API
@@ -8,8 +9,6 @@ import { getSession, requireAdmin } from '@/lib/auth';
  * - POST: Restore an article
  * - DELETE: Permanently delete an article
  */
-
-const DELETION_PERIOD_DAYS = 30;
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
@@ -71,7 +70,7 @@ export async function GET(req: NextRequest) {
  * Restore an article from recycle bin
  */
 export async function POST(req: NextRequest) {
-  const session = await requireAdmin(req);
+  const session = await requireAdmin();
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {

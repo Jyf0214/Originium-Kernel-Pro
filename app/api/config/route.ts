@@ -6,6 +6,22 @@ import { getFileFromGithub } from '@/lib/github';
 import yaml from 'js-yaml';
 import { getDb } from '@/lib/db';
 
+interface YamlConfig {
+  siteTitle?: string;
+  siteDescription?: string;
+  heroTitleLine1?: string;
+  heroTitleLine2?: string;
+  background?: unknown;
+  customCSS?: string;
+  customHead?: string;
+  access?: {
+    posts?: Record<string, unknown>;
+    faces?: Record<string, unknown>;
+    diary?: Record<string, unknown>;
+  };
+  auth?: unknown;
+}
+
 /**
  * System Configuration API
  *
@@ -124,8 +140,8 @@ export async function PUT() {
     if (!remote) {
       return NextResponse.json({ error: 'config.yaml 不存在' }, { status: 404 });
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const parsed = yaml.load(remote.content) as any;
+    // yaml 解析结果结构取决于配置文件格式
+    const parsed = yaml.load(remote.content) as YamlConfig;
     const currentConfig = await loadConfigAsync();
 
     // 从 GitHub YAML 合并到当前配置

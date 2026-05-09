@@ -19,8 +19,9 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   transpilePackages: ['motion'],
   turbopack: {},
+  // webpack 配置对象由 Next.js 注入，类型为 any（外部接口）
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  webpack: (config: any, {dev}: any) => {
+  webpack: (config: any, {dev}: {dev?: boolean}) => {
     // 在 AI Studio 中通过 DISABLE_HMR 环境变量禁用 HMR
     if (dev && process.env.DISABLE_HMR === 'true') {
       config.watchOptions = {

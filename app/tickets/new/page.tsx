@@ -5,7 +5,17 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { Button, Input, message } from 'antd';
+import { showError } from '@/lib/error';
 import { useI18n } from '@/hooks/use-i18n';
+
+interface TicketField {
+  name: string;
+  label: string;
+  type: string;
+  required: boolean;
+  options?: string[];
+  [key: string]: unknown;
+}
 
 interface TicketTemplate {
   slug: string;
@@ -13,8 +23,7 @@ interface TicketTemplate {
   description: string;
   title: string;
   labels: string[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  fields: any[];
+  fields: TicketField[];
 }
 
 export default function NewTicketPage() {
@@ -32,7 +41,7 @@ export default function NewTicketPage() {
     fetch('/api/ticket-templates')
       .then(res => res.json())
       .then(data => setTemplates(data))
-      .catch(err => console.error('Failed to fetch templates:', err));
+		.catch(err => { console.error('Failed to fetch templates:', err); showError('工单模板加载失败'); });
   }, [user, router]);
 
   const handleTemplateSelect = (template: TicketTemplate) => {
@@ -47,7 +56,7 @@ export default function NewTicketPage() {
       .filter(f => f.required && !formData[f.name])
       .map(f => f.label);
     if (missingFields.length > 0) {
-      message.error(t('tickets.fillRequired', { fields: missingFields.join(', ') }));
+      showError(t('tickets.fillRequired', { fields: missingFields.join(', ') }));
       return;
     }
     setSubmitting(true);
@@ -61,11 +70,11 @@ export default function NewTicketPage() {
         message.success(t('tickets.createSuccess'));
         router.push('/tickets');
       } else {
-        message.error(t('tickets.createFailed'));
+        showError(t('tickets.createFailed'));
       }
     } catch (error) {
-      console.error('Failed to create ticket:', error);
-      message.error(t('tickets.createFailed'));
+		console.error('Failed to create ticket:', error);
+		showError(t('tickets.createFailed') || '工单创建失败');
     } finally {
       setSubmitting(false);
     }

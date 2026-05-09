@@ -4,9 +4,12 @@ import React from 'react';
 import { Navbar } from '@/components/Navbar';
 import { FacesListClient, type FaceItem, type GroupItem } from './FacesListClient';
 import { useI18n } from '@/hooks/use-i18n';
+import { Spin } from 'antd';
+import { showError } from '@/lib/error';
 
 export default function FacesPage() {
   const [data, setData] = React.useState<{faces: FaceItem[], groups: GroupItem[]}>({faces: [], groups: []});
+  const [loading, setLoading] = React.useState(true);
   const { t } = useI18n();
 
   React.useEffect(() => {
@@ -15,19 +18,34 @@ export default function FacesPage() {
         const res = await fetch('/api/faces');
         if (res.ok) {
           const json = await res.json();
-          setData({
-            faces: Array.isArray(json.faces) ? json.faces : [],
-            groups: Array.isArray(json.indexes) ? json.indexes : []
-          });
-        } else {
-          console.error('API response not ok:', res.status);
-        }
-      } catch (err) {
-        console.error('Failed to fetch faces:', err);
+        setData({
+          faces: Array.isArray(json.faces) ? json.faces : [],
+          groups: Array.isArray(json.indexes) ? json.indexes : []
+        });
+      } else {
+        console.error('API response not ok:', res.status);
+        showError('通讯录加载失败');
       }
+    } catch (err) {
+      console.error('Failed to fetch faces:', err);
+      showError('通讯录加载失败');
+    } finally {
+      setLoading(false);
+    }
     };
     fetchData();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#f8f8f8]">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <Spin size="large" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8f8f8]">

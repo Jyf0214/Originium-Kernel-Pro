@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { Save, Trash2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { Input, Button, Form, message, Popconfirm } from 'antd';
+import { Input, Button, Form, Popconfirm, message } from 'antd';
+import { showError } from '@/lib/error';
 import { useI18n } from '@/hooks/use-i18n';
 
 interface GroupItem {
@@ -29,6 +30,14 @@ interface FaceFormProps {
   isEdit?: boolean;
 }
 
+interface FormValues {
+  name: string;
+  email: string;
+  phone: string;
+  group: string;
+  content: string;
+}
+
 export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
   const router = useRouter();
   const [form] = Form.useForm();
@@ -48,12 +57,10 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
     }
   }, [faceData, form]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: FormValues) => {
     setLoading(true);
     try {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const payload: any = {
+      const payload: FormValues & { slug?: string } = {
         name: values.name,
         email: values.email,
         phone: values.phone,
@@ -80,15 +87,14 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        message.error(data.error || t('common.error'));
+        showError(data.error || t('common.error'));
         return;
       }
 
       message.success(isEdit ? t('common.success') : t('common.success'));
       router.push(`/faces${data.slug || faceData?.slug}`);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      message.error(error.message || t('common.error'));
+    } catch (error: unknown) {
+      showError(error instanceof Error ? error.message : t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -107,15 +113,14 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        message.error(data.error || t('common.error'));
+        showError(data.error || t('common.error'));
         return;
       }
 
       message.success(t('common.success'));
       router.push('/faces');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      message.error(error.message || t('common.error'));
+    } catch (error: unknown) {
+      showError(error instanceof Error ? error.message : t('common.error'));
     } finally {
       setDeleteLoading(false);
     }

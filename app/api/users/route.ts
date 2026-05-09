@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { getSession, requireSudo } from '@/lib/auth';
+  import { getSession } from '@/lib/auth';
 
 /**
  * Users API

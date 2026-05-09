@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { Plus, Search } from 'lucide-react';
 import { Input, Tag, Spin, Popconfirm, message } from 'antd';
+import { showError } from '@/lib/error';
 
 interface ArticleItem {
   id: string;
@@ -30,6 +31,7 @@ export default function ArticlesPage() {
   const [articles, setArticles] = useState<ArticleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [operating, setOperating] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -44,15 +46,17 @@ export default function ArticlesPage() {
           setArticles(filtered);
         }
       } catch (error) {
-        console.error('获取文章列表失败:', error);
+		console.error('获取文章列表失败:', error);
+		showError(t('common.error') || '文章列表加载失败');
       } finally {
         setLoading(false);
       }
     };
     fetchArticles();
-  }, [user, isRecycleBin]);
+  }, [user, isRecycleBin, t]);
 
   const handleDelete = async (id: string) => {
+    setOperating(id);
     try {
       const res = await fetch(`/api/articles/${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -60,11 +64,14 @@ export default function ArticlesPage() {
         message.success(t('common.success'));
       }
     } catch {
-      message.error(t('common.error'));
+      showError(t('common.error'));
+    } finally {
+      setOperating(null);
     }
   };
 
   const handleRestore = async (id: string) => {
+    setOperating(id);
     try {
       const res = await fetch(`/api/articles/${id}`, {
         method: 'PATCH',
@@ -76,7 +83,9 @@ export default function ArticlesPage() {
         message.success(t('common.success'));
       }
     } catch {
-      message.error(t('common.error'));
+      showError(t('common.error'));
+    } finally {
+      setOperating(null);
     }
   };
 
@@ -161,25 +170,26 @@ export default function ArticlesPage() {
                 {/* 右侧：按钮 */}
                 <div className="flex items-center gap-1 shrink-0">
                   {isRecycleBin ? (
-                    <>
-                      <button
-                        onClick={() => handleRestore(article.id)}
-                        className="px-3 py-1.5 text-xs font-medium text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                      >
-                        {t('common.restore')}
-                      </button>
-                      <Popconfirm
-                        title={t('article.permanentlyDeleteConfirm')}
-                        onConfirm={() => handleDelete(article.id)}
-                        okText={t('common.delete')}
-                        cancelText={t('common.cancel')}
-                        okButtonProps={{ danger: true }}
-                      >
-                        <button className="px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                          {t('common.delete')}
-                        </button>
-                      </Popconfirm>
-                    </>
+      <>
+        <button
+          onClick={() => handleRestore(article.id)}
+          disabled={operating === article.id}
+          className="px-3 py-1.5 text-xs font-medium text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {t('common.restore')}
+        </button>
+        <Popconfirm
+          title={t('article.permanentlyDeleteConfirm')}
+          onConfirm={() => handleDelete(article.id)}
+          okText={t('common.delete')}
+          cancelText={t('common.cancel')}
+          okButtonProps={{ danger: true }}
+        >
+          <button disabled={operating === article.id} className="px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            {t('common.delete')}
+          </button>
+        </Popconfirm>
+      </>
                   ) : (
                     <>
                       {article.status === 'published' && article.slug && (
@@ -189,22 +199,22 @@ export default function ArticlesPage() {
                           </button>
                         </Link>
                       )}
-                      <Link href={`/editor?id=${article.id}`}>
-                        <button className="px-3 py-1.5 text-xs font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 rounded-lg transition-colors">
-                          {t('common.edit')}
-                        </button>
-                      </Link>
-                      <Popconfirm
-                        title={t('article.deleteConfirm')}
-                        onConfirm={() => handleDelete(article.id)}
-                        okText={t('common.delete')}
-                        cancelText={t('common.cancel')}
-                        okButtonProps={{ danger: true }}
-                      >
-                        <button className="px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors">
-                          {t('common.delete')}
-                        </button>
-                      </Popconfirm>
+            <Link href={`/editor?id=${article.id}`}>
+              <button disabled={operating === article.id} className="px-3 py-1.5 text-xs font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 rounded-lg transition-colors disabled:opacity-50">
+                {t('common.edit')}
+              </button>
+            </Link>
+            <Popconfirm
+              title={t('article.deleteConfirm')}
+              onConfirm={() => handleDelete(article.id)}
+              okText={t('common.delete')}
+              cancelText={t('common.cancel')}
+              okButtonProps={{ danger: true }}
+            >
+              <button disabled={operating === article.id} className="px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                {t('common.delete')}
+              </button>
+            </Popconfirm>
                     </>
                   )}
                 </div>

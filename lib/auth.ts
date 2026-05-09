@@ -1,13 +1,24 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { SESSION_EXPIRY_MS, SESSION_EXPIRY } from '@/lib/constants';
 
 /**
- * Authentication logic for Originium Kernel (Serverless/Edge)
+ * Originium Kernel 认证逻辑（Serverless/Edge）
  */
 
 const SECRET = new TextEncoder().encode(
-  process.env.AUTH_SECRET || 'fallback-secret-at-least-32-chars-long'
+  (() => {
+    const secret = process.env.AUTH_SECRET;
+    if (!secret) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('AUTH_SECRET 环境变量未配置，生产环境必须设置');
+      }
+      console.warn('⚠️ AUTH_SECRET 未配置，使用不安全的默认值，请尽快设置环境变量');
+      return 'fallback-secret-at-least-32-chars-long';
+    }
+    return secret;
+  })()
 );
 
 export interface SessionPayload {
@@ -18,7 +29,7 @@ export interface SessionPayload {
 }
 
 /**
- * Generate UID (WID)
+ * 生成 UID
  */
 export function generateUID(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
@@ -27,14 +38,14 @@ export function generateUID(): string {
 }
 
 /**
- * Create a new session JWT
+ * 创建新的会话 JWT
  */
 export async function createSession(payload: SessionPayload) {
-  const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+  const expires = new Date(Date.now() + SESSION_EXPIRY_MS);
   const session = await new SignJWT({ ...payload })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('7d')
+    .setExpirationTime(SESSION_EXPIRY)
     .sign(SECRET);
 
   (await cookies()).set('session', session, {
@@ -49,7 +60,7 @@ export async function createSession(payload: SessionPayload) {
 }
 
 /**
- * Get current session from cookies
+ * 从 Cookie 获取当前会话
  */
 export async function getSession(): Promise<SessionPayload | null> {
   const session = (await cookies()).get('session')?.value;
@@ -59,26 +70,24 @@ export async function getSession(): Promise<SessionPayload | null> {
     const { payload } = await jwtVerify(session, SECRET, {
       algorithms: ['HS256'],
     });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return payload as any as SessionPayload;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (err) {
-    return null;
-  }
+    return payload as unknown as SessionPayload;
+	} catch (err) {
+		console.error('会话验证失败:', err);
+		return null;
+	}
 }
 
 /**
- * Delete current session
+ * 删除当前会话
  */
 export async function deleteSession() {
   (await cookies()).delete('session');
 }
 
 /**
- * Middleware helper to protect routes
+ * 中间件辅助：保护路由
  */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function verifyAuth(req: NextRequest) {
+export async function verifyAuth() {
   const session = await getSession();
   if (!session) {
     return { authenticated: false, session: null };
@@ -87,49 +96,46 @@ export async function verifyAuth(req: NextRequest) {
 }
 
 /**
- * Permission Middleware - Require Authentication
+ * 权限中间件 — 需要登录
  */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function requireAuth(req: NextRequest) {
+export async function requireAuth() {
   const session = await getSession();
   if (!session) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+return NextResponse.json({ error: '需要登录' }, { status: 401 });
   }
   return session;
 }
 
 /**
- * Permission Middleware - Require Admin or Sudo role
+ * 权限中间件 — 需要管理员或超级管理员角色
  */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function requireAdmin(req: NextRequest) {
+export async function requireAdmin() {
   const session = await getSession();
   if (!session) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    return NextResponse.json({ error: '需要登录' }, { status: 401 });
   }
   if (session.role !== 'admin' && session.role !== 'sudo') {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    return NextResponse.json({ error: '需要管理员权限' }, { status: 403 });
   }
   return session;
 }
 
 /**
- * Permission Middleware - Require Sudo role only
+ * 权限中间件 — 仅限超级管理员
  */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function requireSudo(req: NextRequest) {
+export async function requireSudo() {
   const session = await getSession();
   if (!session) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    return NextResponse.json({ error: '需要登录' }, { status: 401 });
   }
   if (session.role !== 'sudo') {
-    return NextResponse.json({ error: 'Sudo access required' }, { status: 403 });
+    return NextResponse.json({ error: '需要超级管理员权限' }, { status: 403 });
   }
   return session;
 }
 
 /**
- * Check if user has specific role
+ * 检查用户是否拥有指定角色
  */
 export function hasRole(session: SessionPayload | null, roles: Array<'user' | 'admin' | 'sudo'>): boolean {
   if (!session) return false;
