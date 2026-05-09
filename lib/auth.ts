@@ -7,19 +7,27 @@ import { SESSION_EXPIRY_MS, SESSION_EXPIRY } from '@/lib/constants';
  * Originium Kernel 认证逻辑（Serverless/Edge）
  */
 
-const SECRET = new TextEncoder().encode(
-  (() => {
-    const secret = process.env.AUTH_SECRET;
-    if (!secret) {
-      if (process.env.NODE_ENV === 'production') {
-        throw new Error('AUTH_SECRET 环境变量未配置，生产环境必须设置');
-      }
-      console.warn('⚠️ AUTH_SECRET 未配置，使用不安全的默认值，请尽快设置环境变量');
-      return 'fallback-secret-at-least-32-chars-long';
+function getSecret(): string {
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('AUTH_SECRET 环境变量未配置，生产环境必须设置');
     }
-    return secret;
-  })()
-);
+    console.warn('⚠️ AUTH_SECRET 未配置，使用不安全的默认值，请尽快设置环境变量');
+    return 'fallback-secret-at-least-32-chars-long';
+  }
+  return secret;
+}
+
+let _secret: Uint8Array | null = null;
+function getSecretEncoder(): Uint8Array {
+  if (!_secret) {
+    _secret = new TextEncoder().encode(getSecret());
+  }
+  return _secret;
+}
+
+export { getSecretEncoder as getSecretEncoder };
 
 export interface SessionPayload {
   uid: string;
@@ -46,7 +54,7 @@ export async function createSession(payload: SessionPayload) {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(SESSION_EXPIRY)
-    .sign(SECRET);
+    .sign(getSecretEncoder());
 
   (await cookies()).set('session', session, {
     expires,
@@ -67,7 +75,7 @@ export async function getSession(): Promise<SessionPayload | null> {
   if (!session) return null;
 
   try {
-    const { payload } = await jwtVerify(session, SECRET, {
+    const { payload } = await jwtVerify(session, getSecretEncoder(), {
       algorithms: ['HS256'],
     });
     return payload as unknown as SessionPayload;
