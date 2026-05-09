@@ -167,8 +167,7 @@ async function main() {
     }
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { PrismaClient } = require('@prisma/client')
+      const { PrismaClient } = await import('@prisma/client')
       const prisma = new PrismaClient()
 
       // 检查并删除 GitHub 同步成功标志
