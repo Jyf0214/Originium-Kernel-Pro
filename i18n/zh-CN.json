@@ -171,7 +171,8 @@
     "envVariables": "环境变量",
     "tickets": "工单",
     "diary": "私密日记",
-    "originiumKernel": "Originium Kernel"
+    "originiumKernel": "Originium Kernel",
+    "configPreview": "配置预览"
   },
   "tickets": {
     "add": "添加",

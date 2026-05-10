@@ -171,7 +171,8 @@
     "envVariables": "Env Variables",
     "tickets": "Tickets",
     "diary": "Private Diary",
-    "originiumKernel": "Originium Kernel"
+    "originiumKernel": "Originium Kernel",
+    "configPreview": "Config Preview"
   },
   "tickets": {
     "add": "Add",
