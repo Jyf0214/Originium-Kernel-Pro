@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { createSession } from '@/lib/auth';
 import { getUserAvatarAsync } from '@/lib/config';
-import { verifyPassword, verifyLegacyPassword, hashPassword } from '@/lib/hash';
+import { verifyPassword, verifyLegacyPassword, hashPassword, debugHashPassword } from '@/lib/hash';
 import { ensureAdminUser } from '@/lib/db-init';
 
 export async function POST(req: NextRequest) {
@@ -61,14 +61,22 @@ export async function POST(req: NextRequest) {
     const user = JSON.parse(userStr);
     console.warn('[登录] 用户找到:', { uid: user.uid, email: user.email, hasPassword: !!user.password, isNewHash: user.password.includes(':') });
     
-    const isNewHash = user.password.includes(':');
+const isNewHash = user.password.includes(':');
+    const [saltHex, expectedHashHex] = user.password.split(':');
+    
     const passwordMatch = isNewHash
       ? await verifyPassword(password, user.password)
       : verifyLegacyPassword(password, user.password);
     
-    console.warn('[登录] 密码验证:', { passwordMatch, isNewHash });
+    console.warn('[登录] 密码验证结果:', { passwordMatch, isNewHash });
     console.warn('[登录] 数据库存储的哈希:', user.password);
     console.warn('[登录] 输入密码:', password, '长度:', password?.length);
+    console.warn('[登录] Salt:', saltHex);
+    console.warn('[登录] 期望哈希:', expectedHashHex);
+    
+    const debugComputed = await debugHashPassword(password, saltHex);
+    console.warn('[登录] 用数据库 salt 重新计算的哈希:', debugComputed);
+    console.warn('[登录] 是否匹配:', debugComputed === user.password);
 
   if (!passwordMatch) {
     return NextResponse.json({ error: '账号或密码错误' }, { status: 401 });
