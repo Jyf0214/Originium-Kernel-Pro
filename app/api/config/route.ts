@@ -18,7 +18,21 @@ import { getDb } from '@/lib/db';
  */
 export async function GET() {
   const config = await loadConfigAsync();
-  return NextResponse.json(config);
+  const githubRepo = process.env.GITHUB_REPO;
+  const githubToken = process.env.GITHUB_TOKEN;
+
+  const response: typeof config & { _githubRepo?: string; _githubToken?: string } = {
+    ...config,
+  };
+
+  if (githubRepo) {
+    response._githubRepo = githubRepo;
+  }
+  if (githubToken) {
+    response._githubToken = '***';
+  }
+
+  return NextResponse.json(response);
 }
 
 export async function POST(req: NextRequest) {

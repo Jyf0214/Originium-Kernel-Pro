@@ -146,7 +146,7 @@ export default function ConfigPage() {
             },
             auth: data.auth || { allowRegistration: true },
           });
-          setGithubConfigured(!!(data._githubRepo && data._githubToken));
+          setGithubConfigured(!!(githubRepo && githubToken));
 
           if (githubRepo && githubToken) {
             const remote = await getFileFromGithub(githubRepo, githubToken, 'config.json');
