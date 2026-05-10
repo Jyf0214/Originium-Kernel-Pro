@@ -2,7 +2,6 @@
   "cloudFunctions": {
     "nodejs": {
       "externalNodeModules": [
-        "@lobehub/ui",
         "antd",
         "@ant-design/icons",
         "antd-style",
@@ -11,4 +10,6 @@
         "react-syntax-highlighter"
       ]
     }
+  }
+}
   }
