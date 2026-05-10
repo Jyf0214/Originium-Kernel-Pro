@@ -4,6 +4,15 @@ import React from 'react';
 import { Spin } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
 
+type LoadingType = 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
+type LoadingPosition = 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+
+interface LoadingConfig {
+  type: LoadingType;
+  color: string;
+  position?: LoadingPosition;
+}
+
 interface LoadingProps {
   size?: 'small' | 'default' | 'large';
   tip?: string;
@@ -172,18 +181,16 @@ export function LoadingAntIcon({ size = 'large', tip, color = '#c084fc', positio
   );
 }
 
-import { loadConfig } from '@/lib/config';
-
-type LoadingType = 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
-
 interface GlobalLoadingProps extends LoadingProps {
   type?: LoadingType;
   forNavigation?: boolean;
+  loadingConfig?: {
+    page?: LoadingConfig;
+    navigation?: { type: LoadingType; color: string };
+  };
 }
 
-export function GlobalLoading({ type, size, tip, color, position = 'center', forNavigation }: GlobalLoadingProps) {
-  const config = loadConfig();
-  const loadingConfig = config.appearance?.loading;
+export function GlobalLoading({ type, size, tip, color, position = 'center', forNavigation, loadingConfig }: GlobalLoadingProps) {
 
   let finalType, finalColor, finalPosition;
 

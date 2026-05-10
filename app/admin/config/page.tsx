@@ -3,37 +3,99 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
-import { Settings, Github, ExternalLink, CheckCircle, XCircle, Image as ImageIcon, Shield } from 'lucide-react';
-import { Slider, Button, Switch, message } from 'antd';
+import { Settings, Github, CheckCircle, XCircle, Image as ImageIcon, Shield, Loader2 } from 'lucide-react';
+import { Slider, Button, Switch, message, Select, ColorPicker } from 'antd';
 import { showError } from '@/lib/error';
 import { GlobalLoading } from '@/components/Loading';
-import type { AppearanceConfig } from '@/lib/config';
+import { updateFileInGithub } from '@/lib/github';
+import type { Color } from 'antd/es/color-picker';
 
-type BackgroundConfig = AppearanceConfig['background'];
+type LoadingType = 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
+type LoadingPosition = 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+
+const loadingTypeOptions = [
+  { value: 'spinner', label: '环形加载 (spinner)' },
+  { value: 'antd', label: 'Ant Design 图标 (antd)' },
+  { value: 'text', label: '文字动画 (text)' },
+  { value: 'dots', label: '三色弹跳 (dots)' },
+  { value: 'glow', label: '光晕渐变 (glow)' },
+  { value: 'waves', label: '波浪动画 (waves)' },
+];
+
+const positionOptions = [
+  { value: 'center', label: '居中' },
+  { value: 'top-left', label: '左上角' },
+  { value: 'top-right', label: '右上角' },
+  { value: 'bottom-left', label: '左下角' },
+  { value: 'bottom-right', label: '右下角' },
+];
 
 interface ConfigState {
-  siteTitle: string;
-  siteDescription: string;
-  heroTitleLine1: string;
-  heroTitleLine2: string;
-  background: BackgroundConfig;
-  githubRepo: string;
-  githubToken: string;
-  allowRegistration: boolean;
+  site: {
+    title: string;
+    description: string;
+    heroTitleLine1: string;
+    heroTitleLine2: string;
+    lang: string;
+  };
+  appearance: {
+    background: {
+      url: string;
+      opacity: number;
+    };
+    customCSS: string;
+    customHead: string;
+    loading?: {
+      page?: {
+        type: LoadingType;
+        color: string;
+        position: LoadingPosition;
+      };
+      navigation?: {
+        type: LoadingType;
+        color: string;
+      };
+    };
+  };
+  access: {
+    posts: { public: string[]; private: string[] };
+    faces: { public: string[]; private: string[] };
+    diary: { public: string[]; private: string[] };
+  };
+  auth: {
+    allowRegistration: boolean;
+    admin?: { avatar?: string };
+  };
 }
 
 export default function ConfigPage() {
   const { userRole } = useAuth();
   const { t } = useI18n();
   const [config, setConfig] = useState<ConfigState>({
-    siteTitle: '',
-    siteDescription: '',
-    heroTitleLine1: '',
-    heroTitleLine2: '',
-    background: { url: '', opacity: 0.8 },
-    githubRepo: '',
-    githubToken: '',
-    allowRegistration: true,
+    site: {
+      title: 'Originium Kernel',
+      description: '现代内容发布平台',
+      heroTitleLine1: '书写。同步。',
+      heroTitleLine2: '部署。',
+      lang: 'zh-CN',
+    },
+    appearance: {
+      background: { url: '', opacity: 0.8 },
+      customCSS: '',
+      customHead: '',
+      loading: {
+        page: { type: 'waves', color: '#c084fc', position: 'center' },
+        navigation: { type: 'antd', color: '#c084fc' },
+      },
+    },
+    access: {
+      posts: { public: ['*'], private: [] },
+      faces: { public: [], private: ['*'] },
+      diary: { public: [], private: ['*'] },
+    },
+    auth: {
+      allowRegistration: true,
+    },
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -41,10 +103,8 @@ export default function ConfigPage() {
 
   useEffect(() => {
     if (userRole !== 'sudo' && userRole !== 'admin') {
-      const timer = setTimeout(() => {
-        setLoading(false);
-      }, 0);
-      return () => clearTimeout(timer);
+      setLoading(false);
+      return;
     }
     const fetchConfig = async () => {
       setLoading(true);
@@ -53,49 +113,59 @@ export default function ConfigPage() {
         if (res.ok) {
           const data = await res.json();
           setConfig({
-            siteTitle: data.siteTitle || data.site?.title || 'Originium Kernel',
-            siteDescription: data.siteDescription || data.site?.description || '',
-            heroTitleLine1: data.heroTitleLine1 || data.site?.heroTitleLine1 || '',
-            heroTitleLine2: data.heroTitleLine2 || data.site?.heroTitleLine2 || '',
-            background: data.background || data.appearance?.background || { url: '', opacity: 0.8 },
-            githubRepo: data.githubRepo || '',
-            githubToken: data.githubToken ? '********' : '',
-            allowRegistration: data.auth?.allowRegistration !== false,
+            site: {
+              title: data.site?.title || 'Originium Kernel',
+              description: data.site?.description || '',
+              heroTitleLine1: data.site?.heroTitleLine1 || '',
+              heroTitleLine2: data.site?.heroTitleLine2 || '',
+              lang: data.site?.lang || 'zh-CN',
+            },
+            appearance: {
+              background: data.appearance?.background || { url: '', opacity: 0.8 },
+              customCSS: data.appearance?.customCSS || '',
+              customHead: data.appearance?.customHead || '',
+              loading: data.appearance?.loading || {
+                page: { type: 'waves', color: '#c084fc', position: 'center' },
+                navigation: { type: 'antd', color: '#c084fc' },
+              },
+            },
+            access: data.access || {
+              posts: { public: ['*'], private: [] },
+              faces: { public: [], private: ['*'] },
+              diary: { public: [], private: ['*'] },
+            },
+            auth: data.auth || { allowRegistration: true },
           });
-          // 检查 GitHub 是否配置
-          setGithubConfigured(!!(data.githubRepo && data.githubToken));
+          setGithubConfigured(!!(data._githubRepo && data._githubToken));
         }
       } catch (error) {
-		console.error('获取配置失败:', error);
-		showError(`${t('config.loadFailed')}: ${error instanceof Error ? error.message : ''}`);
+        console.error('获取配置失败:', error);
       } finally {
         setLoading(false);
       }
     };
     fetchConfig();
-  }, [userRole, t]);
+  }, [userRole]);
 
   const handleSave = async () => {
+    const githubRepo = process.env.NEXT_PUBLIC_GITHUB_REPO;
+    const githubToken = process.env.GITHUB_TOKEN;
+
+    if (!githubRepo || !githubToken) {
+      message.error('GitHub 未配置');
+      return;
+    }
+
     setSaving(true);
     try {
-      const res = await fetch('/api/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          siteTitle: config.siteTitle,
-          siteDescription: config.siteDescription,
-          heroTitleLine1: config.heroTitleLine1,
-          heroTitleLine2: config.heroTitleLine2,
-          background: config.background,
-          auth: { allowRegistration: config.allowRegistration },
-        }),
+      await updateFileInGithub({
+        repo: githubRepo,
+        token: githubToken,
+        path: 'config.json',
+        content: JSON.stringify(config, null, 2),
+        message: 'chore: update config from admin panel',
       });
-      const data = await res.json();
-      if (res.ok) {
-        message.success(t('config.saveSuccess'));
-      } else {
-        showError(`${t('config.saveFailed')}: ${data.error || '未知错误'}`);
-      }
+      message.success(t('config.saveSuccess'));
     } catch (error) {
       console.error('保存配置失败:', error);
       showError(`${t('config.saveFailed')}: ${error instanceof Error ? error.message : ''}`);
@@ -107,7 +177,7 @@ export default function ConfigPage() {
   if (loading) {
     return (
       <div className="p-8 text-center">
-        <GlobalLoading tip={t('common.loading')} />
+        <GlobalLoading />
       </div>
     );
   }
@@ -120,12 +190,93 @@ export default function ConfigPage() {
     );
   }
 
-  const isGithubConfigured = config.githubRepo && config.githubToken;
+  const handlePageTypeChange = (v: LoadingType) => {
+    setConfig({
+      ...config,
+      appearance: {
+        ...config.appearance,
+        loading: {
+          ...config.appearance.loading,
+          page: {
+            type: v,
+            color: config.appearance.loading?.page?.color || '#c084fc',
+            position: config.appearance.loading?.page?.position || 'center',
+          },
+        },
+      },
+    });
+  };
+
+  const handlePageColorChange = (c: Color) => {
+    setConfig({
+      ...config,
+      appearance: {
+        ...config.appearance,
+        loading: {
+          ...config.appearance.loading,
+          page: {
+            type: config.appearance.loading?.page?.type || 'waves',
+            color: c.toHexString(),
+            position: config.appearance.loading?.page?.position || 'center',
+          },
+        },
+      },
+    });
+  };
+
+  const handlePagePositionChange = (v: LoadingPosition) => {
+    setConfig({
+      ...config,
+      appearance: {
+        ...config.appearance,
+        loading: {
+          ...config.appearance.loading,
+          page: {
+            type: config.appearance.loading?.page?.type || 'waves',
+            color: config.appearance.loading?.page?.color || '#c084fc',
+            position: v,
+          },
+        },
+      },
+    });
+  };
+
+  const handleNavTypeChange = (v: LoadingType) => {
+    setConfig({
+      ...config,
+      appearance: {
+        ...config.appearance,
+        loading: {
+          ...config.appearance.loading,
+          navigation: {
+            type: v,
+            color: config.appearance.loading?.navigation?.color || '#c084fc',
+          },
+        },
+      },
+    });
+  };
+
+  const handleNavColorChange = (c: Color) => {
+    setConfig({
+      ...config,
+      appearance: {
+        ...config.appearance,
+        loading: {
+          ...config.appearance.loading,
+          navigation: {
+            type: config.appearance.loading?.navigation?.type || 'antd',
+            color: c.toHexString(),
+          },
+        },
+      },
+    });
+  };
 
   return (
-    <div className="p-6 md:p-10 max-w-3xl mx-auto">
+    <div className="p-6 md:p-10 max-w-4xl mx-auto space-y-4">
       {/* 标题 */}
-      <div className="flex items-center gap-3 mb-8">
+      <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center">
           <Settings size={18} className="text-white" />
         </div>
@@ -135,51 +286,54 @@ export default function ConfigPage() {
         </div>
       </div>
 
-      {/* 基础设置 */}
-      <div className="bg-white rounded-2xl border border-zinc-100 p-6 mb-4">
+      {/* 站点设置 */}
+      <div className="bg-white rounded-2xl border border-zinc-100 p-6">
         <h2 className="text-base font-bold text-zinc-900 mb-4 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500" />
           {t('config.general')}
         </h2>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">{t('config.siteTitle')}</label>
-          <input
-            type="text"
-            value={config.siteTitle}
-            onChange={e => setConfig({ ...config, siteTitle: e.target.value })}
-            className="w-full h-10 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400 transition-colors"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">{t('config.siteDescription')}</label>
-          <textarea
-            value={config.siteDescription}
-            onChange={e => setConfig({ ...config, siteDescription: e.target.value })}
-            className="w-full min-h-[100px] p-3 border border-zinc-200 rounded-lg text-sm resize-vertical outline-none focus:border-zinc-400 transition-colors"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">{t('config.heroTitle1')}</label>
-          <input
-            type="text"
-            value={config.heroTitleLine1}
-            onChange={e => setConfig({ ...config, heroTitleLine1: e.target.value })}
-            className="w-full h-10 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400 transition-colors"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">{t('config.heroTitle2')}</label>
-          <input
-            type="text"
-            value={config.heroTitleLine2}
-            onChange={e => setConfig({ ...config, heroTitleLine2: e.target.value })}
-            className="w-full h-10 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400 transition-colors"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">{t('config.siteTitle')}</label>
+            <input
+              type="text"
+              value={config.site.title}
+              onChange={e => setConfig({ ...config, site: { ...config.site, title: e.target.value } })}
+              className="w-full h-10 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">{t('config.siteDescription')}</label>
+            <input
+              type="text"
+              value={config.site.description}
+              onChange={e => setConfig({ ...config, site: { ...config.site, description: e.target.value } })}
+              className="w-full h-10 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">{t('config.heroTitle1')}</label>
+            <input
+              type="text"
+              value={config.site.heroTitleLine1}
+              onChange={e => setConfig({ ...config, site: { ...config.site, heroTitleLine1: e.target.value } })}
+              className="w-full h-10 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">{t('config.heroTitle2')}</label>
+            <input
+              type="text"
+              value={config.site.heroTitleLine2}
+              onChange={e => setConfig({ ...config, site: { ...config.site, heroTitleLine2: e.target.value } })}
+              className="w-full h-10 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400"
+            />
+          </div>
         </div>
       </div>
 
       {/* 认证设置 */}
-      <div className="bg-white rounded-2xl border border-zinc-100 p-6 mb-4">
+      <div className="bg-white rounded-2xl border border-zinc-100 p-6">
         <h2 className="text-base font-bold text-zinc-900 mb-4 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-amber-500" />
           <Shield size={16} />
@@ -191,23 +345,14 @@ export default function ConfigPage() {
             <div className="text-xs text-zinc-400 mt-0.5">{t('config.allowRegistrationHint')}</div>
           </div>
           <Switch
-            checked={config.allowRegistration}
-            onChange={checked => setConfig({ ...config, allowRegistration: checked })}
+            checked={config.auth.allowRegistration}
+            onChange={checked => setConfig({ ...config, auth: { ...config.auth, allowRegistration: checked } })}
           />
         </div>
-        {!config.allowRegistration && (
-          <div className="mt-3 p-3 bg-amber-50 border border-amber-100 rounded-xl flex items-start gap-2">
-            <Shield size={16} className="text-amber-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm text-amber-800 font-medium">{t('config.registrationClosed')}</p>
-              <p className="text-xs text-amber-600 mt-0.5">{t('config.registrationClosedHint')}</p>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* 背景设置 */}
-      <div className="bg-white rounded-2xl border border-zinc-100 p-6 mb-4">
+      <div className="bg-white rounded-2xl border border-zinc-100 p-6">
         <h2 className="text-base font-bold text-zinc-900 mb-4 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-blue-500" />
           <ImageIcon size={16} />
@@ -217,84 +362,126 @@ export default function ConfigPage() {
           <label className="block text-sm font-medium mb-2">{t('config.backgroundUrl')}</label>
           <input
             type="text"
-            value={config.background?.url || ''}
-            onChange={e => setConfig({ ...config, background: { ...config.background, url: e.target.value } })}
-            placeholder={t('config.backgroundUrlPlaceholder')}
-            className="w-full h-10 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400 transition-colors"
+            value={config.appearance.background.url}
+            onChange={e => setConfig({
+              ...config,
+              appearance: { ...config.appearance, background: { ...config.appearance.background, url: e.target.value } }
+            })}
+            className="w-full h-10 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400"
           />
-          <p className="text-xs text-zinc-400 mt-1">{t('config.backgroundUrlHint')}</p>
         </div>
         <div>
           <label className="block text-sm font-medium mb-2">
-            {t('config.overlayOpacity')}: {Math.round((config.background?.opacity ?? 0.8) * 100)}%
+            {t('config.overlayOpacity')}: {Math.round(config.appearance.background.opacity * 100)}%
           </label>
           <Slider
             min={0} max={1} step={0.05}
-            value={config.background?.opacity ?? 0.8}
-            onChange={value => setConfig({ ...config, background: { ...config.background, opacity: value } })}
-            tooltip={{ formatter: (value) => `${Math.round((value ?? 0) * 100)}%` }}
+            value={config.appearance.background.opacity}
+            onChange={value => setConfig({
+              ...config,
+              appearance: { ...config.appearance, background: { ...config.appearance.background, opacity: value } }
+            })}
+            tooltip={{ formatter: (v) => `${Math.round((v || 0) * 100)}%` }}
           />
-          <p className="text-xs text-zinc-400 mt-1">{t('config.overlayOpacityHint')}</p>
         </div>
       </div>
 
-      {/* GitHub 集成状态 */}
-      <div className="bg-white rounded-2xl border border-zinc-100 p-6 mb-6">
+      {/* 加载动画设置 */}
+      <div className="bg-white rounded-2xl border border-zinc-100 p-6">
+        <h2 className="text-base font-bold text-zinc-900 mb-4 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-purple-500" />
+          <Loader2 size={16} />
+          加载动画
+        </h2>
+
+        {/* 轻加载设置 */}
+        <div className="mb-6 p-4 bg-zinc-50 rounded-xl">
+          <h3 className="text-sm font-bold text-zinc-700 mb-3">轻加载（页面内数据加载）</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-medium mb-2 text-zinc-500">动画类型</label>
+              <Select
+                value={config.appearance.loading?.page?.type || 'waves'}
+                onChange={handlePageTypeChange}
+                options={loadingTypeOptions}
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-2 text-zinc-500">颜色</label>
+              <ColorPicker
+                value={config.appearance.loading?.page?.color || '#c084fc'}
+                onChange={handlePageColorChange}
+                showText
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-2 text-zinc-500">位置</label>
+              <Select
+                value={config.appearance.loading?.page?.position || 'center'}
+                onChange={handlePagePositionChange}
+                options={positionOptions}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 重加载设置 */}
+        <div className="p-4 bg-zinc-50 rounded-xl">
+          <h3 className="text-sm font-bold text-zinc-700 mb-3">重加载（路由导航/F5刷新）</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium mb-2 text-zinc-500">动画类型</label>
+              <Select
+                value={config.appearance.loading?.navigation?.type || 'antd'}
+                onChange={handleNavTypeChange}
+                options={loadingTypeOptions}
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-2 text-zinc-500">颜色</label>
+              <ColorPicker
+                value={config.appearance.loading?.navigation?.color || '#c084fc'}
+                onChange={handleNavColorChange}
+                showText
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* GitHub 状态 */}
+      <div className="bg-white rounded-2xl border border-zinc-100 p-6">
         <h2 className="text-base font-bold text-zinc-900 mb-4 flex items-center gap-2">
           <Github size={16} />
-          {t('config.github')}
+          GitHub 同步状态
         </h2>
-        <div className="p-4 rounded-xl mb-4 flex items-center gap-3" style={{ background: isGithubConfigured ? '#f6ffed' : '#fff7e6' }}>
-          {isGithubConfigured ? (
+        <div className="p-4 rounded-xl flex items-center gap-3" style={{ background: githubConfigured ? '#f6ffed' : '#fff7e6' }}>
+          {githubConfigured ? (
             <CheckCircle size={20} style={{ color: '#52c41a' }} />
           ) : (
             <XCircle size={20} style={{ color: '#faad14' }} />
           )}
-          <div>
-            <span className="font-medium text-sm">
-              {isGithubConfigured ? t('config.githubConfigured') : t('config.githubNotConfigured')}
-            </span>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              {isGithubConfigured ? t('config.githubRepo') + ': ' + config.githubRepo : t('config.githubHint')}
-            </p>
-          </div>
-        </div>
-        <div className="p-4 bg-zinc-50 rounded-xl">
-          <span className="text-sm font-medium block mb-3">{t('config.envVars')}</span>
-          <div className="mb-2">
-            <code className="bg-zinc-200 px-2 py-0.5 rounded text-xs font-mono">GITHUB_REPO</code>
-            <span className="text-xs text-zinc-400 ml-2">{t('config.githubRepoFormat')}</span>
-          </div>
-          <div>
-            <code className="bg-zinc-200 px-2 py-0.5 rounded text-xs font-mono">GITHUB_TOKEN</code>
-            <span className="text-xs text-zinc-400 ml-2">{t('config.githubTokenHint')}</span>
-          </div>
-          <div className="mt-3">
-            <a href="https://vercel.com/dashboard" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600">
-              {t('config.goToVercel')} <ExternalLink size={12} />
-            </a>
-          </div>
+          <span className="font-medium text-sm">
+            {githubConfigured ? '已配置，将保存到 GitHub' : '未配置（请设置 GITHUB_REPO 和 GITHUB_TOKEN）'}
+          </span>
         </div>
       </div>
 
       {/* 保存按钮 */}
       <div className="flex justify-end">
-        {githubConfigured ? (
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            icon={<Settings size={14} />}
-            type="primary"
-            className="bg-zinc-900 hover:bg-zinc-800 rounded-xl h-10 px-8"
-          >
-            {saving ? t('config.saving') : t('config.save')}
-          </Button>
-        ) : (
-          <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-4 py-2 rounded-xl">
-            <XCircle size={18} />
-            <span className="text-sm">请先配置 GitHub（GITHUB_REPO 和 GITHUB_TOKEN）</span>
-          </div>
-        )}
+        <Button
+          onClick={handleSave}
+          loading={saving}
+          icon={<Settings size={14} />}
+          type="primary"
+          className="bg-zinc-900 hover:bg-zinc-800 rounded-xl h-10 px-8"
+          disabled={!githubConfigured}
+        >
+          {saving ? t('config.saving') : t('config.save')}
+        </Button>
       </div>
     </div>
   );

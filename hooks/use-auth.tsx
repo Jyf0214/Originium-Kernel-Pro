@@ -1,14 +1,8 @@
 'use client';
 
-import { useState, useEffect, createContext, useContext, useCallback } from 'react';
-import { message } from 'antd';
+import { useState, useEffect, createContext, useContext, useCallback, ReactNode } from 'react';
+import { message, Spin } from 'antd';
 import { useI18n } from './use-i18n';
-
-/**
- * Originium Kernel 认证 Hook（前端）
- * 调用后端 /api/auth/* 接口
- * 兼容自定义 JWT 和 Clerk 双认证
- */
 
 export type UserRole = 'user' | 'admin' | 'sudo';
 
@@ -36,7 +30,15 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+function AuthLoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <Spin size="large" />
+    </div>
+  );
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { t } = useI18n();
@@ -55,8 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setUser(null);
       }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (err) {
+    } catch {
       setUser(null);
     } finally {
       setLoading(false);
@@ -78,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ login: email, password: pass }),
       });
-      
+
       if (res.status === 500) {
         message.error(t('error.500'));
         throw new Error(t('error.500'));
@@ -92,8 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         message.error(data.error || t('auth.loginFailed'));
         throw new Error(data.error);
       }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+    } catch (err) {
       console.error('登录错误:', err);
       throw err;
     } finally {
@@ -123,8 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         message.error(data.error || t('auth.registerFailed'));
         throw new Error(data.error);
       }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+    } catch (err) {
       console.error('注册错误:', err);
       throw err;
     } finally {
@@ -141,6 +140,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('登出错误:', err);
     }
   };
+
+  if (loading && user === null) {
+    return <AuthLoadingScreen />;
+  }
 
   return (
     <AuthContext.Provider
@@ -168,5 +171,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-
