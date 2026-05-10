@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
-import { Spin, Button } from 'antd';
+import { Button } from 'antd';
+import { GlobalLoading } from '@/components/Loading';
   import { Link } from 'lucide-react';
 
 /**
@@ -47,7 +48,7 @@ export default function ClerkAfterAuthPage() {
       <div className="min-h-screen flex flex-col bg-[#f8f8f8]">
         <Navbar />
         <main className="flex-1 flex items-center justify-center">
-          <Spin size="large" />
+          <GlobalLoading type="spinner" size="large" />
         </main>
       </div>
     );

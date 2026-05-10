@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Tag, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Button, Spin } from 'antd';
+import { Button } from 'antd';
+import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 import { useI18n } from '@/hooks/use-i18n';
 
@@ -76,7 +77,7 @@ export default function TicketsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Spin size="large" tip={t('common.loading')} />
+        <GlobalLoading type="spinner" size="large" tip={t('common.loading')} />
       </div>
     );
   }

@@ -6,6 +6,7 @@ import { useI18n } from '@/hooks/use-i18n';
 import { Settings, Github, ExternalLink, CheckCircle, XCircle, Image as ImageIcon, Shield } from 'lucide-react';
 import { Slider, Button, Switch, message } from 'antd';
 import { showError } from '@/lib/error';
+import { GlobalLoading } from '@/components/Loading';
 import type { AppearanceConfig } from '@/lib/config';
 
 type BackgroundConfig = AppearanceConfig['background'];
@@ -106,7 +107,7 @@ export default function ConfigPage() {
   if (loading) {
     return (
       <div className="p-8 text-center">
-        <span className="text-zinc-400">{t('common.loading')}</span>
+        <GlobalLoading type="text" tip={t('common.loading')} />
       </div>
     );
   }

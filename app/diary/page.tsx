@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Lock, Calendar, Tag } from 'lucide-react';
 import { showError } from '@/lib/error';
+import { GlobalLoading } from '@/components/Loading';
 
 interface DiaryItem {
   slug: string;
@@ -61,7 +62,7 @@ export default function DiaryPage() {
       <div className="min-h-screen flex flex-col bg-[#f8f8f8]">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-zinc-400">加载中...</div>
+          <GlobalLoading type="text" tip="加载中..." />
         </div>
       </div>
     );

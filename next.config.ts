@@ -18,6 +18,7 @@ interface AppearanceConfig {
   loading?: {
     type: 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
     color?: string;
+    position?: 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   };
 }
 

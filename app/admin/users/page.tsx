@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { Trash2, Edit2, Check, X, User } from 'lucide-react';
-import { Button, Tag, Popconfirm, Spin, Select, message } from 'antd';
+import { Button, Tag, Popconfirm, Select, message } from 'antd';
+import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 
 export default function UsersPage() {
@@ -103,7 +104,7 @@ export default function UsersPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Spin size="large" />
+        <GlobalLoading type="spinner" size="large" />
       </div>
     );
   }
