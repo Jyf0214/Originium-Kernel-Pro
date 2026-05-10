@@ -41,7 +41,7 @@ export default function FacesPage() {
       <div className="min-h-screen flex flex-col bg-[#f8f8f8]">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
-          <GlobalLoading type="spinner" size="large" />
+          <GlobalLoading size="large" />
         </div>
       </div>
     );

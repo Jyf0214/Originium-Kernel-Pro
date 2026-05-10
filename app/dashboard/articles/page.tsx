@@ -99,7 +99,7 @@ export default function ArticlesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <GlobalLoading type="spinner" size="large" />
+        <GlobalLoading size="large" />
       </div>
     );
   }

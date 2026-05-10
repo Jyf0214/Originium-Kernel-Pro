@@ -159,7 +159,7 @@ const handleDelete = async (id: string) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <GlobalLoading type="spinner" size="large" />
+        <GlobalLoading size="large" />
       </div>
     );
   }

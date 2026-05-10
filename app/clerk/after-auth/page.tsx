@@ -48,7 +48,7 @@ export default function ClerkAfterAuthPage() {
       <div className="min-h-screen flex flex-col bg-[#f8f8f8]">
         <Navbar />
         <main className="flex-1 flex items-center justify-center">
-          <GlobalLoading type="spinner" size="large" />
+          <GlobalLoading size="large" />
         </main>
       </div>
     );

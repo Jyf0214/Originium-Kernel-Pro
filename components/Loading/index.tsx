@@ -172,28 +172,36 @@ export function LoadingAntIcon({ size = 'large', tip, color = '#c084fc', positio
   );
 }
 
+import { loadConfig } from '@/lib/config';
+
 type LoadingType = 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
 
 interface GlobalLoadingProps extends LoadingProps {
   type?: LoadingType;
 }
 
-export function GlobalLoading({ type = 'spinner', size, tip, color, position = 'center' }: GlobalLoadingProps) {
-  switch (type) {
+export function GlobalLoading({ type, size, tip, color, position = 'center' }: GlobalLoadingProps) {
+  const config = loadConfig();
+  const loadingConfig = config.appearance?.loading;
+  const finalType = type || loadingConfig?.type || 'spinner';
+  const finalColor = color || loadingConfig?.color || '#c084fc';
+  const finalPosition = position || loadingConfig?.position || 'center';
+
+  switch (finalType) {
     case 'spinner':
-      return <LoadingSpinner size={size} tip={tip} position={position} />;
+      return <LoadingSpinner size={size} tip={tip} position={finalPosition} />;
     case 'text':
       return <LoadingText tip={tip} />;
     case 'dots':
-      return <LoadingDots tip={tip} color={color} />;
+      return <LoadingDots tip={tip} color={finalColor} />;
     case 'glow':
       return <LoadingGlow tip={tip} />;
     case 'waves':
-      return <LoadingWaves tip={tip} color={color} />;
+      return <LoadingWaves tip={tip} color={finalColor} />;
     case 'antd':
-      return <LoadingAntIcon size={size} tip={tip} color={color} position={position} />;
+      return <LoadingAntIcon size={size} tip={tip} color={finalColor} position={finalPosition} />;
     default:
-      return <LoadingSpinner size={size} tip={tip} position={position} />;
+      return <LoadingSpinner size={size} tip={tip} position={finalPosition} />;
   }
 }
 
