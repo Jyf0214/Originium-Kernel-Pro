@@ -19,7 +19,7 @@ function getSmtpConfig() {
 
 export function isSmtpConfigured(): boolean {
   const config = getSmtpConfig();
-  return !!(config.host && config.user && config.pass && config.from);
+  return !!(config.host && config.user && config.pass);
 }
 
 export async function sendMail(options: MailOptions): Promise<boolean> {
@@ -39,7 +39,7 @@ export async function sendMail(options: MailOptions): Promise<boolean> {
     });
 
     await transporter.sendMail({
-      from: config.from,
+      from: config.from || config.user,
       to: options.to,
       subject: options.subject,
       html: options.html,
