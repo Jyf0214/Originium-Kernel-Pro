@@ -11,7 +11,7 @@ export interface UserProfile {
   name: string;
   role: UserRole;
   userGroup?: string;
-  photoURL?: string;
+  avatar?: string | null;
   createdAt: string;
   updatedAt: string;
   status: 'active' | 'pending_deletion' | 'deleted';

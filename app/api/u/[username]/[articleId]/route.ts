@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
+import { loadConfig } from '@/lib/config';
 
 /**
  * Dynamic User Article Route API
@@ -13,6 +14,7 @@ export async function GET(
   try {
     const { username, articleId } = await params;
     const db = getDb();
+    const config = loadConfig();
 
     // Find user by username (email prefix or custom slug)
     let userStr = await db.get(`user:username:${username}`);
@@ -26,6 +28,9 @@ export async function GET(
     }
 
     const user = JSON.parse(userStr);
+
+    // Get avatar from config
+    const avatar = config.users?.[user.uid]?.avatar || config.auth?.admin?.avatar || null;
 
     // Find article by ID
     const articleStr = await db.get(`article:data:${articleId}`);
@@ -54,6 +59,11 @@ export async function GET(
       coverImage: article.coverImage || '',
       createdAt: article.createdAt,
       status: article.status,
+      user: {
+        uid: user.uid,
+        name: user.name,
+        avatar,
+      }
     });
   } catch (error) {
     console.error('User article API error:', error);

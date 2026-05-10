@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { getUserAvatarAsync, saveUserAvatar } from '@/lib/config';
+import { getUserAvatarAsync } from '@/lib/config';
 
 export async function GET() {
   try {
@@ -79,9 +79,10 @@ export async function PUT(req: NextRequest) {
       await db.del(`user:username:${user.username}`);
     }
 
-    if (avatar !== undefined) {
-      await saveUserAvatar(session.uid, avatar || '');
-    }
+    // 头像更新已禁用，头像仅从配置文件读取
+    // if (avatar !== undefined) {
+    //   // 需要手动更新 next.config.ts 中的 users 配置
+    // }
     if (username !== undefined) user.username = username || null;
     if (name !== undefined) user.name = name;
 

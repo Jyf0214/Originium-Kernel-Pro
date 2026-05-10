@@ -78,7 +78,7 @@ function UserProfileContent() {
           <div className="max-w-4xl mx-auto px-6 py-12">
             <div className="flex flex-col items-center text-center">
               <div className="w-24 h-24 bg-zinc-900 rounded-3xl flex items-center justify-center text-white mb-6 shadow-xl shadow-zinc-200 overflow-hidden">
-                <Avatar name={user.name} avatarUrl={user.photoURL} size={96} />
+                <Avatar name={user.name} avatarUrl={user.avatar || undefined} size={96} />
               </div>
               
               <h1 className="text-4xl font-display font-black text-zinc-900 mb-2">
