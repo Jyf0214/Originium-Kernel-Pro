@@ -7,6 +7,7 @@ export default defineConfig([
   ...next,
   ...tseslint.configs.recommended,
   {
+    ignores: ["scripts/**", "node_modules/**", ".next/**", "dist/**"],
     plugins: {
       "react-hooks": reactHooks
     },
