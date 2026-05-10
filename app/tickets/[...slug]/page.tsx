@@ -55,7 +55,6 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
 
   useEffect(() => {
     if (user) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchTicket();
     }
   }, [user, fetchTicket]);

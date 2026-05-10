@@ -46,7 +46,6 @@ export default function TicketsPage() {
 
   useEffect(() => {
     if (user) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchTickets();
     }
   }, [user]);
