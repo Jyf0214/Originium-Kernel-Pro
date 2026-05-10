@@ -102,9 +102,9 @@ export default function ConfigPage() {
   const [saving, setSaving] = useState(false);
   const [githubConfigured, setGithubConfigured] = useState(false);
   const [remoteConfig, setRemoteConfig] = useState<string>('');
+  const [githubRepo, setGithubRepo] = useState<string>('');
+  const [githubToken, setGithubToken] = useState<string>('');
 
-  const githubRepo = process.env.NEXT_PUBLIC_GITHUB_REPO || '';
-  const githubToken = process.env.GITHUB_TOKEN || '';
   const { showDiff, DiffModal } = useGitHubDiff({
     repo: githubRepo,
     onSuccess: () => message.success(t('config.saveSuccess')),
@@ -122,6 +122,8 @@ export default function ConfigPage() {
         const res = await fetch('/api/config');
         if (res.ok) {
           const data = await res.json();
+          setGithubRepo(data._githubRepo || '');
+          setGithubToken(data._githubToken || '');
           setConfig({
             site: {
               title: data.site?.title || 'Originium Kernel',
@@ -146,10 +148,12 @@ export default function ConfigPage() {
             },
             auth: data.auth || { allowRegistration: true },
           });
-          setGithubConfigured(!!(githubRepo && githubToken));
+          const repo = data._githubRepo || '';
+          const token = data._githubToken || '';
+          setGithubConfigured(!!(repo && token));
 
-          if (githubRepo && githubToken) {
-            const remote = await getFileFromGithub(githubRepo, githubToken, 'config.json');
+          if (repo && token) {
+            const remote = await getFileFromGithub(repo, token, 'config.json');
             setRemoteConfig(remote?.content || '');
           }
         }
@@ -160,7 +164,16 @@ export default function ConfigPage() {
       }
     };
     fetchConfig();
-  }, [userRole, githubRepo, githubToken]);
+  }, [userRole]);
+
+  useEffect(() => {
+    const repo = process.env.NEXT_PUBLIC_GITHUB_REPO || githubRepo;
+    const token = process.env.GITHUB_TOKEN || githubToken;
+    if (repo && token) {
+      setGithubRepo(repo);
+      setGithubToken(token);
+    }
+  }, [githubRepo, githubToken]);
 
   const handleSave = () => {
     if (!githubRepo || !githubToken) {
