@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     await saveConfigToDb(mergedConfig);
 
     // 如果有 GitHub 配置，同步站点配置到 GitHub
-    const githubRepo = process.env.GITHUB_REPO;
+    const githubRepo = process.env.NEXT_PUBLIC_GITHUB_REPO;
     const githubToken = process.env.GITHUB_TOKEN;
     if (githubRepo && githubToken) {
       try {
@@ -126,7 +126,7 @@ export async function PUT() {
   if (!db) {
     return NextResponse.json({ error: '数据库未配置' }, { status: 400 });
   }
-  const repo = process.env.GITHUB_REPO;
+  const repo = process.env.NEXT_PUBLIC_GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
   if (!repo || !token) {
     return NextResponse.json({ error: 'GitHub 未配置' }, { status: 400 });
