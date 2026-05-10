@@ -6,6 +6,10 @@ interface MailOptions {
   html: string;
 }
 
+/**
+ * 获取 SMTP 配置
+ * 从环境变量读取 SMTP 连接参数
+ */
 function getSmtpConfig() {
   return {
     host: process.env.SMTP_HOST || '',
@@ -17,11 +21,20 @@ function getSmtpConfig() {
   };
 }
 
+/**
+ * 检查 SMTP 是否已配置
+ * 至少需要 host、user、pass 三个字段
+ */
 export function isSmtpConfigured(): boolean {
   const config = getSmtpConfig();
   return !!(config.host && config.user && config.pass);
 }
 
+/**
+ * 发送邮件
+ * @param options 邮件选项，包含收件人、主题和 HTML 内容
+ * @returns 发送是否成功
+ */
 export async function sendMail(options: MailOptions): Promise<boolean> {
   const config = getSmtpConfig();
 
@@ -52,6 +65,11 @@ export async function sendMail(options: MailOptions): Promise<boolean> {
   }
 }
 
+/**
+ * 生成密码重置邮件 HTML
+ * @param resetLink 重置链接
+ * @param appName 应用名称
+ */
 export function generateResetEmailHtml(resetLink: string, appName = 'Originium Kernel'): string {
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><style>
