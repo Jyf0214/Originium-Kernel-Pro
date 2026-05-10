@@ -178,18 +178,27 @@ type LoadingType = 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
 
 interface GlobalLoadingProps extends LoadingProps {
   type?: LoadingType;
+  forNavigation?: boolean;
 }
 
-export function GlobalLoading({ type, size, tip, color, position = 'center' }: GlobalLoadingProps) {
+export function GlobalLoading({ type, size, tip, color, position = 'center', forNavigation }: GlobalLoadingProps) {
   const config = loadConfig();
   const loadingConfig = config.appearance?.loading;
-  const finalType = type || loadingConfig?.type || 'spinner';
-  const finalColor = color || loadingConfig?.color || '#c084fc';
-  const finalPosition = position || loadingConfig?.position || 'center';
+
+  let finalType, finalColor, finalPosition;
+
+  if (forNavigation) {
+    finalType = type || loadingConfig?.navigation?.type || 'antd';
+    finalColor = color || loadingConfig?.navigation?.color || '#c084fc';
+  } else {
+    finalType = type || loadingConfig?.page?.type || 'waves';
+    finalColor = color || loadingConfig?.page?.color || '#c084fc';
+    finalPosition = position || loadingConfig?.page?.position || 'center';
+  }
 
   switch (finalType) {
     case 'spinner':
-      return <LoadingSpinner size={size} tip={tip} position={finalPosition} />;
+      return <LoadingSpinner size={size} tip={tip} position={finalPosition || 'center'} />;
     case 'text':
       return <LoadingText tip={tip} />;
     case 'dots':
@@ -199,9 +208,9 @@ export function GlobalLoading({ type, size, tip, color, position = 'center' }: G
     case 'waves':
       return <LoadingWaves tip={tip} color={finalColor} />;
     case 'antd':
-      return <LoadingAntIcon size={size} tip={tip} color={finalColor} position={finalPosition} />;
+      return <LoadingAntIcon size={size} tip={tip} color={finalColor} position={finalPosition || 'center'} />;
     default:
-      return <LoadingSpinner size={size} tip={tip} position={finalPosition} />;
+      return <LoadingSpinner size={size} tip={tip} position={finalPosition || 'center'} />;
   }
 }
 
