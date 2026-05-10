@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const avatar = await getUserAvatarAsync(user.uid);
+    const avatar = await getUserAvatarAsync(user.uid, user.role === 'admin' || user.role === 'sudo');
 
     await createSession({
       uid: user.uid,

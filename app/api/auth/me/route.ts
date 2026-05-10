@@ -22,7 +22,7 @@ export async function GET() {
     }
 
     const user = JSON.parse(userStr);
-    const avatar = await getUserAvatarAsync(session.uid);
+    const avatar = await getUserAvatarAsync(session.uid, session.role === 'admin' || session.role === 'sudo');
     
     return NextResponse.json({
       authenticated: true,

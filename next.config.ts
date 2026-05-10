@@ -1,28 +1,99 @@
 import type {NextConfig} from 'next';
 
+interface SiteConfig {
+  title: string;
+  description: string;
+  heroTitleLine1: string;
+  heroTitleLine2: string;
+  lang: string;
+}
+
+interface AppearanceConfig {
+  background: {
+    url: string;
+    opacity: number;
+  };
+  customCSS: string;
+  customHead: string;
+}
+
+interface AccessConfig {
+  posts: {
+    public: string[];
+    private: string[];
+  };
+  faces: {
+    public: string[];
+    private: string[];
+  };
+  diary: {
+    public: string[];
+    private: string[];
+  };
+}
+
+interface AuthConfig {
+  allowRegistration: boolean;
+  admin?: {
+    avatar?: string;
+  };
+}
+
+interface UserConfig {
+  avatar?: string;
+}
+
+interface AppConfig {
+  site: SiteConfig;
+  appearance: AppearanceConfig;
+  access: AccessConfig;
+  auth: AuthConfig;
+  users?: Record<string, UserConfig>;
+}
+
+const appConfig: AppConfig = {
+  site: {
+    title: 'Originium Kernel',
+    description: '现代内容发布平台',
+    heroTitleLine1: '书写。同步。',
+    heroTitleLine2: '部署。',
+    lang: 'zh-CN',
+  },
+  appearance: {
+    background: { url: '', opacity: 0.8 },
+    customCSS: '',
+    customHead: '',
+  },
+  access: {
+    posts: { public: ['*'], private: [] },
+    faces: { public: [], private: ['*'] },
+    diary: { public: [], private: ['*'] },
+  },
+  auth: {
+    allowRegistration: true,
+  },
+};
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   typescript: {
     ignoreBuildErrors: true,
   },
-  // 允许访问远程图片占位符
   images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'picsum.photos',
         port: '',
-        pathname: '/**', // 允许该主机名下的任何路径
+        pathname: '/**',
       },
     ],
   },
   output: 'standalone',
   transpilePackages: ['motion'],
   turbopack: {},
-  // webpack 配置对象由 Next.js 注入，类型为 any（外部接口）
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   webpack: (config: any, {dev}: {dev?: boolean}) => {
-    // 在 AI Studio 中通过 DISABLE_HMR 环境变量禁用 HMR
     if (dev && process.env.DISABLE_HMR === 'true') {
       config.watchOptions = {
         ignored: /.*/,
@@ -32,4 +103,5 @@ const nextConfig: NextConfig = {
   },
 };
 
+export { appConfig, type AppConfig, type SiteConfig, type AppearanceConfig, type AccessConfig, type AuthConfig, type UserConfig };
 export default nextConfig;

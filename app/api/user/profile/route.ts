@@ -17,7 +17,7 @@ export async function GET() {
     }
 
     const user = JSON.parse(userStr);
-    const avatar = await getUserAvatarAsync(session.uid);
+    const avatar = await getUserAvatarAsync(session.uid, session.role === 'admin' || session.role === 'sudo');
 
     return NextResponse.json({
       success: true,
@@ -91,7 +91,7 @@ export async function PUT(req: NextRequest) {
       await db.set(`user:username:${username}`, session.uid);
     }
 
-    const currentAvatar = await getUserAvatarAsync(session.uid);
+    const currentAvatar = await getUserAvatarAsync(session.uid, session.role === 'admin' || session.role === 'sudo');
 
     return NextResponse.json({
       success: true,
