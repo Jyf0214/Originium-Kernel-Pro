@@ -7,6 +7,7 @@ import { LoadingOutlined } from '@ant-design/icons';
 interface LoadingProps {
   size?: 'small' | 'default' | 'large';
   tip?: string;
+  color?: string;
 }
 
 export function LoadingSpinner({ size = 'large', tip }: LoadingProps) {
@@ -44,13 +45,18 @@ export function LoadingText({ tip = 'Loading...' }: { tip?: string }) {
   );
 }
 
-export function LoadingDots({ tip = 'Loading' }: { tip?: string }) {
+export function LoadingDots({ tip = 'Loading', color = '#18181b' }: LoadingProps) {
   return (
     <div className="flex flex-col items-center gap-3">
       <div className="loading-dots-animated">
-        <span />
-        <span />
-        <span />
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            style={{
+              backgroundColor: i === 0 ? color : i === 1 ? `${color}cc` : `${color}88`,
+            }}
+          />
+        ))}
       </div>
       {tip && <span className="text-sm text-zinc-400">{tip}</span>}
       <style jsx>{`
@@ -62,7 +68,6 @@ export function LoadingDots({ tip = 'Loading' }: { tip?: string }) {
           width: 8px;
           height: 8px;
           border-radius: 50%;
-          background: #18181b;
           animation: bounce 1.4s ease-in-out infinite both;
         }
         .loading-dots-animated span:nth-child(1) { animation-delay: -0.32s; }
@@ -112,16 +117,17 @@ export function LoadingGlow({ tip = 'Loading...' }: { tip?: string }) {
   );
 }
 
-export function LoadingWaves({ tip = 'Loading...' }: { tip?: string }) {
+export function LoadingWaves({ tip = 'Loading...', color = '#18181b' }: LoadingProps) {
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="flex items-end gap-1.5 h-10">
         {[0, 1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="w-2 bg-zinc-900 rounded-full animate-wave"
+            className="w-2 rounded-full animate-wave"
             style={{
               height: '40%',
+              backgroundColor: color,
               animationDelay: `${i * 0.1}s`,
             }}
           />
@@ -141,8 +147,9 @@ export function LoadingWaves({ tip = 'Loading...' }: { tip?: string }) {
   );
 }
 
-export function LoadingAntIcon({ size = 'large', tip }: LoadingProps) {
-  const antIcon = <LoadingOutlined style={{ fontSize: size === 'small' ? 14 : size === 'large' ? 24 : 18 }} spin />;
+export function LoadingAntIcon({ size = 'large', tip, color = '#18181b' }: LoadingProps) {
+  const fontSize = size === 'small' ? 14 : size === 'large' ? 24 : 18;
+  const antIcon = <LoadingOutlined style={{ fontSize, color }} spin />;
   return <Spin indicator={antIcon} size={size} tip={tip} />;
 }
 
@@ -152,20 +159,20 @@ interface GlobalLoadingProps extends LoadingProps {
   type?: LoadingType;
 }
 
-export function GlobalLoading({ type = 'spinner', size, tip }: GlobalLoadingProps) {
+export function GlobalLoading({ type = 'spinner', size, tip, color }: GlobalLoadingProps) {
   switch (type) {
     case 'spinner':
       return <LoadingSpinner size={size} tip={tip} />;
     case 'text':
       return <LoadingText tip={tip} />;
     case 'dots':
-      return <LoadingDots tip={tip} />;
+      return <LoadingDots tip={tip} color={color} />;
     case 'glow':
       return <LoadingGlow tip={tip} />;
     case 'waves':
-      return <LoadingWaves tip={tip} />;
+      return <LoadingWaves tip={tip} color={color} />;
     case 'antd':
-      return <LoadingAntIcon size={size} tip={tip} />;
+      return <LoadingAntIcon size={size} tip={tip} color={color} />;
     default:
       return <LoadingSpinner size={size} tip={tip} />;
   }
