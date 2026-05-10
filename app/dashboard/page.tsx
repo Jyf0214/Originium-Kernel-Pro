@@ -9,7 +9,8 @@ import {
   BookOpen, ArrowRight, Trash2, Activity,
   Globe, PenLine, Sparkles,
 } from 'lucide-react';
-import { Button, Spin, Tag } from 'antd';
+import { Button, Tag } from 'antd';
+import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 import Link from 'next/link';
 
@@ -122,7 +123,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <Spin size="large" />
+        <GlobalLoading type="spinner" size="large" />
       </div>
     );
   }

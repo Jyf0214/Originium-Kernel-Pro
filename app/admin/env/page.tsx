@@ -15,7 +15,8 @@ import {
   ChevronUp,
   RefreshCw,
 } from 'lucide-react';
-import { Card, Tag, Spin, Progress, Button } from 'antd';
+import { Card, Tag, Progress, Button } from 'antd';
+import { GlobalLoading } from '@/components/Loading';
 
 interface EnvVar {
   name: string;
@@ -84,7 +85,7 @@ export default function EnvStatusPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Spin size="large" />
+        <GlobalLoading type="spinner" size="large" />
       </div>
     );
   }

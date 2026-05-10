@@ -4,7 +4,7 @@ import React from 'react';
 import { Navbar } from '@/components/Navbar';
 import { FacesListClient, type FaceItem, type GroupItem } from './FacesListClient';
 import { useI18n } from '@/hooks/use-i18n';
-import { Spin } from 'antd';
+import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 
 export default function FacesPage() {
@@ -41,7 +41,7 @@ export default function FacesPage() {
       <div className="min-h-screen flex flex-col bg-[#f8f8f8]">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
-          <Spin size="large" />
+          <GlobalLoading type="spinner" size="large" />
         </div>
       </div>
     );

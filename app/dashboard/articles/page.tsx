@@ -6,7 +6,8 @@ import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { Plus, Search } from 'lucide-react';
-import { Input, Tag, Spin, Popconfirm, message } from 'antd';
+import { Input, Tag, Popconfirm, message } from 'antd';
+import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 
 interface ArticleItem {
@@ -98,7 +99,7 @@ export default function ArticlesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <Spin size="large" />
+        <GlobalLoading type="spinner" size="large" />
       </div>
     );
   }

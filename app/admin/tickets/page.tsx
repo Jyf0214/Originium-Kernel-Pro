@@ -5,7 +5,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
 import { Plus, Trash2, Edit2, FileText, X, Save } from 'lucide-react';
-import { Button, Spin, Modal, message } from 'antd';
+import { Button, Modal, message } from 'antd';
+import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 
 interface TicketTemplate {
@@ -158,7 +159,7 @@ const handleDelete = async (id: string) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Spin size="large" />
+        <GlobalLoading type="spinner" size="large" />
       </div>
     );
   }

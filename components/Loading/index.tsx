@@ -8,10 +8,24 @@ interface LoadingProps {
   size?: 'small' | 'default' | 'large';
   tip?: string;
   color?: string;
+  position?: 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 }
 
-export function LoadingSpinner({ size = 'large', tip }: LoadingProps) {
-  return <Spin size={size} tip={tip} />;
+const positionClasses: Record<string, string> = {
+  center: 'items-center justify-center',
+  'top-left': 'items-start justify-start pt-10 pl-10',
+  'top-right': 'items-start justify-end pt-10 pr-10',
+  'bottom-left': 'items-end justify-start pb-10 pl-10',
+  'bottom-right': 'items-end justify-end pb-10 pr-10',
+};
+
+export function LoadingSpinner({ size = 'large', tip, position = 'center' }: LoadingProps) {
+  const posClass = positionClasses[position] || positionClasses.center;
+  return (
+    <div className={`flex ${posClass}`}>
+      <Spin size={size} tip={tip} />
+    </div>
+  );
 }
 
 export function LoadingText({ tip = 'Loading...' }: { tip?: string }) {
@@ -147,10 +161,15 @@ export function LoadingWaves({ tip = 'Loading...', color = '#18181b' }: LoadingP
   );
 }
 
-export function LoadingAntIcon({ size = 'large', tip, color = '#18181b' }: LoadingProps) {
+export function LoadingAntIcon({ size = 'large', tip, color = '#18181b', position = 'center' }: LoadingProps) {
   const fontSize = size === 'small' ? 14 : size === 'large' ? 24 : 18;
   const antIcon = <LoadingOutlined style={{ fontSize, color }} spin />;
-  return <Spin indicator={antIcon} size={size} tip={tip} />;
+  const posClass = positionClasses[position] || positionClasses.center;
+  return (
+    <div className={`flex ${posClass}`}>
+      <Spin indicator={antIcon} size={size} tip={tip} />
+    </div>
+  );
 }
 
 type LoadingType = 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
@@ -159,10 +178,10 @@ interface GlobalLoadingProps extends LoadingProps {
   type?: LoadingType;
 }
 
-export function GlobalLoading({ type = 'spinner', size, tip, color }: GlobalLoadingProps) {
+export function GlobalLoading({ type = 'spinner', size, tip, color, position = 'center' }: GlobalLoadingProps) {
   switch (type) {
     case 'spinner':
-      return <LoadingSpinner size={size} tip={tip} />;
+      return <LoadingSpinner size={size} tip={tip} position={position} />;
     case 'text':
       return <LoadingText tip={tip} />;
     case 'dots':
@@ -172,9 +191,9 @@ export function GlobalLoading({ type = 'spinner', size, tip, color }: GlobalLoad
     case 'waves':
       return <LoadingWaves tip={tip} color={color} />;
     case 'antd':
-      return <LoadingAntIcon size={size} tip={tip} color={color} />;
+      return <LoadingAntIcon size={size} tip={tip} color={color} position={position} />;
     default:
-      return <LoadingSpinner size={size} tip={tip} />;
+      return <LoadingSpinner size={size} tip={tip} position={position} />;
   }
 }
 

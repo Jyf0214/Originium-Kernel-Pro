@@ -9,6 +9,7 @@ import { ChevronRight, Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { ClerkAuthProvider } from '@/components/ClerkAuthProvider';
+import { GlobalLoading } from '@/components/Loading';
 import { ClerkLoginSection } from '@/components/ClerkLoginSection';
 import AuthCard from '@/components/AuthCard';
 import AuthLayout from '@/components/AuthLayout';
@@ -181,7 +182,7 @@ function LoginForm() {
 export default function LoginPage() {
   const { t } = useI18n();
   return (
-    <Suspense fallback={<div>{t('common.loading')}</div>}>
+    <Suspense fallback={<GlobalLoading type="text" tip={t('common.loading')} />}>
       <LoginForm />
     </Suspense>
   );

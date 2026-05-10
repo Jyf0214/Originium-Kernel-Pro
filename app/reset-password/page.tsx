@@ -8,6 +8,7 @@ import { showError } from '@/lib/error';
 import { ChevronRight, Lock, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
 import AuthCard from '@/components/AuthCard';
+import { GlobalLoading } from '@/components/Loading';
 import AuthLayout from '@/components/AuthLayout';
 
 function ResetPasswordForm() {
@@ -146,7 +147,7 @@ function ResetPasswordForm() {
 
 function ResetPasswordLoading() {
   const { t } = useI18n();
-  return <div>{t('common.loading')}</div>;
+  return <GlobalLoading type="text" tip={t('common.loading')} />;
 }
 
 export default function ResetPasswordPage() {

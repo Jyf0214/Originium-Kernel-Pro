@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
-import { Spin } from 'antd';
+import { GlobalLoading } from '@/components/Loading';
 import Sidebar from '@/components/Sidebar/index';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -19,7 +19,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-zinc-50">
-        <Spin size="large" />
+        <GlobalLoading type="spinner" size="large" />
       </div>
     );
   }
