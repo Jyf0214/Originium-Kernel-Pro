@@ -367,7 +367,27 @@
     "allowRegistration": "Allow new user registration",
     "allowRegistrationHint": "When disabled, new users cannot register. Existing users are not affected.",
     "registrationClosed": "Registration closed",
-    "registrationClosedHint": "New users cannot register at this time. Contact the administrator if needed."
+    "registrationClosedHint": "New users cannot register at this time. Contact the administrator if needed.",
+    "language": "Language",
+    "languageHint": "Select site display language",
+    "customCSS": "Custom CSS",
+    "customCSSPlaceholder": "/* Enter custom styles here */",
+    "customCSSHint": "Add custom CSS to override default styles",
+    "customHead": "Custom Head Tags",
+    "customHeadPlaceholder": "<meta name=\"example\" content=\"value\">",
+    "customHeadHint": "Add custom tags in <head>",
+    "accessControl": "Access Control",
+    "accessControlHint": "Control access permissions for each module",
+    "postsAccess": "Posts Access",
+    "facesAccess": "Faces Access",
+    "diaryAccess": "Diary Access",
+    "public": "Public",
+    "private": "Private",
+    "accessPosts": "Posts Access",
+    "accessFaces": "Faces Access",
+    "accessDiary": "Diary Access",
+    "accessPublic": "Public",
+    "accessPrivate": "Private (all by default)"
   },
   "editor": {
     "slugPlaceholder": "Article slug (URL-friendly)",
@@ -431,7 +451,9 @@
     "displayNamePlaceholder": "Your nickname",
     "displayNameHint": "Leave empty to use the part before @ in email by default",
     "saveSuccess": "Settings saved successfully!",
-    "saveFailed": "Save failed, please try again"
+    "saveFailed": "Save failed, please try again",
+    "syncToGithub": "Sync to GitHub",
+    "syncSuccess": "Sync successful"
   },
   "posts": {
     "title": "Posts",
