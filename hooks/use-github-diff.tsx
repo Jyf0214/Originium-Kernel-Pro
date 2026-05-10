@@ -42,20 +42,22 @@ export function useGitHubDiff({ repo, onSuccess, onError }: UseGitHubDiffOptions
     }
   }, [modalData, hideDiff, onSuccess, onError]);
 
+  const DiffModal = modalData ? (
+    <GitHubDiffModal
+      filePath={modalData.filePath}
+      repo={repo}
+      oldContent={modalData.oldContent}
+      newContent={modalData.newContent}
+      onConfirm={handleConfirm}
+      onCancel={hideDiff}
+      loading={loading}
+    />
+  ) : null;
+
   return {
     showDiff,
     hideDiff,
-    DiffModal: (
-      <GitHubDiffModal
-        filePath={modalData?.filePath || ''}
-        repo={repo}
-        oldContent={modalData?.oldContent || ''}
-        newContent={modalData?.newContent || ''}
-        onConfirm={handleConfirm}
-        onCancel={hideDiff}
-        loading={loading}
-      />
-    ),
+    DiffModal,
   };
 }
 

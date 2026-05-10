@@ -18,6 +18,7 @@ interface GitHubDiffProps {
   onConfirm: () => void;
   onCancel: () => void;
   loading?: boolean;
+  open?: boolean;
 }
 
 export function GitHubDiffModal({
@@ -28,6 +29,7 @@ export function GitHubDiffModal({
   onConfirm,
   onCancel,
   loading = false,
+  open = false,
 }: GitHubDiffProps) {
   const [diffLines, setDiffLines] = useState<DiffLine[]>([]);
   const [stats, setStats] = useState({ added: 0, removed: 0 });
@@ -71,7 +73,7 @@ export function GitHubDiffModal({
   return (
     <Modal
       title={null}
-      open={true}
+      open={open}
       onCancel={onCancel}
       width={800}
       footer={null}
