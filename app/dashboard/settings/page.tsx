@@ -5,7 +5,9 @@ import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { Button, Input, Form, Avatar, message } from 'antd';
 import { showError } from '@/lib/error';
-import { User, AtSign, Image as ImageIcon, Save, ArrowLeft, Check } from 'lucide-react';
+import { getFileFromGithub, updateFileInGithub } from '@/lib/github';
+import { useGitHubDiff } from '@/hooks/use-github-diff';
+import { User, AtSign, Image as ImageIcon, Save, ArrowLeft, Check, Github } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SettingsPage() {
@@ -13,6 +15,16 @@ export default function SettingsPage() {
   const { t } = useI18n();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [loadingRemote, setLoadingRemote] = useState(false);
+
+  const githubRepo = process.env.NEXT_PUBLIC_GITHUB_REPO;
+  const githubToken = process.env.GITHUB_TOKEN;
+
+  const { showDiff, DiffModal } = useGitHubDiff({
+    repo: githubRepo || '',
+    onSuccess: () => message.success(t('settings.syncSuccess') || '同步成功'),
+    onError: (err) => showError(err.message),
+  });
 
   useEffect(() => {
     if (user) {
@@ -23,6 +35,23 @@ export default function SettingsPage() {
       });
     }
   }, [user, form]);
+
+  useEffect(() => {
+    if (!githubRepo || !githubToken || !user?.uid) return;
+
+    const fetchRemoteConfig = async () => {
+      setLoadingRemote(true);
+      try {
+        await getFileFromGithub(githubRepo, githubToken, 'config.json');
+      } catch (err) {
+        console.error('Failed to fetch remote config:', err);
+      } finally {
+        setLoadingRemote(false);
+      }
+    };
+
+    fetchRemoteConfig();
+  }, [githubRepo, githubToken, user?.uid]);
 
   const handleSave = async (values: Record<string, string>) => {
     setLoading(true);
@@ -118,11 +147,62 @@ export default function SettingsPage() {
               }
               extra={<span className="text-xs text-zinc-400">{t('settings.avatarUrlHint')}</span>}
             >
-              <Input
-                placeholder={t('settings.avatarUrlPlaceholder')}
-                className="!h-11 !rounded-xl !text-sm !border-zinc-200 hover:!border-zinc-300 focus:!border-zinc-900"
-                allowClear
-              />
+              <div className="flex gap-2">
+                <Input
+                  placeholder={t('settings.avatarUrlPlaceholder')}
+                  className="!h-11 !rounded-xl !text-sm !border-zinc-200 hover:!border-zinc-300 focus:!border-zinc-900 flex-1"
+                  allowClear
+                />
+                {githubRepo && githubToken && (
+                  <Button
+                    icon={<Github size={14} />}
+                    onClick={async () => {
+                      const avatarUrl = form.getFieldValue('avatarUrl') || '';
+                      
+                      if (!user?.uid) {
+                        showError('用户 ID 不存在');
+                        return;
+                      }
+
+                      try {
+                        const configResult = await getFileFromGithub(githubRepo, githubToken, 'config.json');
+                        const configContent = configResult?.content || '{}';
+                        const config = JSON.parse(configContent);
+                        
+                        const newUsers = {
+                          ...config.users,
+                          [user.uid]: {
+                            ...config.users?.[user.uid],
+                            avatar: avatarUrl,
+                          },
+                        };
+                        const newConfigContent = JSON.stringify({ ...config, users: newUsers }, null, 2);
+
+                        showDiff({
+                          filePath: 'config.json',
+                          oldContent: configContent,
+                          newContent: newConfigContent,
+                          onSubmit: async () => {
+                            await updateFileInGithub({
+                              repo: githubRepo,
+                              token: githubToken,
+                              path: 'config.json',
+                              content: newConfigContent,
+                              message: `chore: update avatar for user ${user.name || user.uid}`,
+                            });
+                          },
+                        });
+                      } catch {
+                        showError('同步失败');
+                      }
+                    }}
+                    loading={loadingRemote}
+                    className="!h-11 !rounded-xl !text-sm !border-zinc-200 hover:!border-zinc-300"
+                  >
+                    {t('settings.syncToGithub') || '同步到 GitHub'}
+                  </Button>
+                )}
+              </div>
             </Form.Item>
 
             <Form.Item
@@ -179,6 +259,8 @@ export default function SettingsPage() {
             </Form.Item>
           </Form>
         </div>
+
+        {DiffModal}
       </div>
     </div>
   );
