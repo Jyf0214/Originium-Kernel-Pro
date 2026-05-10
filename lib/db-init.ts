@@ -8,6 +8,10 @@ import { generateUID } from '@/lib/auth';
 let initAttempted = false;
 let initResult: { created: boolean; error?: string } | null = null;
 
+function isLegacyPassword(password: string | undefined): boolean {
+  return !!(password && password.includes(':') && password.split(':').length === 2);
+}
+
 export async function ensureAdminUser(): Promise<{ created: boolean; error?: string }> {
   if (initAttempted && initResult) {
     return initResult;
@@ -27,6 +31,21 @@ export async function ensureAdminUser(): Promise<{ created: boolean; error?: str
   try {
     const uid = await db.get(`user:email:${adminEmail}`);
     if (uid) {
+      const userStr = await db.get(`user:uid:${uid}`);
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        if (isLegacyPassword(user.password)) {
+          const newHash = await hashPassword(adminPassword);
+          user.password = newHash;
+          await db.set(`user:uid:${uid}`, JSON.stringify(user));
+          console.error(`[数据库初始化] ✓ 迁移旧版用户密码: ${user.email || user.username || user.uid}`);
+        } else {
+          const newHash = await hashPassword(adminPassword);
+          user.password = newHash;
+          await db.set(`user:uid:${uid}`, JSON.stringify(user));
+          console.error(`[数据库初始化] ✓ 更新用户密码: ${user.email || user.username || user.uid}`);
+        }
+      }
       initResult = { created: false };
       return initResult;
     }
