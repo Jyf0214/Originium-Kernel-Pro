@@ -16,9 +16,15 @@ interface AppearanceConfig {
   customCSS: string;
   customHead: string;
   loading?: {
-    type: 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
-    color?: string;
-    position?: 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+    page?: {
+      type: 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
+      color?: string;
+      position?: 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+    };
+    navigation?: {
+      type: 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
+      color?: string;
+    };
   };
 }
 
@@ -68,7 +74,10 @@ const appConfig: AppConfig = {
     background: { url: '', opacity: 0.8 },
     customCSS: '',
     customHead: '',
-    loading: { type: 'waves', color: '#c084fc', position: 'center' },
+    loading: {
+      page: { type: 'waves', color: '#c084fc', position: 'center' },
+      navigation: { type: 'antd', color: '#c084fc' },
+    },
   },
   access: {
     posts: { public: ['*'], private: [] },

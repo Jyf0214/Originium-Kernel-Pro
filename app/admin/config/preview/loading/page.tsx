@@ -140,7 +140,8 @@ function LoadingDotsWithColor({ color, tip }: { color: string; tip?: string }) {
 
 export default function LoadingPreviewPage() {
   const { t } = useI18n();
-  const [selectedType, setSelectedType] = useState<string>('spinner');
+  const [pageType, setPageType] = useState<string>('waves');
+  const [navType, setNavType] = useState<string>('antd');
   const [loadingColor, setLoadingColor] = useState<string>('#c084fc');
   const [loadingPosition, setLoadingPosition] = useState<LoadingPosition>('center');
 
@@ -187,26 +188,55 @@ export default function LoadingPreviewPage() {
 
         {/* 动画选择 */}
         <Card title={t('loadingPreview.select') || '选择动画'} className="rounded-2xl border border-zinc-100">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {loadingTypes.map((item) => {
-              const ItemIcon = item.icon;
-              return (
-                <button
-                  key={item.type}
-                  onClick={() => setSelectedType(item.type)}
-                  className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
-                    selectedType === item.type
-                      ? 'border-zinc-900 bg-zinc-900 text-white'
-                      : 'border-zinc-100 hover:border-zinc-200'
-                  }`}
-                >
-                  <ItemIcon size={24} className={selectedType === item.type ? 'text-white' : 'text-zinc-600'} />
-                  <span className={`text-sm font-medium ${selectedType === item.type ? 'text-white' : 'text-zinc-600'}`}>
-                    {item.labelZh}
-                  </span>
-                </button>
-              );
-            })}
+          <div className="space-y-6">
+            <div>
+              <div className="text-sm font-medium text-zinc-500 mb-3">轻加载 (pageType)</div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {loadingTypes.map((item) => {
+                  const ItemIcon = item.icon;
+                  return (
+                    <button
+                      key={item.type}
+                      onClick={() => setPageType(item.type)}
+                      className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                        pageType === item.type
+                          ? 'border-zinc-900 bg-zinc-900 text-white'
+                          : 'border-zinc-100 hover:border-zinc-200'
+                      }`}
+                    >
+                      <ItemIcon size={24} className={pageType === item.type ? 'text-white' : 'text-zinc-600'} />
+                      <span className={`text-sm font-medium ${pageType === item.type ? 'text-white' : 'text-zinc-600'}`}>
+                        {item.labelZh}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm font-medium text-zinc-500 mb-3">重加载 (navType)</div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {loadingTypes.map((item) => {
+                  const ItemIcon = item.icon;
+                  return (
+                    <button
+                      key={item.type}
+                      onClick={() => setNavType(item.type)}
+                      className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                        navType === item.type
+                          ? 'border-emerald-500 bg-emerald-500 text-white'
+                          : 'border-zinc-100 hover:border-zinc-200'
+                      }`}
+                    >
+                      <ItemIcon size={24} className={navType === item.type ? 'text-white' : 'text-zinc-600'} />
+                      <span className={`text-sm font-medium ${navType === item.type ? 'text-white' : 'text-zinc-600'}`}>
+                        {item.labelZh}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </Card>
 
@@ -246,22 +276,22 @@ export default function LoadingPreviewPage() {
         {/* 预览区域 */}
         <Card title={t('loadingPreview.preview') || '效果预览'} className="rounded-2xl border border-zinc-100">
           <div className="bg-zinc-50 rounded-xl p-16 min-h-[200px]" style={{ display: 'flex', alignItems: loadingPosition === 'top-left' || loadingPosition === 'top-right' ? 'flex-start' : loadingPosition.includes('bottom') ? 'flex-end' : 'center', justifyContent: loadingPosition === 'center' ? 'center' : loadingPosition.includes('left') ? 'flex-start' : 'flex-end', padding: loadingPosition === 'center' ? '4rem' : '2rem' }}>
-            {selectedType === 'spinner' && (
+            {pageType === 'spinner' && (
               <GlobalLoading type="spinner" tip="加载中" position={loadingPosition} />
             )}
-            {selectedType === 'antd' && (
+            {pageType === 'antd' && (
               <GlobalLoading type="antd" tip="加载中" position={loadingPosition} />
             )}
-            {selectedType === 'text' && (
+            {pageType === 'text' && (
               <GlobalLoading type="text" tip="加载中" position={loadingPosition} />
             )}
-            {selectedType === 'dots' && (
+            {pageType === 'dots' && (
               <LoadingDotsWithColor color={loadingColor} tip="加载中" />
             )}
-            {selectedType === 'glow' && (
+            {pageType === 'glow' && (
               <GlobalLoading type="glow" tip="加载中" />
             )}
-            {selectedType === 'waves' && (
+            {pageType === 'waves' && (
               <LoadingWavesWithColor color={loadingColor} tip="加载中" />
             )}
           </div>
