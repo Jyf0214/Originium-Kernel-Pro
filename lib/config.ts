@@ -130,21 +130,11 @@ export function filterAccessibleSlugs(
 }
 
 /**
- * 获取用户头像
- * 优先级：数据库 > config.users[uid].avatar > auth.admin.avatar（仅当用户是管理员）
+ * 获取用户头像（仅从配置文件读取）
+ * 优先级：config.users[uid].avatar > auth.admin.avatar（仅当用户是管理员）
  */
 export async function getUserAvatarAsync(uid: string, isAdmin?: boolean): Promise<string | null> {
   const config = loadConfig();
-
-  if (hasDatabase()) {
-    try {
-      const db = getDb();
-      const dbAvatar = await db.get(`user:avatar:${uid}`);
-      if (dbAvatar) return dbAvatar;
-    } catch {
-      // ignore
-    }
-  }
 
   if (config.users?.[uid]?.avatar) {
     return config.users[uid].avatar;
@@ -158,7 +148,7 @@ export async function getUserAvatarAsync(uid: string, isAdmin?: boolean): Promis
 }
 
 /**
- * 获取用户头像（同步）
+ * 获取用户头像（同步，仅从配置文件读取）
  */
 export function getUserAvatar(uid: string, isAdmin?: boolean): string | null {
   const config = loadConfig();
@@ -175,10 +165,8 @@ export function getUserAvatar(uid: string, isAdmin?: boolean): string | null {
 }
 
 /**
- * 保存用户头像
+ * 保存用户头像（已禁用，头像仅从配置文件读取）
  */
-export async function saveUserAvatar(uid: string, avatar: string): Promise<void> {
-  if (!hasDatabase()) return;
-  const db = getDb();
-  await db.set(`user:avatar:${uid}`, avatar);
+export async function saveUserAvatar(): Promise<void> {
+  // 头像现在仅从配置文件读取，此函数已禁用
 }

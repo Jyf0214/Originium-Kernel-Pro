@@ -90,7 +90,7 @@ function UserArticleContent() {
 
             <div className="flex flex-wrap items-center gap-6 text-zinc-400 border-y border-zinc-100 py-8">
               <div className="flex items-center gap-3">
-                <Avatar name={articleData.authorName} avatarUrl={userData?.avatar} size={48} />
+                <Avatar name={articleData.authorName} avatarUrl={userData?.avatar || undefined} size={48} />
                 <div>
                   <div className="font-black text-zinc-900 leading-none mb-1">{articleData.authorName}</div>
                   <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">@{username}</div>

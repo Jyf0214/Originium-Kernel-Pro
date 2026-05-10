@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { loadConfig } from '@/lib/config';
 import type { UserRole } from '@/lib/user';
 
 export async function GET(
@@ -22,6 +23,9 @@ export async function GET(
     }
 
     const user = JSON.parse(userStr);
+    const config = loadConfig();
+    const avatar = config.users?.[uid]?.avatar || config.auth?.admin?.avatar || null;
+
     return NextResponse.json({
       uid: user.uid,
       name: user.name,
@@ -30,6 +34,7 @@ export async function GET(
       role: user.role,
       userGroup: user.userGroup,
       status: user.status,
+      avatar,
     });
   } catch (error) {
     console.error('User GET error:', error);
