@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { Settings, Github, CheckCircle, XCircle, Image as ImageIcon, Shield, Loader2 } from 'lucide-react';
-import { Slider, Button, Switch, message, Select, ColorPicker } from 'antd';
+import { Slider, Button, Switch, message, Select, ColorPicker, Input } from 'antd';
 import { showError } from '@/lib/error';
 import { GlobalLoading } from '@/components/Loading';
 import { updateFileInGithub, getFileFromGithub } from '@/lib/github';
@@ -305,6 +305,27 @@ export default function ConfigPage() {
     });
   };
 
+  const handleAccessToggle = (type: 'posts' | 'faces' | 'diary', checked: boolean) => {
+    const isPublic = checked;
+    setConfig({
+      ...config,
+      access: {
+        ...config.access,
+        [type]: isPublic ? { public: ['*'], private: [] } : { public: [], private: ['*'] },
+      },
+    });
+  };
+
+  const isAccessPublic = (type: 'posts' | 'faces' | 'diary') => {
+    return config.access[type].public.includes('*');
+  };
+
+  const accessItems = [
+    { key: 'posts', label: t('config.accessPosts') || '文章' },
+    { key: 'faces', label: t('config.accessFaces') || '面孔' },
+    { key: 'diary', label: t('config.accessDiary') || '日记' },
+  ] as const;
+
   return (
     <div className="p-6 md:p-10 max-w-4xl mx-auto space-y-4">
       {/* 标题 */}
@@ -361,6 +382,19 @@ export default function ConfigPage() {
               className="w-full h-10 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">{t('config.language')}</label>
+            <Select
+              value={config.site.lang}
+              onChange={value => setConfig({ ...config, site: { ...config.site, lang: value } })}
+              options={[
+                { value: 'zh-CN', label: '中文' },
+                { value: 'en-US', label: 'English' },
+                { value: 'ja-JP', label: '日本語' },
+              ]}
+              style={{ width: '100%' }}
+            />
+          </div>
         </div>
       </div>
 
@@ -380,6 +414,34 @@ export default function ConfigPage() {
             checked={config.auth.allowRegistration}
             onChange={checked => setConfig({ ...config, auth: { ...config.auth, allowRegistration: checked } })}
           />
+        </div>
+      </div>
+
+      {/* 访问控制 */}
+      <div className="bg-white rounded-2xl border border-zinc-100 p-6">
+        <h2 className="text-base font-bold text-zinc-900 mb-4 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-rose-500" />
+          <Shield size={16} />
+          {t('config.accessControl') || '访问控制'}
+        </h2>
+        <div className="space-y-3">
+          {accessItems.map(item => {
+            const isPublic = isAccessPublic(item.key);
+            return (
+              <div key={item.key} className="flex items-center justify-between py-3 px-4 bg-zinc-50 rounded-xl">
+                <div>
+                  <div className="text-sm font-medium text-zinc-900">{item.label}</div>
+                  <div className="text-xs text-zinc-400 mt-0.5">
+                    {isPublic ? t('config.accessPublic') || '公开' : t('config.accessPrivate') || '私有（默认全部）'}
+                  </div>
+                </div>
+                <Switch
+                  checked={isPublic}
+                  onChange={(checked: boolean) => handleAccessToggle(item.key, checked)}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -416,6 +478,40 @@ export default function ConfigPage() {
             tooltip={{ formatter: (v) => `${Math.round((v || 0) * 100)}%` }}
           />
         </div>
+      </div>
+
+      {/* 自定义 CSS */}
+      <div className="bg-white rounded-2xl border border-zinc-100 p-6">
+        <h2 className="text-base font-bold text-zinc-900 mb-4 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-orange-500" />
+          自定义 CSS
+        </h2>
+        <Input.TextArea
+          rows={6}
+          value={config.appearance.customCSS}
+          onChange={e => setConfig({
+            ...config,
+            appearance: { ...config.appearance, customCSS: e.target.value }
+          })}
+          placeholder="输入自定义 CSS 代码..."
+        />
+      </div>
+
+      {/* 自定义 Head 标签 */}
+      <div className="bg-white rounded-2xl border border-zinc-100 p-6">
+        <h2 className="text-base font-bold text-zinc-900 mb-4 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-cyan-500" />
+          自定义 Head 标签
+        </h2>
+        <Input.TextArea
+          rows={4}
+          value={config.appearance.customHead}
+          onChange={e => setConfig({
+            ...config,
+            appearance: { ...config.appearance, customHead: e.target.value }
+          })}
+          placeholder="如 <meta>、<link> 等"
+        />
       </div>
 
       {/* 加载动画设置 */}
