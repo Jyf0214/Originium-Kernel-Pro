@@ -468,8 +468,16 @@
     "title": "加载动画预览",
     "subtitle": "预览所有可用的加载动画样式",
     "category": "进度条/加载动画",
-    "selectTip": "在 next.config.ts 中配置 appearance.loading.type",
+    "selectTip": "选择一种动画进行预览",
     "sizeComparison": "尺寸对比",
-    "demo": "页面演示"
+    "demo": "页面演示",
+    "select": "选择动画",
+    "color": "自定义颜色",
+    "preview": "效果预览"
+  },
+  "configPreview": {
+    "title": "配置预览",
+    "subtitle": "预览和配置各种界面元素",
+    "categories": "预览分类"
   }
 }

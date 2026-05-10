@@ -468,8 +468,16 @@
     "title": "Loading Animations",
     "subtitle": "Preview all available loading animation styles",
     "category": "Progress / Loading",
-    "selectTip": "Configure in next.config.ts as appearance.loading.type",
+    "selectTip": "Select an animation to preview",
     "sizeComparison": "Size Comparison",
-    "demo": "Page Demo"
+    "demo": "Page Demo",
+    "select": "Select Animation",
+    "color": "Custom Color",
+    "preview": "Effect Preview"
+  },
+  "configPreview": {
+    "title": "Config Preview",
+    "subtitle": "Preview and configure various UI elements",
+    "categories": "Preview Categories"
   }
 }
