@@ -367,7 +367,27 @@
     "allowRegistration": "允许新用户注册",
     "allowRegistrationHint": "关闭后，新用户将无法注册账号，已有用户不受影响",
     "registrationClosed": "注册已关闭",
-    "registrationClosedHint": "新用户暂时无法注册，如需开通请联系管理员"
+    "registrationClosedHint": "新用户暂时无法注册，如需开通请联系管理员",
+    "language": "语言",
+    "languageHint": "选择网站显示语言",
+    "customCSS": "自定义 CSS",
+    "customCSSPlaceholder": "/* 在此输入自定义样式 */",
+    "customCSSHint": "添加自定义 CSS 样式，会覆盖默认样式",
+    "customHead": "自定义 Head 标签",
+    "customHeadPlaceholder": "<meta name=\"example\" content=\"value\">",
+    "customHeadHint": "在 <head> 中添加自定义标签",
+    "accessControl": "访问控制",
+    "accessControlHint": "控制各模块的访问权限",
+    "postsAccess": "文章访问",
+    "facesAccess": "通讯录访问",
+    "diaryAccess": "日记访问",
+    "public": "公开",
+    "private": "私有",
+    "accessPosts": "文章访问",
+    "accessFaces": "通讯录访问",
+    "accessDiary": "日记访问",
+    "accessPublic": "公开",
+    "accessPrivate": "私有（默认全部）"
   },
   "editor": {
     "slugPlaceholder": "文章别名（URL 友好）",
@@ -431,7 +451,9 @@
     "displayNamePlaceholder": "您的昵称",
     "displayNameHint": "留空则默认使用邮箱@前的部分",
     "saveSuccess": "设置保存成功！",
-    "saveFailed": "保存失败，请重试"
+    "saveFailed": "保存失败，请重试",
+    "syncToGithub": "同步到 GitHub",
+    "syncSuccess": "同步成功"
   },
   "posts": {
     "title": "帖子",
