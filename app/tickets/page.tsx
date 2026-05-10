@@ -77,7 +77,7 @@ export default function TicketsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <GlobalLoading type="spinner" size="large" tip={t('common.loading')} />
+        <GlobalLoading size="large" tip={t('common.loading')} />
       </div>
     );
   }

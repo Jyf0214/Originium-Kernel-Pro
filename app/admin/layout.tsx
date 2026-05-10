@@ -23,7 +23,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-zinc-50">
-        <GlobalLoading type="spinner" size="large" />
+        <GlobalLoading size="large" />
       </div>
     );
   }
