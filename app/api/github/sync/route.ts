@@ -9,7 +9,7 @@ import { hasDatabase } from '@/lib/config';
  * 统一 GitHub 同步 API
  *
  * 功能：
- * - 同步配置到 GitHub（config.yaml + config.json）
+ * - 同步配置到 GitHub（config.json）
  * - 统一日志记录
  * - 统一错误处理
  * - 同步成功后存储标志，防止重复提交

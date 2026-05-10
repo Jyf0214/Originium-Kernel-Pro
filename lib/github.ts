@@ -1,5 +1,4 @@
 import { Octokit } from 'octokit';
-import yaml from 'js-yaml';
 
 /**
  * GitHub 集成 — 文件推送/读取/删除
@@ -71,7 +70,6 @@ export async function deleteFileFromGithub(repo: string, token: string, path: st
 
 /**
  * 将帖子以 Markdown 格式推送到 GitHub posts/ 目录
- * 文件路径格式：posts/{category}/{slug}.md
  */
 export async function syncPostToGithub(
   repo: string,
@@ -87,7 +85,6 @@ export async function syncPostToGithub(
     description?: string;
   },
 ) {
-   
   const frontMatter: Record<string, string | string[] | undefined> = {
     title: post.title,
     author: post.author || 'Anonymous',
@@ -97,7 +94,7 @@ export async function syncPostToGithub(
   if (post.cover) frontMatter.cover = post.cover;
   if (post.description) frontMatter.description = post.description;
 
-  const fileContent = `---\n${yaml.dump(frontMatter)}---\n\n${post.content}`;
+  const fileContent = `---\n${JSON.stringify(frontMatter, null, 2).replace(/\n/g, '\n')}---\n\n${post.content}`;
   const filePath = `posts${post.slug}.md`;
 
   return await updateFileInGithub({
@@ -118,28 +115,14 @@ export async function deletePostFromGithub(repo: string, token: string, slug: st
 }
 
 /**
- * 同步配置到 GitHub（YAML + JSON 双格式）
+ * 同步配置到 GitHub
  */
 export async function syncConfigToGithub(
   repo: string,
   token: string,
   config: Record<string, string | number | boolean | string[] | object | undefined>
 ) {
-  const yamlContent = yaml.dump(config);
   const jsonContent = JSON.stringify(config, null, 2);
-
-  try {
-    await updateFileInGithub({
-      repo,
-      token,
-      path: 'config.yaml',
-      content: yamlContent,
-      message: 'chore: update config.yaml',
-    });
-  } catch (error) {
-    console.error('同步 config.yaml 到 GitHub 失败:', error);
-    throw new Error('同步 config.yaml 到 GitHub 失败');
-  }
 
   try {
     await updateFileInGithub({
@@ -147,7 +130,7 @@ export async function syncConfigToGithub(
       token,
       path: 'config.json',
       content: jsonContent,
-      message: 'chore: update config.json',
+      message: 'chore: update config',
     });
   } catch (error) {
     console.error('同步 config.json 到 GitHub 失败:', error);

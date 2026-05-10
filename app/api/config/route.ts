@@ -3,31 +3,14 @@ import { getSession } from '@/lib/auth';
 import { loadConfigAsync, saveConfigToDb, hasDatabase } from '@/lib/config';
 import type { AppConfig } from '@/lib/config';
 import { getFileFromGithub } from '@/lib/github';
-import yaml from 'js-yaml';
 import { getDb } from '@/lib/db';
-
-interface YamlConfig {
-  siteTitle?: string;
-  siteDescription?: string;
-  heroTitleLine1?: string;
-  heroTitleLine2?: string;
-  background?: unknown;
-  customCSS?: string;
-  customHead?: string;
-  access?: {
-    posts?: Record<string, unknown>;
-    faces?: Record<string, unknown>;
-    diary?: Record<string, unknown>;
-  };
-  auth?: unknown;
-}
 
 /**
  * System Configuration API
  *
  * 配置优先级：
  * 1. 数据库缓存（管理员通过此 API 修改的配置）
- * 2. GitHub config.yaml（远程同步配置）
+ * 2. GitHub config.json（远程同步配置）
  * 3. config.json（本地文件配置）
  * 4. 默认值
  *
@@ -136,29 +119,27 @@ export async function PUT() {
   }
 
   try {
-    const remote = await getFileFromGithub(repo, token, 'config.yaml');
+    const remote = await getFileFromGithub(repo, token, 'config.json');
     if (!remote) {
-      return NextResponse.json({ error: 'config.yaml 不存在' }, { status: 404 });
+      return NextResponse.json({ error: 'config.json 不存在' }, { status: 404 });
     }
-    // yaml 解析结果结构取决于配置文件格式
-    const parsed = yaml.load(remote.content) as YamlConfig;
+    const parsed = JSON.parse(remote.content) as Partial<AppConfig>;
     const currentConfig = await loadConfigAsync();
 
-    // 从 GitHub YAML 合并到当前配置
     const mergedConfig: AppConfig = {
       site: {
-        title: parsed.siteTitle ?? currentConfig.site.title,
-        description: parsed.siteDescription ?? currentConfig.site.description,
-        heroTitleLine1: parsed.heroTitleLine1 ?? currentConfig.site.heroTitleLine1,
-        heroTitleLine2: parsed.heroTitleLine2 ?? currentConfig.site.heroTitleLine2,
-        lang: currentConfig.site.lang,
+        title: parsed.site?.title ?? currentConfig.site.title,
+        description: parsed.site?.description ?? currentConfig.site.description,
+        heroTitleLine1: parsed.site?.heroTitleLine1 ?? currentConfig.site.heroTitleLine1,
+        heroTitleLine2: parsed.site?.heroTitleLine2 ?? currentConfig.site.heroTitleLine2,
+        lang: parsed.site?.lang ?? currentConfig.site.lang,
       },
       appearance: {
-        background: parsed.background
-          ? { ...currentConfig.appearance.background, ...parsed.background }
+        background: parsed.appearance?.background
+          ? { ...currentConfig.appearance.background, ...parsed.appearance.background }
           : currentConfig.appearance.background,
-        customCSS: parsed.customCSS ?? currentConfig.appearance.customCSS,
-        customHead: parsed.customHead ?? currentConfig.appearance.customHead,
+        customCSS: parsed.appearance?.customCSS ?? currentConfig.appearance.customCSS,
+        customHead: parsed.appearance?.customHead ?? currentConfig.appearance.customHead,
       },
       access: parsed.access
         ? {
