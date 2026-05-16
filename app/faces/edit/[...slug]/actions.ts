@@ -4,6 +4,9 @@ import { updateFileInGithub, deleteFileFromGithub } from '@/lib/github';
 import { generateMarkdown, type FrontMatter } from '@/lib/markdown';
 import { getSession } from '@/lib/auth';
 import { getEnvConfig } from '@/lib/env';
+import { createApiLogger } from '@/lib/api-logger';
+
+const logger = createApiLogger('/faces/edit/[...slug]');
 
 /**
  * 编辑联系人参数
@@ -119,7 +122,7 @@ export async function editFace(params: EditFaceParams): Promise<EditFaceResult> 
       message: '联系人已更新',
     };
   } catch (error) {
-    console.error('编辑联系人失败:', error);
+    logger.error('editFace', '编辑联系人失败', { error: error instanceof Error ? error.message : String(error) });
     throw new Error(error instanceof Error ? error.message : '编辑联系人失败');
   }
 }
@@ -146,7 +149,7 @@ export async function deleteFace(path: string): Promise<{ success: boolean; mess
       message: '联系人已删除',
     };
   } catch (error) {
-    console.error('删除联系人失败:', error);
+    logger.error('deleteFace', '删除联系人失败', { error: error instanceof Error ? error.message : String(error) });
     throw new Error(error instanceof Error ? error.message : '删除联系人失败');
   }
 }

@@ -21,11 +21,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '邮件服务未配置' }, { status: 500 });
     }
 
-    if (!isSmtpConfigured()) {
-      logger.error('POST', '邮件服务未配置');
-      return NextResponse.json({ error: '邮件服务未配置' }, { status: 500 });
-    }
-
     const db = getDb();
     const uid = await db.get(`user:email:${email}`);
 

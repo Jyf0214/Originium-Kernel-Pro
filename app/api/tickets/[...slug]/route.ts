@@ -78,14 +78,14 @@ export async function PATCH(
   }
 
   try {
-    logger.info('PATCH', '更新工单状态', { slug });
     const { status } = await req.json();
 
     if (!['open', 'in-progress', 'closed'].includes(status)) {
-      logger.warn('PATCH', '无效的状态', { status });
+      logger.warn('PATCH', '无效状态', { status });
       return NextResponse.json({ error: '无效的状态' }, { status: 400 });
     }
 
+    logger.info('PATCH', '更新工单状态', { slug, status });
     const env = getEnvConfig();
     if (!env.githubRepo || !env.githubToken) {
       logger.error('PATCH', 'GitHub 配置缺失');
