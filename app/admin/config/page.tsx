@@ -209,9 +209,12 @@ export default function ConfigPage() {
       }
     }
 
+    const managed: (keyof typeof config)[] = ['site', 'appearance', 'access', 'auth'];
     const merged = { ...remoteObj };
-    for (const key of Object.keys(config) as (keyof typeof config)[]) {
-      merged[key] = config[key] as unknown;
+    for (const key of managed) {
+      if (key in config) {
+        merged[key] = config[key] as unknown;
+      }
     }
 
     const yamlContent = yaml.dump(merged, { lineWidth: -1 });
