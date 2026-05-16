@@ -70,33 +70,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
-/**
- * Restore an article from recycle bin
- */
-export async function POST(req: NextRequest) {
-  const session = await requireAdmin();
-  if (!session) {
-    logger.warn('POST', '未授权');
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  try {
-    const { id } = await req.json();
-    if (!id) {
-      logger.warn('POST', '缺少文章ID');
-      return NextResponse.json({ error: 'Article ID required' }, { status: 400 });
-    }
-
-    logger.info('POST', '恢复文章', { id });
-    const db = getDb();
-    const articleStr = await db.get(`article:data:${id}`);
-    if (!articleStr) {
-      logger.warn('POST', '文章不存在', { id });
-      return NextResponse.json({ error: 'Article not found' }, { status: 404 });
-    }
-}
-
 /**
  * Restore an article from recycle bin
  */
@@ -187,7 +160,7 @@ export async function DELETE(req: NextRequest) {
 
     // Only delete if in pending_deletion status or user is sudo
     if (article.status !== 'pending_deletion' && session.role !== 'sudo') {
-      logger.warn('DELETE', '无法删除文章', { id, status: article.status });
+      logger.warn('DELETE', '无法删除此文章', { id, status: article.status, role: session.role });
       return NextResponse.json({ error: 'Cannot delete this article' }, { status: 400 });
     }
 
