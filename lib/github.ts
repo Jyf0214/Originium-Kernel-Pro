@@ -113,27 +113,3 @@ export async function deletePostFromGithub(repo: string, token: string, slug: st
   const filePath = `posts${slug}.md`;
   return await deleteFileFromGithub(repo, token, filePath);
 }
-
-/**
- * 同步配置到 GitHub
- */
-export async function syncConfigToGithub(
-  repo: string,
-  token: string,
-  config: Record<string, string | number | boolean | string[] | object | undefined>
-) {
-  const jsonContent = JSON.stringify(config, null, 2);
-
-  try {
-    await updateFileInGithub({
-      repo,
-      token,
-      path: 'config.json',
-      content: jsonContent,
-      message: 'chore: update config',
-    });
-  } catch (error) {
-    console.error('同步 config.json 到 GitHub 失败:', error);
-    throw new Error('同步 config.json 到 GitHub 失败');
-  }
-}

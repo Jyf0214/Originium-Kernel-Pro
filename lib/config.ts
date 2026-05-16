@@ -1,63 +1,25 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import { getDb } from '@/lib/db';
 import type { AppConfig, SiteConfig, AppearanceConfig, AccessConfig, AuthConfig, UserConfig } from '@/next.config';
 
 export type { AppConfig, SiteConfig, AppearanceConfig, AccessConfig, AuthConfig, UserConfig };
 
 /**
- * 检测数据库是否可用
+ * 检测数据库是否可用（其他非配置页面使用，配置页面不再依赖数据库）
  */
 export function hasDatabase(): boolean {
   return !!(process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING);
 }
 
 /**
- * 从 config.yaml 加载配置
+ * 从 config.yaml 加载配置。读取失败直接抛错，没有硬编码兜底。
  */
 function loadConfigFromYaml(): AppConfig {
   const configPath = path.join(process.cwd(), 'config.yaml');
-  try {
-    const fileContent = fs.readFileSync(configPath, 'utf-8');
-    const parsed = yaml.load(fileContent) as AppConfig;
-    return parsed;
-  } catch (error) {
-    console.error('config.yaml 加载失败:', error);
-    return getDefaultConfig();
-  }
-}
-
-/**
- * 默认配置
- */
-function getDefaultConfig(): AppConfig {
-  return {
-    site: {
-      title: 'Originium Kernel',
-      description: '现代内容发布平台',
-      heroTitleLine1: '书写。同步。',
-      heroTitleLine2: '部署。',
-      lang: 'zh-CN',
-    },
-    appearance: {
-      background: { url: '', opacity: 0.8 },
-      customCSS: '',
-      customHead: '',
-      loading: {
-        page: { type: 'waves', color: '#c084fc', position: 'center' },
-        navigation: { type: 'antd', color: '#c084fc' },
-      },
-    },
-    access: {
-      posts: { public: ['*'], private: [] },
-      faces: { public: [], private: ['*'] },
-      diary: { public: [], private: ['*'] },
-    },
-    auth: {
-      allowRegistration: true,
-    },
-  };
+  const fileContent = fs.readFileSync(configPath, 'utf-8');
+  const parsed = yaml.load(fileContent) as AppConfig;
+  return parsed;
 }
 
 /** 缓存已加载的配置 */
@@ -73,63 +35,10 @@ export function loadConfig(): AppConfig {
 }
 
 /**
- * 异步加载配置，优先级：数据库 > config.yaml > 默认值
+ * 异步加载配置（仅从 config.yaml，无数据库）
  */
 export async function loadConfigAsync(): Promise<AppConfig> {
-  const fileConfig = loadConfig();
-
-  if (!hasDatabase()) return fileConfig;
-
-  try {
-    const db = getDb();
-    const dbRaw = await db.get('config:main');
-    if (!dbRaw) return fileConfig;
-
-    const dbConfig = JSON.parse(dbRaw);
-
-    return {
-      site: {
-        title: dbConfig.siteTitle ?? fileConfig.site.title,
-        description: dbConfig.siteDescription ?? fileConfig.site.description,
-        heroTitleLine1: dbConfig.heroTitleLine1 ?? fileConfig.site.heroTitleLine1,
-        heroTitleLine2: dbConfig.heroTitleLine2 ?? fileConfig.site.heroTitleLine2,
-        lang: fileConfig.site.lang,
-      },
-      appearance: {
-        background: dbConfig.background
-          ? { ...fileConfig.appearance.background, ...dbConfig.background }
-          : fileConfig.appearance.background,
-        customCSS: dbConfig.customCSS ?? fileConfig.appearance.customCSS,
-        customHead: dbConfig.customHead ?? fileConfig.appearance.customHead,
-      },
-      access: dbConfig.access ? { ...fileConfig.access, ...dbConfig.access } : fileConfig.access,
-      auth: dbConfig.auth ? { ...fileConfig.auth, ...dbConfig.auth } : fileConfig.auth,
-    };
-  } catch (error) {
-    console.error('数据库配置加载失败:', error);
-    return fileConfig;
-  }
-}
-
-/**
- * 将配置保存到数据库
- */
-export async function saveConfigToDb(config: AppConfig): Promise<void> {
-  if (!hasDatabase()) return;
-  const db = getDb();
-  const dbData = {
-    siteTitle: config.site.title,
-    siteDescription: config.site.description,
-    heroTitleLine1: config.site.heroTitleLine1,
-    heroTitleLine2: config.site.heroTitleLine2,
-    background: config.appearance.background,
-    customCSS: config.appearance.customCSS,
-    customHead: config.appearance.customHead,
-    access: config.access,
-    auth: config.auth,
-  };
-  await db.set('config:main', JSON.stringify(dbData));
-  cachedConfig = null;
+  return loadConfig();
 }
 
 /**
