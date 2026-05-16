@@ -11,13 +11,13 @@ const logger = createApiLogger('/api/auth/bind-send-code');
  */
 export async function POST(req: NextRequest) {
   try {
-    logger.info('POST', '请求发送绑定验证码');
     const { email } = await req.json();
     if (!email || !email.includes('@')) {
       logger.warn('POST', '无效的邮箱地址');
       return NextResponse.json({ error: '请输入有效的邮箱地址' }, { status: 400 });
     }
 
+    logger.info('POST', '发送绑定验证码', { email });
     const db = getDb();
 
     // 检查邮箱是否存在
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
           `,
         });
 	} catch (mailErr) {
-		logger.error('POST', 'SMTP发送失败', { error: mailErr instanceof Error ? mailErr.message : String(mailErr) });
+		logger.error('POST', 'SMTP 发送失败', { error: mailErr instanceof Error ? mailErr.message : String(mailErr) });
 		const message = mailErr instanceof Error ? mailErr.message : String(mailErr);
 		return NextResponse.json({ error: `验证码发送失败: ${message}` }, { status: 500 });
 	}
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     logger.info('POST', '验证码发送成功', { email });
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error('POST', '发送绑定验证码失败', { error: error instanceof Error ? error.message : String(error) });
+    logger.error('POST', '发送验证码失败', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: '发送失败' }, { status: 500 });
   }
 }

@@ -9,7 +9,6 @@ const logger = createApiLogger('/api/auth/reset-password');
 
 export async function POST(req: NextRequest) {
   try {
-    logger.info('POST', '请求密码重置');
     const { email } = await req.json();
 
     if (!email) {
@@ -22,11 +21,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '邮件服务未配置' }, { status: 500 });
     }
 
+    if (!isSmtpConfigured()) {
+      logger.error('POST', '邮件服务未配置');
+      return NextResponse.json({ error: '邮件服务未配置' }, { status: 500 });
+    }
+
     const db = getDb();
     const uid = await db.get(`user:email:${email}`);
 
     if (!uid) {
-      logger.warn('POST', '邮箱不存在', { email });
+      logger.warn('POST', '邮箱未注册', { email });
       return NextResponse.json({ success: true, message: '如果邮箱存在，重置链接已发送' }, { status: 201 });
     }
 
@@ -49,18 +53,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '发送邮件失败' }, { status: 500 });
     }
 
-    logger.info('POST', '密码重置邮件发送成功', { email });
+    logger.info('POST', '重置链接已发送', { email });
     return NextResponse.json({ success: true, message: '重置链接已发送' }, { status: 201 });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    logger.error('POST', '密码重置失败', { error: error.message });
+    logger.error('POST', '密码重置错误', { error: error.message });
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
 }
 
 export async function PUT(req: NextRequest) {
   try {
-    logger.info('PUT', '执行密码重置');
     const { token, password } = await req.json();
 
     if (!token || !password) {
@@ -85,7 +88,7 @@ export async function PUT(req: NextRequest) {
 
     if (Date.now() > expiresAt) {
       await db.del(`reset:${token}`);
-      logger.warn('PUT', '重置链接已过期');
+      logger.warn('PUT', '重置链接已过期', { uid });
       return NextResponse.json({ error: '重置链接已过期' }, { status: 400 });
     }
 
@@ -105,7 +108,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ success: true, message: '密码重置成功' }, { status: 201 });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    logger.error('PUT', '密码重置失败', { error: error.message });
+    logger.error('PUT', '密码重置错误', { error: error.message });
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
 }

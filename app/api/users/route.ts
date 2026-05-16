@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+  import { getSession } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
 
 const logger = createApiLogger('/api/users');
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    logger.info('GET', '读取用户列表');
+    logger.info('GET', '获取用户列表');
     const db = getDb();
     const { searchParams } = new URL(req.url);
     const username = searchParams.get('username');
@@ -112,9 +112,10 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    logger.info('GET', '获取用户列表成功', { count: allUsers.length });
     return NextResponse.json(allUsers);
   } catch (error) {
-    logger.error('GET', '用户API错误', { error: error instanceof Error ? error.message : String(error) });
+    logger.error('GET', '获取用户列表失败', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

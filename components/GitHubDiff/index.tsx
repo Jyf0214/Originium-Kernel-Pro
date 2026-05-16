@@ -2,12 +2,14 @@
 
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Tag, message } from 'antd';
-import { Github, CheckCircle2, Plus, Minus } from 'lucide-react';
+import { Github, CheckCircle2, Plus, Minus, Pencil } from 'lucide-react';
+import yaml from 'js-yaml';
 
-interface DiffLine {
-  type: 'add' | 'remove' | 'unchanged';
-  lineNumber: number;
-  content: string;
+interface DiffEntry {
+  path: string;
+  type: 'added' | 'removed' | 'modified';
+  oldValue?: unknown;
+  newValue?: unknown;
 }
 
 interface GitHubDiffProps {
@@ -31,44 +33,94 @@ export function GitHubDiffModal({
   loading = false,
   open = false,
 }: GitHubDiffProps) {
-  const [diffLines, setDiffLines] = useState<DiffLine[]>([]);
-  const [stats, setStats] = useState({ added: 0, removed: 0 });
+  const [diffEntries, setDiffEntries] = useState<DiffEntry[]>([]);
+  const [stats, setStats] = useState({ added: 0, removed: 0, modified: 0 });
 
   useEffect(() => {
-    const computeDiff = () => {
-      const oldLines = oldContent.split('\n');
-      const newLines = newContent.split('\n');
-      const lines: DiffLine[] = [];
-      let added = 0;
-      let removed = 0;
-
-      const maxLen = Math.max(oldLines.length, newLines.length);
-      for (let i = 0; i < maxLen; i++) {
-        const oldLine = oldLines[i];
-        const newLine = newLines[i];
-
-        if (oldLine === undefined) {
-          lines.push({ type: 'add', lineNumber: i + 1, content: newLine || '' });
-          added++;
-        } else if (newLine === undefined) {
-          lines.push({ type: 'remove', lineNumber: i + 1, content: oldLine });
-          removed++;
-        } else if (oldLine !== newLine) {
-          lines.push({ type: 'remove', lineNumber: i + 1, content: oldLine });
-          lines.push({ type: 'add', lineNumber: i + 1, content: newLine });
-          added++;
-          removed++;
-        } else {
-          lines.push({ type: 'unchanged', lineNumber: i + 1, content: oldLine });
-        }
+    const computeYamlDiff = () => {
+      let oldObj: Record<string, unknown> = {};
+      let newObj: Record<string, unknown> = {};
+      try {
+        oldObj = (yaml.load(oldContent || '{}') || {}) as Record<string, unknown>;
+      } catch {
+        oldObj = {};
+      }
+      try {
+        newObj = (yaml.load(newContent || '{}') || {}) as Record<string, unknown>;
+      } catch {
+        newObj = {};
       }
 
-      setDiffLines(lines);
-      setStats({ added, removed });
+      const entries: DiffEntry[] = [];
+
+      const diffObjects = (
+        oldVal: unknown,
+        newVal: unknown,
+        path: string,
+      ) => {
+        // Both are objects (not null, not array)
+        if (
+          oldVal && typeof oldVal === 'object' && !Array.isArray(oldVal) &&
+          newVal && typeof newVal === 'object' && !Array.isArray(newVal)
+        ) {
+          const oldKeys = new Set(Object.keys(oldVal as Record<string, unknown>));
+          const newKeys = new Set(Object.keys(newVal as Record<string, unknown>));
+          const allKeys = new Set([...oldKeys, ...newKeys]);
+
+          for (const key of allKeys) {
+            const fullPath = path ? `${path}.${key}` : key;
+            const ov = (oldVal as Record<string, unknown>)[key];
+            const nv = (newVal as Record<string, unknown>)[key];
+
+            if (oldKeys.has(key) && !newKeys.has(key)) {
+              entries.push({ path: fullPath, type: 'removed', oldValue: ov });
+            } else if (!oldKeys.has(key) && newKeys.has(key)) {
+              entries.push({ path: fullPath, type: 'added', newValue: nv });
+            } else {
+              diffObjects(ov, nv, fullPath);
+            }
+          }
+          return;
+        }
+
+        // Both are arrays
+        if (Array.isArray(oldVal) && Array.isArray(newVal)) {
+          const oldJson = JSON.stringify(oldVal);
+          const newJson = JSON.stringify(newVal);
+          if (oldJson !== newJson) {
+            entries.push({ path, type: 'modified', oldValue: oldVal, newValue: newVal });
+          }
+          return;
+        }
+
+        // Scalar values or type mismatch
+        const ov = typeof oldVal === 'object' ? JSON.stringify(oldVal) : oldVal;
+        const nv = typeof newVal === 'object' ? JSON.stringify(newVal) : newVal;
+        if (ov !== nv) {
+          entries.push({ path, type: 'modified', oldValue: oldVal, newValue: newVal });
+        }
+      };
+
+      diffObjects(oldObj, newObj, '');
+
+      const addedCount = entries.filter(e => e.type === 'added').length;
+      const removedCount = entries.filter(e => e.type === 'removed').length;
+      const modifiedCount = entries.filter(e => e.type === 'modified').length;
+
+      setDiffEntries(entries);
+      setStats({ added: addedCount, removed: removedCount, modified: modifiedCount });
     };
 
-    computeDiff();
+    computeYamlDiff();
   }, [oldContent, newContent]);
+
+  const formatValue = (val: unknown): string => {
+    if (val === null || val === undefined) return '';
+    if (typeof val === 'string') return val;
+    if (Array.isArray(val)) return val.map(v => String(v)).join(', ');
+    if (typeof val === 'object') return JSON.stringify(val);
+    return String(val);
+  };
 
   return (
     <Modal
@@ -95,29 +147,41 @@ export function GitHubDiffModal({
 
         <div className="flex gap-3 mb-4">
           <Tag icon={<Plus size={12} />} color="success" className="flex items-center gap-1">
-            +{stats.added} 行
+            +{stats.added} 新增
           </Tag>
           <Tag icon={<Minus size={12} />} color="error" className="flex items-center gap-1">
-            -{stats.removed} 行
+            -{stats.removed} 删除
+          </Tag>
+          <Tag icon={<Pencil size={12} />} color="warning" className="flex items-center gap-1">
+            ~{stats.modified} 修改
           </Tag>
         </div>
 
         <div className="bg-zinc-900 rounded-xl p-4 max-h-96 overflow-auto font-mono text-sm">
-          {diffLines.map((line, idx) => (
-            <div
-              key={idx}
-              className={`flex ${
-                line.type === 'add'
-                  ? 'bg-green-900/30 text-green-400'
-                  : line.type === 'remove'
-                  ? 'bg-red-900/30 text-red-400'
-                  : 'text-zinc-500'
-              }`}
-            >
-              <span className="w-12 text-right pr-4 select-none shrink-0 text-zinc-600">
-                {line.type === 'add' ? '+' : line.type === 'remove' ? '-' : ' '}
-              </span>
-              <span className="flex-1 break-all">{line.content}</span>
+          {diffEntries.length === 0 && (
+            <div className="text-zinc-500 text-center py-4">无变更</div>
+          )}
+          {diffEntries.map((entry, idx) => (
+            <div key={idx} className="mb-2 pb-2 border-b border-zinc-800 last:border-b-0 last:mb-0 last:pb-0">
+              <div className={`text-xs font-bold mb-1 ${
+                entry.type === 'added' ? 'text-green-400' :
+                entry.type === 'removed' ? 'text-red-400' : 'text-amber-400'
+              }`}>
+                {entry.type === 'added' ? '+ ' : entry.type === 'removed' ? '- ' : '~ '}
+                {entry.path}
+              </div>
+              {entry.type === 'modified' && (
+                <div className="pl-4 text-xs">
+                  <div className="text-red-400 line-through">{formatValue(entry.oldValue)}</div>
+                  <div className="text-green-400">{formatValue(entry.newValue)}</div>
+                </div>
+              )}
+              {entry.type === 'added' && (
+                <div className="pl-4 text-xs text-green-400">{formatValue(entry.newValue)}</div>
+              )}
+              {entry.type === 'removed' && (
+                <div className="pl-4 text-xs text-red-400 line-through">{formatValue(entry.oldValue)}</div>
+              )}
             </div>
           ))}
         </div>

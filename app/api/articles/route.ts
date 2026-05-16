@@ -25,7 +25,7 @@ async function getDraftsFromDb() {
 
 export async function GET() {
   try {
-    logger.info('GET', '读取文章列表');
+    logger.info('GET', '获取文章列表');
     // 已发布文章：从 posts/ 文件系统索引读取（由 lib/content.ts 在构建时生成）
     const { getContentFiles } = await import('@/lib/content');
     const publishedFiles = getContentFiles('posts');
@@ -60,6 +60,7 @@ export async function GET() {
       return dateB - dateA;
     });
 
+    logger.info('GET', '获取文章列表成功', { count: all.length });
     return NextResponse.json(all);
   } catch (error) {
     logger.error('GET', '获取文章列表失败', { error: (error as Error).message });
@@ -75,8 +76,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    logger.info('POST', '创建文章');
     const { title, content, tags, coverImage, status, slug, description } = await req.json();
+    logger.info('POST', '创建文章', { title, status });
     const id = `draft-${Date.now().toString(36)}`;
     const now = new Date().toISOString();
 
