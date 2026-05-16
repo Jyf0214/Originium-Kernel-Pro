@@ -342,15 +342,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: error.error || '删除联系人失败' }, { status: 500 });
     }
 
-  logger.info('DELETE', '删除联系人成功', { slug });
-  return NextResponse.json({ success: true });
-  } catch (error: unknown) {
-  logger.error('DELETE', '删除联系人失败', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ error: '删除联系人失败' }, { status: 500 });
-  }
-}
-
-    logger.info('DELETE', '联系人删除成功', { slug });
+    logger.info('DELETE', '删除联系人成功', { slug });
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
     logger.error('DELETE', '删除联系人失败', { error: error instanceof Error ? error.message : String(error) });
