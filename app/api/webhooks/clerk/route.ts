@@ -93,8 +93,8 @@ try {
               where: { clerkId },
               data: { clerkId: null, clerkLinkedAt: null },
             });
-	} catch (error) {
-			logger.warn('POST', '清除 Prisma clerkId 失败', { clerkId });
+ 	} catch {
+ 			logger.warn('POST', '清除 Prisma clerkId 失败', { clerkId });
 		}
         }
         break;
