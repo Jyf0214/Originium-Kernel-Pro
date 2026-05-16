@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { loadConfigAsync, saveConfigToDb, hasDatabase } from '@/lib/config';
+import { loadConfigAsync } from '@/lib/config';
 import type { AppConfig } from '@/lib/config';
 import { getFileFromGithub } from '@/lib/github';
-import { getDb } from '@/lib/db';
 import { createApiLogger } from '@/lib/api-logger';
 
 const logger = createApiLogger('/api/config');
@@ -11,11 +10,9 @@ const logger = createApiLogger('/api/config');
 /**
  * System Configuration API
  *
- * 配置优先级：
- * 1. 数据库缓存（管理员通过此 API 修改的配置）
- * 2. GitHub config.yaml（远程同步配置）
- * 3. config.yaml（本地文件配置）
- * 4. 默认值
+ * 配置来源：
+ * 1. config.yaml（本地文件）
+ * 2. GitHub config.yaml（远程同步，通过 _remoteConfig 返回）
  *
  * 所有配置统一使用 AppConfig 结构
  */
@@ -70,18 +67,6 @@ export async function POST(req: NextRequest) {
     const newConfig = await req.json() as Partial<AppConfig>;
     const currentConfig = await loadConfigAsync();
 
-    if (hasDatabase()) {
-      const db = getDb();
-      const syncFlag = await db.get('github:sync:success');
-      if (syncFlag) {
-        logger.warn('POST', '配置已同步到 GitHub，拒绝重复提交');
-        return NextResponse.json(
-          { error: '配置已同步到 GitHub，请等待构建完成后再次提交' },
-          { status: 409 }
-        );
-      }
-    }
-
     const mergedConfig: AppConfig = {
       site: {
         title: newConfig.site?.title ?? currentConfig.site.title,
@@ -109,33 +94,7 @@ export async function POST(req: NextRequest) {
         : currentConfig.auth,
     };
 
-    await saveConfigToDb(mergedConfig);
-    logger.info('POST', '配置已保存至数据库');
-
-    const githubRepo = process.env.NEXT_PUBLIC_GITHUB_REPO;
-    const githubToken = process.env.GITHUB_TOKEN;
-    if (githubRepo && githubToken) {
-      try {
-        const syncRes = await fetch('/api/github/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'config', data: mergedConfig }),
-        });
-        const syncData = await syncRes.json();
-        if (!syncRes.ok) {
-          throw new Error(syncData.error || '同步配置到 GitHub 失败');
-        }
-        logger.info('POST', '配置已同步至 GitHub');
-      } catch (error) {
-        logger.error('POST', '同步配置到 GitHub 失败', { error: error instanceof Error ? error.message : '未知错误' });
-        return NextResponse.json(
-          { error: error instanceof Error ? error.message : '同步配置到 GitHub 失败' },
-          { status: 500 }
-        );
-      }
-    }
-
-    logger.info('POST', '配置更新成功');
+    logger.info('POST', '配置已合并');
     return NextResponse.json({ success: true, config: mergedConfig });
   } catch (error: unknown) {
     logger.error('POST', '更新配置失败', { error: error instanceof Error ? error.message : '未知错误' });
@@ -144,16 +103,11 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * 强制从 GitHub 同步配置
+ * 从 GitHub 拉取配置
  */
 export async function PUT() {
-  logger.info('PUT', '开始从 GitHub 强制同步配置');
-  const db = hasDatabase();
-  if (!db) {
-    logger.warn('PUT', '数据库未配置');
-    return NextResponse.json({ error: '数据库未配置' }, { status: 400 });
-  }
-  const repo = process.env.NEXT_PUBLIC_GITHUB_REPO;
+  logger.info('PUT', '开始从 GitHub 同步配置');
+  const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
   if (!repo || !token) {
     logger.warn('PUT', 'GitHub 未配置');
@@ -196,7 +150,6 @@ export async function PUT() {
         : currentConfig.auth,
     };
 
-    await saveConfigToDb(mergedConfig);
     logger.info('PUT', '从 GitHub 同步配置成功');
     return NextResponse.json({ success: true, config: mergedConfig });
   } catch (error) {
