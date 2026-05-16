@@ -26,15 +26,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing svix headers' }, { status: 400 });
   }
 
-  // 验证 webhook 签名
-  const svixId = req.headers.get('svix-id');
-  const svixTimestamp = req.headers.get('svix-timestamp');
-  const svixSignature = req.headers.get('svix-signature');
-
-  if (!svixId || !svixTimestamp || !svixSignature) {
-    logger.warn('POST', '缺少svix签名头');
-    return NextResponse.json({ error: 'Missing svix headers' }, { status: 400 });
-  }
 
   interface ClerkWebhookPayload {
   type: string;
