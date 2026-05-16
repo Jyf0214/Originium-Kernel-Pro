@@ -18,6 +18,38 @@ import BackgroundConfig from '@/components/ui/BackgroundConfig';
 import GitHubStatus from '@/components/ui/GitHubStatus';
 import yaml from 'js-yaml';
 
+function getDiffPaths(a: Record<string, unknown>, b: Record<string, unknown>, prefix = ''): string[] {
+  const paths: string[] = [];
+  for (const key of Object.keys(b)) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (typeof b[key] === 'object' && b[key] !== null && !Array.isArray(b[key]) && !(b[key] instanceof Date)) {
+      paths.push(...getDiffPaths((a?.[key] || {}) as Record<string, unknown>, b[key] as Record<string, unknown>, path));
+    } else if (JSON.stringify(a?.[key]) !== JSON.stringify(b[key])) {
+      paths.push(path);
+    }
+  }
+  return paths;
+}
+
+function setAtPath(obj: Record<string, unknown>, path: string, value: unknown): void {
+  const keys = path.split('.');
+  let cur = obj;
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (!cur[keys[i]] || typeof cur[keys[i]] !== 'object') cur[keys[i]] = {};
+    cur = cur[keys[i]] as Record<string, unknown>;
+  }
+  cur[keys[keys.length - 1]] = value;
+}
+
+function getAtPath(obj: Record<string, unknown>, path: string): unknown {
+  let cur: unknown = obj;
+  for (const key of path.split('.')) {
+    if (cur === undefined || cur === null) return undefined;
+    cur = (cur as Record<string, unknown>)[key];
+  }
+  return cur;
+}
+
 type LoadingType = 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
 type LoadingPosition = 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
@@ -101,6 +133,7 @@ export default function ConfigPage() {
   const [remoteConfigStatus, setRemoteConfigStatus] = useState<string>('');
   const [remoteConfigError, setRemoteConfigError] = useState<string>('');
   const [githubRepo, setGithubRepo] = useState<string>('');
+  const initialConfigRef = React.useRef<ConfigState | null>(null);
 
   const { showDiff, DiffModal } = useGitHubDiff({
     repo: githubRepo,
@@ -143,6 +176,31 @@ export default function ConfigPage() {
             auth: data.auth || { allowRegistration: true },
             users: data.users || {},
           });
+          initialConfigRef.current = {
+            site: {
+              title: data.site?.title || 'Originium Kernel',
+              description: data.site?.description || '',
+              heroTitleLine1: data.site?.heroTitleLine1 || '',
+              heroTitleLine2: data.site?.heroTitleLine2 || '',
+              lang: data.site?.lang || 'zh-CN',
+            },
+            appearance: {
+              background: data.appearance?.background || { url: '', opacity: 0.8 },
+              customCSS: data.appearance?.customCSS || '',
+              customHead: data.appearance?.customHead || '',
+              loading: data.appearance?.loading || {
+                page: { type: 'waves', color: '#c084fc', position: 'center' },
+                navigation: { type: 'antd', color: '#c084fc' },
+              },
+            },
+            access: data.access || {
+              posts: { public: ['*'], private: [] },
+              faces: { public: [], private: ['*'] },
+              diary: { public: [], private: ['*'] },
+            },
+            auth: data.auth || { allowRegistration: true },
+            users: data.users || {},
+          };
           const repo = data._githubRepo || process.env.NEXT_PUBLIC_GITHUB_REPO || '';
           setGithubConfigured(!!repo);
           setRemoteConfig(data._remoteConfig || '');
@@ -164,9 +222,40 @@ export default function ConfigPage() {
       return;
     }
 
-    console.warn('[Config] 开始保存配置至 GitHub');
-    const yamlContent = yaml.dump(config, { lineWidth: -1 });
-    console.warn('[Config] 配置已转换为 YAML 格式');
+    if (!initialConfigRef.current) {
+      message.error('初始配置未加载');
+      return;
+    }
+
+    const changedPaths = getDiffPaths(initialConfigRef.current, config);
+    if (changedPaths.length === 0) {
+      message.info('没有需要保存的变更');
+      return;
+    }
+
+    console.warn('[Config] 检测到变更:', changedPaths);
+
+    let remoteObj: Record<string, unknown> = {};
+    if (remoteConfig) {
+      try {
+        remoteObj = (yaml.load(remoteConfig) || {}) as Record<string, unknown>;
+        console.warn('[Config] remoteObj 键列表:', Object.keys(remoteObj));
+        console.warn('[Config] remoteObj 含 _testField?:', '_testField' in remoteObj);
+      } catch {
+        console.warn('[Config] 远程配置解析失败，使用表单配置作为基准');
+        remoteObj = {};
+      }
+    }
+
+    for (const path of changedPaths) {
+      const value = getAtPath(config, path);
+      setAtPath(remoteObj, path, value);
+    }
+
+    console.warn('[Config] 修改后 remoteObj 键列表:', Object.keys(remoteObj));
+
+    const yamlContent = yaml.dump(remoteObj, { lineWidth: -1 });
+    console.warn('[Config] yamlContent 包含 _testField:', yamlContent.includes('_testField'));
 
     showDiff({
       filePath: 'config.yaml',
