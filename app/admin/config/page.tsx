@@ -23,7 +23,8 @@ function getDiffPaths(a: Record<string, unknown>, b: Record<string, unknown>, pr
   for (const key of Object.keys(b)) {
     const path = prefix ? `${prefix}.${key}` : key;
     if (typeof b[key] === 'object' && b[key] !== null && !Array.isArray(b[key]) && !(b[key] instanceof Date)) {
-      paths.push(...getDiffPaths((a?.[key] || {}) as Record<string, unknown>, b[key] as Record<string, unknown>, path));
+      const val = a?.[key];
+      paths.push(...getDiffPaths((val !== undefined && val !== null ? val : {}) as Record<string, unknown>, b[key] as Record<string, unknown>, path));
     } else if (JSON.stringify(a?.[key]) !== JSON.stringify(b[key])) {
       paths.push(path);
     }
@@ -227,7 +228,8 @@ export default function ConfigPage() {
       return;
     }
 
-    const changedPaths = getDiffPaths(initialConfigRef.current, config);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const changedPaths = getDiffPaths(initialConfigRef.current as any, config as any);
     if (changedPaths.length === 0) {
       message.info('没有需要保存的变更');
       return;
@@ -239,23 +241,20 @@ export default function ConfigPage() {
     if (remoteConfig) {
       try {
         remoteObj = (yaml.load(remoteConfig) || {}) as Record<string, unknown>;
-        console.warn('[Config] remoteObj 键列表:', Object.keys(remoteObj));
-        console.warn('[Config] remoteObj 含 _testField?:', '_testField' in remoteObj);
       } catch {
-        console.warn('[Config] 远程配置解析失败，使用表单配置作为基准');
         remoteObj = {};
       }
     }
 
     for (const path of changedPaths) {
-      const value = getAtPath(config, path);
-      setAtPath(remoteObj, path, value);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const value = getAtPath(config as any, path);
+      if (value !== undefined) {
+        setAtPath(remoteObj, path, value);
+      }
     }
 
-    console.warn('[Config] 修改后 remoteObj 键列表:', Object.keys(remoteObj));
-
     const yamlContent = yaml.dump(remoteObj, { lineWidth: -1 });
-    console.warn('[Config] yamlContent 包含 _testField:', yamlContent.includes('_testField'));
 
     showDiff({
       filePath: 'config.yaml',
