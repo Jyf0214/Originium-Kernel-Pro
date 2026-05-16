@@ -300,24 +300,6 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: '联系人不存在' }, { status: 404 });
     }
 
-  try {
-    logger.info('DELETE', '删除联系人');
-    const { slug } = await req.json();
-
-    if (!slug) {
-      logger.warn('DELETE', '缺少联系人路径');
-      return NextResponse.json({ error: '缺少联系人路径' }, { status: 400 });
-    }
-
-    const filePath = `faces${slug}.md`;
-
-    // 使用统一的 /api/github 端点读取文件
-    const fileData = await getFileFromGitHub(req, filePath);
-    if (!fileData) {
-      logger.warn('DELETE', '联系人不存在', { slug });
-      return NextResponse.json({ error: '联系人不存在' }, { status: 404 });
-    }
-
     const { sha } = fileData;
 
     if (!canManageFace(session)) {
