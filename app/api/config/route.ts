@@ -25,7 +25,7 @@ export async function GET() {
   const githubRepo = process.env.GITHUB_REPO;
   const githubToken = process.env.GITHUB_TOKEN;
 
-  const response: typeof config & { _githubRepo?: string; _remoteConfig?: string } = {
+  const response: typeof config & { _githubRepo?: string; _remoteConfig?: string; _remoteConfigStatus?: string; _remoteConfigError?: string } = {
     ...config,
   };
 
@@ -38,10 +38,18 @@ export async function GET() {
       const remote = await getFileFromGithub(githubRepo, githubToken, 'config.yaml');
       if (remote) {
         response._remoteConfig = remote.content;
+        response._remoteConfigStatus = 'ok';
         logger.info('GET', '远程配置已获取');
+      } else {
+        response._remoteConfig = '';
+        response._remoteConfigStatus = 'not_found';
+        logger.info('GET', '远程 config.yaml 不存在（首次使用）');
       }
     } catch (error) {
-      logger.warn('GET', '获取远程配置失败', { error: error instanceof Error ? error.message : '未知错误' });
+      response._remoteConfig = '';
+      response._remoteConfigStatus = 'error';
+      response._remoteConfigError = error instanceof Error ? error.message : '未知错误';
+      logger.error('GET', '获取远程配置失败', { error: response._remoteConfigError });
     }
   }
 
