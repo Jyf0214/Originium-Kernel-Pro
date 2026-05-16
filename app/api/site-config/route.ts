@@ -11,12 +11,12 @@ const logger = createApiLogger('/api/site-config');
 export async function GET() {
   logger.info('GET', '读取站点配置');
   const config = await loadConfigAsync();
+  logger.info('GET', '站点配置读取成功');
   return NextResponse.json({
     site: config.site,
     appearance: {
       background: config.appearance.background,
       customCSS: config.appearance.customCSS,
-      // customHead 不通过 API 暴露，仅在服务端注入
     },
   });
 }

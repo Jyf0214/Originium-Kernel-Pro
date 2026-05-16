@@ -12,6 +12,7 @@ export async function GET() {
   const allFiles = getContentFiles('posts');
   const indexes = getContentIndexes('posts');
 
+  logger.info('GET', '帖子列表读取成功', { count: allFiles.length });
   return Response.json({
     posts: allFiles.map((f) => ({
       slug: f.slug,
