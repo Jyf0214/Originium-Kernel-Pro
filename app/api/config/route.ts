@@ -4,6 +4,7 @@ import { loadConfigAsync } from '@/lib/config';
 import type { AppConfig } from '@/lib/config';
 import { getFileFromGithub } from '@/lib/github';
 import { createApiLogger } from '@/lib/api-logger';
+import yaml from 'js-yaml';
 
 const logger = createApiLogger('/api/config');
 
@@ -18,39 +19,60 @@ const logger = createApiLogger('/api/config');
  */
 export async function GET() {
   logger.info('GET', '读取配置');
-  const config = await loadConfigAsync();
   const githubRepo = process.env.GITHUB_REPO;
   const githubToken = process.env.GITHUB_TOKEN;
 
-  const response: typeof config & { _githubRepo?: string; _remoteConfig?: string; _remoteConfigStatus?: string; _remoteConfigError?: string } = {
+  // 默认从本地 config.yaml 加载
+  let config = await loadConfigAsync();
+  let remoteConfigRaw = '';
+  let remoteConfigStatus = '';
+  let remoteConfigError = '';
+
+  // 优先从 GitHub 获取远程配置
+  if (githubRepo && githubToken) {
+    try {
+      const remote = await getFileFromGithub(githubRepo, githubToken, 'config.yaml');
+      if (remote) {
+        remoteConfigRaw = remote.content;
+        remoteConfigStatus = 'ok';
+        // 将远程 YAML 解析后作为主配置返回
+        const parsed = yaml.load(remote.content) as AppConfig | null;
+        if (parsed) {
+          config = parsed;
+        }
+        logger.info('GET', '远程配置已获取并作为主配置');
+      } else {
+        remoteConfigStatus = 'not_found';
+        logger.info('GET', '远程 config.yaml 不存在，使用本地配置');
+      }
+    } catch (error) {
+      remoteConfigStatus = 'error';
+      remoteConfigError = error instanceof Error ? error.message : '未知错误';
+      logger.error('GET', '获取远程配置失败，使用本地配置', { error: remoteConfigError });
+    }
+  } else {
+    logger.info('GET', 'GitHub 未配置，使用本地配置');
+  }
+
+  const response: typeof config & {
+    _githubRepo?: string;
+    _remoteConfig?: string;
+    _remoteConfigStatus?: string;
+    _remoteConfigError?: string;
+  } = {
     ...config,
+    _remoteConfig: remoteConfigRaw,
+    _remoteConfigStatus: remoteConfigStatus,
   };
 
   if (githubRepo) {
     response._githubRepo = githubRepo;
   }
-
-  if (githubRepo && githubToken) {
-    try {
-      const remote = await getFileFromGithub(githubRepo, githubToken, 'config.yaml');
-      if (remote) {
-        response._remoteConfig = remote.content;
-        response._remoteConfigStatus = 'ok';
-        logger.info('GET', '远程配置已获取');
-      } else {
-        response._remoteConfig = '';
-        response._remoteConfigStatus = 'not_found';
-        logger.info('GET', '远程 config.yaml 不存在（首次使用）');
-      }
-    } catch (error) {
-      response._remoteConfig = '';
-      response._remoteConfigStatus = 'error';
-      response._remoteConfigError = error instanceof Error ? error.message : '未知错误';
-      logger.error('GET', '获取远程配置失败', { error: response._remoteConfigError });
-    }
+  if (remoteConfigError) {
+    response._remoteConfigError = remoteConfigError;
   }
 
-  logger.info('GET', '配置读取成功');
+  logger.info('GET', '配置读取成功', { source: remoteConfigStatus || 'local' });
   return NextResponse.json(response);
 }
 
