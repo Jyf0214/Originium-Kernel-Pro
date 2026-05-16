@@ -18,39 +18,6 @@ import BackgroundConfig from '@/components/ui/BackgroundConfig';
 import GitHubStatus from '@/components/ui/GitHubStatus';
 import yaml from 'js-yaml';
 
-function getDiffPaths(a: Record<string, unknown>, b: Record<string, unknown>, prefix = ''): string[] {
-  const paths: string[] = [];
-  for (const key of Object.keys(b)) {
-    const path = prefix ? `${prefix}.${key}` : key;
-    if (typeof b[key] === 'object' && b[key] !== null && !Array.isArray(b[key]) && !(b[key] instanceof Date)) {
-      const val = a?.[key];
-      paths.push(...getDiffPaths((val !== undefined && val !== null ? val : {}) as Record<string, unknown>, b[key] as Record<string, unknown>, path));
-    } else if (JSON.stringify(a?.[key]) !== JSON.stringify(b[key])) {
-      paths.push(path);
-    }
-  }
-  return paths;
-}
-
-function setAtPath(obj: Record<string, unknown>, path: string, value: unknown): void {
-  const keys = path.split('.');
-  let cur = obj;
-  for (let i = 0; i < keys.length - 1; i++) {
-    if (!cur[keys[i]] || typeof cur[keys[i]] !== 'object') cur[keys[i]] = {};
-    cur = cur[keys[i]] as Record<string, unknown>;
-  }
-  cur[keys[keys.length - 1]] = value;
-}
-
-function getAtPath(obj: Record<string, unknown>, path: string): unknown {
-  let cur: unknown = obj;
-  for (const key of path.split('.')) {
-    if (cur === undefined || cur === null) return undefined;
-    cur = (cur as Record<string, unknown>)[key];
-  }
-  return cur;
-}
-
 type LoadingType = 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
 type LoadingPosition = 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
@@ -228,14 +195,10 @@ export default function ConfigPage() {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const changedPaths = getDiffPaths(initialConfigRef.current as any, config as any);
-    if (changedPaths.length === 0) {
+    if (JSON.stringify(initialConfigRef.current) === JSON.stringify(config)) {
       message.info('没有需要保存的变更');
       return;
     }
-
-    console.warn('[Config] 检测到变更:', changedPaths);
 
     let remoteObj: Record<string, unknown> = {};
     if (remoteConfig) {
@@ -246,15 +209,12 @@ export default function ConfigPage() {
       }
     }
 
-    for (const path of changedPaths) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const value = getAtPath(config as any, path);
-      if (value !== undefined) {
-        setAtPath(remoteObj, path, value);
-      }
+    const merged = { ...remoteObj };
+    for (const key of Object.keys(config) as (keyof typeof config)[]) {
+      merged[key] = config[key] as unknown;
     }
 
-    const yamlContent = yaml.dump(remoteObj, { lineWidth: -1 });
+    const yamlContent = yaml.dump(merged, { lineWidth: -1 });
 
     showDiff({
       filePath: 'config.yaml',
