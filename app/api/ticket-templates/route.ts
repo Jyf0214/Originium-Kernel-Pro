@@ -24,7 +24,7 @@ export async function GET() {
   try {
     logger.info('GET', '获取模板列表');
     const templates = getTicketTemplates();
-    logger.info('GET', '模板列表获取成功', { count: templates.length });
+    logger.info('GET', '获取模板列表成功', { count: templates.length });
     return NextResponse.json(templates);
   } catch (error) {
     logger.error('GET', '获取模板失败', { error: (error as Error).message });
@@ -46,7 +46,6 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    logger.info('POST', '创建模板');
     const body = await req.json();
     const { name, description, title, labels, assignees, fields, body: templateBody } = body;
 
@@ -55,6 +54,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '缺少必需字段' }, { status: 400 });
     }
 
+    logger.info('POST', '创建模板', { name });
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     const fileName = `${slug}.md`;
     const filePath = `tickets/${fileName}`;

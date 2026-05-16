@@ -92,6 +92,8 @@ export default function ConfigPage() {
   const [saving, setSaving] = useState(false);
   const [githubConfigured, setGithubConfigured] = useState(false);
   const [remoteConfig, setRemoteConfig] = useState<string>('');
+  const [remoteConfigStatus, setRemoteConfigStatus] = useState<string>('');
+  const [remoteConfigError, setRemoteConfigError] = useState<string>('');
   const [githubRepo, setGithubRepo] = useState<string>('');
 
   const { showDiff, DiffModal } = useGitHubDiff({
@@ -137,6 +139,8 @@ export default function ConfigPage() {
           const repo = data._githubRepo || process.env.NEXT_PUBLIC_GITHUB_REPO || '';
           setGithubConfigured(!!repo);
           setRemoteConfig(data._remoteConfig || '');
+          setRemoteConfigStatus(data._remoteConfigStatus || '');
+          setRemoteConfigError(data._remoteConfigError || '');
         }
       } catch (error) {
         console.error('获取配置失败:', error);
@@ -265,8 +269,11 @@ export default function ConfigPage() {
     );
   }
 
+  const remoteFetchFailed = !!(remoteConfigStatus === 'error' && githubRepo);
+
   return (
-    <div className="p-6 md:p-10 max-w-4xl mx-auto space-y-4 bg-zinc-50">
+    <div className="min-h-screen bg-zinc-50">
+      <div className="p-6 md:p-10 max-w-4xl mx-auto space-y-4">
       {/* 标题 */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center">
@@ -277,6 +284,29 @@ export default function ConfigPage() {
           <p className="text-sm text-zinc-400">{t('config.subtitle')}</p>
         </div>
       </div>
+
+      {/* 远程配置拉取失败提示 */}
+      {remoteFetchFailed && (
+        <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-6 mb-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
+              <span className="text-red-600 text-xl font-bold">!</span>
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-red-800">无法拉取远程配置文件</h2>
+              <p className="text-sm text-red-600">
+                无法从 GitHub 读取 config.yaml，请检查仓库权限和令牌配置
+              </p>
+            </div>
+          </div>
+          <div className="bg-red-100/50 rounded-xl p-4 font-mono text-xs text-red-700 whitespace-pre-wrap break-all">
+            {remoteConfigError || '未知错误'}
+          </div>
+          <p className="mt-3 text-xs text-red-500">
+            保存功能暂时不可用，请修复后刷新页面重试
+          </p>
+        </div>
+      )}
 
       {/* 站点设置 */}
       <ConfigSection title={t('config.general')} color="bg-emerald-500">
@@ -380,20 +410,22 @@ export default function ConfigPage() {
         notConfiguredText="未配置（请设置 GITHUB_REPO 和 GITHUB_TOKEN）"
       />
 
-      {/* 保存按钮 */}
-      <div className="flex justify-end">
+      {DiffModal}
+    </div>
+
+      {/* 保存按钮 - 固定在屏幕右下角 */}
+      <div className="fixed bottom-8 right-8 z-50">
         <Button
           onClick={handleSave}
           loading={saving}
           icon={<Settings size={14} />}
           type="primary"
-          className="bg-zinc-900 hover:bg-zinc-800 rounded-xl h-10 px-8"
-          disabled={!githubConfigured}
+          className="bg-zinc-900 hover:bg-zinc-800 rounded-xl h-10 px-8 shadow-lg"
+          disabled={!githubConfigured || remoteFetchFailed}
         >
           {saving ? t('config.saving') : t('config.save')}
         </Button>
       </div>
-      {DiffModal}
     </div>
   );
 }
