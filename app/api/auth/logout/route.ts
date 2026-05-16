@@ -11,5 +11,6 @@ const logger = createApiLogger('/api/auth/logout');
 export async function POST() {
   logger.info('POST', '用户登出');
   await deleteSession();
+  logger.info('POST', '登出成功');
   return NextResponse.json({ success: true });
 }
