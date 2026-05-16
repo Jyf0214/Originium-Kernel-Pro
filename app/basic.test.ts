@@ -6,7 +6,7 @@ import yaml from 'js-yaml';
 describe('默认配置验证', () => {
   test('config.yaml 应包含必要的默认字段', () => {
     const configPath = path.join(process.cwd(), 'config.yaml');
-    const config = yaml.load(fs.readFileSync(configPath, 'utf-8')) as Record<string, unknown>;
+    const config = yaml.load(fs.readFileSync(configPath, 'utf-8')) as { site?: { title?: string; lang?: string }; access?: unknown; auth?: unknown };
     expect(config.site?.title).toBeDefined();
     expect(config.site?.lang).toBe('zh-CN');
     expect(config.access).toBeDefined();
