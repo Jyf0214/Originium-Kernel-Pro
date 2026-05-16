@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    logger.info('POST', '执行清理任务');
+    logger.info('POST', '开始清理过期文章');
     const db = getDb();
     const index = await db.hgetall('articles:index');
     
@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
     }
 
     logger.info('POST', '清理任务完成', { deletedCount: deleted.length, errorCount: errors.length });
+    logger.info('POST', '清理完成', { deletedCount: deleted.length, errorCount: errors.length });
     return NextResponse.json({
       success: true,
       message: `Cleanup completed. Deleted ${deleted.length} articles.`,
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest) {
       timestamp: new Date().toISOString(),
   });
   } catch (error: unknown) {
-  logger.error('POST', '清理任务失败', { error: error instanceof Error ? error.message : String(error) });
+  logger.error('POST', '清理过期文章错误', { error: error instanceof Error ? error.message : String(error) });
   return NextResponse.json({
   error: 'Internal server error',
   details: error instanceof Error ? error.message : String(error)
@@ -84,7 +85,7 @@ export async function GET() {
   try {
     const session = await getSession();
     if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
-      logger.warn('GET', '未授权');
+      logger.warn('GET', '未授权', { role: session?.role });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -125,7 +126,7 @@ export async function GET() {
       deletionPeriodDays: DELETION_PERIOD_DAYS,
   });
   } catch (error: unknown) {
-  logger.error('GET', '获取清理统计失败', { error: error instanceof Error ? error.message : String(error) });
+  logger.error('GET', '获取清理统计错误', { error: error instanceof Error ? error.message : String(error) });
   return NextResponse.json({
   error: 'Internal server error',
   details: error instanceof Error ? error.message : String(error)

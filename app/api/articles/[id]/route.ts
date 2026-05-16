@@ -19,6 +19,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  logger.info('GET', '获取文章详情', { id });
 
   try {
     logger.info('GET', '读取文章详情', { id });
@@ -99,8 +100,8 @@ export async function PATCH(
   }
 
   try {
-    logger.info('PATCH', '更新文章', { id });
     const body = await req.json();
+    logger.info('PATCH', '更新文章', { id });
     const db = getDb();
     const metaStr = await db.get(`article:data:${id}`);
 
@@ -165,13 +166,13 @@ export async function PATCH(
       return NextResponse.json({ success: true, slug: postSlug });
     }
 
-  // 草稿更新：正文存文件系统，数据库仅存元数据
-  if (updated.content) {
-    await saveDraft(id, updated.content);
-  }
-  updated.content = '';
-  await db.set(`article:data:${id}`, JSON.stringify(updated));
-  await db.hset('articles:drafts', id, JSON.stringify(updated));
+    // 草稿更新：正文存文件系统，数据库仅存元数据
+    if (updated.content) {
+      await saveDraft(id, updated.content);
+    }
+    updated.content = '';
+    await db.set(`article:data:${id}`, JSON.stringify(updated));
+    await db.hset('articles:drafts', id, JSON.stringify(updated));
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -218,24 +219,24 @@ export async function DELETE(
         });
       }
 
-    // 删除数据库记录
-    await db.del(`article:data:${id}`);
-    await db.hdel('articles:drafts', id);
-    await db.hdel('articles:published', id);
+      // 删除数据库记录
+      await db.del(`article:data:${id}`);
+      await db.hdel('articles:drafts', id);
+      await db.hdel('articles:published', id);
 
-    // 清理草稿文件
-    try {
-      await deleteDraft(id);
-    } catch {
-      // 文件清理失败不影响删除流程
-    }
+      // 清理草稿文件
+      try {
+        await deleteDraft(id);
+      } catch {
+        // 文件清理失败不影响删除流程
+      }
 
-    return NextResponse.json({ success: true, message: '已永久删除' });
+      return NextResponse.json({ success: true, message: '已永久删除' });
     }
 
     // 普通用户：进入删除队列
     if (meta.authorId !== session.uid) {
-      logger.warn('DELETE', '无权限', { id, uid: session.uid });
+      logger.warn('DELETE', '无权限', { id, authorId: meta.authorId, uid: session.uid });
       return NextResponse.json({ error: '无权限' }, { status: 403 });
     }
 
