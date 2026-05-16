@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { syncConfigToGithub } from '@/lib/github';
+import { syncConfigToGithub, updateFileInGithub } from '@/lib/github';
 import { loadConfigAsync } from '@/lib/config';
 import { getDb } from '@/lib/db';
 import { hasDatabase } from '@/lib/config';
@@ -37,6 +37,29 @@ export async function POST(req: NextRequest) {
     const { type = 'config', data } = body;
 
     logger.info('POST', '开始同步', { type });
+
+    if (type === 'config-yaml') {
+      const { content, message: commitMessage } = body;
+      if (!content) {
+        logger.warn('POST', 'config-yaml 缺少 content 字段');
+        return NextResponse.json({ error: '缺少 YAML 内容' }, { status: 400 });
+      }
+      await updateFileInGithub({
+        repo: githubRepo,
+        token: githubToken,
+        path: 'config.yaml',
+        content,
+        message: commitMessage || 'chore: update config from admin panel',
+      });
+      logger.info('POST', 'config.yaml 同步成功');
+
+      if (hasDatabase()) {
+        const db = getDb();
+        await db.set('github:sync:success', Date.now().toString());
+      }
+
+      return NextResponse.json({ success: true, message: 'config.yaml 同步成功' });
+    }
 
     if (type === 'config') {
       const config = data || await loadConfigAsync();

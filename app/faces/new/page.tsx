@@ -8,7 +8,6 @@ import { Form, Input, Button, Select, message } from 'antd';
 import { Save, ArrowLeft, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { generateMarkdown, type FrontMatter } from '@/lib/markdown';
-import { updateFileInGithub } from '@/lib/github';
 import { showError } from '@/lib/error';
 import { Navbar } from '@/components/Navbar';
 import { GlobalLoading } from '@/components/Loading';
@@ -31,11 +30,10 @@ export default function NewFacePage() {
   const [submitting, setSubmitting] = useState(false);
 
   const githubRepo = process.env.NEXT_PUBLIC_GITHUB_REPO;
-  const githubToken = process.env.GITHUB_TOKEN;
 
   /** 提交表单：生成 Markdown 并推送至 GitHub */
   const handleSubmit = async (values: NewFaceFormValues) => {
-    if (!githubRepo || !githubToken) {
+    if (!githubRepo) {
       showError('GitHub 未配置，请检查环境变量');
       return;
     }
@@ -64,13 +62,20 @@ export default function NewFacePage() {
 
       const filePath = `faces/${groupPath}/${safeName}.md`;
 
-      await updateFileInGithub({
-        repo: githubRepo,
-        token: githubToken,
-        path: filePath,
-        content: markdownContent,
-        message: `feat: 新建联系人 "${values.name}"`,
+      const res = await fetch('/api/github', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'create',
+          path: filePath,
+          content: markdownContent,
+          message: `feat: 新建联系人 "${values.name}"`,
+        }),
       });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || '创建失败');
+      }
 
       message.success('联系人创建成功');
       router.push(`/faces/${groupPath}/${safeName}`);

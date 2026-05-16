@@ -6,7 +6,6 @@ import { useI18n } from '@/hooks/use-i18n';
 import { Button, Input, Form, Avatar, message } from 'antd';
 import type { Rule } from 'antd/es/form';
 import { showError } from '@/lib/error';
-import { getFileFromGithub, updateFileInGithub } from '@/lib/github';
 import { useGitHubDiff } from '@/hooks/use-github-diff';
 import { User, AtSign, Image as ImageIcon, Save, ArrowLeft, Check, Github } from 'lucide-react';
 import Link from 'next/link';
@@ -65,7 +64,6 @@ export default function SettingsPage() {
   const [loadingRemote, setLoadingRemote] = useState(false);
 
   const githubRepo = process.env.NEXT_PUBLIC_GITHUB_REPO;
-  const githubToken = process.env.GITHUB_TOKEN;
 
   const { showDiff, DiffModal } = useGitHubDiff({
     repo: githubRepo || '',
@@ -80,23 +78,6 @@ export default function SettingsPage() {
       });
     }
   }, [user, form]);
-
-  useEffect(() => {
-    if (!githubRepo || !githubToken || !user?.uid) return;
-
-    const fetchRemoteConfig = async () => {
-      setLoadingRemote(true);
-      try {
-        await getFileFromGithub(githubRepo, githubToken, 'config.json');
-      } catch (err) {
-        console.error('Failed to fetch remote config:', err);
-      } finally {
-        setLoadingRemote(false);
-      }
-    };
-
-    fetchRemoteConfig();
-  }, [githubRepo, githubToken, user?.uid]);
 
   const handleSave = async (values: Record<string, string>) => {
     setLoading(true);
@@ -137,9 +118,11 @@ export default function SettingsPage() {
     }
 
     try {
-      const configResult = await getFileFromGithub(githubRepo!, githubToken!, 'config.json');
-      const configContent = configResult?.content || '{}';
-      const config = JSON.parse(configContent);
+      setLoadingRemote(true);
+      const getRes = await fetch('/api/github?path=config.json');
+      if (!getRes.ok) throw new Error('读取远程配置失败');
+      const { raw: configContent } = await getRes.json();
+      const config = JSON.parse(configContent || '{}');
 
       const newUsers = {
         ...config.users,
@@ -152,20 +135,29 @@ export default function SettingsPage() {
 
       showDiff({
         filePath: 'config.json',
-        oldContent: configContent,
+        oldContent: configContent || '{}',
         newContent: newConfigContent,
         onSubmit: async () => {
-          await updateFileInGithub({
-            repo: githubRepo!,
-            token: githubToken!,
-            path: 'config.json',
-            content: newConfigContent,
-            message: `chore: update avatar for user ${user.name || user.uid}`,
+          const res = await fetch('/api/github', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'update',
+              path: 'config.json',
+              content: newConfigContent,
+              message: `chore: update avatar for user ${user.name || user.uid}`,
+            }),
           });
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || '同步失败');
+          }
         },
       });
     } catch {
       showError('同步失败');
+    } finally {
+      setLoadingRemote(false);
     }
   };
 
@@ -235,7 +227,7 @@ export default function SettingsPage() {
                   className="!h-10 !rounded-lg !text-sm !border-zinc-200 hover:!border-zinc-300 focus:!border-zinc-900 flex-1"
                   allowClear
                 />
-                {githubRepo && githubToken && (
+                {githubRepo && (
                   <Button
                     icon={<Github size={14} />}
                     onClick={handleSyncAvatarToGithub}

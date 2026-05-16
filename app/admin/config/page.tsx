@@ -7,7 +7,6 @@ import { message, Button } from 'antd';
 import { Settings, Shield, Loader2 } from 'lucide-react';
 import { showError } from '@/lib/error';
 import { GlobalLoading } from '@/components/Loading';
-import { updateFileInGithub, getFileFromGithub } from '@/lib/github';
 import { useGitHubDiff } from '@/hooks/use-github-diff';
 import ConfigSection from '@/components/ui/ConfigSection';
 import FormField from '@/components/ui/FormField';
@@ -94,7 +93,6 @@ export default function ConfigPage() {
   const [githubConfigured, setGithubConfigured] = useState(false);
   const [remoteConfig, setRemoteConfig] = useState<string>('');
   const [githubRepo, setGithubRepo] = useState<string>('');
-  const [githubToken, setGithubToken] = useState<string>('');
 
   const { showDiff, DiffModal } = useGitHubDiff({
     repo: githubRepo,
@@ -112,7 +110,6 @@ export default function ConfigPage() {
         if (res.ok) {
           const data = await res.json();
           setGithubRepo(data._githubRepo || '');
-          setGithubToken(data._githubToken || '');
           setConfig({
             site: {
               title: data.site?.title || 'Originium Kernel',
@@ -137,14 +134,9 @@ export default function ConfigPage() {
             },
             auth: data.auth || { allowRegistration: true },
           });
-          const repo = data._githubRepo || '';
-          const token = data._githubToken || '';
-          setGithubConfigured(!!(repo && token));
-
-          if (repo && token) {
-            const remote = await getFileFromGithub(repo, token, 'config.yaml');
-            setRemoteConfig(remote?.content || '');
-          }
+          const repo = data._githubRepo || process.env.NEXT_PUBLIC_GITHUB_REPO || '';
+          setGithubConfigured(!!repo);
+          setRemoteConfig(data._remoteConfig || '');
         }
       } catch (error) {
         console.error('获取配置失败:', error);
@@ -155,17 +147,8 @@ export default function ConfigPage() {
     fetchConfig();
   }, [userRole]);
 
-  useEffect(() => {
-    const repo = process.env.NEXT_PUBLIC_GITHUB_REPO || githubRepo;
-    const token = process.env.GITHUB_TOKEN || githubToken;
-    if (repo && token) {
-      setGithubRepo(repo);
-      setGithubToken(token);
-    }
-  }, [githubRepo, githubToken]);
-
   const handleSave = () => {
-    if (!githubRepo || !githubToken) {
+    if (!githubRepo) {
       message.error('GitHub 未配置');
       return;
     }
@@ -182,13 +165,19 @@ export default function ConfigPage() {
         console.warn('[Config] 用户确认提交，开始推送至 GitHub');
         setSaving(true);
         try {
-          await updateFileInGithub({
-            repo: githubRepo,
-            token: githubToken,
-            path: 'config.yaml',
-            content: yamlContent,
-            message: 'chore: update config from admin panel',
+          const res = await fetch('/api/github/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'config-yaml',
+              content: yamlContent,
+              message: 'chore: update config from admin panel',
+            }),
           });
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || '同步失败');
+          }
           setRemoteConfig(yamlContent);
           console.warn('[Config] 配置已成功推送至 GitHub');
           message.success(t('config.saveSuccess') || '配置已成功保存至 GitHub');
