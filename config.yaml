@@ -34,4 +34,6 @@ access:
 auth:
   allowRegistration: false
 _testField: this-should-be-preserved-by-surgical-save-2026
-users: {}
+users:
+  '169313142':
+    avatar: https://avatars.githubusercontent.com/u/169313142?v=4
