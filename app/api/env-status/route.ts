@@ -15,6 +15,8 @@ export async function GET() {
     return NextResponse.json({ error: '无权限' }, { status: 403 });
   }
 
+  logger.info('GET', '获取环境变量状态');
+
   logger.info('GET', '检查环境变量状态');
 
   const envStatus = {
@@ -118,6 +120,7 @@ export async function GET() {
   const setVars = allVars.filter(v => v.isSet);
   const missingRequired = requiredVars.filter(v => !v.isSet);
 
+  logger.info('GET', '环境变量状态获取成功', { isReady: missingRequired.length === 0 });
   return NextResponse.json({
     groups: envStatus,
     summary: {

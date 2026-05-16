@@ -13,14 +13,14 @@ export async function GET() {
   const session = await getSession();
   
   if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
-    logger.warn('GET', '未授权', { role: session?.role });
+    logger.warn('GET', '无权限访问', { role: session?.role });
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
 
   try {
     logger.info('GET', '获取用户列表');
     const users = await getAllUsers();
-    logger.info('GET', '用户列表获取成功', { count: users.length });
+    logger.info('GET', '获取用户列表成功', { count: users.length });
     return NextResponse.json(users);
   } catch (error) {
     logger.error('GET', '获取用户列表失败', { error: error instanceof Error ? error.message : String(error) });

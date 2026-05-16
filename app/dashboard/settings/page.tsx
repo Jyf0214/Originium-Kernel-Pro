@@ -1,16 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { Button, Input, Form, Avatar, message } from 'antd';
 import type { Rule } from 'antd/es/form';
 import { showError } from '@/lib/error';
-import { useGitHubDiff } from '@/hooks/use-github-diff';
+import { useGitHubConfigSync } from '@/hooks/use-github-config-sync';
 import { User, AtSign, Image as ImageIcon, Save, ArrowLeft, Check } from 'lucide-react';
 import Link from 'next/link';
 import ConfigSection from '@/components/ui/ConfigSection';
-import yaml from 'js-yaml';
 
 // 表单字段组件，适配 Ant Design Form
 interface SettingsFormFieldProps {
@@ -62,17 +61,71 @@ export default function SettingsPage() {
   const { t } = useI18n();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [originalAvatar, setOriginalAvatar] = useState('');
 
   const githubRepo = process.env.NEXT_PUBLIC_GITHUB_REPO;
 
-  const { showDiff, DiffModal } = useGitHubDiff({
+  const watchedAvatarUrl = Form.useWatch('avatarUrl', form);
+
+  // 头像自定义转换函数：修改 users[uid].avatar 字段
+  const avatarCustomTransform = useCallback(
+    (remoteObj: Record<string, unknown>, cfg: Record<string, unknown>) => {
+      const uid = cfg._uid as string;
+      const newAvatar = cfg.avatarUrl as string;
+      const users = { ...((remoteObj.users || {}) as Record<string, unknown>) };
+
+      if (newAvatar) {
+        // 设置/更新头像
+        const entry = { ...((users[uid] || {}) as Record<string, unknown>) };
+        entry.avatar = newAvatar;
+        users[uid] = entry;
+      } else {
+        // 清空头像：从配置中移除 avatar 字段
+        if (users[uid]) {
+          const entry = { ...(users[uid] as Record<string, unknown>) };
+          delete entry.avatar;
+          if (Object.keys(entry).length === 0) {
+            delete users[uid];
+          } else {
+            users[uid] = entry;
+          }
+        }
+      }
+      return { ...remoteObj, users };
+    },
+    [],
+  );
+
+  // useGitHubConfigSync 配置：稳定引用，仅 _uid 用于 customTransform
+  const syncCurrentConfig = useMemo(
+    () => ({ avatarUrl: watchedAvatarUrl || '', _uid: user?.uid || '' }),
+    [watchedAvatarUrl, user?.uid],
+  );
+
+  const handleSyncComplete = useCallback(() => {
+    // 钩子内部已显示成功提示，此处仅刷新用户状态
+    refresh();
+  }, [refresh]);
+
+  const handleSyncError = useCallback((e: unknown) => {
+    showError(`头像同步失败: ${e instanceof Error ? e.message : '未知错误'}`);
+  }, []);
+
+  const { handleSave: syncAvatar, DiffModal } = useGitHubConfigSync({
     repo: githubRepo || '',
+    remoteConfig: '',
+    currentConfig: syncCurrentConfig,
+    customTransform: avatarCustomTransform,
+    onSyncComplete: handleSyncComplete,
+    onSyncError: handleSyncError,
   });
 
   useEffect(() => {
     if (user) {
+      const avatar = user.avatar || '';
+      setOriginalAvatar(avatar);
       form.setFieldsValue({
-        avatarUrl: user.avatar || '',
+        avatarUrl: avatar,
         username: user.name || '',
         displayName: user.displayName || user.name || '',
       });
@@ -82,7 +135,6 @@ export default function SettingsPage() {
   const handleSave = async (values: Record<string, string>) => {
     setLoading(true);
     try {
-      const avatarUrlValue = values.avatarUrl || '';
       const uid = user?.uid;
 
       // 1. 保存用户名/昵称到数据库（不含头像）
@@ -100,51 +152,28 @@ export default function SettingsPage() {
         return;
       }
 
-      // 2. 头像同步到 GitHub config.yaml（含用户确认弹窗）
-      if (uid && avatarUrlValue && githubRepo) {
+      // 2. 检测头像是否有变更
+      const newAvatar = values.avatarUrl || '';
+      const avatarChanged = newAvatar !== originalAvatar;
+
+      if (avatarChanged && uid && githubRepo) {
+        // 获取远程 config.yaml
         const configRes = await fetch('/api/config');
         if (!configRes.ok) throw new Error('读取配置失败');
         const configData = await configRes.json();
         const remoteRaw = configData._remoteConfig || '';
         if (!remoteRaw) throw new Error('远程配置为空');
 
-        const remoteObj = (yaml.load(remoteRaw) || {}) as Record<string, unknown>;
-        const users = (remoteObj.users || {}) as Record<string, unknown>;
-        const userEntry = (users[uid] || {}) as Record<string, unknown>;
-        users[uid] = { ...userEntry, avatar: avatarUrlValue };
-        remoteObj.users = users;
-        const newYaml = yaml.dump(remoteObj, { lineWidth: -1 });
+        // 释放 loading——用户需要通过 Diff Modal 确认
+        setLoading(false);
 
-        showDiff({
-          filePath: 'config.yaml',
-          oldContent: remoteRaw,
-          newContent: newYaml,
-          onSubmit: async () => {
-            setLoading(true);
-            try {
-              const syncRes = await fetch('/api/github/sync', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  type: 'config-yaml',
-                  content: newYaml,
-                  message: `chore: update avatar for user ${user?.name || uid}`,
-                }),
-              });
-              if (!syncRes.ok) {
-                const err = await syncRes.json();
-                throw new Error(err.error || '同步失败');
-              }
-              message.success(t('settings.saveSuccess'));
-              await refresh();
-            } catch (e) {
-              showError(`头像同步失败: ${e instanceof Error ? e.message : '未知错误'}`);
-              throw e;
-            } finally {
-              setLoading(false);
-            }
-          },
-        });
+        // 使用 useGitHubConfigSync 的 handleSave（含变更检测、diff 展示、提交）
+        // _ts 确保 initialConfig !== currentConfig，绕过钩子内置变更检测（已在外部完成）
+        syncAvatar(
+          { avatarUrl: originalAvatar, _uid: uid, _ts: Date.now() },
+          remoteRaw,
+          `chore: update avatar for user ${user?.name || uid}`,
+        );
       } else {
         message.success(t('settings.saveSuccess'));
         await refresh();
@@ -156,8 +185,6 @@ export default function SettingsPage() {
       setLoading(false);
     }
   };
-
-  const avatarUrl = Form.useWatch('avatarUrl', form);
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -185,8 +212,8 @@ export default function SettingsPage() {
               <div className="relative">
                 <Avatar
                   size={72}
-                  src={avatarUrl || undefined}
-                  icon={!avatarUrl && <User size={28} />}
+                  src={watchedAvatarUrl || undefined}
+                  icon={!watchedAvatarUrl && <User size={28} />}
                   className="bg-zinc-100 text-zinc-400 shrink-0 border-2 border-white shadow-lg"
                 />
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
