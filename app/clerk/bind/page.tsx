@@ -50,7 +50,7 @@ export default function ClerkBindPage() {
           });
         }, 1000);
       } else {
-        showError(data.error || '发送失败');
+        showError(data.error ?? '发送失败');
       }
     } catch {
       showError('网络错误');
@@ -78,7 +78,7 @@ export default function ClerkBindPage() {
         message.success('账户绑定成功！');
         setTimeout(() => router.push('/dashboard'), 1500);
       } else {
-        showError(data.error || '验证失败');
+        showError(data.error ?? '验证失败');
       }
     } catch {
       showError('网络错误');

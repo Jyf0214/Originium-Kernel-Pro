@@ -9,7 +9,7 @@ export type { AppConfig, SiteConfig, AppearanceConfig, AccessConfig, AuthConfig,
  * 检测数据库是否可用（其他非配置页面使用，配置页面不再依赖数据库）
  */
 export function hasDatabase(): boolean {
-  return !!(process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING);
+  return !!(process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? process.env.POSTGRES_PRISMA_URL ?? process.env.POSTGRES_URL_NON_POOLING);
 }
 
 /**
@@ -37,8 +37,8 @@ export function loadConfig(): AppConfig {
 /**
  * 异步加载配置（仅从 config.yaml，无数据库）
  */
-export async function loadConfigAsync(): Promise<AppConfig> {
-  return loadConfig();
+export function loadConfigAsync(): Promise<AppConfig> {
+  return Promise.resolve(loadConfig());
 }
 
 /**
@@ -60,10 +60,10 @@ export function canAccess(
   section: 'posts' | 'faces' | 'diary',
   slug: string,
   isAuthenticated: boolean,
-  hasDb: boolean = false,
+  hasDb = false,
   config?: AppConfig,
 ): boolean {
-  const rules = (config || loadConfig()).access[section];
+  const rules = (config ?? loadConfig()).access[section];
 
   const isPrivate = rules.private.some((p: string) => matchPath(p, slug));
   const isPublic = rules.public.some((p: string) => matchPath(p, slug));
@@ -80,7 +80,7 @@ export function canAccess(
 export function filterAccessibleSlugs(
   section: 'posts' | 'faces' | 'diary',
   slugs: string[],
-  hasDb: boolean = false,
+  hasDb = false,
 ): string[] {
   return slugs.filter((slug) => canAccess(section, slug, false, hasDb));
 }
@@ -89,18 +89,8 @@ export function filterAccessibleSlugs(
  * 获取用户头像（仅从配置文件读取）
  * 优先级：config.users[uid].avatar > auth.admin.avatar（仅当用户是管理员）
  */
-export async function getUserAvatarAsync(uid: string, isAdmin?: boolean): Promise<string | null> {
-  const config = loadConfig();
-
-  if (config.users?.[uid]?.avatar) {
-    return config.users[uid].avatar;
-  }
-
-  if (isAdmin && config.auth?.admin?.avatar) {
-    return config.auth.admin.avatar;
-  }
-
-  return null;
+export function getUserAvatarAsync(uid: string, isAdmin?: boolean): Promise<string | null> {
+  return Promise.resolve(getUserAvatar(uid, isAdmin));
 }
 
 /**

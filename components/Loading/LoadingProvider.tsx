@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { type ReactNode, createContext, useContext } from 'react';
 
 interface LoadingConfig {
   page?: {

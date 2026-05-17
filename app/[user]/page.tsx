@@ -4,7 +4,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useParams } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
 import { ArticleCard } from '@/components/ArticleCard';
-import { UserProfile } from '@/lib/user';
+import type { UserProfile } from '@/lib/user';
 import { type Article } from '@/types/content';
 import { useI18n } from '@/hooks/use-i18n';
 import { GlobalLoading } from '@/components/Loading';
@@ -44,7 +44,7 @@ function UserProfileContent() {
       }
     };
 
-    if (username) fetchUser();
+    if (username) void fetchUser();
   }, [username]);
 
   if (loading) return (
@@ -76,7 +76,7 @@ function UserProfileContent() {
           <div className="max-w-4xl mx-auto px-6 py-12">
             <div className="flex flex-col items-center text-center">
               <div className="w-24 h-24 bg-zinc-900 rounded-3xl flex items-center justify-center text-white mb-6 shadow-xl shadow-zinc-200 overflow-hidden">
-                <Avatar name={user.name} avatarUrl={user.avatar || undefined} size={96} />
+                <Avatar name={user.name} avatarUrl={user.avatar ?? undefined} size={96} />
               </div>
               
               <h1 className="text-4xl font-display font-black text-zinc-900 mb-2">

@@ -35,10 +35,10 @@ export default function RequestsPage() {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || '获取申请列表失败');
+          throw new Error(data.error ?? '获取申请列表失败');
         }
 
-        setRequests(data.requests || []);
+        setRequests(data.requests ?? []);
       } catch (err) {
         setError(err instanceof Error ? err.message : '获取申请列表失败');
       } finally {
@@ -46,7 +46,7 @@ export default function RequestsPage() {
       }
     };
 
-    fetchRequests();
+    void fetchRequests();
   }, [hasAccess]);
 
   const handleApprove = async (request: Request) => {
@@ -61,7 +61,7 @@ export default function RequestsPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || '审批失败');
+        throw new Error(data.error ?? '审批失败');
       }
 
       message.success('已批准删除申请');
@@ -85,7 +85,7 @@ export default function RequestsPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || '拒绝失败');
+        throw new Error(data.error ?? '拒绝失败');
       }
 
       message.success('已拒绝');
@@ -139,7 +139,7 @@ export default function RequestsPage() {
                     </div>
                   </td>
                   <td className="p-4 text-sm text-zinc-600 max-w-xs truncate">
-                    {req.reason || '-'}
+                    {req.reason ?? '-'}
                   </td>
                   <td className="p-4">
                     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${

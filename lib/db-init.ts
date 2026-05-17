@@ -38,12 +38,12 @@ export async function ensureAdminUser(): Promise<{ created: boolean; error?: str
           const newHash = await hashPassword(adminPassword);
           user.password = newHash;
           await db.set(`user:uid:${uid}`, JSON.stringify(user));
-          console.error(`[数据库初始化] ✓ 迁移旧版用户密码: ${user.email || user.username || user.uid}`);
+          console.error(`[数据库初始化] ✓ 迁移旧版用户密码: ${user.email ?? user.username ?? user.uid}`);
         } else {
           const newHash = await hashPassword(adminPassword);
           user.password = newHash;
           await db.set(`user:uid:${uid}`, JSON.stringify(user));
-          console.error(`[数据库初始化] ✓ 更新用户密码: ${user.email || user.username || user.uid}`);
+          console.error(`[数据库初始化] ✓ 更新用户密码: ${user.email ?? user.username ?? user.uid}`);
         }
       }
       initResult = { created: false };

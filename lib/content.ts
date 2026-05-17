@@ -44,7 +44,7 @@ function parseMarkdownFile(filePath: string, slug: string): ContentFile {
   return {
     slug,
     meta: {
-      title: data.title || path.basename(filePath, '.md'),
+      title: data.title ?? path.basename(filePath, '.md'),
       date: data.date ? String(data.date) : undefined,
       author: data.author,
       tags: data.tags,
@@ -80,8 +80,8 @@ function readIndexFile(dir: string): ContentIndex | null {
       const { data, content } = matter(raw);
       return {
         slug,
-        title: data.title || path.basename(dir),
-        description: data.description || content.slice(0, 200),
+        title: data.title ?? path.basename(dir),
+        description: data.description ?? content.slice(0, 200),
         public: data.public !== false,
         groupName: data.groupName,
         children: [],
@@ -101,7 +101,7 @@ function readIndexFile(dir: string): ContentIndex | null {
 
         return {
           slug,
-          title: titleMatch?.[1] || path.basename(dir),
+          title: titleMatch?.[1] ?? path.basename(dir),
           description: descMatch?.[1],
           public: publicMatch ? publicMatch[1] === 'true' : true,
           groupName: groupMatch?.[1],

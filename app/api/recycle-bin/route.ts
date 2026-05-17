@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession, requireAdmin } from '@/lib/auth';
 import { DELETION_PERIOD_DAYS } from '@/lib/constants';

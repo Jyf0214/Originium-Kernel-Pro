@@ -53,7 +53,7 @@ export default function ArticlesPage() {
         setLoading(false);
       }
     };
-    fetchArticles();
+    void fetchArticles();
   }, [user, isRecycleBin, t]);
 
   const handleDelete = async (id: string) => {

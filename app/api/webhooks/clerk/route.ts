@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { Webhook } from 'svix';
 import { getDb } from '@/lib/db';
 import { createApiLogger } from '@/lib/api-logger';
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   type: string;
   data: {
     id: string;
-    email_addresses?: Array<{ email_address?: string }>;
+    email_addresses?: { email_address?: string }[];
   };
 }
 
@@ -58,45 +58,17 @@ try {
   try {
     switch (eventType) {
       case 'user.created': {
-        // Clerk 用户创建时，存储映射关系（暂不创建 Originium Kernel 用户）
-        const clerkId = payload.data.id;
-        const email = payload.data.email_addresses?.[0]?.email_address;
-        if (email) {
-          await db.set(`clerk:email:${email}`, clerkId);
-          logger.info('POST', '存储 Clerk 邮箱映射', { clerkId, email });
-        }
+        await handleUserCreated(payload.data, db);
         break;
       }
 
       case 'user.updated': {
-        const clerkId = payload.data.id;
-        const email = payload.data.email_addresses?.[0]?.email_address;
-        if (email) {
-          await db.set(`clerk:email:${email}`, clerkId);
-          logger.info('POST', '更新 Clerk 邮箱映射', { clerkId, email });
-        }
+        await handleUserUpdated(payload.data, db);
         break;
       }
 
       case 'user.deleted': {
-        // Clerk 用户删除时，清理绑定关系
-        const clerkId = payload.data.id;
-        const boundUid = await db.get(`clerk:user:${clerkId}`);
-        if (boundUid) {
-          await db.del(`clerk:user:${clerkId}`);
-          await db.del(`user:clerk:${boundUid}`);
-          logger.info('POST', '清理 Clerk 绑定关系', { clerkId, boundUid });
-          // 尝试清除 Prisma 中的 clerkId
-          try {
-            const { prisma } = await import('@/lib/db');
-            await prisma.user.updateMany({
-              where: { clerkId },
-              data: { clerkId: null, clerkLinkedAt: null },
-            });
- 	} catch {
- 			logger.warn('POST', '清除 Prisma clerkId 失败', { clerkId });
-		}
-        }
+        await handleUserDeleted(payload.data, db);
         break;
       }
     }
@@ -105,5 +77,51 @@ try {
   } catch (error) {
     logger.error('POST', 'Webhook 处理错误', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
+  }
+}
+
+async function handleUserCreated(
+  data: { id: string; email_addresses?: { email_address?: string }[] },
+  db: ReturnType<typeof getDb>,
+): Promise<void> {
+  const clerkId = data.id;
+  const email = data.email_addresses?.[0]?.email_address;
+  if (email) {
+    await db.set(`clerk:email:${email}`, clerkId);
+    logger.info('POST', '存储 Clerk 邮箱映射', { clerkId, email });
+  }
+}
+
+async function handleUserUpdated(
+  data: { id: string; email_addresses?: { email_address?: string }[] },
+  db: ReturnType<typeof getDb>,
+): Promise<void> {
+  const clerkId = data.id;
+  const email = data.email_addresses?.[0]?.email_address;
+  if (email) {
+    await db.set(`clerk:email:${email}`, clerkId);
+    logger.info('POST', '更新 Clerk 邮箱映射', { clerkId, email });
+  }
+}
+
+async function handleUserDeleted(
+  data: { id: string; email_addresses?: { email_address?: string }[] },
+  db: ReturnType<typeof getDb>,
+): Promise<void> {
+  const clerkId = data.id;
+  const boundUid = await db.get(`clerk:user:${clerkId}`);
+  if (boundUid) {
+    await db.del(`clerk:user:${clerkId}`);
+    await db.del(`user:clerk:${boundUid}`);
+    logger.info('POST', '清理 Clerk 绑定关系', { clerkId, boundUid });
+    try {
+      const { prisma } = await import('@/lib/db');
+      await prisma.user.updateMany({
+        where: { clerkId },
+        data: { clerkId: null, clerkLinkedAt: null },
+      });
+    } catch {
+      logger.warn('POST', '清除 Prisma clerkId 失败', { clerkId });
+    }
   }
 }

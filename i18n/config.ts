@@ -17,8 +17,8 @@ export const localeNames: Record<Locale, string> = {
 
 export default getRequestConfig(async ({ locale }) => {
   return {
-    locale: locale || defaultLocale,
-    messages: (await import(`./${locale || defaultLocale}.json`)).default,
+    locale: locale ?? defaultLocale,
+    messages: (await import(`./${locale ?? defaultLocale}.json`)).default,
     timeZone: 'Asia/Shanghai',
     now: new Date(),
   };

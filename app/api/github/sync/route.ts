@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { updateFileInGithub } from '@/lib/github';
 import { createApiLogger } from '@/lib/api-logger';
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       token: githubToken,
       path: 'config.yaml',
       content,
-      message: commitMessage || 'chore: update config from admin panel',
+      message: commitMessage ?? 'chore: update config from admin panel',
     });
     logger.info('POST', 'config.yaml 同步成功');
 

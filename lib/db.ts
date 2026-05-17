@@ -11,10 +11,10 @@ process.env.PRISMA_HIDE_UPDATE_MESSAGE = 'true'
 // 获取数据库 URL
 function getDatabaseUrl(): string {
   return (
-    process.env.DATABASE_URL ||
-    process.env.POSTGRES_URL ||
-    process.env.POSTGRES_PRISMA_URL ||
-    process.env.POSTGRES_URL_NON_POOLING ||
+    process.env.DATABASE_URL ??
+    process.env.POSTGRES_URL ??
+    process.env.POSTGRES_PRISMA_URL ??
+    process.env.POSTGRES_URL_NON_POOLING ??
     ''
   )
 }
@@ -127,9 +127,7 @@ class PrismaDriver implements IDatabase {
 let dbInstance: IDatabase | null = null
 
 export function getDb(): IDatabase {
-  if (!dbInstance) {
-    dbInstance = new PrismaDriver()
-  }
+  dbInstance ??= new PrismaDriver()
   return dbInstance
 }
 

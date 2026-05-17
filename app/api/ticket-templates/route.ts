@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getTicketTemplates } from '@/lib/tickets';
 import { getSession } from '@/lib/auth';
 import yaml from 'js-yaml';
@@ -62,15 +62,15 @@ export async function POST(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const frontMatter: any = {
       name,
-      description: description || '',
-      title: title || `[${name}] `,
-      labels: labels || [],
-      assignees: assignees || [],
+      description: description ?? '',
+      title: title ?? `[${name}] `,
+      labels: labels ?? [],
+      assignees: assignees ?? [],
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      fields: (fields || []).map((f: any) => ({
+      fields: (fields ?? []).map((f: any) => ({
         name: f.name,
         label: f.label,
-        type: f.type || 'input',
+        type: f.type ?? 'input',
         ...(f.options ? { options: f.options } : {}),
         required: f.required !== false,
       })),
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
 
     if (!githubRes.ok) {
       const err = await githubRes.json();
-      return NextResponse.json({ error: err.error || '创建模板失败' }, { status: 500 });
+      return NextResponse.json({ error: err.error ?? '创建模板失败' }, { status: 500 });
     }
 
     logger.info('POST', '模板创建成功', { slug: `/${slug}` });

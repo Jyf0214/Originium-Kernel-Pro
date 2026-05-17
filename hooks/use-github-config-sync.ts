@@ -49,7 +49,7 @@ export function useGitHubConfigSync({
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSave = useCallback((initialConfig: any, remoteConfigOverride?: string, commitMessage?: string, repoOverride?: string) => {
-    const effectiveRepo = repoOverride || repo;
+    const effectiveRepo = repoOverride ?? repo;
     if (!effectiveRepo) {
       message.error('GitHub 未配置');
       return;
@@ -68,7 +68,7 @@ export function useGitHubConfigSync({
     let remoteObj: Record<string, unknown> = {};
     if (effectiveRemoteConfig) {
       try {
-        remoteObj = (yaml.load(effectiveRemoteConfig) || {}) as Record<string, unknown>;
+        remoteObj = (yaml.load(effectiveRemoteConfig) ?? {}) as Record<string, unknown>;
       } catch {
         remoteObj = {};
       }
@@ -101,17 +101,17 @@ export function useGitHubConfigSync({
             body: JSON.stringify({
               type: 'config-yaml',
               content: yamlContent,
-              message: commitMessage || 'chore: update config from admin panel',
+              message: commitMessage ?? 'chore: update config from admin panel',
             }),
           });
           if (!res.ok) {
             const err = await res.json();
-            throw new Error(err.error || '同步失败');
+            throw new Error(err.error ?? '同步失败');
           }
-          message.success(t('config.saveSuccess') || '配置已成功保存至 GitHub');
+          message.success(t('config.saveSuccess') ?? '配置已成功保存至 GitHub');
           onSyncComplete?.(yamlContent);
         } catch (error) {
-          showError(`${t('config.saveFailed') || '保存失败'}: ${error instanceof Error ? error.message : '未知错误'}`);
+          showError(`${t('config.saveFailed') ?? '保存失败'}: ${error instanceof Error ? error.message : '未知错误'}`);
           onSyncError?.(error);
           throw error;
         }

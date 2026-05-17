@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { createApiLogger } from '@/lib/api-logger';
 
@@ -7,7 +7,7 @@ const logger = createApiLogger('/api/requests');
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status') || 'pending';
+    const status = searchParams.get('status') ?? 'pending';
 
     logger.info('GET', '获取申请列表', { status });
     const requests = await prisma.request.findMany({

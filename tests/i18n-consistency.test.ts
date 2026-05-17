@@ -17,8 +17,8 @@ function getAllKeys(obj: Record<string, unknown>, prefix = ''): string[] {
 
 describe('i18n 一致性', () => {
   test('en.json 和 zh-CN.json 应包含相同的 key 集合', () => {
-    const enKeys = getAllKeys(en as Record<string, unknown>).sort();
-    const zhKeys = getAllKeys(zhCN as Record<string, unknown>).sort();
+    const enKeys = getAllKeys(en).sort();
+    const zhKeys = getAllKeys(zhCN).sort();
     const missingInZh = enKeys.filter(k => !zhKeys.includes(k));
     const missingInEn = zhKeys.filter(k => !enKeys.includes(k));
     expect(missingInZh).toEqual([]);
@@ -26,7 +26,7 @@ describe('i18n 一致性', () => {
   });
 
   test('en.json 不应包含空值', () => {
-    const keys = getAllKeys(en as Record<string, unknown>);
+    const keys = getAllKeys(en);
     const emptyKeys = keys.filter(k => {
       const value = k.split('.').reduce((obj: unknown, key: string) => (obj as Record<string, unknown>)?.[key], en);
       return value === '' || value === undefined || value === null;
@@ -35,7 +35,7 @@ describe('i18n 一致性', () => {
   });
 
   test('zh-CN.json 不应包含空值', () => {
-    const keys = getAllKeys(zhCN as Record<string, unknown>);
+    const keys = getAllKeys(zhCN);
     const emptyKeys = keys.filter(k => {
       const value = k.split('.').reduce((obj: unknown, key: string) => (obj as Record<string, unknown>)?.[key], zhCN);
       return value === '' || value === undefined || value === null;

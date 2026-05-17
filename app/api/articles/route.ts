@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { getDraft, saveDraft } from '@/lib/draft-storage';
@@ -35,7 +35,7 @@ export async function GET() {
       title: f.meta.title,
       author: f.meta.author,
       date: f.meta.date,
-      tags: f.meta.tags || [],
+      tags: f.meta.tags ?? [],
       cover: f.meta.cover,
       description: f.meta.description,
       status: 'published',
@@ -46,7 +46,7 @@ export async function GET() {
   for (const draft of drafts) {
     if (draft.status === 'draft' && !draft.content) {
       const fileContent = await getDraft(draft.id);
-      draft.content = fileContent || '';
+      draft.content = fileContent ?? '';
     }
   }
 
@@ -68,6 +68,79 @@ export async function GET() {
   }
 }
 
+/**
+ * 构建文章 frontMatter 对象
+ */
+function buildPostFrontMatter(fields: {
+  title: string;
+  author: string;
+  date: string;
+  tags: string[];
+  coverImage?: string;
+  description?: string;
+}): Record<string, unknown> {
+  const fm: Record<string, unknown> = { title: fields.title, author: fields.author, date: fields.date, tags: fields.tags };
+  if (fields.coverImage) fm.cover = fields.coverImage;
+  if (fields.description) fm.description = fields.description;
+  return fm;
+}
+
+interface ArticleMetaForPublish {
+  id: string;
+  title: string;
+  authorName: string;
+  tags: string[];
+}
+
+/**
+ * 将已发布文章推送到 GitHub 并更新数据库
+ */
+async function handlePublishedPost(
+  req: NextRequest,
+  articleMeta: ArticleMetaForPublish,
+  content: string,
+  meta: {
+    coverImage: string;
+    description: string;
+    slug: string | undefined;
+    now: string;
+  },
+) {
+  const postSlug = meta.slug ?? `/${articleMeta.authorName}/${articleMeta.id}`;
+  const filePath = `posts${postSlug}.md`;
+
+  const ghResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'create',
+      path: filePath,
+      frontMatter: buildPostFrontMatter({
+        title: articleMeta.title,
+        author: articleMeta.authorName,
+        date: meta.now,
+        tags: articleMeta.tags,
+        coverImage: meta.coverImage,
+        description: meta.description,
+      }),
+      body: content || '',
+      message: `feat: publish post "${articleMeta.title}"`,
+    }),
+  });
+
+  if (!ghResponse.ok) {
+    const error = await ghResponse.json();
+    return NextResponse.json({ error: error.error ?? '发布到 GitHub 失败' }, { status: 500 });
+  }
+
+  const db = getDb();
+  const backupMeta = { ...articleMeta, status: 'published', content: '', slug: postSlug };
+  await db.set(`article:data:${articleMeta.id}`, JSON.stringify(backupMeta));
+  await db.hset('articles:published', articleMeta.id, JSON.stringify(backupMeta));
+
+  return NextResponse.json({ success: true, id: articleMeta.id, slug: postSlug });
+}
+
 export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session) {
@@ -84,63 +157,28 @@ export async function POST(req: NextRequest) {
     const articleMeta = {
       id,
       title,
-      content: content || '',
+      content: content ?? '',
       authorId: session.uid,
-      authorName: session.email.split('@')[0],
-      tags: tags || [],
-      coverImage: coverImage || '',
-      description: description || '',
-      status: status || 'draft',
+      authorName: session.email.split('@')[0] ?? 'unknown',
+      tags: tags ?? [],
+      coverImage: coverImage ?? '',
+      description: description ?? '',
+      status: status ?? 'draft',
       createdAt: now,
       updatedAt: now,
     };
 
-    // 发布状态：通过统一 /api/github 端点推送到 GitHub posts/ 目录
     if (status === 'published') {
-      const postSlug = slug || `/${articleMeta.authorName}/${id}`;
-      const filePath = `posts${postSlug}.md`;
-
-      const ghResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'create',
-          path: filePath,
-          frontMatter: {
-            title,
-            author: articleMeta.authorName,
-            date: now,
-            tags: articleMeta.tags,
-            ...(coverImage && { cover: coverImage }),
-            ...(description && { description }),
-          },
-          body: content || '',
-          message: `feat: publish post "${title}"`,
-        }),
-      });
-
-      if (!ghResponse.ok) {
-        const error = await ghResponse.json();
-        return NextResponse.json({ error: error.error || '发布到 GitHub 失败' }, { status: 500 });
-      }
-
-      // 发布成功后，数据库仅保留备份元数据（不含内容）
-      const db = getDb();
-      const backupMeta = { ...articleMeta, status: 'published', content: '', slug: postSlug };
-      await db.set(`article:data:${id}`, JSON.stringify(backupMeta));
-      await db.hset('articles:published', id, JSON.stringify(backupMeta));
-
-      return NextResponse.json({ success: true, id, slug: postSlug });
+      return handlePublishedPost(req, articleMeta, content, { coverImage, description, slug, now });
     }
 
-  // 草稿状态：正文存文件系统，数据库仅存元数据
-  const db = getDb();
-  if (content) {
-    await saveDraft(id, content);
-  }
-  const draftMeta = { ...articleMeta, content: '' };
-  await db.set(`article:data:${id}`, JSON.stringify(draftMeta));
-  await db.hset('articles:drafts', id, JSON.stringify(draftMeta));
+    const db = getDb();
+    if (content) {
+      await saveDraft(id, content);
+    }
+    const draftMeta = { ...articleMeta, content: '' };
+    await db.set(`article:data:${id}`, JSON.stringify(draftMeta));
+    await db.hset('articles:drafts', id, JSON.stringify(draftMeta));
 
     return NextResponse.json({ success: true, id });
   } catch (error) {

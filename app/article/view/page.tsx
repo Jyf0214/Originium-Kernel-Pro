@@ -37,7 +37,7 @@ function ArticleViewContent() {
         setLoading(false);
       }
     };
-    if (articleParam) fetchArticle();
+    if (articleParam) void fetchArticle();
   }, [articleParam]);
 
   if (loading) return (
@@ -86,7 +86,7 @@ function ArticleViewContent() {
                   <User size={20} />
                 </div>
                 <div>
-                  <div className="font-black text-zinc-900 leading-none mb-1">{article.authorName || article.author || 'Anonymous'}</div>
+                  <div className="font-black text-zinc-900 leading-none mb-1">{article.authorName ?? article.author ?? 'Anonymous'}</div>
                   {userParam && (
                     <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">@{userParam}</div>
                   )}
@@ -106,10 +106,10 @@ function ArticleViewContent() {
             </div>
           </header>
 
-          {(article.coverImage || article.cover) && (
+          {(article.coverImage ?? article.cover) && (
             <div className="w-full aspect-[21/9] rounded-[2rem] overflow-hidden bg-zinc-50 mb-16 shadow-2xl shadow-zinc-200 relative">
               <Image
-                src={article.coverImage || article.cover}
+                src={article.coverImage ?? article.cover}
                 alt={article.title}
                 fill
                 className="object-cover hover:scale-105 transition-transform duration-1000"
@@ -120,7 +120,7 @@ function ArticleViewContent() {
           )}
 
           <div className="max-w-3xl mx-auto">
-            <MarkdownRenderer content={article.content || ''} />
+            <MarkdownRenderer content={article.content ?? ''} />
           </div>
         </article>
       </main>

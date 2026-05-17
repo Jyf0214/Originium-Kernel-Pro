@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { getUserAvatarAsync } from '@/lib/config';
@@ -32,7 +32,7 @@ export async function GET() {
         email: user.email,
         username: user.username,
         name: user.name,
-        avatar: user.avatar || configAvatar || undefined,
+        avatar: user.avatar ?? configAvatar ?? undefined,
         role: user.role,
         userGroup: user.userGroup,
         createdAt: user.createdAt,
@@ -46,6 +46,57 @@ export async function GET() {
   }
 }
 
+/**
+ * 检查所有指定字段是否均为 undefined
+ */
+function areAllUndefined(...args: unknown[]): boolean {
+  return args.every((a) => a === undefined);
+}
+
+/**
+ * 验证并清理用户名
+ * 返回 { value: string | null, error?: string }
+ */
+function sanitizeUsername(username: unknown): { value: string | null; error?: string } {
+  if (username === undefined || username === null) return { value: null };
+  if (typeof username !== 'string' || !/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+    return { value: null, error: '用户名只能包含字母、数字和下划线，3-20个字符' };
+  }
+  return { value: username };
+}
+
+/**
+ * 检查用户名是否已被其他用户使用
+ */
+async function checkUsernameConflict(
+  db: ReturnType<typeof getDb>,
+  newUsername: string | null,
+  currentUsername: string | undefined | null,
+): Promise<string | null> {
+  if (newUsername === null || newUsername === currentUsername) return null;
+  const existing = await db.get(`user:username:${newUsername}`);
+  return existing ? '该用户名已被使用' : null;
+}
+
+/**
+ * 构建用户响应对象
+ */
+function buildUserResponse(
+  user: Record<string, unknown>,
+  configAvatar: string | null | undefined,
+): Record<string, unknown> {
+  const avatar = user.avatar ?? configAvatar ?? undefined;
+  return {
+    uid: user.uid,
+    email: user.email,
+    username: user.username,
+    name: user.name,
+    avatar,
+    role: user.role,
+    userGroup: user.userGroup,
+  };
+}
+
 export async function PUT(req: NextRequest) {
   try {
     const session = await getSession();
@@ -57,16 +108,15 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const { avatar, username, name } = body;
 
-    if (avatar === undefined && username === undefined && name === undefined) {
+    if (areAllUndefined(avatar, username, name)) {
       logger.warn('PUT', '没有要更新的字段');
       return NextResponse.json({ error: '没有要更新的字段' }, { status: 400 });
     }
 
-    if (username !== undefined && username !== null) {
-      if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
-        logger.warn('PUT', '用户名格式无效', { username });
-        return NextResponse.json({ error: '用户名只能包含字母、数字和下划线，3-20个字符' }, { status: 400 });
-      }
+    const sanitized = sanitizeUsername(username);
+    if (sanitized.error) {
+      logger.warn('PUT', '用户名格式无效', { username });
+      return NextResponse.json({ error: sanitized.error }, { status: 400 });
     }
 
     const db = getDb();
@@ -78,26 +128,24 @@ export async function PUT(req: NextRequest) {
 
     const user = JSON.parse(userStr);
 
-    if (username !== undefined && username !== null && username !== user.username) {
-      const existingUsername = await db.get(`user:username:${username}`);
-      if (existingUsername) {
-        logger.warn('PUT', '用户名已被使用', { username });
-        return NextResponse.json({ error: '该用户名已被使用' }, { status: 409 });
-      }
+    const conflict = await checkUsernameConflict(db, sanitized.value, user.username);
+    if (conflict) {
+      logger.warn('PUT', '用户名已被使用', { username });
+      return NextResponse.json({ error: conflict }, { status: 409 });
     }
 
-    if (user.username && username !== undefined && username !== user.username) {
+    if (user.username && sanitized.value !== null && sanitized.value !== user.username) {
       await db.del(`user:username:${user.username}`);
     }
 
     if (avatar !== undefined) user.avatar = avatar;
-    if (username !== undefined) user.username = username || null;
+    if (sanitized.value !== null) user.username = sanitized.value;
     if (name !== undefined) user.name = name;
 
     await db.set(`user:uid:${session.uid}`, JSON.stringify(user));
 
-    if (username) {
-      await db.set(`user:username:${username}`, session.uid);
+    if (sanitized.value) {
+      await db.set(`user:username:${sanitized.value}`, session.uid);
     }
 
     const configAvatar = await getUserAvatarAsync(session.uid, session.role === 'admin' || session.role === 'sudo');
@@ -105,15 +153,7 @@ export async function PUT(req: NextRequest) {
     logger.info('PUT', '资料更新成功', { uid: session.uid });
     return NextResponse.json({
       success: true,
-      user: {
-        uid: user.uid,
-        email: user.email,
-        username: user.username,
-        name: user.name,
-        avatar: user.avatar || configAvatar || undefined,
-        role: user.role,
-        userGroup: user.userGroup,
-      },
+      user: buildUserResponse(user, configAvatar),
       message: '资料更新成功'
     }, { status: 201 });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

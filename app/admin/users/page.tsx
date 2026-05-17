@@ -35,7 +35,7 @@ export default function UsersPage() {
         setLoading(false);
       }
     };
-    fetchUsers();
+    void fetchUsers();
   }, [hasAccess]);
 
   const handleUpdateRole = async (id: string) => {
@@ -56,7 +56,7 @@ export default function UsersPage() {
         setUsers(users.map(u => u.uid === id ? { ...u, role: editRole } : u));
       } else {
         const data = await res.json();
-        showError(data.error || t('admin.updateRoleFailed'));
+        showError(data.error ?? t('admin.updateRoleFailed'));
       }
     } catch (error) {
       showError(t('admin.updateRoleFailed'));
@@ -83,7 +83,7 @@ export default function UsersPage() {
         setUsers(users.filter(u => u.uid !== id));
       } else {
         const data = await res.json();
-        showError(data.error || t('admin.deleteUserFailed'));
+        showError(data.error ?? t('admin.deleteUserFailed'));
       }
     } catch (error) {
       showError(t('admin.deleteUserFailed'));
@@ -125,13 +125,13 @@ export default function UsersPage() {
         {users.length > 0 ? (
           <div className="divide-y divide-zinc-50">
             {users.map((u) => (
-              <div key={u.uid || u.id} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-zinc-50/50 transition-colors">
+              <div key={u.uid ?? u.id} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-zinc-50/50 transition-colors">
                 {/* 用户 */}
                 <div className="col-span-3 flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 bg-zinc-100 rounded-full flex items-center justify-center shrink-0">
                     <User size={14} className="text-zinc-400" />
                   </div>
-                  <span className="font-medium text-sm text-zinc-900 truncate">{u.name || u.username || t('admin.noRole')}</span>
+                  <span className="font-medium text-sm text-zinc-900 truncate">{u.name ?? u.username ?? t('admin.noRole')}</span>
                 </div>
 
                 {/* 邮箱 */}

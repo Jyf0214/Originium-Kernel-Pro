@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, createContext, useContext, useCallback, ReactNode, useRef } from 'react';
+import { type ReactNode, useState, useEffect, createContext, useContext, useCallback, useRef } from 'react';
 import { message } from 'antd';
 import { useI18n } from './use-i18n';
 
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      refresh();
+      void refresh();
     }, 0);
     return () => clearTimeout(timer);
   }, [refresh]);
@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser({ ...data.user, displayName: data.user.name });
         message.success(t('auth.loginSuccess'));
       } else {
-        message.error(data.error || t('auth.loginFailed'));
+        message.error(data.error ?? t('auth.loginFailed'));
         throw new Error(data.error);
       }
     } catch (err) {
@@ -127,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser({ ...data.user, displayName: data.user.name });
         message.success(t('auth.registerSuccess'));
       } else {
-        message.error(data.error || t('auth.registerFailed'));
+        message.error(data.error ?? t('auth.registerFailed'));
         throw new Error(data.error);
       }
     } catch (err) {
@@ -153,7 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         loading,
-        userRole: user?.role || null,
+        userRole: user?.role ?? null,
         isSudo: user?.role === 'sudo' || false,
         login,
         register,

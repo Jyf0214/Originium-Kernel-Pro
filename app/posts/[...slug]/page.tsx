@@ -17,10 +17,10 @@ function isPrivateSlug(slug: string): boolean {
   const indexes = getContentIndexes('posts');
   const dirSlug = '/' + slug.split('/').filter(Boolean).slice(0, -1).join('/');
   const dirIndex = indexes.find((idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'));
-  return dirIndex ? dirIndex.public === false : false;
+  return dirIndex ? !dirIndex.public : false;
 }
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   const slugs = getAllSlugs('posts');
   return slugs
     .filter((slug) => !isPrivateSlug(slug))
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!file) return { title: '未找到' };
   return {
     title: `${file.meta.title} - Originium Kernel`,
-    description: file.meta.description || file.content.slice(0, 160),
+    description: file.meta.description ?? file.content.slice(0, 160),
   };
 }
 
@@ -99,7 +99,7 @@ export default async function PostDetailPage({ params }: PageProps) {
             <h1 className="text-4xl md:text-[3.5rem] font-black tracking-tight text-zinc-900 mb-8 leading-[1.1]">
               {file.meta.title}
             </h1>
-            {(file.meta.author || file.meta.date) && (
+            {(file.meta.author !== undefined || file.meta.date !== undefined) && (
               <div className="flex flex-wrap items-center gap-4 text-sm">
                 {file.meta.author && (
                   <div className="flex items-center gap-2">
@@ -151,5 +151,5 @@ function t_posts(key: string): string {
     title: '帖子',
     backToPosts: '返回帖子列表',
   };
-  return map[key] || key;
+  return map[key] ?? key;
 }

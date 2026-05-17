@@ -37,7 +37,7 @@ export default function ArticlePage() {
         setLoading(false);
       }
     };
-    fetchArticle();
+    void fetchArticle();
   }, [id]);
 
   if (loading) return (
@@ -97,7 +97,7 @@ export default function ArticlePage() {
                   <User size={20} />
                 </div>
                 <div>
-                  <div className="font-bold text-zinc-900 leading-none mb-1">{article.authorName || article.author || 'Anonymous'}</div>
+                  <div className="font-bold text-zinc-900 leading-none mb-1">{article.authorName ?? article.author ?? 'Anonymous'}</div>
                 </div>
               </div>
               {article.date && (
@@ -112,7 +112,7 @@ export default function ArticlePage() {
           </header>
 
           <div className="max-w-3xl mx-auto prose prose-zinc lg:prose-xl">
-            <MarkdownRenderer content={article.content || ''} />
+            <MarkdownRenderer content={article.content ?? ''} />
           </div>
         </article>
       </main>

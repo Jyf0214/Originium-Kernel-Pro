@@ -12,6 +12,94 @@ import { GlobalLoading } from '@/components/Loading';
 import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
 
+function ArticleHeader({
+  articleData,
+  userData,
+  username,
+  isSudo,
+  showRaw,
+  rawContent,
+  onToggleRaw,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  articleData: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  userData: any;
+  username: string;
+  isSudo: boolean;
+  showRaw: boolean;
+  rawContent: string;
+  onToggleRaw: () => void;
+}) {
+  const createdDate = new Date(articleData.createdAt).toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  return (
+    <header className="mb-12">
+      <div className="flex flex-wrap gap-2 mb-8">
+        {articleData.tags?.map((tag: string) => (
+          <span key={tag} className="flex items-center gap-1.5 px-3 py-1 bg-zinc-50 text-zinc-500 text-xs font-bold uppercase tracking-widest rounded-full border border-zinc-100">
+            <Tag size={12} />
+            {tag}
+          </span>
+        ))}
+      </div>
+
+      <h1 className="text-5xl md:text-7xl font-display font-black tracking-tight text-zinc-900 mb-10 leading-[1.05]">
+        {articleData.title}
+      </h1>
+
+      <div className="flex flex-wrap items-center gap-6 text-zinc-400 border-y border-zinc-100 py-8">
+        <div className="flex items-center gap-3">
+          <Avatar name={articleData.authorName} avatarUrl={userData?.avatar ?? undefined} size={48} />
+          <div>
+            <div className="font-black text-zinc-900 leading-none mb-1">{articleData.authorName}</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">@{username}</div>
+          </div>
+        </div>
+
+        <div className="h-8 w-px bg-zinc-100 hidden sm:block"></div>
+
+        <div className="flex items-center gap-2">
+          <Calendar size={18} />
+          <time className="text-sm font-bold text-zinc-500">{createdDate}</time>
+        </div>
+
+        {isSudo && rawContent && (
+          <>
+            <div className="h-8 w-px bg-zinc-100 hidden sm:block"></div>
+            <button
+              onClick={onToggleRaw}
+              className="flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors"
+            >
+              {showRaw ? <Eye size={18} /> : <Code size={18} />}
+              <span className="text-sm font-bold">{showRaw ? '预览渲染' : '查看原始文件'}</span>
+            </button>
+          </>
+        )}
+      </div>
+    </header>
+  );
+}
+
+function ArticleCoverImage({ coverImage, title }: { coverImage: string; title: string }) {
+  return (
+    <div className="w-full aspect-[21/9] rounded-3xl overflow-hidden bg-zinc-50 mb-16 shadow-2xl shadow-zinc-200 relative">
+      <Image
+        src={coverImage}
+        alt={title}
+        fill
+        className="object-cover hover:scale-105 transition-transform duration-1000"
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+        unoptimized
+      />
+    </div>
+  );
+}
+
 function UserArticleContent() {
   const params = useParams();
   const username = params?.user as string;
@@ -46,7 +134,7 @@ function UserArticleContent() {
       }
     };
 
-    if (username && article) fetchArticle();
+    if (username && article) void fetchArticle();
   }, [username, article]);
 
   if (loading) return (
@@ -79,64 +167,18 @@ function UserArticleContent() {
         </Link>
 
         <article>
-          <header className="mb-12">
-            <div className="flex flex-wrap gap-2 mb-8">
-              {articleData.tags?.map((tag: string) => (
-                <span key={tag} className="flex items-center gap-1.5 px-3 py-1 bg-zinc-50 text-zinc-500 text-xs font-bold uppercase tracking-widest rounded-full border border-zinc-100">
-                  <Tag size={12} />
-                  {tag}
-                </span>
-              ))}
-            </div>
-
-            <h1 className="text-5xl md:text-7xl font-display font-black tracking-tight text-zinc-900 mb-10 leading-[1.05]">
-              {articleData.title}
-            </h1>
-
-            <div className="flex flex-wrap items-center gap-6 text-zinc-400 border-y border-zinc-100 py-8">
-              <div className="flex items-center gap-3">
-                <Avatar name={articleData.authorName} avatarUrl={userData?.avatar || undefined} size={48} />
-                <div>
-                  <div className="font-black text-zinc-900 leading-none mb-1">{articleData.authorName}</div>
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">@{username}</div>
-                </div>
-              </div>
-
-              <div className="h-8 w-px bg-zinc-100 hidden sm:block"></div>
-
-              <div className="flex items-center gap-2">
-                <Calendar size={18} />
-                <time className="text-sm font-bold text-zinc-500">
-                  {new Date(articleData.createdAt).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </time>
-              </div>
-
-              {isSudo && rawContent && (
-                <>
-                  <div className="h-8 w-px bg-zinc-100 hidden sm:block"></div>
-                  <button
-                    onClick={() => setShowRaw(!showRaw)}
-                    className="flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors"
-                  >
-                    {showRaw ? <Eye size={18} /> : <Code size={18} />}
-                    <span className="text-sm font-bold">{showRaw ? '预览渲染' : '查看原始文件'}</span>
-                  </button>
-                </>
-              )}
-            </div>
-          </header>
+          <ArticleHeader
+            articleData={articleData}
+            userData={userData}
+            username={username}
+            isSudo={isSudo}
+            showRaw={showRaw}
+            rawContent={rawContent}
+            onToggleRaw={() => setShowRaw(!showRaw)}
+          />
 
           {articleData.coverImage && (
-            <div className="w-full aspect-[21/9] rounded-3xl overflow-hidden bg-zinc-50 mb-16 shadow-2xl shadow-zinc-200 relative">
-              <Image
-                src={articleData.coverImage}
-                alt={articleData.title}
-                fill
-                className="object-cover hover:scale-105 transition-transform duration-1000"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
-                unoptimized
-              />
-            </div>
+            <ArticleCoverImage coverImage={articleData.coverImage} title={articleData.title} />
           )}
 
           <div className="max-w-3xl mx-auto">

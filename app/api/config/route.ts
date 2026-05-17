@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { loadConfigAsync } from '@/lib/config';
-import type { AppConfig } from '@/lib/config';
+import { loadConfigAsync, type AppConfig } from '@/lib/config';
 import { getFileFromGithub } from '@/lib/github';
 import { createApiLogger } from '@/lib/api-logger';
 import yaml from 'js-yaml';
@@ -76,6 +75,65 @@ export async function GET() {
   return NextResponse.json(response);
 }
 
+function mergeSite(
+  base: AppConfig['site'],
+  overrideSite: Partial<AppConfig['site']> | undefined,
+): AppConfig['site'] {
+  return {
+    title: overrideSite?.title ?? base.title,
+    description: overrideSite?.description ?? base.description,
+    heroTitleLine1: overrideSite?.heroTitleLine1 ?? base.heroTitleLine1,
+    heroTitleLine2: overrideSite?.heroTitleLine2 ?? base.heroTitleLine2,
+    lang: overrideSite?.lang ?? base.lang,
+  };
+}
+
+function mergeAppearance(
+  base: AppConfig['appearance'],
+  overrideAppearance: Partial<AppConfig['appearance']> | undefined,
+): AppConfig['appearance'] {
+  const background = overrideAppearance?.background
+    ? { ...base.background, ...overrideAppearance.background }
+    : base.background;
+  return {
+    background,
+    customCSS: overrideAppearance?.customCSS ?? base.customCSS,
+    customHead: overrideAppearance?.customHead ?? base.customHead,
+  };
+}
+
+function mergeAccess(
+  base: AppConfig['access'],
+  overrideAccess: Partial<AppConfig['access']> | undefined,
+): AppConfig['access'] {
+  if (!overrideAccess) return base;
+  return {
+    posts: { ...base.posts, ...overrideAccess.posts },
+    faces: { ...base.faces, ...overrideAccess.faces },
+    diary: { ...base.diary, ...overrideAccess.diary },
+  };
+}
+
+function mergeAuth(
+  base: AppConfig['auth'],
+  overrideAuth: Partial<AppConfig['auth']> | undefined,
+): AppConfig['auth'] {
+  if (!overrideAuth) return base;
+  return { ...base, ...overrideAuth };
+}
+
+function mergeAppConfig(
+  base: AppConfig,
+  override: Partial<AppConfig>,
+): AppConfig {
+  return {
+    site: mergeSite(base.site, override.site),
+    appearance: mergeAppearance(base.appearance, override.appearance),
+    access: mergeAccess(base.access, override.access),
+    auth: mergeAuth(base.auth, override.auth),
+  };
+}
+
 export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
@@ -88,33 +146,7 @@ export async function POST(req: NextRequest) {
   try {
     const newConfig = await req.json() as Partial<AppConfig>;
     const currentConfig = await loadConfigAsync();
-
-    const mergedConfig: AppConfig = {
-      site: {
-        title: newConfig.site?.title ?? currentConfig.site.title,
-        description: newConfig.site?.description ?? currentConfig.site.description,
-        heroTitleLine1: newConfig.site?.heroTitleLine1 ?? currentConfig.site.heroTitleLine1,
-        heroTitleLine2: newConfig.site?.heroTitleLine2 ?? currentConfig.site.heroTitleLine2,
-        lang: newConfig.site?.lang ?? currentConfig.site.lang,
-      },
-      appearance: {
-        background: newConfig.appearance?.background
-          ? { ...currentConfig.appearance.background, ...newConfig.appearance.background }
-          : currentConfig.appearance.background,
-        customCSS: newConfig.appearance?.customCSS ?? currentConfig.appearance.customCSS,
-        customHead: newConfig.appearance?.customHead ?? currentConfig.appearance.customHead,
-      },
-      access: newConfig.access
-        ? {
-          posts: { ...currentConfig.access.posts, ...newConfig.access.posts },
-          faces: { ...currentConfig.access.faces, ...newConfig.access.faces },
-          diary: { ...currentConfig.access.diary, ...newConfig.access.diary },
-        }
-        : currentConfig.access,
-      auth: newConfig.auth
-        ? { ...currentConfig.auth, ...newConfig.auth }
-        : currentConfig.auth,
-    };
+    const mergedConfig = mergeAppConfig(currentConfig, newConfig);
 
     logger.info('POST', '配置已合并');
     return NextResponse.json({ success: true, config: mergedConfig });
@@ -144,33 +176,7 @@ export async function PUT() {
     }
     const parsed = JSON.parse(remote.content) as Partial<AppConfig>;
     const currentConfig = await loadConfigAsync();
-
-    const mergedConfig: AppConfig = {
-      site: {
-        title: parsed.site?.title ?? currentConfig.site.title,
-        description: parsed.site?.description ?? currentConfig.site.description,
-        heroTitleLine1: parsed.site?.heroTitleLine1 ?? currentConfig.site.heroTitleLine1,
-        heroTitleLine2: parsed.site?.heroTitleLine2 ?? currentConfig.site.heroTitleLine2,
-        lang: parsed.site?.lang ?? currentConfig.site.lang,
-      },
-      appearance: {
-        background: parsed.appearance?.background
-          ? { ...currentConfig.appearance.background, ...parsed.appearance.background }
-          : currentConfig.appearance.background,
-        customCSS: parsed.appearance?.customCSS ?? currentConfig.appearance.customCSS,
-        customHead: parsed.appearance?.customHead ?? currentConfig.appearance.customHead,
-      },
-      access: parsed.access
-        ? {
-          posts: { ...currentConfig.access.posts, ...parsed.access.posts },
-          faces: { ...currentConfig.access.faces, ...parsed.access.faces },
-          diary: { ...currentConfig.access.diary, ...parsed.access.diary },
-        }
-        : currentConfig.access,
-      auth: parsed.auth
-        ? { ...currentConfig.auth, ...parsed.auth }
-        : currentConfig.auth,
-    };
+    const mergedConfig = mergeAppConfig(currentConfig, parsed);
 
     logger.info('PUT', '从 GitHub 同步配置成功');
     return NextResponse.json({ success: true, config: mergedConfig });

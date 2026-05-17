@@ -73,11 +73,11 @@ export default function DashboardPage() {
             pendingDeletion: pending,
           }));
           setRecentArticles(articlesArray.slice(0, 5).map((a: Article) => ({
-            id: a.id || '',
+            id: a.id ?? '',
             title: a.title,
             status: a.status,
             slug: a.slug,
-            updatedAt: a.updatedAt || a.date || '',
+            updatedAt: a.updatedAt ?? a.date ?? '',
           })));
         }
         if (isSudo) {
@@ -94,7 +94,7 @@ export default function DashboardPage() {
         setLoading(false);
       }
     };
-    fetchData();
+    void fetchData();
   }, [isSudo]);
 
   const statCards = [
@@ -134,7 +134,7 @@ export default function DashboardPage() {
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-3xl font-black tracking-tight text-zinc-900">
-            {t('dashboard.welcomeBack')}，{user?.name || '用户'}
+            {t('dashboard.welcomeBack')}，{user?.name ?? '用户'}
           </h1>
           {isSudo && (
             <Tag color="gold" className="rounded-lg text-xs font-bold">

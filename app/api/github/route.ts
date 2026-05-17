@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getEnvConfig } from '@/lib/env';
 import { Octokit } from 'octokit';
@@ -11,6 +11,65 @@ const logger = createApiLogger('/api/github');
  * POST: 创建/更新/删除文件
  * GET: 读取文件
  */
+
+function validateGithubEnv(): { owner: string; repo: string; octokit: Octokit } | NextResponse {
+  const env = getEnvConfig();
+  if (!env.githubRepo || !env.githubToken) {
+    logger.error('POST', 'GitHub 配置缺失');
+    return NextResponse.json({ error: 'GitHub 配置缺失' }, { status: 500 });
+  }
+  const [owner = '', repo = ''] = env.githubRepo.split('/');
+  const octokit = new Octokit({ auth: env.githubToken });
+  return { owner, repo, octokit };
+}
+
+async function getFileSha(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  path: string,
+): Promise<string | undefined> {
+  try {
+    const { data } = await octokit.rest.repos.getContent({ owner, repo, path });
+    if ('sha' in data) return data.sha;
+  } catch (e: unknown) {
+    const err = e as { status?: number };
+    if (err.status !== 404) throw e;
+  }
+  return undefined;
+}
+
+async function composeFileContent(
+  content: string | undefined,
+  frontMatter: unknown,
+  body: string | undefined,
+): Promise<string> {
+  if (frontMatter && body !== undefined) {
+    const yamlModule = await import('js-yaml');
+    return `---\n${yamlModule.default.dump(frontMatter)}---\n\n${body}`;
+  }
+  return content ?? '';
+}
+
+async function executeDeleteAction(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  path: string,
+  options: { sha?: string; message?: string },
+): Promise<NextResponse> {
+  if (!options.sha) {
+    logger.warn('POST', '文件不存在，无法删除', { path });
+    return NextResponse.json({ error: '文件不存在' }, { status: 404 });
+  }
+  const result = await octokit.rest.repos.deleteFile({
+    owner, repo, path,
+    message: options.message ?? `delete: ${path}`,
+    sha: options.sha,
+  });
+  logger.info('POST', '文件删除成功', { path });
+  return NextResponse.json({ success: true, data: result.data });
+}
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
@@ -28,49 +87,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '缺少必需参数' }, { status: 400 });
     }
 
-    const env = getEnvConfig();
-    if (!env.githubRepo || !env.githubToken) {
-      logger.error('POST', 'GitHub 配置缺失');
-      return NextResponse.json({ error: 'GitHub 配置缺失' }, { status: 500 });
-    }
+    const envResult = validateGithubEnv();
+    if (envResult instanceof NextResponse) return envResult;
+    const { owner, repo, octokit } = envResult;
 
-    const [owner, repo] = env.githubRepo.split('/');
-    const octokit = new Octokit({ auth: env.githubToken });
-
-    let sha: string | undefined;
-    if (action !== 'create') {
-      try {
-        const { data } = await octokit.rest.repos.getContent({ owner, repo, path });
-        if ('sha' in data) sha = data.sha;
-      } catch (e: unknown) {
-        const err = e as { status?: number };
-        if (err.status !== 404) throw e;
-      }
-    }
-
-    let fileContent = content || '';
-    if (frontMatter && body !== undefined) {
-      const yaml = await import('js-yaml');
-      fileContent = `---\n${yaml.default.dump(frontMatter)}---\n\n${body}`;
-    }
+    const sha = action !== 'create'
+      ? await getFileSha(octokit, owner, repo, path)
+      : undefined;
 
     if (action === 'delete') {
-      if (!sha) {
-        logger.warn('POST', '文件不存在，无法删除', { path });
-        return NextResponse.json({ error: '文件不存在' }, { status: 404 });
-      }
-      const result = await octokit.rest.repos.deleteFile({
-        owner, repo, path,
-        message: message || `delete: ${path}`,
-        sha,
-      });
-      logger.info('POST', '文件删除成功', { path });
-      return NextResponse.json({ success: true, data: result.data });
+      return executeDeleteAction(octokit, owner, repo, path, { sha, message });
     }
 
+    const fileContent = await composeFileContent(content, frontMatter, body);
     const result = await octokit.rest.repos.createOrUpdateFileContents({
       owner, repo, path,
-      message: message || `${action}: ${path}`,
+      message: message ?? `${action}: ${path}`,
       content: Buffer.from(fileContent).toString('base64'),
       sha,
     });
@@ -105,7 +137,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'GitHub 配置缺失' }, { status: 500 });
     }
 
-    const [owner, repo] = env.githubRepo.split('/');
+    const [owner = '', repo = ''] = env.githubRepo.split('/');
     const octokit = new Octokit({ auth: env.githubToken });
 
     const { data } = await octokit.rest.repos.getContent({ owner, repo, path });

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { loadConfigAsync, canAccess, hasDatabase } from '@/lib/config';
-import { getSession, SessionPayload } from '@/lib/auth';
+import { type SessionPayload, getSession } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
 
 const logger = createApiLogger('/api/faces');
@@ -32,7 +32,7 @@ export async function GET() {
 
   const accessibleIndexes = indexes.filter((idx) => {
     if (isAdmin) return true;
-    return canAccess('faces', idx.slug, isAuthenticated, dbAvailable, config) && idx.public === true;
+    return canAccess('faces', idx.slug, isAuthenticated, dbAvailable, config) && idx.public;
   });
 
   logger.info('GET', '通讯录列表读取成功', { count: accessibleFiles.length });
@@ -41,7 +41,7 @@ export async function GET() {
       slug: f.slug,
       title: f.meta.title,
       date: f.meta.date,
-      tags: f.meta.tags || [],
+      tags: f.meta.tags ?? [],
       description: f.meta.description,
     })),
     indexes: accessibleIndexes.map((idx) => ({
@@ -79,7 +79,7 @@ async function getFileFromGitHub(req: NextRequest, filePath: string): Promise<{ 
   url.searchParams.set('path', filePath);
   
   const response = await fetch(url.toString(), {
-    headers: { 'Cookie': req.headers.get('cookie') || '' },
+    headers: { 'Cookie': req.headers.get('cookie') ?? '' },
   });
 
   if (!response.ok) {
@@ -90,7 +90,7 @@ async function getFileFromGitHub(req: NextRequest, filePath: string): Promise<{ 
   const data = await response.json();
   return {
     sha: data.sha,
-    email: data.frontMatter?.email || '',
+    email: data.frontMatter?.email ?? '',
     raw: data.raw,
   };
 }
@@ -121,8 +121,8 @@ export async function POST(req: NextRequest) {
     const frontMatter = {
       title: name,
       name,
-      email: email || '',
-      phone: phone || '',
+      email: email ?? '',
+      phone: phone ?? '',
       group,
       date: now,
     };
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
         action: 'create',
         path: filePath,
         frontMatter,
-        body: content || '',
+        body: content ?? '',
         message,
       }),
     });
@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
     if (!ghResponse.ok) {
       const error = await ghResponse.json();
       logger.error('POST', '创建联系人失败', { error: error.error });
-      return NextResponse.json({ error: error.error || '创建联系人失败' }, { status: 500 });
+      return NextResponse.json({ error: error.error ?? '创建联系人失败' }, { status: 500 });
     }
 
     logger.info('POST', '联系人创建成功', { slug: `/${group}/${slug}` });
@@ -156,11 +156,120 @@ export async function POST(req: NextRequest) {
 }
 
 /**
+ * 构建联系人 frontMatter
+ */
+function buildFrontMatter(
+  name: string,
+  email: string | undefined,
+  phone: string | undefined,
+  group: string,
+  date: string,
+): Record<string, unknown> {
+  return {
+    title: name,
+    name,
+    email: email ?? '',
+    phone: phone ?? '',
+    group,
+    date,
+  };
+}
+
+/**
+ * 处理联系人重命名（路径变更）：创建新文件 + 删除旧文件
+ */
+async function handleRenameContact(
+  req: NextRequest,
+  opts: {
+    name: string;
+    group: string;
+    newSlug: string;
+    newFilePath: string;
+    oldFilePath: string;
+    frontMatter: Record<string, unknown>;
+    content: string;
+    sha: string;
+  },
+) {
+  const ghCreateResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'create',
+      path: opts.newFilePath,
+      frontMatter: opts.frontMatter,
+      body: opts.content || '',
+      message: `update: move contact "${opts.name}" to ${opts.newFilePath}`,
+    }),
+  });
+
+  if (!ghCreateResponse.ok) {
+    const error = await ghCreateResponse.json();
+    return NextResponse.json({ error: error.error ?? '更新联系人失败' }, { status: 500 });
+  }
+
+  const ghDeleteResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'delete',
+      path: opts.oldFilePath,
+      message: `delete: remove old file ${opts.oldFilePath}`,
+      sha: opts.sha,
+    }),
+  });
+
+  if (!ghDeleteResponse.ok) {
+    logger.warn('PATCH', '删除旧文件失败', { oldFilePath: opts.oldFilePath });
+  }
+
+  return NextResponse.json({ success: true, slug: `/${opts.group}/${opts.newSlug}` });
+}
+
+/**
+ * 处理联系人原地更新（路径不变）
+ */
+async function handleUpdateContact(
+  req: NextRequest,
+  opts: {
+    name: string;
+    group: string;
+    newSlug: string;
+    oldFilePath: string;
+    frontMatter: Record<string, unknown>;
+    content: string;
+    sha: string;
+  },
+) {
+  const ghResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'update',
+      path: opts.oldFilePath,
+      frontMatter: opts.frontMatter,
+      body: opts.content || '',
+      message: `update: update contact "${opts.name}"`,
+      sha: opts.sha,
+    }),
+  });
+
+  if (!ghResponse.ok) {
+    const error = await ghResponse.json();
+    logger.error('PATCH', '更新联系人失败', { error: error.error });
+    return NextResponse.json({ error: error.error ?? '更新联系人失败' }, { status: 500 });
+  }
+
+  logger.info('PATCH', '更新联系人成功', { slug: `/${opts.group}/${opts.newSlug}` });
+  return NextResponse.json({ success: true, slug: `/${opts.group}/${opts.newSlug}` });
+}
+
+/**
  * 更新联系人
  */
 export async function PATCH(req: NextRequest) {
   const session = await getSession();
-  if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
+  if (!canManageFace(session)) {
     logger.warn('PATCH', '无权限', { role: session?.role });
     return NextResponse.json({ error: '无权限' }, { status: 403 });
   }
@@ -189,84 +298,25 @@ export async function PATCH(req: NextRequest) {
 
     const { sha } = fileData;
 
-    if (!canManageFace(session)) {
-      logger.warn('PATCH', '无权修改联系人', { slug });
-      return NextResponse.json({ error: '无权修改此联系人' }, { status: 403 });
-    }
-
     const newSlug = generateSlug(name);
     const newFilePath = `faces/${group}/${newSlug}.md`;
     const now = new Date().toISOString();
 
-    const frontMatter = {
-      title: name,
-      name,
-      email: email || '',
-      phone: phone || '',
-      group,
-      date: now,
-    };
+    const frontMatter = buildFrontMatter(name, email, phone, group, now);
 
     if (newFilePath !== oldFilePath) {
-      // 创建新文件
-      const ghCreateResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'create',
-          path: newFilePath,
-          frontMatter,
-          body: content || '',
-          message: `update: move contact "${name}" to ${newFilePath}`,
-        }),
-      });
-
-      if (!ghCreateResponse.ok) {
-        const error = await ghCreateResponse.json();
-        return NextResponse.json({ error: error.error || '更新联系人失败' }, { status: 500 });
-      }
-
-      // 删除旧文件
-      const ghDeleteResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'delete',
-          path: oldFilePath,
-          message: `delete: remove old file ${oldFilePath}`,
-          sha,
-        }),
-      });
-
-      if (!ghDeleteResponse.ok) {
-        logger.warn('PATCH', '删除旧文件失败', { oldFilePath });
-      }
-
-      return NextResponse.json({ success: true, slug: `/${group}/${newSlug}` });
-    }
-
-    // 更新同一文件
-    const ghResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'update',
-        path: oldFilePath,
-        frontMatter,
-        body: content || '',
-        message: `update: update contact "${name}"`,
+      return handleRenameContact(req, {
+        name, group, newSlug, newFilePath, oldFilePath, frontMatter,
+        content: content ?? '',
         sha,
-      }),
-    });
-
-    if (!ghResponse.ok) {
-      const error = await ghResponse.json();
-      logger.error('PATCH', '更新联系人失败', { error: error.error });
-      return NextResponse.json({ error: error.error || '更新联系人失败' }, { status: 500 });
+      });
     }
 
-    logger.info('PATCH', '更新联系人成功', { slug: `/${group}/${newSlug}` });
-    return NextResponse.json({ success: true, slug: `/${group}/${newSlug}` });
+    return handleUpdateContact(req, {
+      name, group, newSlug, oldFilePath, frontMatter,
+      content: content ?? '',
+      sha,
+    });
   } catch (error: unknown) {
     logger.error('PATCH', '更新联系人失败', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: '更新联系人失败' }, { status: 500 });
@@ -321,7 +371,7 @@ export async function DELETE(req: NextRequest) {
     if (!ghResponse.ok) {
       const error = await ghResponse.json();
       logger.error('DELETE', '删除联系人失败', { error: error.error });
-      return NextResponse.json({ error: error.error || '删除联系人失败' }, { status: 500 });
+      return NextResponse.json({ error: error.error ?? '删除联系人失败' }, { status: 500 });
     }
 
     logger.info('DELETE', '删除联系人成功', { slug });

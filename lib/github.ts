@@ -14,7 +14,7 @@ interface GithubSyncParams {
 
 /** 从 GitHub 获取文件内容 */
 export async function getFileFromGithub(repo: string, token: string, path: string) {
-  const [owner, repoName] = repo.split('/');
+  const [owner = '', repoName = ''] = repo.split('/');
   const octokit = new Octokit({ auth: token });
 
   try {
@@ -38,7 +38,7 @@ export async function getFileFromGithub(repo: string, token: string, path: strin
 
 /** 创建或更新 GitHub 上的文件 */
 export async function updateFileInGithub({ repo, token, path, content, message }: GithubSyncParams) {
-  const [owner, repoName] = repo.split('/');
+  const [owner = '', repoName = ''] = repo.split('/');
   const octokit = new Octokit({ auth: token });
   const existingFile = await getFileFromGithub(repo, token, path);
 
@@ -54,7 +54,7 @@ export async function updateFileInGithub({ repo, token, path, content, message }
 
 /** 删除 GitHub 上的文件 */
 export async function deleteFileFromGithub(repo: string, token: string, path: string) {
-  const [owner, repoName] = repo.split('/');
+  const [owner = '', repoName = ''] = repo.split('/');
   const octokit = new Octokit({ auth: token });
   const existingFile = await getFileFromGithub(repo, token, path);
   if (!existingFile) return null;
@@ -87,9 +87,9 @@ export async function syncPostToGithub(
 ) {
   const frontMatter: Record<string, string | string[] | undefined> = {
     title: post.title,
-    author: post.author || 'Anonymous',
-    date: post.date || new Date().toISOString(),
-    tags: post.tags || [],
+    author: post.author ?? 'Anonymous',
+    date: post.date ?? new Date().toISOString(),
+    tags: post.tags ?? [],
   };
   if (post.cover) frontMatter.cover = post.cover;
   if (post.description) frontMatter.description = post.description;

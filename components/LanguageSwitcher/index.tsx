@@ -18,7 +18,7 @@ export default function LanguageSwitcher() {
     setIsOpen(false);
   };
 
-  const currentLang = locales.find(l => l.code === locale) || locales[0];
+  const currentLang = locales.find(l => l.code === locale) ?? locales[0]!;
 
   return (
     <div className="relative">

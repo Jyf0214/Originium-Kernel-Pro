@@ -43,7 +43,7 @@ export default function FaceDetailPage() {
         setLoading(false);
       }
     };
-    fetchData();
+    void fetchData();
   }, [fullPath]);
 
   if (loading) return null;

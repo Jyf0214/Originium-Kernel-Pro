@@ -46,7 +46,7 @@ export default function NewTicketPage() {
 
   const handleTemplateSelect = (template: TicketTemplate) => {
     setSelectedTemplate(template);
-    setTitle(template.title || '');
+    setTitle(template.title ?? '');
     setFormData({});
   };
 
@@ -74,7 +74,7 @@ export default function NewTicketPage() {
       }
     } catch (error) {
 		console.error('Failed to create ticket:', error);
-		showError(t('tickets.createFailed') || '工单创建失败');
+		showError(t('tickets.createFailed') ?? '工单创建失败');
     } finally {
       setSubmitting(false);
     }
@@ -124,11 +124,11 @@ export default function NewTicketPage() {
                 {field.label} {field.required && <span className="text-red-500">*</span>}
               </label>
               {field.type === 'input' && (
-                <Input value={formData[field.name] || ''} onChange={e => setFormData({ ...formData, [field.name]: e.target.value })} placeholder={`${t('common.input')}${field.label}`} className="rounded-xl" />
+                <Input value={formData[field.name] ?? ''} onChange={e => setFormData({ ...formData, [field.name]: e.target.value })} placeholder={`${t('common.input')}${field.label}`} className="rounded-xl" />
               )}
               {field.type === 'textarea' && (
                 <textarea
-                  value={formData[field.name] || ''}
+                  value={formData[field.name] ?? ''}
                   onChange={e => setFormData({ ...formData, [field.name]: e.target.value })}
                   placeholder={`${t('common.input')}${field.label}`}
                   className="w-full min-h-[100px] p-3 border border-zinc-200 rounded-xl text-sm resize-vertical outline-none focus:border-zinc-400"
@@ -136,7 +136,7 @@ export default function NewTicketPage() {
               )}
               {field.type === 'dropdown' && (
                 <select
-                  value={formData[field.name] || ''}
+                  value={formData[field.name] ?? ''}
                   onChange={e => setFormData({ ...formData, [field.name]: e.target.value })}
                   className="w-full h-10 px-3 border border-zinc-200 rounded-lg text-sm"
                 >

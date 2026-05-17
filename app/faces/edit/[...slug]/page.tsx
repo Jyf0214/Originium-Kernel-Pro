@@ -72,21 +72,21 @@ export default function EditFacePage() {
 
         // 填充表单
         form.setFieldsValue({
-          name: String(faceData.meta.name || faceData.meta.title || ''),
-          email: String(faceData.meta.email || ''),
-          phone: String(faceData.meta.phone || ''),
-          group: String(faceData.meta.group || ''),
-          content: String(faceData.content || ''),
+          name: String(faceData.meta.name ?? faceData.meta.title ?? ''),
+          email: String(faceData.meta.email ?? ''),
+          phone: String(faceData.meta.phone ?? ''),
+          group: String(faceData.meta.group ?? ''),
+          content: String(faceData.content ?? ''),
         });
 
         // 解析分组列表
         if (groupsRes.ok) {
           const groupsData = await groupsRes.json();
-          const groupOptions: GroupOption[] = (groupsData.indexes || []).map(
+          const groupOptions: GroupOption[] = (groupsData.indexes ?? []).map(
             (idx: { slug: string; title: string; groupName?: string }) => ({
               slug: idx.slug,
               title: idx.title,
-              groupName: idx.groupName || idx.slug.replace('/', ''),
+              groupName: idx.groupName ?? idx.slug.replace('/', ''),
             })
           );
           setGroups(groupOptions);
@@ -99,7 +99,7 @@ export default function EditFacePage() {
       }
     };
 
-    fetchData();
+    void fetchData();
   }, [fullPath, form, router]);
 
   /** 权限检查 */

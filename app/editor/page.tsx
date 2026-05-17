@@ -35,12 +35,12 @@ function EditorContent() {
           const res = await fetch(`/api/articles/${articleId}`);
           if (res.ok) {
             const data = await res.json();
-            setTitle(data.title || '');
-            setContent(data.content || '');
-            setTags(data.tags?.join(', ') || '');
-            setCoverImage(data.coverImage || data.cover || '');
-            setDescription(data.description || '');
-            setSlug(data.slug || '');
+            setTitle(data.title ?? '');
+            setContent(data.content ?? '');
+            setTags(data.tags?.join(', ') ?? '');
+            setCoverImage(data.coverImage ?? data.cover ?? '');
+            setDescription(data.description ?? '');
+            setSlug(data.slug ?? '');
           }
         } catch (error) {
           console.error(t('editor.fetchFailed'), error);
@@ -48,7 +48,7 @@ function EditorContent() {
           setFetching(false);
         }
       };
-      fetchArticle();
+      void fetchArticle();
     }
 
     // 检查 GitHub 是否配置
@@ -57,7 +57,7 @@ function EditorContent() {
         const res = await fetch('/api/env-status');
         if (res.ok) {
           const data = await res.json();
-          const githubVars = data.groups?.github?.variables || [];
+          const githubVars = data.groups?.github?.variables ?? [];
           const repoSet = githubVars.find((v: { name: string; isSet: boolean }) => v.name === 'GITHUB_REPO')?.isSet;
           const tokenSet = githubVars.find((v: { name: string; isSet: boolean }) => v.name === 'GITHUB_TOKEN')?.isSet;
           setGithubConfigured(!!(repoSet && tokenSet));
@@ -66,7 +66,7 @@ function EditorContent() {
         console.error('检查 GitHub 配置失败:', error);
       }
     };
-    checkGithubConfig();
+    void checkGithubConfig();
   }, [articleId, t]);
 
   /**
@@ -84,7 +84,7 @@ function EditorContent() {
         status: 'draft',
         authorId: user.uid,
         authorName: user.displayName || user.name || 'Anonymous',
-        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+        tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
         coverImage,
         description,
       };
@@ -103,7 +103,7 @@ if (res.ok) {
         router.push('/dashboard/articles');
       } else {
         const data = await res.json();
-        showError(`${t('editor.saveFailed')}: ${data.error || ''}`);
+        showError(`${t('editor.saveFailed')}: ${data.error ?? ''}`);
       }
     } catch (error) {
       console.error(t('editor.saveFailed'), error);
@@ -132,7 +132,7 @@ if (res.ok) {
         slug: postSlug,
         authorId: user.uid,
         authorName: user.displayName || user.name || 'Anonymous',
-        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+        tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
         coverImage,
         description,
       };
@@ -152,7 +152,7 @@ if (res.ok) {
         message.success(t('editor.publishSuccess') || '发布成功');
         router.push('/dashboard/articles');
       } else {
-        showError(`${t('editor.saveFailed')}: ${data.error || ''}`);
+        showError(`${t('editor.saveFailed')}: ${data.error ?? ''}`);
       }
     } catch (error) {
       console.error(t('editor.saveFailed'), error);

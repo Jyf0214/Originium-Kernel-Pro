@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Spin } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
 
@@ -29,7 +29,7 @@ const positionClasses: Record<string, string> = {
 };
 
 export function LoadingSpinner({ size = 'large', tip, position = 'center' }: LoadingProps) {
-  const posClass = positionClasses[position] || positionClasses.center;
+  const posClass = positionClasses[position] ?? positionClasses.center;
   return (
     <div className={`flex ${posClass}`}>
       <Spin size={size} tip={tip} />
@@ -173,7 +173,7 @@ export function LoadingWaves({ tip = 'Loading...', color = '#c084fc' }: LoadingP
 export function LoadingAntIcon({ size = 'large', tip, color = '#c084fc', position = 'center' }: LoadingProps) {
   const fontSize = size === 'small' ? 14 : size === 'large' ? 24 : 18;
   const antIcon = <LoadingOutlined style={{ fontSize, color }} spin />;
-  const posClass = positionClasses[position] || positionClasses.center;
+  const posClass = positionClasses[position] ?? positionClasses.center;
   return (
     <div className={`flex ${posClass}`}>
       <Spin indicator={antIcon} size={size} tip={tip} />
@@ -187,25 +187,51 @@ interface GlobalLoadingProps extends LoadingProps {
   loadingConfig?: {
     page?: LoadingConfig;
     navigation?: { type: LoadingType; color: string };
+    slogans?: string[];
+  };
+  slogans?: string[];
+}
+
+interface ResolvedLoadingConfig {
+  type: LoadingType;
+  color: string;
+  position: LoadingPosition;
+}
+
+function resolveNavConfig(type: LoadingType | undefined, color: string | undefined, loadingConfig: GlobalLoadingProps['loadingConfig']): Pick<ResolvedLoadingConfig, 'type' | 'color'> {
+  return {
+    type: type ?? loadingConfig?.navigation?.type ?? 'antd',
+    color: color ?? loadingConfig?.navigation?.color ?? '#c084fc',
   };
 }
 
-export function GlobalLoading({ type, size, tip, color, position = 'center', forNavigation, loadingConfig }: GlobalLoadingProps) {
+function resolvePageConfig(type: LoadingType | undefined, color: string | undefined, position: LoadingPosition | undefined, loadingConfig: GlobalLoadingProps['loadingConfig']): ResolvedLoadingConfig {
+  return {
+    type: type ?? loadingConfig?.page?.type ?? 'waves',
+    color: color ?? loadingConfig?.page?.color ?? '#c084fc',
+    position: position ?? loadingConfig?.page?.position ?? 'center',
+  };
+}
 
-  let finalType, finalColor, finalPosition;
-
+function resolveLoadingConfig(props: GlobalLoadingProps): ResolvedLoadingConfig {
+  const { type, color, position, forNavigation, loadingConfig } = props;
   if (forNavigation) {
-    finalType = type || loadingConfig?.navigation?.type || 'antd';
-    finalColor = color || loadingConfig?.navigation?.color || '#c084fc';
-  } else {
-    finalType = type || loadingConfig?.page?.type || 'waves';
-    finalColor = color || loadingConfig?.page?.color || '#c084fc';
-    finalPosition = position || loadingConfig?.page?.position || 'center';
+    const navConfig = resolveNavConfig(type, color, loadingConfig);
+    return { ...navConfig, position: 'center' };
   }
+  return resolvePageConfig(type, color, position, loadingConfig);
+}
 
+function LoadingRenderer({ finalType, finalColor, finalPosition, size, tip }: {
+  finalType: LoadingType;
+  finalColor: string;
+  finalPosition: LoadingPosition;
+  size?: 'small' | 'default' | 'large';
+  tip?: string;
+}) {
   switch (finalType) {
     case 'spinner':
-      return <LoadingSpinner size={size} tip={tip} position={finalPosition || 'center'} />;
+      return <LoadingSpinner size={size} tip={tip} position={finalPosition} />;
     case 'text':
       return <LoadingText tip={tip} />;
     case 'dots':
@@ -215,10 +241,33 @@ export function GlobalLoading({ type, size, tip, color, position = 'center', for
     case 'waves':
       return <LoadingWaves tip={tip} color={finalColor} />;
     case 'antd':
-      return <LoadingAntIcon size={size} tip={tip} color={finalColor} position={finalPosition || 'center'} />;
+      return <LoadingAntIcon size={size} tip={tip} color={finalColor} position={finalPosition} />;
     default:
-      return <LoadingSpinner size={size} tip={tip} position={finalPosition || 'center'} />;
+      return <LoadingSpinner size={size} tip={tip} position={finalPosition} />;
   }
+}
+
+export function GlobalLoading(props: GlobalLoadingProps) {
+  const { type, size, tip, color, position, forNavigation, loadingConfig, slogans: directSlogans } = props;
+  const resolved = resolveLoadingConfig({ type, size, tip, color, position, forNavigation, loadingConfig });
+
+  // 随机选择一条标语
+  const sloganList = directSlogans ?? loadingConfig?.slogans;
+  const slogan = useMemo(() => {
+    if (!sloganList || sloganList.length === 0) return null;
+    return sloganList[Math.floor(Math.random() * sloganList.length)] ?? null;
+  }, [sloganList]);
+
+  return (
+    <div className="flex flex-col items-center gap-6">
+      <LoadingRenderer finalType={resolved.type} finalColor={resolved.color} finalPosition={resolved.position} size={size} tip={tip} />
+      {slogan && (
+        <p className="text-sm text-zinc-400 select-none animate-pulse">
+          {slogan}
+        </p>
+      )}
+    </div>
+  );
 }
 
 export default GlobalLoading;

@@ -63,7 +63,7 @@ export default function TicketsPage() {
   useEffect(() => {
     if (isSudo) {
       const timer = setTimeout(() => {
-        fetchTemplates();
+        void fetchTemplates();
       }, 0);
       return () => clearTimeout(timer);
     }
@@ -104,11 +104,11 @@ export default function TicketsPage() {
       });
       if (res.ok) {
         setShowModal(false);
-        fetchTemplates();
+        void fetchTemplates();
         message.success(t('tickets.saveSuccess'));
       } else {
         const data = await res.json();
-        showError(`${t('tickets.saveFailed')}: ${data.error || ''}`);
+        showError(`${t('tickets.saveFailed')}: ${data.error ?? ''}`);
       }
     } catch (error) {
 		console.error('Failed to save template:', error);
@@ -121,7 +121,7 @@ export default function TicketsPage() {
 const handleDelete = async (id: string) => {
     if (!confirm(t('tickets.deleteConfirm'))) return;
     const originalTemplates = [...templates];
-    setTemplates(templates.filter(t => t.id !== id));
+    setTemplates(templates.filter(tmpl => tmpl.id !== id));
     try {
       const res = await fetch('/api/ticket-templates', {
         method: 'DELETE',
@@ -130,7 +130,7 @@ const handleDelete = async (id: string) => {
       });
       if (!res.ok) {
         const data = await res.json();
-        showError(`${t('tickets.deleteFailed')}: ${data.error || ''}`);
+        showError(`${t('tickets.deleteFailed')}: ${data.error ?? ''}`);
         setTemplates(originalTemplates);
       }
     } catch (error) {

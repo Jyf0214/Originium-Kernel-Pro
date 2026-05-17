@@ -72,8 +72,8 @@ export function HomePostGrid({ posts, postCount, facesCount, isAdmin = false, he
           transition={{ delay: 0.1 }}
           className="text-5xl md:text-7xl font-display font-black tracking-tighter text-zinc-900 mb-8 leading-[0.95]"
         >
-          {heroTitleLine1 || t('home.heroTitleLine1')} <br />
-          <span className="text-zinc-300">{heroTitleLine2 || t('home.heroTitleLine2')}</span>
+          {heroTitleLine1 ?? t('home.heroTitleLine1')} <br />
+          <span className="text-zinc-300">{heroTitleLine2 ?? t('home.heroTitleLine2')}</span>
         </motion.h1>
 
         <motion.div
@@ -222,7 +222,7 @@ export function HomePostGrid({ posts, postCount, facesCount, isAdmin = false, he
                         </h3>
                       </Link>
                       <p className="text-zinc-400 text-sm line-clamp-2 mb-3 leading-relaxed">
-                        {post.description || ''}
+                        {post.description ?? ''}
                       </p>
                       <div className="mt-auto pt-3 border-t border-zinc-50 flex items-center justify-between text-zinc-400">
                         <div className="flex items-center gap-2">
@@ -230,7 +230,7 @@ export function HomePostGrid({ posts, postCount, facesCount, isAdmin = false, he
                             <UserIcon size={10} />
                           </div>
                           <span className="text-xs font-medium text-zinc-500">
-                            {post.author || t('home.anonymous')}
+                            {post.author ?? t('home.anonymous')}
                           </span>
                         </div>
                         {post.date && (

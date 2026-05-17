@@ -25,6 +25,7 @@ export interface AppearanceConfig {
       type: 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
       color?: string;
     };
+    slogans?: string[];
   };
 }
 

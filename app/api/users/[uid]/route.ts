@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { loadConfig } from '@/lib/config';
@@ -30,7 +30,7 @@ export async function GET(
 
     const user = JSON.parse(userStr);
     const config = loadConfig();
-    const avatar = config.users?.[uid]?.avatar || config.auth?.admin?.avatar || null;
+    const avatar = config.users?.[uid]?.avatar ?? config.auth?.admin?.avatar ?? null;
 
     logger.info('GET', '获取用户信息成功', { uid });
     return NextResponse.json({
@@ -84,7 +84,7 @@ export async function PATCH(
     }
 
     if (userGroup !== undefined) {
-      user.userGroup = userGroup || undefined;
+      user.userGroup = userGroup ?? undefined;
     }
 
     await db.set(`user:uid:${uid}`, JSON.stringify(user));

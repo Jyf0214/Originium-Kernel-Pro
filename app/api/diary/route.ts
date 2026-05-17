@@ -41,7 +41,7 @@ export async function GET() {
       slug: f.slug,
       title: f.meta.title,
       date: f.meta.date,
-      tags: f.meta.tags || [],
+      tags: f.meta.tags ?? [],
       description: f.meta.description,
     })),
     indexes: accessibleIndexes.map((idx) => ({

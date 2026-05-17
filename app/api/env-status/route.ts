@@ -25,7 +25,7 @@ export async function GET() {
       variables: [
         {
           name: 'DATABASE_URL / POSTGRES_URL',
-          isSet: !!(process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING),
+          isSet: !!(process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? process.env.POSTGRES_PRISMA_URL ?? process.env.POSTGRES_URL_NON_POOLING),
           required: true,
           description: 'PostgreSQL 数据库连接地址',
         },

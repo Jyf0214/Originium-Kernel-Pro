@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { sendMail, generateResetEmailHtml, isSmtpConfigured } from '@/lib/mail';
 import { randomBytes } from 'crypto';
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
     await db.set(`reset:${token}`, JSON.stringify({ uid, email, expiresAt }), 3600);
 
-    const appUrl = process.env.APP_URL || 'http://localhost:3000';
+    const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
     const resetLink = `${appUrl}/reset-password?token=${token}`;
 
     const sent = await sendMail({
