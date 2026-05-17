@@ -51,7 +51,7 @@ function ResetPasswordForm() {
         setResetSuccess(true);
         message.success(t('auth.resetSuccess'));
       } else {
-        showError(data.error || t('auth.resetFailed'));
+        showError(data.error ?? t('auth.resetFailed'));
       }
   } catch {
     showError(t('auth.resetFailed'));

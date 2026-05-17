@@ -41,64 +41,73 @@ export function GitHubDiffModal({
       let oldObj: Record<string, unknown> = {};
       let newObj: Record<string, unknown> = {};
       try {
-        oldObj = (yaml.load(oldContent || '{}') || {}) as Record<string, unknown>;
+        oldObj = (yaml.load(oldContent ?? '{}') ?? {}) as Record<string, unknown>;
       } catch {
         oldObj = {};
       }
       try {
-        newObj = (yaml.load(newContent || '{}') || {}) as Record<string, unknown>;
+        newObj = (yaml.load(newContent ?? '{}') ?? {}) as Record<string, unknown>;
       } catch {
         newObj = {};
       }
 
       const entries: DiffEntry[] = [];
 
+      const isNonNullObject = (v: unknown): v is Record<string, unknown> =>
+        v !== null && typeof v === 'object' && !Array.isArray(v);
+
+      const diffObjectMaps = (oldVal: Record<string, unknown>, newVal: Record<string, unknown>, path: string) => {
+        const oldKeys = new Set(Object.keys(oldVal));
+        const newKeys = new Set(Object.keys(newVal));
+        const allKeys = new Set([...oldKeys, ...newKeys]);
+
+        for (const key of allKeys) {
+          const fullPath = path ? `${path}.${key}` : key;
+          const ov = oldVal[key];
+          const nv = newVal[key];
+
+          if (oldKeys.has(key) && !newKeys.has(key)) {
+            entries.push({ path: fullPath, type: 'removed' as const, oldValue: ov });
+          } else if (!oldKeys.has(key) && newKeys.has(key)) {
+            entries.push({ path: fullPath, type: 'added' as const, newValue: nv });
+          } else {
+            diffObjects(ov, nv, fullPath);
+          }
+        }
+      };
+
+      const diffArrays = (oldVal: unknown[], newVal: unknown[], path: string) => {
+        const oldJson = JSON.stringify(oldVal);
+        const newJson = JSON.stringify(newVal);
+        if (oldJson !== newJson) {
+          entries.push({ path, type: 'modified' as const, oldValue: oldVal, newValue: newVal });
+        }
+      };
+
+      const diffScalars = (oldVal: unknown, newVal: unknown, path: string) => {
+        const ov = typeof oldVal === 'object' ? JSON.stringify(oldVal) : oldVal;
+        const nv = typeof newVal === 'object' ? JSON.stringify(newVal) : newVal;
+        if (ov !== nv) {
+          entries.push({ path, type: 'modified' as const, oldValue: oldVal, newValue: newVal });
+        }
+      };
+
       const diffObjects = (
         oldVal: unknown,
         newVal: unknown,
         path: string,
       ) => {
-        // Both are objects (not null, not array)
-        if (
-          oldVal && typeof oldVal === 'object' && !Array.isArray(oldVal) &&
-          newVal && typeof newVal === 'object' && !Array.isArray(newVal)
-        ) {
-          const oldKeys = new Set(Object.keys(oldVal as Record<string, unknown>));
-          const newKeys = new Set(Object.keys(newVal as Record<string, unknown>));
-          const allKeys = new Set([...oldKeys, ...newKeys]);
-
-          for (const key of allKeys) {
-            const fullPath = path ? `${path}.${key}` : key;
-            const ov = (oldVal as Record<string, unknown>)[key];
-            const nv = (newVal as Record<string, unknown>)[key];
-
-            if (oldKeys.has(key) && !newKeys.has(key)) {
-              entries.push({ path: fullPath, type: 'removed', oldValue: ov });
-            } else if (!oldKeys.has(key) && newKeys.has(key)) {
-              entries.push({ path: fullPath, type: 'added', newValue: nv });
-            } else {
-              diffObjects(ov, nv, fullPath);
-            }
-          }
+        if (isNonNullObject(oldVal) && isNonNullObject(newVal)) {
+          diffObjectMaps(oldVal, newVal, path);
           return;
         }
 
-        // Both are arrays
         if (Array.isArray(oldVal) && Array.isArray(newVal)) {
-          const oldJson = JSON.stringify(oldVal);
-          const newJson = JSON.stringify(newVal);
-          if (oldJson !== newJson) {
-            entries.push({ path, type: 'modified', oldValue: oldVal, newValue: newVal });
-          }
+          diffArrays(oldVal, newVal, path);
           return;
         }
 
-        // Scalar values or type mismatch
-        const ov = typeof oldVal === 'object' ? JSON.stringify(oldVal) : oldVal;
-        const nv = typeof newVal === 'object' ? JSON.stringify(newVal) : newVal;
-        if (ov !== nv) {
-          entries.push({ path, type: 'modified', oldValue: oldVal, newValue: newVal });
-        }
+        diffScalars(oldVal, newVal, path);
       };
 
       diffObjects(oldObj, newObj, '');
@@ -227,7 +236,7 @@ export function GitHubDiffProvider({ children }: GitHubDiffManagerProps) {
     newContent: string;
     onConfirm: () => void;
   }) => {
-    const repo = process.env.NEXT_PUBLIC_GITHUB_REPO || '';
+    const repo = process.env.NEXT_PUBLIC_GITHUB_REPO ?? '';
     setModalData({ ...params, repo });
   };
 

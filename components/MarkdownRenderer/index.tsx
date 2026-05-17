@@ -35,12 +35,12 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
               {children}
             </blockquote>
           ),
-          code: ({ className, children }) => {
-            const isInline = !className;
+          code: ({ className: codeClassName, children }) => {
+            const isInline = !codeClassName;
             return isInline ? (
               <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-sm font-mono">{children}</code>
             ) : (
-              <code className={className}>{children}</code>
+              <code className={codeClassName}>{children}</code>
             );
           },
           pre: ({ children }) => (

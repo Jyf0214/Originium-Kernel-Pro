@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { DELETION_PERIOD_DAYS } from '@/lib/constants';
@@ -13,18 +13,19 @@ const logger = createApiLogger('/api/cleanup');
  * This should be called periodically (e.g., daily) by a cron scheduler
  */
 
+async function isCleanupAuthorized(req: NextRequest): Promise<boolean> {
+  const session = await getSession();
+  if (session && (session.role === 'admin' || session.role === 'sudo')) {
+    return true;
+  }
+  const cronSecret = req.headers.get('x-cron-secret');
+  const expectedSecret = process.env.CRON_SECRET;
+  return !!(cronSecret && expectedSecret && cronSecret === expectedSecret);
+}
+
 export async function POST(req: NextRequest) {
   try {
-    // Check for admin/sudo or cron secret
-    const session = await getSession();
-    const cronSecret = req.headers.get('x-cron-secret');
-    const expectedSecret = process.env.CRON_SECRET;
-    
-    const isAuthorized = 
-      (session && (session.role === 'admin' || session.role === 'sudo')) ||
-      (cronSecret && expectedSecret && cronSecret === expectedSecret);
-    
-    if (!isAuthorized) {
+    if (!(await isCleanupAuthorized(req))) {
       logger.warn('POST', '未授权');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

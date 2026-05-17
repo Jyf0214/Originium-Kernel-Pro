@@ -39,7 +39,7 @@ export async function GET() {
         name: user.name,
         role: user.role,
         userGroup: user.userGroup,
-        avatar: avatar || undefined,
+        avatar: avatar ?? undefined,
       }
     });
   } catch (error) {

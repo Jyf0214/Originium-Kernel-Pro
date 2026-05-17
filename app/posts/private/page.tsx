@@ -27,17 +27,17 @@ export default async function PrivatePostsPage() {
   const privateFiles = allFiles.filter((file) => {
     const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
     const dirIndex = indexes.find((idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'));
-    return dirIndex ? dirIndex.public === false : false;
+    return dirIndex ? !dirIndex.public : false;
   });
 
-  const privateIndexes = indexes.filter((idx) => idx.public === false);
+  const privateIndexes = indexes.filter((idx) => !idx.public);
 
   const posts = privateFiles.map((f) => ({
     slug: f.slug,
     title: f.meta.title,
     date: f.meta.date,
     author: f.meta.author,
-    tags: f.meta.tags || [],
+    tags: f.meta.tags ?? [],
     cover: f.meta.cover,
     description: f.meta.description,
   }));

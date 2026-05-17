@@ -114,8 +114,8 @@
     "anonymous": "匿名",
     "noPosts": "在 /posts 目录下添加 Markdown 文件即可发布内容",
     "siteStatus": "Originium Kernel 现已上线",
-    "heroTitleLine1": "书写。同步。",
-    "heroTitleLine2": "部署。",
+    "heroTitleLine1": "Write. Sync.",
+    "heroTitleLine2": "Deploy.",
     "emptyTitle": "这里空空如也"
   },
   "dashboard": {
@@ -341,8 +341,8 @@
     "general": "基础设置",
     "siteTitle": "站点标题",
     "siteDescription": "站点描述",
-    "heroTitle1": "英雄标题第一行",
-    "heroTitle2": "英雄标题第二行",
+    "heroTitle1": "Hero Title Line 1",
+    "heroTitle2": "Hero Title Line 2",
     "background": "背景设置",
     "backgroundUrl": "背景图片URL",
     "backgroundUrlPlaceholder": "输入图片直链地址",

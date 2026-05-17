@@ -26,7 +26,7 @@ export default async function HomePage() {
     const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
     // 检查目录是否标记为 public
     const dirIndex = indexes.find((idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'));
-    const isPublic = dirIndex ? dirIndex.public !== false : true;
+    const isPublic = dirIndex ? dirIndex.public : true;
     return isPublic;
   });
 
@@ -35,7 +35,7 @@ export default async function HomePage() {
     title: f.meta.title,
     date: f.meta.date,
     author: f.meta.author,
-    tags: f.meta.tags || [],
+    tags: f.meta.tags ?? [],
     cover: f.meta.cover,
     description: f.meta.description,
   }));
@@ -50,7 +50,7 @@ export default async function HomePage() {
         const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
         
         return canAccess('faces', file.slug, false, dbAvailable, config) &&
-               canAccess('faces', dirSlug || '/', false, dbAvailable, config) &&
+               canAccess('faces', dirSlug ?? '/', false, dbAvailable, config) &&
                file.meta.public === true;
       });
       return publicFaces.length;

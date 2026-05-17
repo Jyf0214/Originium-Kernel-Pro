@@ -20,6 +20,53 @@ interface Ticket {
   content: string;
 }
 
+function TicketStatusUpdater({
+  ticket,
+  newStatus,
+  saving,
+  isAdmin,
+  onStatusChange,
+  onSave,
+  t,
+}: {
+  ticket: Ticket;
+  newStatus: string;
+  saving: boolean;
+  isAdmin: boolean;
+  onStatusChange: (status: string) => void;
+  onSave: () => void;
+  t: (key: string) => string;
+}) {
+  if (!isAdmin) return null;
+
+  return (
+    <div className="mt-6 pt-5 border-t border-zinc-100">
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-medium text-zinc-700">{t('tickets.updateStatus')}:</span>
+        <select
+          value={newStatus}
+          onChange={e => onStatusChange(e.target.value)}
+          className="h-9 px-3 border border-zinc-200 rounded-lg text-sm"
+        >
+          <option value="open">{t('tickets.statusOpen')}</option>
+          <option value="in-progress">{t('tickets.statusInProgress')}</option>
+          <option value="closed">{t('tickets.statusClosed')}</option>
+        </select>
+        <Button
+          type="primary"
+          icon={<Save size={14} />}
+          onClick={onSave}
+          loading={saving}
+          disabled={newStatus === ticket.status}
+          className="bg-zinc-900 rounded-xl"
+        >
+          {t('common.save')}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function TicketDetailPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { user } = useAuth();
   const router = useRouter();
@@ -30,7 +77,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
   const [newStatus, setNewStatus] = useState<string>('');
   const [saving, setSaving] = useState(false);
 
-  const slug = '/' + (resolvedParams.slug?.join('/') || '');
+  const slug = '/' + (resolvedParams.slug?.join('/') ?? '');
 
   const fetchTicket = React.useCallback(async () => {
     try {
@@ -38,7 +85,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
       if (res.ok) {
         const data = await res.json();
         setTicket(data);
-        setNewStatus(data.status || 'open');
+        setNewStatus(data.status ?? 'open');
       }
     } catch (error) {
 		console.error('Failed to fetch ticket:', error);
@@ -56,7 +103,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
 
   useEffect(() => {
     if (user) {
-      fetchTicket();
+      void fetchTicket();
     }
   }, [user, fetchTicket]);
 
@@ -149,7 +196,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
         {/* 元信息 */}
         <div className="mb-5 p-4 bg-zinc-50 rounded-xl">
           <p className="text-xs text-zinc-400">
-            {t('tickets.author')}: {ticket.author} · {t('common.createdAt') || t('tickets.date')}: {new Date(ticket.date).toLocaleString(locale)} · {t('tickets.template')}: {ticket.template}
+            {t('tickets.author')}: {ticket.author} · {t('common.createdAt') ?? t('tickets.date')}: {new Date(ticket.date).toLocaleString(locale)} · {t('tickets.template')}: {ticket.template}
           </p>
           {ticket.labels.length > 0 && (
             <div className="mt-2 flex gap-1">
@@ -166,32 +213,15 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
         </div>
 
         {/* 状态更新（仅管理员） */}
-        {isAdmin && (
-          <div className="mt-6 pt-5 border-t border-zinc-100">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-zinc-700">{t('tickets.updateStatus')}:</span>
-              <select
-                value={newStatus}
-                onChange={e => setNewStatus(e.target.value)}
-                className="h-9 px-3 border border-zinc-200 rounded-lg text-sm"
-              >
-                <option value="open">{t('tickets.statusOpen')}</option>
-                <option value="in-progress">{t('tickets.statusInProgress')}</option>
-                <option value="closed">{t('tickets.statusClosed')}</option>
-              </select>
-              <Button
-                type="primary"
-                icon={<Save size={14} />}
-                onClick={handleStatusChange}
-                loading={saving}
-                disabled={newStatus === ticket.status}
-                className="bg-zinc-900 rounded-xl"
-              >
-                {t('common.save')}
-              </Button>
-            </div>
-          </div>
-        )}
+        <TicketStatusUpdater
+          ticket={ticket}
+          newStatus={newStatus}
+          saving={saving}
+          isAdmin={isAdmin}
+          onStatusChange={(status) => setNewStatus(status)}
+          onSave={handleStatusChange}
+          t={t}
+        />
       </div>
     </div>
   );

@@ -78,9 +78,7 @@ export default function NewTicketTemplatePage() {
   };
 
   const updateField = (index: number, key: string, value: string | boolean | string[]) => {
-    const newFields = [...fields];
-    newFields[index] = { ...newFields[index], [key]: value };
-    setFields(newFields);
+    setFields(prev => prev.map((field, i) => i === index ? { ...field, [key]: value } : field));
   };
 
   const addLabel = () => {
@@ -142,7 +140,7 @@ export default function NewTicketTemplatePage() {
         router.push('/admin/config');
       } else {
         const err = await res.json();
-        showError(err.error || t('tickets.saveFailed'));
+        showError(err.error ?? t('tickets.saveFailed'));
       }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {

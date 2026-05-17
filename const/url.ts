@@ -5,7 +5,7 @@
 const isDev = process.env.NODE_ENV === 'development';
 
 /** 站点根地址 */
-export const SITE_URL = isDev ? 'http://localhost:3000' : (process.env.NEXT_PUBLIC_SITE_URL || 'https://your-domain.com');
+export const SITE_URL = isDev ? 'http://localhost:3000' : (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://your-domain.com');
 
 /** 站点域名 */
 export const SITE_DOMAIN = (() => {

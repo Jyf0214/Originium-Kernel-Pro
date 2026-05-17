@@ -39,7 +39,7 @@ export default function BackgroundConfig({
           step={0.05}
           value={config.opacity}
           onChange={value => onChange({ ...config, opacity: value })}
-          tooltip={{ formatter: (v) => `${Math.round((v || 0) * 100)}%` }}
+          tooltip={{ formatter: (v) => `${Math.round((v ?? 0) * 100)}%` }}
         />
       </div>
     </>

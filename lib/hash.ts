@@ -21,7 +21,7 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 export async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
-  if (!storedHash || storedHash.length !== 64) return false;
+  if (storedHash?.length !== 64) return false;
   const computed = await hashPassword(password);
   return computed === storedHash;
 }

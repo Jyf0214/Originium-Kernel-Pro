@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getTicketTemplate, renderTicketBody } from '@/lib/tickets';
 import { getEnvConfig } from '@/lib/env';
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const frontMatter: Record<string, any> = {
-      title: title || template.title || 'Untitled',
+      title: title ?? template.title ?? 'Untitled',
       author: session.email,
       date: new Date().toISOString(),
       labels: template.labels,
@@ -133,11 +133,11 @@ export async function GET(req: NextRequest) {
 
           return {
             slug: file.path.replace(/^tickets/, '').replace(/\.md$/, ''),
-            title: frontMatter.title || file.name,
+            title: frontMatter.title ?? file.name,
             author,
             date: frontMatter.date,
-            labels: frontMatter.labels || [],
-            status: frontMatter.status || 'open',
+            labels: frontMatter.labels ?? [],
+            status: frontMatter.status ?? 'open',
             template: frontMatter.template,
           };
         } catch {

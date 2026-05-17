@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import nodemailer from 'nodemailer';
 import { createApiLogger } from '@/lib/api-logger';
@@ -12,7 +12,7 @@ const logger = createApiLogger('/api/auth/bind-send-code');
 export async function POST(req: NextRequest) {
   try {
     const { email } = await req.json();
-    if (!email || !email.includes('@')) {
+    if (!email?.includes('@')) {
       logger.warn('POST', '无效的邮箱地址');
       return NextResponse.json({ error: '请输入有效的邮箱地址' }, { status: 400 });
     }
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       try {
         const transporter = nodemailer.createTransport({
           host: smtpHost,
-          port: parseInt(smtpPort || '587'),
+          port: parseInt(smtpPort ?? '587'),
           secure: smtpPort === '465',
           auth: { user: smtpUser, pass: smtpPass },
         });

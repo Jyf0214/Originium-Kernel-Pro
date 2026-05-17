@@ -47,7 +47,7 @@ export default function TicketsPage() {
 
   useEffect(() => {
     if (user) {
-      fetchTickets();
+      void fetchTickets();
     }
   }, [user]);
 

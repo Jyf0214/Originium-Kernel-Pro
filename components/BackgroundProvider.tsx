@@ -8,6 +8,52 @@ import type { AppearanceConfig } from '@/lib/config';
  * 优先从站点配置 API 读取，回退到数据库配置
  * 使用 React 状态管理替代直接 DOM 操作
  */
+async function fetchBackgroundFromSiteConfig(mountedRef: { current: boolean }, setBackground: (bg: AppearanceConfig['background']) => void): Promise<boolean> {
+  try {
+    const res = await fetch('/api/site-config');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.appearance?.background?.url) {
+        if (mountedRef.current) setBackground(data.appearance.background);
+        return true;
+      }
+    }
+  } catch (error) {
+    console.error('背景配置加载失败:', error);
+  }
+  return false;
+}
+
+async function fetchBackgroundFromBackupConfig(mountedRef: { current: boolean }, setBackground: (bg: AppearanceConfig['background']) => void): Promise<void> {
+  try {
+    const res = await fetch('/api/config');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.appearance?.background?.url) {
+        if (mountedRef.current) setBackground(data.appearance.background);
+      } else if (data.background?.url) {
+        if (mountedRef.current) setBackground(data.background);
+      }
+    }
+  } catch (error) {
+    console.error('背景配置加载失败:', error);
+  }
+}
+
+function applyBackgroundStyles(url: string | undefined): void {
+  if (!url) {
+    document.body.style.backgroundImage = '';
+    document.body.style.backgroundSize = '';
+    document.body.style.backgroundPosition = '';
+    document.body.style.backgroundAttachment = '';
+    return;
+  }
+  document.body.style.backgroundImage = `url(${url})`;
+  document.body.style.backgroundSize = 'cover';
+  document.body.style.backgroundPosition = 'center';
+  document.body.style.backgroundAttachment = 'fixed';
+}
+
 export function BackgroundProvider({ children }: { children: React.ReactNode }) {
   const [background, setBackground] = useState<AppearanceConfig['background'] | null>(null);
   const mountedRef = useRef(false);
@@ -15,34 +61,12 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     mountedRef.current = true;
     const fetchConfig = async () => {
-      try {
-        const res = await fetch('/api/site-config');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.appearance?.background?.url) {
-            if (mountedRef.current) setBackground(data.appearance.background);
-            return;
-          }
-        }
-	} catch (error) {
-			console.error('背景配置加载失败:', error);
-		}
-
-		try {
-			const res = await fetch('/api/config');
-			if (res.ok) {
-				const data = await res.json();
-				if (data.appearance?.background?.url) {
-					if (mountedRef.current) setBackground(data.appearance.background);
-				} else if (data.background?.url) {
-					if (mountedRef.current) setBackground(data.background);
-				}
-			}
-		} catch (error) {
-			console.error('背景配置加载失败:', error);
-		}
+      const found = await fetchBackgroundFromSiteConfig(mountedRef, setBackground);
+      if (!found) {
+        await fetchBackgroundFromBackupConfig(mountedRef, setBackground);
+      }
     };
-    fetchConfig();
+    void fetchConfig();
 
     return () => {
       mountedRef.current = false;
@@ -50,24 +74,9 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   useEffect(() => {
-    if (!background?.url) {
-      document.body.style.backgroundImage = '';
-      document.body.style.backgroundSize = '';
-      document.body.style.backgroundPosition = '';
-      document.body.style.backgroundAttachment = '';
-      return;
-    }
-
-    document.body.style.backgroundImage = `url(${background.url})`;
-    document.body.style.backgroundSize = 'cover';
-    document.body.style.backgroundPosition = 'center';
-    document.body.style.backgroundAttachment = 'fixed';
-
+    applyBackgroundStyles(background?.url);
     return () => {
-      document.body.style.backgroundImage = '';
-      document.body.style.backgroundSize = '';
-      document.body.style.backgroundPosition = '';
-      document.body.style.backgroundAttachment = '';
+      applyBackgroundStyles(undefined);
     };
   }, [background]);
 

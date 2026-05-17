@@ -177,7 +177,7 @@ export function PostListClient({ posts, groups }: PostListClientProps) {
                       <User size={10} />
                     </div>
                     <span className="text-xs font-medium text-zinc-500">
-                      {post.author || t('home.anonymous')}
+                      {post.author ?? t('home.anonymous')}
                     </span>
                   </div>
                   {post.date && (

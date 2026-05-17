@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getEnvConfig } from '@/lib/env';
 import { createApiLogger } from '@/lib/api-logger';
@@ -51,8 +51,8 @@ export async function GET(
       title: frontMatter.title,
       author: frontMatter.author,
       date: frontMatter.date,
-      labels: frontMatter.labels || [],
-      status: frontMatter.status || 'open',
+      labels: frontMatter.labels ?? [],
+      status: frontMatter.status ?? 'open',
       template: frontMatter.template,
       content: body,
     });

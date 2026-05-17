@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { createSession } from '@/lib/auth';
 import { getUserAvatarAsync } from '@/lib/config';
@@ -7,6 +7,48 @@ import { ensureAdminUser } from '@/lib/db-init';
 import { createApiLogger } from '@/lib/api-logger';
 
 const logger = createApiLogger('/api/auth/login');
+
+async function lookupUserByLogin(
+  db: ReturnType<typeof getDb>,
+  login: string,
+): Promise<string | null> {
+  if (login.includes('@')) {
+    const uid = await db.get(`user:email:${login}`);
+    if (uid) return uid;
+  }
+  return db.get(`user:username:${login}`);
+}
+
+async function tryInitAdminAndReLookup(
+  db: ReturnType<typeof getDb>,
+  login: string,
+): Promise<string | null> {
+  const initResult = await ensureAdminUser();
+  if (initResult.error || !initResult.created) {
+    return null;
+  }
+  if (login.includes('@')) {
+    const uid = await db.get(`user:email:${login}`);
+    if (uid) return uid;
+  }
+  return db.get(`user:username:${login}`);
+}
+
+async function upgradePasswordHashIfNeeded(
+  user: { uid: string; password: string },
+  password: string,
+  db: ReturnType<typeof getDb>,
+): Promise<void> {
+  const isNewHash = user.password.length === 64 && /^[a-f0-9]+$/.test(user.password);
+  if (!isNewHash) {
+    try {
+      user.password = await hashPassword(password);
+      await db.set(`user:uid:${user.uid}`, JSON.stringify(user));
+    } catch {
+      logger.warn('POST', '密码哈希升级失败', { uid: user.uid });
+    }
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,30 +60,11 @@ export async function POST(req: NextRequest) {
     }
 
     const db = getDb();
-    
-    let uid: string | null = null;
-    
-    if (login.includes('@')) {
-      uid = await db.get(`user:email:${login}`);
-    }
-    
-    if (!uid) {
-      uid = await db.get(`user:username:${login}`);
-    }
+
+    let uid = await lookupUserByLogin(db, login);
 
     if (!uid) {
-      const initResult = await ensureAdminUser();
-      if (initResult.error) {
-        return NextResponse.json({ error: initResult.error }, { status: 503 });
-      }
-      if (initResult.created) {
-        if (login.includes('@')) {
-          uid = await db.get(`user:email:${login}`);
-        }
-        if (!uid) {
-          uid = await db.get(`user:username:${login}`);
-        }
-      }
+      uid = await tryInitAdminAndReLookup(db, login);
     } else {
       logger.info('POST', '用户已存在，跳过自动初始化', { login });
     }
@@ -58,22 +81,14 @@ export async function POST(req: NextRequest) {
     }
 
     const user = JSON.parse(userStr);
-    const isNewHash = user.password.length === 64 && /^[a-f0-9]+$/.test(user.password);
     const passwordMatch = await verifyPassword(password, user.password);
-    
+
     if (!passwordMatch) {
       logger.warn('POST', '账号或密码错误', { login });
       return NextResponse.json({ error: '账号或密码错误' }, { status: 401 });
     }
 
-    if (!isNewHash) {
-      try {
-        user.password = await hashPassword(password);
-        await db.set(`user:uid:${user.uid}`, JSON.stringify(user));
-      } catch {
-        logger.warn('POST', '密码哈希升级失败', { uid: user.uid });
-      }
-    }
+    await upgradePasswordHashIfNeeded(user, password, db);
 
     const avatar = await getUserAvatarAsync(user.uid, user.role === 'admin' || user.role === 'sudo');
 
@@ -93,7 +108,7 @@ export async function POST(req: NextRequest) {
         username: user.username,
         name: user.name,
         role: user.role,
-        avatar: avatar || undefined
+        avatar: avatar ?? undefined
       }
     });
   } catch (error) {

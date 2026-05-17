@@ -16,14 +16,14 @@ export interface EnvConfig {
  * 获取环境变量（不验证，构建时可用）
  */
 export function getEnvConfig(): EnvConfig {
-  const databaseUrl = 
-    process.env.DATABASE_URL ||
-    process.env.POSTGRES_URL ||
-    process.env.POSTGRES_PRISMA_URL ||
-    process.env.POSTGRES_URL_NON_POOLING ||
+  const databaseUrl =
+    process.env.DATABASE_URL ??
+    process.env.POSTGRES_URL ??
+    process.env.POSTGRES_PRISMA_URL ??
+    process.env.POSTGRES_URL_NON_POOLING ??
     '';
 
-  const authSecret = process.env.AUTH_SECRET || (process.env.NODE_ENV === 'production' ? '' : 'fallback-secret-at-least-32-chars-long');
+  const authSecret = process.env.AUTH_SECRET ?? (process.env.NODE_ENV === 'production' ? '' : 'fallback-secret-at-least-32-chars-long');
   const appUrl = process.env.APP_URL;
   const githubRepo = process.env.GITHUB_REPO;
   const githubToken = process.env.GITHUB_TOKEN;

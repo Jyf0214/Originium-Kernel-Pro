@@ -33,7 +33,7 @@ export default function FacesPage() {
       setLoading(false);
     }
     };
-    fetchData();
+    void fetchData();
   }, []);
 
   if (loading) {

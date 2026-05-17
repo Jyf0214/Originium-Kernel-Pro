@@ -17,6 +17,9 @@ export async function GET() {
     appearance: {
       background: config.appearance.background,
       customCSS: config.appearance.customCSS,
+      loading: {
+        slogans: config.appearance.loading?.slogans ?? [],
+      },
     },
   });
 }

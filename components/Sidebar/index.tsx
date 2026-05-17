@@ -81,13 +81,13 @@ function SidebarContent({
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
   const getGroupLabel = (group: string) => {
-    return t(groupKeys[group] || group);
+    return t(groupKeys[group] ?? group);
   };
 
   // 按分组整理菜单
   const grouped = items.reduce<Record<string, MenuItem[]>>((acc, item) => {
-    const g = item.group || 'other';
-    if (!acc[g]) acc[g] = [];
+    const g = item.group ?? 'other';
+    acc[g] ??= [];
     acc[g].push(item);
     return acc;
   }, {});
@@ -130,10 +130,10 @@ function SidebarContent({
         </div>
 
         <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-white border border-zinc-100 shadow-sm group">
-          <Avatar name={user?.name || 'U'} avatarUrl={user?.avatar} size={40} />
+          <Avatar name={user?.name ?? 'U'} avatarUrl={user?.avatar} size={40} />
           <div className="flex-1 min-w-0">
             <div className="text-sm font-bold text-zinc-900 truncate">
-              {user?.name || '用户'}
+              {user?.name ?? '用户'}
             </div>
             <div className="text-[10px] font-bold text-zinc-400 truncate uppercase tracking-tighter">
               {user?.role === 'sudo' ? t('user.sudo') : user?.role === 'admin' ? t('user.admin') : t('user.user')}
@@ -236,7 +236,7 @@ function Sidebar() {
   const allItems = isSudo ? [...menuItems, ...adminItems] : menuItems;
 
   const isActive = (href: string) => {
-    const path = href.split('?')[0];
+    const [path = ''] = href.split('?');
     if (path === '/dashboard') return pathname === '/dashboard';
     return (pathname ?? '').startsWith(path);
   };

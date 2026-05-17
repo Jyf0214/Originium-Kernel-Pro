@@ -138,6 +138,110 @@ function LoadingDotsWithColor({ color, tip }: { color: string; tip?: string }) {
   );
 }
 
+function AnimationTypeGrid({
+  selected,
+  onChange,
+  activeClass,
+}: {
+  selected: string;
+  onChange: (type: string) => void;
+  activeClass: string;
+}) {
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      {loadingTypes.map((item) => {
+        const ItemIcon = item.icon;
+        const isActive = selected === item.type;
+        return (
+          <button
+            key={item.type}
+            onClick={() => onChange(item.type)}
+            className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+              isActive ? activeClass : 'border-zinc-100 hover:border-zinc-200'
+            }`}
+          >
+            <ItemIcon size={24} className={isActive ? 'text-white' : 'text-zinc-600'} />
+            <span className={`text-sm font-medium ${isActive ? 'text-white' : 'text-zinc-600'}`}>
+              {item.labelZh}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function LoadingPreviewContent({
+  pageType,
+  loadingColor,
+  loadingPosition,
+}: {
+  pageType: string;
+  loadingColor: string;
+  loadingPosition: LoadingPosition;
+}) {
+  switch (pageType) {
+    case 'spinner':
+      return <GlobalLoading type="spinner" tip="加载中" position={loadingPosition} />;
+    case 'antd':
+      return <GlobalLoading type="antd" tip="加载中" position={loadingPosition} />;
+    case 'text':
+      return <GlobalLoading type="text" tip="加载中" position={loadingPosition} />;
+    case 'dots':
+      return <LoadingDotsWithColor color={loadingColor} tip="加载中" />;
+    case 'glow':
+      return <GlobalLoading type="glow" tip="加载中" />;
+    case 'waves':
+      return <LoadingWavesWithColor color={loadingColor} tip="加载中" />;
+    default:
+      return <GlobalLoading type="spinner" tip="加载中" position={loadingPosition} />;
+  }
+}
+
+function PreviewArea({
+  pageType,
+  loadingColor,
+  loadingPosition,
+}: {
+  pageType: string;
+  loadingColor: string;
+  loadingPosition: LoadingPosition;
+}) {
+  const alignItems = loadingPosition === 'top-left' || loadingPosition === 'top-right' ? 'flex-start' : loadingPosition.includes('bottom') ? 'flex-end' : 'center';
+  const justifyContent = loadingPosition === 'center' ? 'center' : loadingPosition.includes('left') ? 'flex-start' : 'flex-end';
+  const padding = loadingPosition === 'center' ? '4rem' : '2rem';
+
+  return (
+    <div
+      className="bg-zinc-50 rounded-xl p-16 min-h-[200px]"
+      style={{ display: 'flex', alignItems, justifyContent, padding }}
+    >
+      <LoadingPreviewContent pageType={pageType} loadingColor={loadingColor} loadingPosition={loadingPosition} />
+    </div>
+  );
+}
+
+function SizeComparisonCard({ t }: { t: (key: string) => string }) {
+  return (
+    <Card title={t('loadingPreview.sizeComparison') || '尺寸对比'} className="rounded-2xl border border-zinc-100">
+      <div className="grid grid-cols-3 gap-8 py-8">
+        <div className="flex flex-col items-center gap-4">
+          <GlobalLoading type="spinner" size="small" />
+          <span className="text-xs text-zinc-400 bg-zinc-100 px-2 py-1 rounded">small</span>
+        </div>
+        <div className="flex flex-col items-center gap-4">
+          <GlobalLoading type="spinner" size="default" />
+          <span className="text-xs text-zinc-400 bg-zinc-100 px-2 py-1 rounded">default</span>
+        </div>
+        <div className="flex flex-col items-center gap-4">
+          <GlobalLoading type="spinner" size="large" />
+          <span className="text-xs text-zinc-400 bg-zinc-100 px-2 py-1 rounded">large</span>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export default function LoadingPreviewPage() {
   const { t } = useI18n();
   const [pageType, setPageType] = useState<string>('waves');
@@ -191,51 +295,11 @@ export default function LoadingPreviewPage() {
           <div className="space-y-6">
             <div>
               <div className="text-sm font-medium text-zinc-500 mb-3">轻加载 (pageType)</div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {loadingTypes.map((item) => {
-                  const ItemIcon = item.icon;
-                  return (
-                    <button
-                      key={item.type}
-                      onClick={() => setPageType(item.type)}
-                      className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
-                        pageType === item.type
-                          ? 'border-zinc-900 bg-zinc-900 text-white'
-                          : 'border-zinc-100 hover:border-zinc-200'
-                      }`}
-                    >
-                      <ItemIcon size={24} className={pageType === item.type ? 'text-white' : 'text-zinc-600'} />
-                      <span className={`text-sm font-medium ${pageType === item.type ? 'text-white' : 'text-zinc-600'}`}>
-                        {item.labelZh}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+              <AnimationTypeGrid selected={pageType} onChange={setPageType} activeClass="border-zinc-900 bg-zinc-900 text-white" />
             </div>
             <div>
               <div className="text-sm font-medium text-zinc-500 mb-3">重加载 (navType)</div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {loadingTypes.map((item) => {
-                  const ItemIcon = item.icon;
-                  return (
-                    <button
-                      key={item.type}
-                      onClick={() => setNavType(item.type)}
-                      className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
-                        navType === item.type
-                          ? 'border-emerald-500 bg-emerald-500 text-white'
-                          : 'border-zinc-100 hover:border-zinc-200'
-                      }`}
-                    >
-                      <ItemIcon size={24} className={navType === item.type ? 'text-white' : 'text-zinc-600'} />
-                      <span className={`text-sm font-medium ${navType === item.type ? 'text-white' : 'text-zinc-600'}`}>
-                        {item.labelZh}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+              <AnimationTypeGrid selected={navType} onChange={setNavType} activeClass="border-emerald-500 bg-emerald-500 text-white" />
             </div>
           </div>
         </Card>
@@ -275,45 +339,10 @@ export default function LoadingPreviewPage() {
 
         {/* 预览区域 */}
         <Card title={t('loadingPreview.preview') || '效果预览'} className="rounded-2xl border border-zinc-100">
-          <div className="bg-zinc-50 rounded-xl p-16 min-h-[200px]" style={{ display: 'flex', alignItems: loadingPosition === 'top-left' || loadingPosition === 'top-right' ? 'flex-start' : loadingPosition.includes('bottom') ? 'flex-end' : 'center', justifyContent: loadingPosition === 'center' ? 'center' : loadingPosition.includes('left') ? 'flex-start' : 'flex-end', padding: loadingPosition === 'center' ? '4rem' : '2rem' }}>
-            {pageType === 'spinner' && (
-              <GlobalLoading type="spinner" tip="加载中" position={loadingPosition} />
-            )}
-            {pageType === 'antd' && (
-              <GlobalLoading type="antd" tip="加载中" position={loadingPosition} />
-            )}
-            {pageType === 'text' && (
-              <GlobalLoading type="text" tip="加载中" position={loadingPosition} />
-            )}
-            {pageType === 'dots' && (
-              <LoadingDotsWithColor color={loadingColor} tip="加载中" />
-            )}
-            {pageType === 'glow' && (
-              <GlobalLoading type="glow" tip="加载中" />
-            )}
-            {pageType === 'waves' && (
-              <LoadingWavesWithColor color={loadingColor} tip="加载中" />
-            )}
-          </div>
+          <PreviewArea pageType={pageType} loadingColor={loadingColor} loadingPosition={loadingPosition} />
         </Card>
 
-        {/* 尺寸对比 */}
-        <Card title={t('loadingPreview.sizeComparison') || '尺寸对比'} className="rounded-2xl border border-zinc-100">
-          <div className="grid grid-cols-3 gap-8 py-8">
-            <div className="flex flex-col items-center gap-4">
-              <GlobalLoading type="spinner" size="small" />
-              <span className="text-xs text-zinc-400 bg-zinc-100 px-2 py-1 rounded">small</span>
-            </div>
-            <div className="flex flex-col items-center gap-4">
-              <GlobalLoading type="spinner" size="default" />
-              <span className="text-xs text-zinc-400 bg-zinc-100 px-2 py-1 rounded">default</span>
-            </div>
-            <div className="flex flex-col items-center gap-4">
-              <GlobalLoading type="spinner" size="large" />
-              <span className="text-xs text-zinc-400 bg-zinc-100 px-2 py-1 rounded">large</span>
-            </div>
-          </div>
-        </Card>
+        <SizeComparisonCard t={t} />
 
         {/* 页面演示 */}
         <Card title={t('loadingPreview.demo') || '页面演示'} className="rounded-2xl border border-zinc-100">

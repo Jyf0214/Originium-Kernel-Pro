@@ -37,7 +37,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   const components: Record<string, React.ComponentType<any>> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     code({ inline, className, children, ...props }: any) {
-      const match = /language-(\w+)/.exec(className || '');
+      const match = /language-(\w+)/.exec(className ?? '');
       if (!inline && match && highlighter) {
         return (
           <div className="relative group my-8">

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
 /**
  * Next.js 16 Proxy (原 middleware.ts)
@@ -23,7 +23,10 @@ export default async function proxy(req: NextRequest) {
   try {
     const { clerkMiddleware } = await import('@clerk/nextjs/server');
     // 所有路由都放行，认证由页面和 API 自行处理
-    const handler = clerkMiddleware(async () => {});
+    const handler = clerkMiddleware(
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      async () => {},
+    );
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (handler as any)(req, undefined);
 	} catch (error) {

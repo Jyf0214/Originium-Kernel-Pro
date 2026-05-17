@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { getDraft, saveDraft, deleteDraft } from '@/lib/draft-storage';
@@ -14,6 +14,66 @@ const logger = createApiLogger('/api/articles/[id]');
  * - DELETE：通过 /api/github POST 端点删除 GitHub 文件 + 数据库记录
  */
 
+async function handleDraftArticleResponse(
+  id: string,
+  meta: Record<string, unknown>,
+): Promise<NextResponse> {
+  if (!meta.content) {
+    const fileContent = await getDraft(id);
+    meta.content = fileContent ?? '';
+  }
+  return NextResponse.json(meta);
+}
+
+async function handlePublishedArticleResponse(
+  meta: Record<string, unknown>,
+  req: NextRequest,
+): Promise<NextResponse | null> {
+  if (!(meta.status === 'published' && meta.slug)) {
+    return null;
+  }
+  const ghResponse = await fetch(
+    `${req.nextUrl.origin}/api/github?path=posts${String(meta.slug)}.md`,
+  );
+  if (!ghResponse.ok) {
+    return null;
+  }
+  const { frontMatter, body } = await ghResponse.json();
+  return NextResponse.json({
+    ...meta,
+    title: frontMatter.title ?? meta.title,
+    content: body ?? '',
+    author: frontMatter.author ?? meta.authorName,
+    tags: frontMatter.tags ?? meta.tags ?? [],
+    cover: frontMatter.cover ?? meta.coverImage,
+    description: frontMatter.description ?? meta.description,
+    date: frontMatter.date ?? meta.createdAt,
+  });
+}
+
+async function handleFileSystemLookup(
+  id: string,
+): Promise<NextResponse | null> {
+  const { getContentFile } = await import('@/lib/content');
+  const slug = id.startsWith('/') ? id : `/${id}`;
+  const file = getContentFile('posts', slug);
+  if (!file) {
+    return null;
+  }
+  return NextResponse.json({
+    id: file.slug,
+    slug: file.slug,
+    title: file.meta.title,
+    content: file.content,
+    author: file.meta.author,
+    date: file.meta.date,
+    tags: file.meta.tags ?? [],
+    cover: file.meta.cover,
+    description: file.meta.description,
+    status: 'published',
+  });
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -25,60 +85,22 @@ export async function GET(
     logger.info('GET', '读取文章详情', { id });
     const db = getDb();
 
-    // 1. 先查数据库（草稿或已发布的备份元数据）
     const metaStr = await db.get(`article:data:${id}`);
     if (metaStr) {
-      const meta = JSON.parse(metaStr);
-
-    // 草稿：内容存文件系统，数据库仅存元数据
-    if (meta.status === 'draft') {
-      if (!meta.content) {
-        const fileContent = await getDraft(id);
-        meta.content = fileContent || '';
+      const meta = JSON.parse(metaStr) as Record<string, unknown>;
+      if (meta.status === 'draft') {
+        return handleDraftArticleResponse(id, meta);
+      }
+      const publishedResponse = await handlePublishedArticleResponse(meta, req);
+      if (publishedResponse) {
+        return publishedResponse;
       }
       return NextResponse.json(meta);
     }
 
-      // 已发布：通过 /api/github GET 端点获取内容
-      if (meta.status === 'published' && meta.slug) {
-        const ghResponse = await fetch(
-          `${req.nextUrl.origin}/api/github?path=posts${meta.slug}.md`
-        );
-        if (ghResponse.ok) {
-          const { frontMatter, body } = await ghResponse.json();
-          return NextResponse.json({
-            ...meta,
-            title: frontMatter.title || meta.title,
-            content: body || '',
-            author: frontMatter.author || meta.authorName,
-            tags: frontMatter.tags || meta.tags || [],
-            cover: frontMatter.cover || meta.coverImage,
-            description: frontMatter.description || meta.description,
-            date: frontMatter.date || meta.createdAt,
-          });
-        }
-      }
-
-      return NextResponse.json(meta);
-    }
-
-    // 2. 数据库无记录，尝试从 posts/ 文件系统索引查找
-    const { getContentFile } = await import('@/lib/content');
-    // id 可能是 slug 格式（如 /travel-in-China/beijing）
-    const file = getContentFile('posts', id.startsWith('/') ? id : `/${id}`);
-    if (file) {
-      return NextResponse.json({
-        id: file.slug,
-        slug: file.slug,
-        title: file.meta.title,
-        content: file.content,
-        author: file.meta.author,
-        date: file.meta.date,
-        tags: file.meta.tags || [],
-        cover: file.meta.cover,
-        description: file.meta.description,
-        status: 'published',
-      });
+    const fileResponse = await handleFileSystemLookup(id);
+    if (fileResponse) {
+      return fileResponse;
     }
 
     return NextResponse.json({ error: '文章不存在' }, { status: 404 });
@@ -86,6 +108,84 @@ export async function GET(
     logger.error('GET', '获取文章失败', { error: (error as Error).message });
     return NextResponse.json({ error: '获取文章失败' }, { status: 500 });
   }
+}
+
+function checkArticlePermission(
+  meta: Record<string, unknown>,
+  session: { uid: string; role: string },
+): boolean {
+  if (meta.authorId !== session.uid && session.role !== 'admin' && session.role !== 'sudo') {
+    logger.warn('PATCH', '无权限', { id: meta.id as string, uid: session.uid });
+    return false;
+  }
+  return true;
+}
+
+async function handlePublishArticle(
+  body: Record<string, unknown>,
+  updated: Record<string, unknown>,
+  id: string,
+  req: NextRequest,
+  db: ReturnType<typeof getDb>,
+): Promise<NextResponse> {
+  const postSlug = (body.slug as string) || (updated.slug as string) || `/${String(updated.authorName)}/${id}`;
+  const filePath = `posts${postSlug}.md`;
+
+  const ghResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'create',
+      path: filePath,
+      frontMatter: {
+        title: updated.title,
+        author: updated.authorName,
+        date: updated.createdAt,
+        tags: (updated.tags as string[]) || [],
+        ...(updated.coverImage ? { cover: updated.coverImage } : {}),
+        ...(updated.description ? { description: updated.description } : {}),
+      },
+      body: (updated.content as string) || '',
+      message: `feat: publish post "${String(updated.title)}"`,
+    }),
+  });
+
+  if (!ghResponse.ok) {
+    const error = await ghResponse.json() as { error?: string };
+    return NextResponse.json({ error: error.error ?? '发布到 GitHub 失败' }, { status: 500 });
+  }
+
+  updated.status = 'published';
+  updated.slug = postSlug;
+  updated.content = '';
+  await db.set(`article:data:${id}`, JSON.stringify(updated));
+  await db.hset('articles:published', id, JSON.stringify(updated));
+  await db.hdel('articles:drafts', id);
+
+  return NextResponse.json({ success: true, slug: postSlug });
+}
+
+async function handleDraftSave(
+  body: Record<string, unknown>,
+  meta: Record<string, unknown>,
+  id: string,
+  db: ReturnType<typeof getDb>,
+): Promise<NextResponse> {
+  const updated: Record<string, unknown> = {
+    ...meta,
+    ...body,
+    content: body.content !== undefined ? body.content : meta.content,
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (updated.content) {
+    await saveDraft(id, updated.content as string);
+  }
+  updated.content = '';
+  await db.set(`article:data:${id}`, JSON.stringify(updated));
+  await db.hset('articles:drafts', id, JSON.stringify(updated));
+
+  return NextResponse.json({ success: true });
 }
 
 export async function PATCH(
@@ -100,7 +200,7 @@ export async function PATCH(
   }
 
   try {
-    const body = await req.json();
+    const body = await req.json() as Record<string, unknown>;
     logger.info('PATCH', '更新文章', { id });
     const db = getDb();
     const metaStr = await db.get(`article:data:${id}`);
@@ -110,71 +210,23 @@ export async function PATCH(
       return NextResponse.json({ error: '文章不存在' }, { status: 404 });
     }
 
-    const meta = JSON.parse(metaStr);
+    const meta = JSON.parse(metaStr) as Record<string, unknown>;
 
-    // 权限检查
-    if (meta.authorId !== session.uid && session.role !== 'admin' && session.role !== 'sudo') {
-      logger.warn('PATCH', '无权限', { id, uid: session.uid });
+    if (!checkArticlePermission(meta, session)) {
       return NextResponse.json({ error: '无权限' }, { status: 403 });
     }
 
-    const updated = {
-      ...meta,
-      ...body,
-      content: body.content !== undefined ? body.content : meta.content,
-      updatedAt: new Date().toISOString(),
-    };
-
-    // 发布操作：通过 /api/github POST 端点推送到 GitHub posts/ 目录
     if (body.status === 'published') {
-      const postSlug = body.slug || meta.slug || `/${updated.authorName}/${id}`;
-      const filePath = `posts${postSlug}.md`;
-
-      const ghResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'create',
-          path: filePath,
-          frontMatter: {
-            title: updated.title,
-            author: updated.authorName,
-            date: updated.createdAt,
-            tags: updated.tags || [],
-            ...(updated.coverImage && { cover: updated.coverImage }),
-            ...(updated.description && { description: updated.description }),
-          },
-          body: updated.content || '',
-          message: `feat: publish post "${updated.title}"`,
-        }),
-      });
-
-      if (!ghResponse.ok) {
-        const error = await ghResponse.json();
-        return NextResponse.json({ error: error.error || '发布到 GitHub 失败' }, { status: 500 });
-      }
-
-      // 发布后数据库仅保留备份元数据（不含内容）
-      updated.status = 'published';
-      updated.slug = postSlug;
-      updated.content = '';
-      await db.set(`article:data:${id}`, JSON.stringify(updated));
-      await db.hset('articles:published', id, JSON.stringify(updated));
-      // 从草稿列表移除
-      await db.hdel('articles:drafts', id);
-
-      return NextResponse.json({ success: true, slug: postSlug });
+      const updated = {
+        ...meta,
+        ...body,
+        content: body.content !== undefined ? body.content : meta.content,
+        updatedAt: new Date().toISOString(),
+      };
+      return handlePublishArticle(body, updated, id, req, db);
     }
 
-    // 草稿更新：正文存文件系统，数据库仅存元数据
-    if (updated.content) {
-      await saveDraft(id, updated.content);
-    }
-    updated.content = '';
-    await db.set(`article:data:${id}`, JSON.stringify(updated));
-    await db.hset('articles:drafts', id, JSON.stringify(updated));
-
-    return NextResponse.json({ success: true });
+    return handleDraftSave(body, meta, id, db);
   } catch (error) {
     logger.error('PATCH', '更新文章失败', { error: (error as Error).message });
     return NextResponse.json({ error: '更新文章失败' }, { status: 500 });

@@ -6,13 +6,13 @@ import en from '@/i18n/en.json';
 
 type Locale = 'zh-CN' | 'en';
 
-type I18nKeys = {
+interface I18nKeys {
   [key: string]: string | I18nKeys;
-};
+}
 
 const translations: Record<Locale, I18nKeys> = {
-  'zh-CN': zhCN as I18nKeys,
-  'en': en as I18nKeys,
+  'zh-CN': zhCN,
+  'en': en,
 };
 
 function getInitialLocale(): Locale {

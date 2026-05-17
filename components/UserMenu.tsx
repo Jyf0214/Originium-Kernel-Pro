@@ -3,9 +3,8 @@
 import { Avatar } from '@/components/Avatar';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
-import { Button, Dropdown } from 'antd';
+import { Button, Dropdown, type MenuProps } from 'antd';
 import { SettingOutlined, LogoutOutlined } from '@ant-design/icons';
-import type { MenuProps } from 'antd';
 import { useRouter } from 'next/navigation';
 
 export function UserMenu() {
@@ -14,12 +13,12 @@ export function UserMenu() {
   const router = useRouter();
 
   const isSudo = userRole === 'sudo' || userRole === 'admin';
-  const userUid = user?.uid || '';
-  const displayName = user?.name || user?.displayName || 'User';
+  const userUid = user?.uid ?? '';
+  const displayName = user?.name ?? user?.displayName ?? 'User';
   const avatarUrl = user?.avatar;
 
   const handleLogout = () => {
-    logout();
+    void logout();
   };
 
   const items: MenuProps['items'] = [

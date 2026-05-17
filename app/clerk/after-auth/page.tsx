@@ -40,7 +40,7 @@ export default function ClerkAfterAuthPage() {
       setChecking(false);
     };
 
-    checkBinding();
+    void checkBinding();
   }, [isLoaded, user, router]);
 
   if (!isLoaded || checking) {

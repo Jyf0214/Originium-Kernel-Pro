@@ -54,7 +54,7 @@ export default function DiaryPage() {
         setLoading(false);
       }
     };
-    fetchData();
+    void fetchData();
   }, [user, isSudo, router]);
 
   if (loading) {

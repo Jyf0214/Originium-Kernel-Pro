@@ -47,7 +47,7 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
 
       let matchesGroup = true;
       if (activeGroup) {
-        const faceGroup = f.slug.split('/').filter(Boolean)[0] || null;
+        const faceGroup = f.slug.split('/').filter(Boolean)[0] ?? null;
         matchesGroup = faceGroup === activeGroup;
       }
 

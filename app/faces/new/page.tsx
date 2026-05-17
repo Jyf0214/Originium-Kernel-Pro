@@ -52,7 +52,7 @@ export default function NewFacePage() {
       const markdownContent = generateMarkdown(frontMatter, values.content);
 
       const groupPath = values.groups.length > 0
-        ? values.groups[0].trim()
+        ? (values.groups[0]?.trim() ?? 'uncategorized')
         : 'uncategorized';
 
       const safeName = values.name
@@ -74,7 +74,7 @@ export default function NewFacePage() {
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || '创建失败');
+        throw new Error(err.error ?? '创建失败');
       }
 
       message.success('联系人创建成功');

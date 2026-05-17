@@ -87,12 +87,12 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        showError(data.error || t('common.error'));
+        showError(data.error ?? t('common.error'));
         return;
       }
 
       message.success(isEdit ? t('common.success') : t('common.success'));
-      router.push(`/faces${data.slug || faceData?.slug}`);
+      router.push(`/faces${data.slug ?? faceData?.slug}`);
     } catch (error: unknown) {
       showError(error instanceof Error ? error.message : t('common.error'));
     } finally {
@@ -113,7 +113,7 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        showError(data.error || t('common.error'));
+        showError(data.error ?? t('common.error'));
         return;
       }
 
@@ -141,7 +141,7 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
           name: '',
           email: '',
           phone: '',
-          group: groups.length > 0 ? groups[0].groupName || groups[0].slug.replace('/', '') : '',
+          group: groups.length > 0 ? (groups[0]?.groupName ?? groups[0]!.slug.replace('/', '')) : '',
           content: '',
         }}
       >
@@ -175,11 +175,11 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Form.Item
-            label={<span className="text-zinc-700 font-medium">{t('article.phone') || 'Phone'}</span>}
+            label={<span className="text-zinc-700 font-medium">{t('article.phone') ?? 'Phone'}</span>}
             name="phone"
           >
             <Input
-              placeholder={t('article.phonePlaceholder') || 'Phone'}
+              placeholder={t('article.phonePlaceholder') ?? 'Phone'}
               className="h-12 rounded-xl"
               size="large"
             />
@@ -195,8 +195,8 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
               style={{ fontSize: '16px' }}
             >
               {groups.map((group) => {
-                const groupValue = group.groupName || group.slug.replace('/', '');
-                const groupLabel = group.title || groupValue;
+                const groupValue = group.groupName ?? group.slug.replace('/', '');
+                const groupLabel = group.title ?? groupValue;
                 return (
                   <option key={group.slug} value={groupValue}>
                     {groupLabel}

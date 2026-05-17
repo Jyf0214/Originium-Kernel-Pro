@@ -29,14 +29,14 @@ function LoginForm() {
   const inputRef = useRef<React.ComponentRef<typeof Input>>(null);
   const { t } = useI18n();
 
-  const callbackUrl = searchParams?.get('callbackUrl') || '/dashboard';
+  const callbackUrl = searchParams?.get('callbackUrl') ?? '/dashboard';
   const clerkAvailable = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
   useEffect(() => {
     inputRef.current?.focus();
   }, [step]);
 
-  const handleCheckUser = async (values: { login: string }) => {
+  const handleCheckUser = (values: { login: string }) => {
     setLoading(true);
     try {
       setEmail(values.login);

@@ -52,7 +52,7 @@ export function BackgroundConfig({
           step={0.05}
           value={background.opacity}
           onChange={onOpacityChange}
-          tooltip={{ formatter: (v) => `${Math.round((v || 0) * 100)}%` }}
+          tooltip={{ formatter: (v) => `${Math.round((v ?? 0) * 100)}%` }}
         />
         <p className="text-xs text-zinc-400 mt-1">{t('config.overlayOpacityHint')}</p>
       </div>

@@ -21,9 +21,7 @@ export function getSecret(): string {
 
 let _secret: Uint8Array | null = null;
 function getSecretEncoder(): Uint8Array {
-  if (!_secret) {
-    _secret = new TextEncoder().encode(getSecret());
-  }
+  _secret ??= new TextEncoder().encode(getSecret());
   return _secret;
 }
 
@@ -145,7 +143,7 @@ export async function requireSudo() {
 /**
  * 检查用户是否拥有指定角色
  */
-export function hasRole(session: SessionPayload | null, roles: Array<'user' | 'admin' | 'sudo'>): boolean {
+export function hasRole(session: SessionPayload | null, roles: ('user' | 'admin' | 'sudo')[]): boolean {
   if (!session) return false;
   return roles.includes(session.role);
 }

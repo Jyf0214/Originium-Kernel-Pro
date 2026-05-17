@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
         setEmailSent(true);
         message.success(t('auth.resetLinkSent'));
       } else {
-        showError(data.error || t('auth.resetLinkFailed'));
+        showError(data.error ?? t('auth.resetLinkFailed'));
       }
   } catch {
     showError(t('auth.resetLinkFailed'));
