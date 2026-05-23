@@ -8,6 +8,7 @@ interface DraftData {
   title: string;
   content: string;
   tags: string[];
+  date?: string;
   savedAt?: string;
 }
 
@@ -37,22 +38,23 @@ export interface UseDiaryDraftOptions {
   title: string;
   content: string;
   tags: string[];
+  date?: string;
   onDraftFound?: (data: DraftData) => void;
 }
 
-export function useDiaryDraft({ id, title, content, tags, onDraftFound }: UseDiaryDraftOptions) {
+export function useDiaryDraft({ id, title, content, tags, date, onDraftFound }: UseDiaryDraftOptions) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasCheckedRef = useRef(false);
 
   const autoSave = useCallback(() => {
-    const data: DraftData = { title, content, tags };
+    const data: DraftData = { title, content, tags, date };
     saveLocalDraft(id, data);
     fetch('/api/diary/draft', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, title, content, tags }),
+      body: JSON.stringify({ id, title, content, tags, date }),
     }).catch(() => undefined);
-  }, [id, title, content, tags]);
+  }, [id, title, content, tags, date]);
 
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current);

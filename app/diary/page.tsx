@@ -4,7 +4,7 @@ import React from 'react';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
-import { Plus, Edit3, Trash2, Calendar, Tag, Eye, X, Loader2, Search } from 'lucide-react';
+import { Plus, Edit3, Trash2, Calendar, Tag, Eye, X, Loader2, Search, FileText } from 'lucide-react';
 import { showError } from '@/lib/error';
 import { GlobalLoading } from '@/components/Loading';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
@@ -14,15 +14,15 @@ interface DiaryEntry {
   title: string;
   content?: string;
   tags: string[];
+  date: string;
   createdAt: string;
   updatedAt: string;
 }
 
-function formatDate(iso: string): string {
+function formatShortDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString('zh-CN', {
       year: 'numeric', month: 'long', day: 'numeric',
-      hour: '2-digit', minute: '2-digit',
     });
   } catch {
     return iso;
@@ -117,126 +117,130 @@ export default function DiaryPage() {
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
       <Navbar />
-      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-12 md:py-20">
-        <div className="flex items-center justify-between mb-8">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 md:py-20">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-5xl md:text-6xl font-display font-black tracking-tighter text-zinc-900 mb-2">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-black tracking-tighter text-zinc-900 mb-1 sm:mb-2">
               私密日记
             </h1>
-            <p className="text-zinc-400 text-lg">仅管理员可查看 · 全部存储于数据库</p>
+            <p className="text-sm sm:text-base text-zinc-400">仅管理员可查看 · 全部存储于数据库</p>
           </div>
-          <button
-            onClick={() => router.push('/diary/new')}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-zinc-900 text-white rounded-xl hover:bg-zinc-800 transition-colors font-medium"
-          >
-            <Plus size={18} />
-            新建日记
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={() => router.push('/diary/drafts')}
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 border border-zinc-200 text-zinc-600 rounded-xl hover:bg-zinc-100 transition-colors font-medium text-sm"
+            >
+              <FileText size={14} className="sm:size-4" />
+              <span className="hidden sm:inline">草稿箱</span>
+            </button>
+            <button
+              onClick={() => router.push('/diary/new')}
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-zinc-900 text-white rounded-xl hover:bg-zinc-800 transition-colors font-medium text-sm sm:text-base"
+            >
+              <Plus size={16} className="sm:size-[18]" />
+              <span className="hidden sm:inline">新建日记</span>
+              <span className="sm:hidden">新建</span>
+            </button>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 mb-8">
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
+          <div className="relative flex-1 min-w-[160px] sm:min-w-[200px] max-w-sm">
+            <Search size={14} className="sm:size-4 absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
             <input
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              placeholder="搜索日记标题、内容、标签..."
-              className="w-full pl-10 pr-4 py-2.5 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 transition-all text-zinc-900 placeholder-zinc-400 text-sm"
+              placeholder="搜索日记..."
+              className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 transition-all text-zinc-900 placeholder-zinc-400 text-xs sm:text-sm"
             />
           </div>
           <input
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="px-3 py-2.5 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 transition-all text-zinc-900 text-sm"
+            className="px-2 sm:px-3 py-2 sm:py-2.5 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 transition-all text-zinc-900 text-xs sm:text-sm w-[130px] sm:w-auto"
             title="开始日期"
           />
-          <span className="text-zinc-400 text-sm">—</span>
+          <span className="text-zinc-400 text-xs sm:text-sm">—</span>
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="px-3 py-2.5 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 transition-all text-zinc-900 text-sm"
+            className="px-2 sm:px-3 py-2 sm:py-2.5 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 transition-all text-zinc-900 text-xs sm:text-sm w-[130px] sm:w-auto"
             title="结束日期"
           />
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-32">
-            <Loader2 size={32} className="text-zinc-300 animate-spin" />
+          <div className="flex items-center justify-center py-24 sm:py-32">
+            <Loader2 size={24} className="sm:size-8 text-zinc-300 animate-spin" />
           </div>
         ) : diaries.length === 0 ? (
-          <div className="py-32 text-center bg-white rounded-2xl border border-zinc-100">
-            <p className="text-zinc-400 text-lg mb-4">暂无日记</p>
+          <div className="py-20 sm:py-32 text-center bg-white rounded-2xl border border-zinc-100">
+            <p className="text-zinc-400 text-base sm:text-lg mb-4">暂无日记</p>
             <button
               onClick={() => router.push('/diary/new')}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-zinc-900 text-white rounded-xl hover:bg-zinc-800 transition-colors font-medium"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-zinc-900 text-white rounded-xl hover:bg-zinc-800 transition-colors font-medium text-sm sm:text-base"
             >
               <Plus size={18} />
               写下第一篇日记
             </button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {diaries.map((d) => (
               <div key={d.id} className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
                 <div
-                  className="p-6 cursor-pointer hover:bg-zinc-50 transition-colors"
+                  className="p-4 sm:p-6 cursor-pointer hover:bg-zinc-50 transition-colors"
                   onClick={() => handleView(d)}
                 >
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start justify-between gap-3 sm:gap-4">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-xl font-bold text-zinc-900 mb-2">{d.title}</h3>
-                      <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-400">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar size={14} />
-                          <span>创建 {formatDate(d.createdAt)}</span>
+                      <h3 className="text-base sm:text-xl font-bold text-zinc-900 mb-1 sm:mb-2">{d.title}</h3>
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-zinc-400">
+                        <div className="flex items-center gap-1 sm:gap-1.5">
+                          <Calendar size={12} className="sm:size-[14]" />
+                          <span>{formatShortDate(d.date)}</span>
                         </div>
-                        {d.updatedAt !== d.createdAt && (
-                          <div className="flex items-center gap-1.5 text-zinc-300">
-                            <Calendar size={14} />
-                            <span>更新 {formatDate(d.updatedAt)}</span>
-                          </div>
-                        )}
                         {d.tags.length > 0 && (
-                          <div className="flex items-center gap-1.5">
-                            <Tag size={14} />
-                            <span>{d.tags.join(', ')}</span>
+                          <div className="flex items-center gap-1 sm:gap-1.5">
+                            <Tag size={12} className="sm:size-[14]" />
+                            <span className="truncate max-w-[120px] sm:max-w-none">{d.tags.join(', ')}</span>
                           </div>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => router.push(`/diary/${d.id}/edit`)}
-                        className="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-all"
+                        className="p-1.5 sm:p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-all"
                         title="编辑"
                       >
-                        <Edit3 size={16} />
+                        <Edit3 size={14} className="sm:size-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(d.id)}
                         disabled={deleting === d.id}
-                        className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50"
+                        className="p-1.5 sm:p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50"
                         title="删除"
                       >
-                        {deleting === d.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                        {deleting === d.id ? <Loader2 size={14} className="sm:size-4 animate-spin" /> : <Trash2 size={14} className="sm:size-4" />}
                       </button>
-                      <div className="p-2 text-zinc-400" title={viewingId === d.id ? '收起' : '展开'}>
-                        {viewingId === d.id ? <X size={16} /> : <Eye size={16} />}
+                      <div className="p-1.5 sm:p-2 text-zinc-400" title={viewingId === d.id ? '收起' : '展开'}>
+                        {viewingId === d.id ? <X size={14} className="sm:size-4" /> : <Eye size={14} className="sm:size-4" />}
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {viewingId === d.id && (
-                  <div className="border-t border-zinc-100 px-6 py-5">
+                  <div className="border-t border-zinc-100 px-4 sm:px-6 py-4 sm:py-5">
                     {viewLoading ? (
-                      <div className="flex items-center justify-center py-8">
-                        <Loader2 size={24} className="text-zinc-300 animate-spin" />
+                      <div className="flex items-center justify-center py-6 sm:py-8">
+                        <Loader2 size={20} className="sm:size-6 text-zinc-300 animate-spin" />
                       </div>
                     ) : (
-                      <div className="prose prose-zinc max-w-none">
+                      <div className="prose prose-zinc max-w-none prose-sm sm:prose-base">
                         <MarkdownRenderer content={viewContent} />
                       </div>
                     )}

@@ -14,17 +14,37 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id') ?? 'new';
+    const id = searchParams.get('id');
 
-    const record = await prisma.originiumKV.findUnique({
-      where: { key: `diary:draft:${id}` },
-    });
+    if (id) {
+      const record = await prisma.originiumKV.findUnique({
+        where: { key: `diary:draft:${id}` },
+      });
 
-    if (!record?.value) {
-      return NextResponse.json({ draft: null });
+      if (!record?.value) {
+        return NextResponse.json({ draft: null });
+      }
+
+      return NextResponse.json({ draft: JSON.parse(record.value) });
     }
 
-    return NextResponse.json({ draft: JSON.parse(record.value) });
+    const all = await prisma.originiumKV.findMany({
+      where: { key: { startsWith: 'diary:draft:' } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const drafts = all.map((r) => {
+      const data = JSON.parse(r.value ?? '{}');
+      return {
+        id: r.key.replace('diary:draft:', ''),
+        title: data.title ?? '',
+        content: data.content ?? '',
+        tags: data.tags ?? [],
+        savedAt: data.savedAt ?? r.createdAt.toISOString(),
+      };
+    });
+
+    return NextResponse.json({ drafts });
   } catch {
     logger.error('GET', '获取草稿失败');
     return NextResponse.json({ error: '获取草稿失败' }, { status: 500 });

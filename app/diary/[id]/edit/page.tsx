@@ -16,6 +16,7 @@ export default function EditDiaryPage({ params }: PageProps) {
   const [initialTitle, setInitialTitle] = React.useState('');
   const [initialContent, setInitialContent] = React.useState('');
   const [initialTags, setInitialTags] = React.useState<string[]>([]);
+  const [initialDate, setInitialDate] = React.useState('');
   const [pageLoading, setPageLoading] = React.useState(true);
   const { user, isSudo, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function EditDiaryPage({ params }: PageProps) {
           setInitialTitle(json.diary.title ?? '');
           setInitialContent(json.diary.content ?? '');
           setInitialTags(json.diary.tags ?? []);
+          setInitialDate(json.diary.date ? json.diary.date.slice(0, 10) : '');
         }
       } catch {
         showError('加载日记失败');
@@ -61,11 +63,12 @@ export default function EditDiaryPage({ params }: PageProps) {
       initialTitle={initialTitle}
       initialContent={initialContent}
       initialTags={initialTags}
-      onSave={async (title, content, tags) => {
+      initialDate={initialDate}
+      onSave={async (title, content, tags, date) => {
         const res = await fetch(`/api/diary/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, content, tags }),
+          body: JSON.stringify({ title, content, tags, date }),
         });
         if (!res.ok) throw new Error('保存失败');
         return id;

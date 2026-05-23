@@ -6,9 +6,17 @@ import { useRouter } from 'next/navigation';
 import { GlobalLoading } from '@/components/Loading';
 import DiaryForm from '../_form';
 
+function genId(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
 export default function NewDiaryPage() {
   const { user, isSudo, loading: authLoading } = useAuth();
   const router = useRouter();
+  const [draftId] = React.useState(genId);
 
   React.useEffect(() => {
     if (authLoading) return;
@@ -23,12 +31,13 @@ export default function NewDiaryPage() {
   return (
     <DiaryForm
       mode="new"
-      draftId="new"
-      onSave={async (title, content, tags) => {
+      draftId={draftId}
+      initialDate={new Date().toISOString().slice(0, 10)}
+      onSave={async (title, content, tags, date) => {
         const res = await fetch('/api/diary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, content, tags }),
+          body: JSON.stringify({ title, content, tags, date }),
         });
         if (!res.ok) throw new Error('保存失败');
         return 'ok';
