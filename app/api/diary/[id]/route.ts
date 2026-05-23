@@ -35,7 +35,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     const { id } = await params;
-    const { title, content, tags } = await req.json();
+    const { title, content, tags, date } = await req.json();
     if (!title || !content) {
       return NextResponse.json({ error: '标题和内容不能为空' }, { status: 400 });
     }
@@ -51,6 +51,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         title,
         content,
         tags: tags ?? [],
+        date: date ? new Date(date) : undefined,
       },
     });
 

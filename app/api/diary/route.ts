@@ -31,21 +31,22 @@ export async function GET(req: NextRequest) {
     }
 
     if (startDate) {
-      ands.push({ createdAt: { gte: new Date(startDate) } });
+      ands.push({ date: { gte: new Date(startDate) } });
     }
     if (endDate) {
-      ands.push({ createdAt: { lte: new Date(endDate) } });
+      ands.push({ date: { lte: new Date(endDate) } });
     }
 
     const where = ands.length > 0 ? { AND: ands } : {};
 
     const diaries = await prisma.diary.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { date: 'desc' },
       select: {
         id: true,
         title: true,
         tags: true,
+        date: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '无权限访问' }, { status: 403 });
     }
 
-    const { title, content, tags } = await req.json();
+    const { title, content, tags, date } = await req.json();
     if (!title || !content) {
       return NextResponse.json({ error: '标题和内容不能为空' }, { status: 400 });
     }
@@ -76,6 +77,7 @@ export async function POST(req: NextRequest) {
         title,
         content,
         tags: tags ?? [],
+        date: date ? new Date(date) : undefined,
       },
     });
 
