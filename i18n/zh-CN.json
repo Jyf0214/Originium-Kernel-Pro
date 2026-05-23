@@ -145,6 +145,7 @@
     "envVariablesDesc": "检查配置状态",
     "articles": "文章管理",
     "users": "用户管理",
+    "personal": "个人",
     "settings": "设置",
     "requests": "申请管理",
     "welcome": "欢迎回来，{name}",

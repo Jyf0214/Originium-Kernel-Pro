@@ -5,8 +5,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { useRouter } from 'next/navigation';
 import {
-  FileText, Users, Clock, Plus, Settings,
-  BookOpen, ArrowRight, Trash2, Activity,
+  FileText, Clock, Plus,
+  BookOpen, ArrowRight, Trash2,
   Globe, PenLine, Sparkles,
 } from 'lucide-react';
 import { Button, Tag } from 'antd';
@@ -19,8 +19,6 @@ interface Stats {
   totalArticles: number;
   publishedArticles: number;
   draftArticles: number;
-  totalUsers: number;
-  pendingDeletion: number;
 }
 
 interface RecentArticle {
@@ -96,7 +94,7 @@ function DashboardStatCard({ card }: { card: StatCardData }) {
 }
 
 export default function DashboardPage() {
-  const { user, userRole, isSudo } = useAuth();
+  const { user } = useAuth();
   const { t, locale } = useI18n();
   const router = useRouter();
 
@@ -104,8 +102,6 @@ export default function DashboardPage() {
     totalArticles: 0,
     publishedArticles: 0,
     draftArticles: 0,
-    totalUsers: 0,
-    pendingDeletion: 0,
   });
   const [recentArticles, setRecentArticles] = useState<RecentArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,13 +132,6 @@ export default function DashboardPage() {
             updatedAt: a.updatedAt ?? a.date ?? '',
           })));
         }
-        if (isSudo) {
-          const usersRes = await fetch('/api/users');
-          if (usersRes.ok) {
-            const users = await usersRes.json();
-            setStats(prev => ({ ...prev, totalUsers: users.length }));
-          }
-        }
       } catch (error) {
         console.error('Failed to fetch stats:', error);
         showError('仪表盘数据加载失败');
@@ -151,7 +140,7 @@ export default function DashboardPage() {
       }
     };
     void fetchData();
-  }, [isSudo]);
+  }, []);
 
   const publishedRate = stats.totalArticles > 0
     ? Math.round((stats.publishedArticles / stats.totalArticles) * 100)
@@ -199,38 +188,13 @@ export default function DashboardPage() {
         ? { rate: draftRate, direction: draftRate <= 30 ? 'up' : 'down', label: t('dashboard.ofTotal') || '占比' }
         : undefined,
     },
-    ...(isSudo ? [
-      {
-        title: t('dashboard.totalUsers'),
-        value: stats.totalUsers,
-        icon: Users,
-        color: 'bg-blue-500',
-        textColor: 'text-white',
-        trend: undefined,
-      },
-      {
-        title: t('dashboard.pendingDeletion'),
-        value: stats.pendingDeletion,
-        icon: Trash2,
-        color: 'bg-red-500',
-        textColor: 'text-white',
-        trend: undefined,
-      },
-    ] : []),
   ];
 
-  const userActions = [
+  const quickActions = [
     { label: t('sidebar.writeArticle'), icon: PenLine, href: '/editor', desc: t('dashboard.writeArticleDesc') },
     { label: t('sidebar.articleManagement'), icon: BookOpen, href: '/dashboard/articles', desc: t('dashboard.articleManagementDesc') },
     { label: t('sidebar.recycleBin'), icon: Trash2, href: '/dashboard/articles?status=pending_deletion', desc: t('dashboard.recycleBinDesc') },
   ];
-
-  const adminActions = [
-    { label: t('sidebar.systemConfig'), icon: Settings, href: '/admin/config', desc: t('dashboard.systemConfigDesc') },
-    { label: t('sidebar.envVariables'), icon: Activity, href: '/admin/env', desc: t('dashboard.envVariablesDesc') },
-  ];
-
-  const quickActions = isSudo ? [...userActions, ...adminActions] : userActions;
 
   if (loading) {
     return (
@@ -248,19 +212,14 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-black tracking-tight text-zinc-900">
             {t('dashboard.welcomeBack')}，{user?.name ?? '用户'}
           </h1>
-          {isSudo && (
-            <Tag color="gold" className="rounded-lg text-xs font-bold">
-              {userRole === 'sudo' ? t('dashboard.superAdmin') : t('dashboard.admin')}
-            </Tag>
-          )}
         </div>
         <p className="text-zinc-400 text-base">
-          {isSudo ? t('dashboard.adminConsole') : t('dashboard.contentConsole')}
+          {t('dashboard.contentConsole')}
         </p>
       </div>
 
       {/* 统计卡片 */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         {statCards.map((card, index) => (
           <DashboardStatCard key={index} card={card} />
         ))}
