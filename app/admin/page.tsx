@@ -39,7 +39,7 @@ export default function AdminPage() {
           const Icon = section.icon;
           return (
             <Link key={section.href} href={section.href} className="group">
-              <ProCard hover padding="p-5">
+              <ProCard hoverable padding="p-5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className={`w-12 h-12 ${section.color} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
