@@ -9,6 +9,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { GlobalLoading } from '@/components/Loading';
 import Footer from '@/components/Footer';
+import { useConfig } from '@/hooks/use-config';
 import { showError } from '@/lib/error';
 
 /**
@@ -19,6 +20,7 @@ function ArticleViewContent() {
   const userParam = searchParams?.get('user');
   const articleParam = searchParams?.get('article');
 
+  const { config: siteConfig } = useConfig();
   const [article, setArticle] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -120,7 +122,7 @@ function ArticleViewContent() {
           )}
 
           <div className="max-w-3xl mx-auto">
-            <MarkdownRenderer content={article.content ?? ''} />
+            <MarkdownRenderer content={article.content ?? ''} highlight={siteConfig?.highlight} />
           </div>
         </article>
       </main>

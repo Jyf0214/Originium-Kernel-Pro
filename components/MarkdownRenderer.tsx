@@ -1,11 +1,21 @@
 'use client';
 
-import React, { useState, useEffect, type ComponentType } from 'react';
+import React, { useState, useEffect, useCallback, type ComponentType } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { Copy, Check, ChevronDown, ChevronUp, WrapText } from 'lucide-react';
+
+interface HighlightConfig {
+  theme: string;
+  copy: boolean;
+  lang: boolean;
+  shrink: boolean;
+  heightLimit: number;
+  wordWrap: boolean;
+}
 
 interface MarkdownRendererProps {
   content: string;
-  theme?: string;
+  highlight?: HighlightConfig;
 }
 
 const themeMap: Record<string, string> = {
@@ -34,14 +44,239 @@ interface CodeProps {
   [key: string]: unknown;
 }
 
-export function MarkdownRenderer({ content, theme: themeProp }: MarkdownRendererProps) {
+function CodeToolbar({
+  language,
+  cfg,
+  copied,
+  collapsed,
+  wrap,
+  exceedsLimit,
+  showWrap,
+  onCopy,
+  onToggleCollapse,
+  onToggleWrap,
+}: {
+  language: string;
+  cfg: HighlightConfig;
+  copied: boolean;
+  collapsed: boolean;
+  wrap: boolean;
+  exceedsLimit: boolean;
+  showWrap: boolean;
+  onCopy: () => void;
+  onToggleCollapse: () => void;
+  onToggleWrap: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between px-4 py-1.5 bg-zinc-800 rounded-t-2xl border-b border-zinc-700">
+      <div className="flex items-center gap-2">
+        {cfg.lang && (
+          <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+            {language}
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-1">
+        {cfg.copy && (
+          <button
+            onClick={onCopy}
+            className="p-1 rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700 transition-colors"
+            title="复制代码"
+          >
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+          </button>
+        )}
+        {showWrap && cfg.wordWrap && (
+          <button
+            onClick={onToggleWrap}
+            className={`p-1 rounded-md transition-colors ${wrap ? 'text-zinc-200 bg-zinc-700' : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700'}`}
+            title="自动换行"
+          >
+            <WrapText size={14} />
+          </button>
+        )}
+        {exceedsLimit && (
+          <button
+            onClick={onToggleCollapse}
+            className="p-1 rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700 transition-colors"
+            title={collapsed ? '展开' : '折叠'}
+          >
+            {collapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function HighlightedCodeBlock({
+  children,
+  language,
+  highlighter,
+  cfg,
+  collapsed,
+  wrap,
+  copied,
+  exceedsLimit,
+  onCopy,
+  onToggleCollapse,
+  onToggleWrap,
+}: {
+  children: string;
+  language: string;
+  highlighter: { Component: ComponentType<HighlighterProps>; style: Record<string, React.CSSProperties> };
+  cfg: HighlightConfig;
+  collapsed: boolean;
+  wrap: boolean;
+  copied: boolean;
+  exceedsLimit: boolean;
+  onCopy: () => void;
+  onToggleCollapse: () => void;
+  onToggleWrap: () => void;
+}) {
+  return (
+    <div className={`relative group my-8 ${collapsed ? 'max-h-40 overflow-hidden' : ''}`}>
+      <CodeToolbar
+        language={language}
+        cfg={cfg}
+        copied={copied}
+        collapsed={collapsed}
+        wrap={wrap}
+        exceedsLimit={exceedsLimit}
+        showWrap
+        onCopy={onCopy}
+        onToggleCollapse={onToggleCollapse}
+        onToggleWrap={onToggleWrap}
+      />
+      <div className={`${wrap ? '' : 'overflow-x-auto'} rounded-b-2xl border border-zinc-800 border-t-0`}>
+        <highlighter.Component
+          style={highlighter.style}
+          language={language}
+          PreTag="div"
+          className="!p-4 !m-0 !bg-transparent"
+          {...(wrap ? { wrapLines: true, lineProps: { style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' } } } : {})}
+        >
+          {children.replace(/\n$/, '')}
+        </highlighter.Component>
+      </div>
+    </div>
+  );
+}
+
+function PlainCodeBlock({
+  children,
+  language,
+  cfg,
+  collapsed,
+  copied,
+  exceedsLimit,
+  onCopy,
+  onToggleCollapse,
+}: {
+  children: string;
+  language: string;
+  cfg: HighlightConfig;
+  collapsed: boolean;
+  copied: boolean;
+  exceedsLimit: boolean;
+  onCopy: () => void;
+  onToggleCollapse: () => void;
+}) {
+  return (
+    <div className={`relative group my-8 ${collapsed ? 'max-h-40 overflow-hidden' : ''}`}>
+      <CodeToolbar
+        language={language}
+        cfg={cfg}
+        copied={copied}
+        collapsed={collapsed}
+        wrap={false}
+        exceedsLimit={exceedsLimit}
+        showWrap={false}
+        onCopy={onCopy}
+        onToggleCollapse={onToggleCollapse}
+        onToggleWrap={() => undefined}
+      />
+      <pre className="bg-zinc-900 rounded-b-2xl p-4 text-sm text-zinc-300 border border-zinc-800 border-t-0 overflow-x-auto">
+        <code>{children.replace(/\n$/, '')}</code>
+      </pre>
+    </div>
+  );
+}
+
+function CodeBlock({
+  children,
+  language,
+  highlighter,
+  cfg,
+}: {
+  children: string;
+  language: string;
+  highlighter: { Component: ComponentType<HighlighterProps>; style: Record<string, React.CSSProperties> } | null;
+  cfg: HighlightConfig;
+}) {
+  const [copied, setCopied] = useState(false);
+  const [collapsed, setCollapsed] = useState(cfg.shrink);
+  const [wrap, setWrap] = useState(cfg.wordWrap);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(children).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => undefined);
+  }, [children]);
+
+  const exceedsLimit = cfg.heightLimit > 0 && children.length > cfg.heightLimit;
+
+  if (highlighter) {
+    return (
+      <HighlightedCodeBlock
+        children={children}
+        language={language}
+        highlighter={highlighter}
+        cfg={cfg}
+        collapsed={collapsed}
+        wrap={wrap}
+        copied={copied}
+        exceedsLimit={exceedsLimit}
+        onCopy={handleCopy}
+        onToggleCollapse={() => setCollapsed(!collapsed)}
+        onToggleWrap={() => setWrap(!wrap)}
+      />
+    );
+  }
+
+  return (
+    <PlainCodeBlock
+      children={children}
+      language={language}
+      cfg={cfg}
+      collapsed={collapsed}
+      copied={copied}
+      exceedsLimit={exceedsLimit}
+      onCopy={handleCopy}
+      onToggleCollapse={() => setCollapsed(!collapsed)}
+    />
+  );
+}
+
+export function MarkdownRenderer({ content, highlight: highlightProp }: MarkdownRendererProps) {
+  const cfg: HighlightConfig = {
+    theme: 'dark',
+    copy: true,
+    lang: true,
+    shrink: false,
+    heightLimit: 330,
+    wordWrap: true,
+    ...highlightProp,
+  };
+
   const [highlighter, setHighlighter] = useState<{
     Component: ComponentType<HighlighterProps>;
     style: Record<string, React.CSSProperties>;
   } | null>(null);
 
   useEffect(() => {
-    const themeName = resolveTheme(themeProp ?? 'dark');
+    const themeName = resolveTheme(cfg.theme);
     Promise.all([
       import('react-syntax-highlighter/dist/esm/prism'),
       import('react-syntax-highlighter/dist/esm/styles/prism'),
@@ -55,39 +290,19 @@ export function MarkdownRenderer({ content, theme: themeProp }: MarkdownRenderer
     }).catch((error) => {
       console.error('代码高亮模块加载失败，降级为普通代码块:', error);
     });
-  }, [themeProp]);
+  }, [cfg.theme]);
 
   const components: Record<string, ComponentType<CodeProps>> = {
     code({ inline, className, children, ...props }: CodeProps) {
       const match = /language-(\w+)/.exec(className ?? '');
-      if (!inline && match && highlighter) {
+      if (!inline && match) {
         return (
-          <div className="relative group my-8">
-            <div className="absolute top-0 right-0 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 bg-zinc-800 rounded-bl-xl rounded-tr-2xl">
-              {match[1]}
-            </div>
-            <highlighter.Component
-              style={highlighter.style}
-              language={match[1]}
-              PreTag="div"
-              className="rounded-2xl !p-0 !m-0 overflow-hidden border border-zinc-800"
-              {...props}
-            >
-              {String(children).replace(/\n$/, '')}
-            </highlighter.Component>
-          </div>
-        );
-      }
-      if (!inline && match && !highlighter) {
-        return (
-          <div className="relative group my-8">
-            <div className="absolute top-0 right-0 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 bg-zinc-800 rounded-bl-xl rounded-tr-2xl">
-              {match[1]}
-            </div>
-            <pre className="bg-zinc-900 rounded-2xl p-6 pt-8 text-sm text-zinc-300 overflow-x-auto border border-zinc-800">
-              <code>{String(children).replace(/\n$/, '')}</code>
-            </pre>
-          </div>
+          <CodeBlock
+            children={String(children).replace(/\n$/, '')}
+            language={match[1]}
+            highlighter={highlighter}
+            cfg={cfg}
+          />
         );
       }
       return (

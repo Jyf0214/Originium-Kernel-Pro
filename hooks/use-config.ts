@@ -38,7 +38,7 @@ interface FooterConfig {
   runtime: FooterRuntimeConfig;
 }
 
-interface FrontendConfig {
+export interface FrontendConfig {
   share?: ShareConfig;
   mainTone?: MainToneConfig;
   footer?: FooterConfig;

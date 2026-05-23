@@ -8,6 +8,7 @@ import { ArrowLeft, User } from 'lucide-react';
 import { GlobalLoading } from '@/components/Loading';
 import Link from 'next/link';
 import { useI18n } from '@/hooks/use-i18n';
+import { useConfig } from '@/hooks/use-config';
 import { showError } from '@/lib/error';
 
 /**
@@ -18,6 +19,7 @@ export default function ArticlePage() {
   const id = params?.id as string;
   const { t } = useI18n();
 
+  const { config: siteConfig } = useConfig();
   const [article, setArticle] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -109,7 +111,7 @@ export default function ArticlePage() {
           </header>
 
           <div className="max-w-3xl mx-auto prose prose-zinc lg:prose-xl">
-            <MarkdownRenderer content={article.content ?? ''} />
+            <MarkdownRenderer content={article.content ?? ''} highlight={siteConfig?.highlight} />
           </div>
         </article>
       </main>

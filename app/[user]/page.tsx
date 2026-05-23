@@ -10,6 +10,8 @@ import { useI18n } from '@/hooks/use-i18n';
 import { GlobalLoading } from '@/components/Loading';
 import { Avatar } from '@/components/Avatar';
 import Footer from '@/components/Footer';
+import AuthorCard from '@/components/AuthorCard';
+import { useConfig } from '@/hooks/use-config';
 import { Calendar, Mail } from 'lucide-react';
 import Link from 'next/link';
 
@@ -18,6 +20,7 @@ function UserProfileContent() {
   const username = params?.user as string;
   const { t } = useI18n();
 
+  const { config: siteConfig } = useConfig();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,6 +105,12 @@ function UserProfileContent() {
           </div>
         </div>
 
+        <AuthorCard
+          authorName={user.name}
+          authorAvatar={user.avatar ?? undefined}
+          authorUrl={`/${username}`}
+        />
+
         {/* Articles Grid */}
         <div className="max-w-4xl mx-auto px-6 py-12">
           <h2 className="text-2xl font-display font-bold text-zinc-900 mb-8">
@@ -115,7 +124,7 @@ function UserProfileContent() {
           ) : (
             <div className="grid gap-6 md:grid-cols-2">
               {articles.map((article) => (
-                <ArticleCard key={article.id} article={article} />
+                <ArticleCard key={article.id} article={article} wordcount={siteConfig?.wordcount} postMeta={siteConfig?.postMeta?.page} />
               ))}
             </div>
           )}

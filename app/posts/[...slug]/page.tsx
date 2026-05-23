@@ -1,5 +1,6 @@
 import { getContentFile, getAllSlugs, getContentIndexes } from '@/lib/content';
 import { getSession } from '@/lib/auth';
+import { loadConfigAsync } from '@/lib/config';
 import { Navbar } from '@/components/Navbar';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import type { Metadata } from 'next';
@@ -53,6 +54,8 @@ export default async function PostDetailPage({ params }: PageProps) {
 
   const file = getContentFile('posts', fullPath);
   if (!file) notFound();
+
+  const appConfig = await loadConfigAsync();
 
   const breadcrumbs = slug.map((segment, index) => ({
     label: segment,
@@ -127,7 +130,7 @@ export default async function PostDetailPage({ params }: PageProps) {
 
           {/* 文章内容 */}
           <div>
-            <MarkdownRenderer content={file.content} />
+            <MarkdownRenderer content={file.content} highlight={appConfig.highlight} />
           </div>
         </article>
 
