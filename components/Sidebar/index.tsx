@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -17,8 +18,11 @@ import {
   X,
   ChevronDown,
   Eye,
+  LogOut,
 } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
+import LanguageSwitcher from '@/components/LanguageSwitcher/index';
+import { Avatar } from '@/components/Avatar';
 
 type SidebarVariant = 'user' | 'admin';
 
@@ -61,6 +65,8 @@ function SidebarContent({
   items,
   isActive,
   onItemClick,
+  user,
+  onLogout,
   showCloseButton,
   onClose,
   t,
@@ -68,6 +74,8 @@ function SidebarContent({
   items: MenuItem[];
   isActive: (href: string) => boolean;
   onItemClick: () => void;
+  user?: { name?: string; avatar?: string; role?: string };
+  onLogout: () => void;
   showCloseButton?: boolean;
   onClose?: () => void;
   t: (key: string) => string;
@@ -115,6 +123,32 @@ function SidebarContent({
             <X size={18} />
           </button>
         )}
+      </div>
+
+      {/* 用户区域 */}
+      <div className="p-4 space-y-4 bg-zinc-50/50 border-b border-zinc-100">
+        <div className="px-2">
+          <LanguageSwitcher />
+        </div>
+
+        <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-white border border-zinc-100 shadow-sm group">
+          <Avatar name={user?.name ?? 'U'} avatarUrl={user?.avatar} size={40} />
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold text-zinc-900 truncate">
+              {user?.name ?? '用户'}
+            </div>
+            <div className="text-[10px] font-bold text-zinc-400 truncate uppercase tracking-tighter">
+              {user?.role === 'sudo' ? t('user.sudo') : user?.role === 'admin' ? t('user.admin') : t('user.user')}
+            </div>
+          </div>
+          <button
+            onClick={onLogout}
+            className="p-2.5 rounded-xl hover:bg-red-50 transition-all text-zinc-300 hover:text-red-500 shrink-0"
+            title={t('auth.logout')}
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
       </div>
 
       {/* 菜单 */}
@@ -196,11 +230,17 @@ function SidebarContent({
 }
 
 function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
+  const { user, logout } = useAuth();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useI18n();
 
   const items = variant === 'admin' ? adminMenuItems : userMenuItems;
+
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/login';
+  };
 
   const isActive = (href: string) => {
     const [path = ''] = href.split('?');
@@ -226,6 +266,8 @@ function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
           items={items}
           isActive={isActive}
           onItemClick={() => setIsOpen(false)}
+          user={user ?? undefined}
+          onLogout={handleLogout}
           t={t}
         />
       </div>
@@ -247,6 +289,8 @@ function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
           items={items}
           isActive={isActive}
           onItemClick={() => setIsOpen(false)}
+          user={user ?? undefined}
+          onLogout={handleLogout}
           showCloseButton
           onClose={() => setIsOpen(false)}
           t={t}
