@@ -49,7 +49,7 @@ export function HomePostGrid({ posts, postCount, facesCount, isAdmin = false, he
     const q = searchTerm.toLowerCase();
     return (
       p.title.toLowerCase().includes(q) ||
-      p.description?.toLowerCase().includes(q) ||
+      p.description?.toLowerCase().includes(q) ??
       p.tags?.some((tag) => tag.toLowerCase().includes(q))
     );
   });
@@ -193,7 +193,7 @@ export function HomePostGrid({ posts, postCount, facesCount, isAdmin = false, he
                     <Link href={`/posts${post.slug}`} className="block overflow-hidden aspect-video bg-zinc-50 relative">
                       {post.cover || defaultCover ? (
                         <Image
-                          src={post.cover || defaultCover!}
+                          src={post.cover ?? defaultCover!}
                           alt={post.title}
                           fill
                           className="object-cover group-hover:scale-110 transition-transform duration-700"

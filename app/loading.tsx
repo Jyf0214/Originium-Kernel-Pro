@@ -4,20 +4,29 @@ import { useEffect, useState } from 'react';
 import { GlobalLoading } from '@/components/Loading';
 
 export default function Loading() {
-  const [slogans, setSlogans] = useState<string[] | undefined>(undefined);
+  const [loadingConfig, setLoadingConfig] = useState<{
+    page?: { type: string; color: string; position: string };
+    navigation?: { type: string; color: string };
+    slogans?: string[];
+  } | undefined>(undefined);
 
   useEffect(() => {
-    const cached = sessionStorage.getItem('loading-slogans');
+    const cached = sessionStorage.getItem('loading-config');
     if (cached) {
-      try { setSlogans(JSON.parse(cached)); return; } catch { /* ignore */ }
+      try { setLoadingConfig(JSON.parse(cached)); return; } catch { /* ignore */ }
     }
-    fetch('/api/site-config')
+    fetch('/api/config')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
-        const list = data?.appearance?.loading?.slogans;
-        if (Array.isArray(list) && list.length > 0) {
-          setSlogans(list);
-          try { sessionStorage.setItem('loading-slogans', JSON.stringify(list)); } catch { /* ignore */ }
+        const lc = data?.appearance?.loading;
+        if (lc) {
+          const config = {
+            page: lc.page ? { type: lc.page.type, color: lc.page.color, position: lc.page.position } : undefined,
+            navigation: lc.navigation ? { type: lc.navigation.type, color: lc.navigation.color } : undefined,
+            slogans: Array.isArray(lc.slogans) ? lc.slogans : undefined,
+          };
+          setLoadingConfig(config);
+          try { sessionStorage.setItem('loading-config', JSON.stringify(config)); } catch { /* ignore */ }
         }
       })
       .catch(() => undefined);
@@ -25,7 +34,7 @@ export default function Loading() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
-      <GlobalLoading forNavigation slogans={slogans} />
+      <GlobalLoading forNavigation loadingConfig={loadingConfig} slogans={loadingConfig?.slogans} />
     </div>
   );
 }

@@ -20,6 +20,29 @@ interface Ticket {
   content: string;
 }
 
+function TicketStatusBadge({ status, t }: { status: string; t: (key: string) => string }) {
+  const getStatusText = (s: string) => {
+    switch (s) {
+      case 'open': return t('tickets.statusOpen');
+      case 'in-progress': return t('tickets.statusInProgress');
+      case 'closed': return t('tickets.statusClosed');
+      default: return s;
+    }
+  };
+
+  return (
+    <span
+      className="px-3 py-1 rounded-full text-xs font-medium"
+      style={{
+        background: status === 'open' ? '#fff7e6' : status === 'closed' ? '#f6ffed' : '#e6f7ff',
+        color: status === 'open' ? '#fa8c16' : status === 'closed' ? '#52c41a' : '#1890ff',
+      }}
+    >
+      {getStatusText(status)}
+    </span>
+  );
+}
+
 function TicketStatusUpdater({
   ticket,
   newStatus,
@@ -139,15 +162,6 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'open': return t('tickets.statusOpen');
-      case 'in-progress': return t('tickets.statusInProgress');
-      case 'closed': return t('tickets.statusClosed');
-      default: return status;
-    }
-  };
-
   const isAdmin = user?.role === 'admin' || user?.role === 'sudo';
 
   if (authLoading) return <GlobalLoading />;
@@ -183,15 +197,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
             {getStatusIcon(ticket.status)}
             <span className="text-xl font-semibold text-zinc-900">{ticket.title}</span>
           </div>
-          <span
-            className="px-3 py-1 rounded-full text-xs font-medium"
-            style={{
-              background: ticket.status === 'open' ? '#fff7e6' : ticket.status === 'closed' ? '#f6ffed' : '#e6f7ff',
-              color: ticket.status === 'open' ? '#fa8c16' : ticket.status === 'closed' ? '#52c41a' : '#1890ff',
-            }}
-          >
-            {getStatusText(ticket.status)}
-          </span>
+          <TicketStatusBadge status={ticket.status} t={t} />
         </div>
 
         {/* 元信息 */}

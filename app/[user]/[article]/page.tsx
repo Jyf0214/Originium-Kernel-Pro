@@ -13,7 +13,13 @@ import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
 import ShareButtons from '@/components/ShareButtons';
 import Footer from '@/components/Footer';
-import { useConfig } from '@/hooks/use-config';
+import ArticleCopyright from '@/components/ArticleCopyright';
+import RewardArea from '@/components/RewardArea';
+import AuthorCard from '@/components/AuthorCard';
+import PostEditLink from '@/components/PostEditLink';
+import TableOfContents from '@/components/TableOfContents';
+import CopyInterceptor from '@/components/CopyInterceptor';
+import { useConfig, type FrontendConfig } from '@/hooks/use-config';
 import { useMainTone } from '@/hooks/use-main-tone';
 
 interface ArticleData {
@@ -33,6 +39,60 @@ interface UserInfo {
   avatar?: string;
 }
 
+interface PostMetaPostConfig {
+  dateType?: string;
+  dateFormat?: string;
+  categories?: boolean;
+  tags?: boolean;
+  label?: boolean;
+  unread?: boolean;
+}
+
+function TagsSection({ tags, show }: { tags?: string[]; show: boolean }) {
+  if (!show || !tags?.length) return null;
+  return (
+    <div className="flex flex-wrap gap-2 mb-8">
+      {tags.map((tag: string) => (
+        <span key={tag} className="flex items-center gap-1.5 px-3 py-1 bg-zinc-50 text-zinc-500 text-xs font-bold uppercase tracking-widest rounded-full border border-zinc-100">
+          <Tag size={12} />
+          {tag}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function DateSection({ displayDate }: { displayDate: string | null }) {
+  if (!displayDate) return null;
+  return (
+    <>
+      <div className="h-8 w-px bg-zinc-100 hidden sm:block"></div>
+      <div className="flex items-center gap-2">
+        <Calendar size={18} />
+        <time className="text-sm font-bold text-zinc-500">{displayDate}</time>
+      </div>
+    </>
+  );
+}
+
+function SudoActions({ showRaw, rawContent, onToggleRaw }: {
+  showRaw: boolean; rawContent: string; onToggleRaw: () => void;
+}) {
+  if (!rawContent) return null;
+  return (
+    <>
+      <div className="h-8 w-px bg-zinc-100 hidden sm:block"></div>
+      <button
+        onClick={onToggleRaw}
+        className="flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors"
+      >
+        {showRaw ? <Eye size={18} /> : <Code size={18} />}
+        <span className="text-sm font-bold">{showRaw ? '预览渲染' : '查看原始文件'}</span>
+      </button>
+    </>
+  );
+}
+
 function ArticleHeader({
   articleData,
   userData,
@@ -41,6 +101,7 @@ function ArticleHeader({
   showRaw,
   rawContent,
   onToggleRaw,
+  postMeta,
 }: {
   articleData: ArticleData;
   userData: UserInfo | null;
@@ -49,23 +110,22 @@ function ArticleHeader({
   showRaw: boolean;
   rawContent: string;
   onToggleRaw: () => void;
+  postMeta?: PostMetaPostConfig;
 }) {
-  const createdDate = new Date(articleData.createdAt).toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const dateType = postMeta?.dateType ?? 'both';
+  const dateFormat = postMeta?.dateFormat ?? 'date';
+  const showTags = postMeta?.tags !== false;
+
+  const displayDate = dateType === 'none' ? null : new Date(articleData.createdAt).toLocaleDateString(
+    'zh-CN',
+    dateFormat === 'simple'
+      ? { month: 'short', day: 'numeric' }
+      : { year: 'numeric', month: 'long', day: 'numeric' }
+  );
 
   return (
     <header className="mb-12">
-      <div className="flex flex-wrap gap-2 mb-8">
-        {articleData.tags?.map((tag: string) => (
-          <span key={tag} className="flex items-center gap-1.5 px-3 py-1 bg-zinc-50 text-zinc-500 text-xs font-bold uppercase tracking-widest rounded-full border border-zinc-100">
-            <Tag size={12} />
-            {tag}
-          </span>
-        ))}
-      </div>
+      <TagsSection tags={articleData.tags} show={showTags} />
 
       <h1 className="text-5xl md:text-7xl font-display font-black tracking-tight text-zinc-900 mb-10 leading-[1.05]">
         {articleData.title}
@@ -80,45 +140,46 @@ function ArticleHeader({
           </div>
         </div>
 
-        <div className="h-8 w-px bg-zinc-100 hidden sm:block"></div>
+        <DateSection displayDate={displayDate} />
 
-        <div className="flex items-center gap-2">
-          <Calendar size={18} />
-          <time className="text-sm font-bold text-zinc-500">{createdDate}</time>
-        </div>
-
-        {isSudo && rawContent && (
-          <>
-            <div className="h-8 w-px bg-zinc-100 hidden sm:block"></div>
-            <button
-              onClick={onToggleRaw}
-              className="flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors"
-            >
-              {showRaw ? <Eye size={18} /> : <Code size={18} />}
-              <span className="text-sm font-bold">{showRaw ? '预览渲染' : '查看原始文件'}</span>
-            </button>
-          </>
-        )}
+        {isSudo && <SudoActions showRaw={showRaw} rawContent={rawContent} onToggleRaw={onToggleRaw} />}
       </div>
     </header>
   );
 }
 
-function ArticleCoverImage({ coverImage, title, mainColor }: { coverImage: string; title: string; mainColor?: string | null }) {
+function ArticleCoverImage({ coverImage, title, mainColor, defaultCover, errorFallback }: {
+  coverImage: string; title: string; mainColor?: string | null;
+  defaultCover?: string; errorFallback?: string;
+}) {
   const [imgError, setImgError] = useState(false);
+  const [fallbackImgError, setFallbackImgError] = useState(false);
+
+  const src = coverImage ?? defaultCover ?? '';
+  if (!src) return null;
 
   return (
     <div
       className="w-full aspect-[21/9] rounded-3xl overflow-hidden bg-zinc-50 mb-16 relative"
       style={mainColor ? { boxShadow: `0 25px 50px -12px ${mainColor}40` } : { boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.25)' }}
     >
-      {imgError ? (
+      {imgError && !fallbackImgError && errorFallback ? (
+        <Image
+          src={errorFallback}
+          alt={title}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+          unoptimized
+          onError={() => setFallbackImgError(true)}
+        />
+      ) : imgError || fallbackImgError ? (
         <div className="w-full h-full flex items-center justify-center text-zinc-200 font-black text-6xl select-none">
           {title.charAt(0)}
         </div>
       ) : (
         <Image
-          src={coverImage}
+          src={src}
           alt={title}
           fill
           className="object-cover hover:scale-105 transition-transform duration-1000"
@@ -131,28 +192,11 @@ function ArticleCoverImage({ coverImage, title, mainColor }: { coverImage: strin
   );
 }
 
-function UserArticleContent() {
-  const params = useParams();
-  const username = params?.user as string;
-  const article = params?.article as string;
-  const { t } = useI18n();
-  const { isSudo } = useAuth();
-
+function useArticleFetcher(username: string, article: string) {
   const [articleData, setArticleData] = useState<ArticleData | null>(null);
   const [userData, setUserData] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showRaw, setShowRaw] = useState(false);
   const [rawContent, setRawContent] = useState('');
-
-  const { config: siteConfig } = useConfig();
-  const shareConfig = siteConfig?.share;
-  const mainToneConfig = siteConfig?.mainTone;
-  const highlightTheme = siteConfig?.highlight?.theme;
-  const { mainColor } = useMainTone(
-    articleData?.coverImage,
-    mainToneConfig?.mode,
-    mainToneConfig?.enable,
-  );
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -176,36 +220,111 @@ function UserArticleContent() {
     if (username && article) void fetchArticle();
   }, [username, article]);
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-50">
-      <GlobalLoading size="large" />
+  return { articleData, userData, loading, rawContent };
+}
+
+function ArticleCoverSection({
+  articleData,
+  siteConfig,
+  mainColor,
+}: {
+  articleData: ArticleData;
+  siteConfig: FrontendConfig | null;
+  mainColor: string | null | undefined;
+}) {
+  const coverSrc = articleData.coverImage || siteConfig?.cover?.defaultCover?.[0];
+  if (!coverSrc || siteConfig?.cover?.indexEnable === false) return null;
+
+  return (
+    <ArticleCoverImage
+      coverImage={articleData.coverImage}
+      title={articleData.title}
+      mainColor={mainColor}
+      defaultCover={siteConfig?.cover?.defaultCover?.[0]}
+      errorFallback={siteConfig?.errorImg?.postPage}
+    />
+  );
+}
+
+function ArticleContentSection({
+  showRaw,
+  rawContent,
+  content,
+  highlight,
+}: {
+  showRaw: boolean;
+  rawContent: string;
+  content: string;
+  highlight: FrontendConfig['highlight'] | undefined;
+}) {
+  if (showRaw && rawContent) {
+    return (
+      <pre className="bg-zinc-50 border border-zinc-200 rounded-2xl p-6 overflow-x-auto font-mono text-sm leading-relaxed whitespace-pre-wrap">
+        {rawContent}
+      </pre>
+    );
+  }
+
+  return <MarkdownRenderer content={content} highlight={highlight} />;
+}
+
+function ArticleShareSection({
+  id,
+  article,
+  shareConfig,
+  title,
+}: {
+  id: string;
+  article: string;
+  shareConfig: FrontendConfig['share'] | null | undefined;
+  title: string;
+}) {
+  const slug = id || article;
+  const showShare = shareConfig && (shareConfig.sharejs.enable || shareConfig.addtoany.enable);
+
+  return (
+    <div className="max-w-3xl mx-auto mt-12 pt-8 border-t border-zinc-100 flex items-center justify-between">
+      <PostEditLink slug={slug} />
+      {showShare && <ShareButtons config={shareConfig} title={title} />}
     </div>
   );
+}
 
-  if (!articleData) return (
-    <div className="min-h-screen flex flex-col bg-zinc-50">
-      <Navbar />
-      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="text-4xl font-display font-black text-zinc-900 mb-4">{t('error.404')}</h1>
-        <p className="text-zinc-500 mb-8">{t('error.notFound')}</p>
-        <Link href="/" className="bg-zinc-900 text-white px-8 py-3 rounded-xl hover:bg-zinc-800 transition-colors">
-          {t('common.back')}
-        </Link>
-      </div>
-    </div>
-  );
-
+function ArticlePageBody({
+  articleData,
+  userData,
+  username,
+  isSudo,
+  showRaw,
+  rawContent,
+  articleRef,
+  siteConfig,
+  mainColor,
+  article,
+  onToggleRaw,
+}: {
+  articleData: ArticleData;
+  userData: UserInfo | null;
+  username: string;
+  isSudo: boolean;
+  showRaw: boolean;
+  rawContent: string;
+  articleRef: React.RefObject<HTMLDivElement | null>;
+  siteConfig: FrontendConfig | null;
+  mainColor: string | null | undefined;
+  article: string;
+  onToggleRaw: () => void;
+}) {
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
       <Navbar />
-
       <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-12 md:py-20">
         <Link href={`/${username}`} className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-900 mb-12 transition-all group">
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           <span className="font-medium">Back to {userData?.name}&apos;s Profile</span>
         </Link>
 
-        <article style={mainColor ? { '--main-tone': mainColor } as React.CSSProperties : undefined}>
+        <article ref={articleRef} style={mainColor ? { '--main-tone': mainColor } as React.CSSProperties : undefined}>
           <ArticleHeader
             articleData={articleData}
             userData={userData}
@@ -213,33 +332,103 @@ function UserArticleContent() {
             isSudo={isSudo}
             showRaw={showRaw}
             rawContent={rawContent}
-            onToggleRaw={() => setShowRaw(!showRaw)}
+            onToggleRaw={onToggleRaw}
+            postMeta={siteConfig?.postMeta?.post}
           />
 
-          {articleData.coverImage && (
-            <ArticleCoverImage coverImage={articleData.coverImage} title={articleData.title} mainColor={mainColor} />
-          )}
+          <ArticleCoverSection
+            articleData={articleData}
+            siteConfig={siteConfig}
+            mainColor={mainColor}
+          />
 
-          <div className="max-w-3xl mx-auto">
-            {showRaw && rawContent ? (
-              <pre className="bg-zinc-50 border border-zinc-200 rounded-2xl p-6 overflow-x-auto font-mono text-sm leading-relaxed whitespace-pre-wrap">
-                {rawContent}
-              </pre>
-            ) : (
-              <MarkdownRenderer content={articleData.content} theme={highlightTheme} />
-            )}
-          </div>
+          <ArticleContentSection
+            showRaw={showRaw}
+            rawContent={rawContent}
+            content={articleData.content}
+            highlight={siteConfig?.highlight}
+          />
 
-          {shareConfig && (shareConfig.sharejs.enable || shareConfig.addtoany.enable) && (
-            <div className="max-w-3xl mx-auto mt-12 pt-8 border-t border-zinc-100">
-              <ShareButtons config={shareConfig} title={articleData.title} />
-            </div>
-          )}
+          <ArticleShareSection
+            id={articleData.id}
+            article={article}
+            shareConfig={siteConfig?.share}
+            title={articleData.title}
+          />
+
+          <ArticleCopyright authorName={articleData.authorName} />
+          <RewardArea />
+          <AuthorCard
+            authorName={articleData.authorName}
+            authorAvatar={userData?.avatar}
+            authorUrl={`/${username}`}
+          />
         </article>
-      </main>
 
+        <CopyInterceptor articleRef={articleRef} authorName={articleData.authorName} />
+        <TableOfContents content={articleData.content} />
+      </main>
       <Footer />
     </div>
+  );
+}
+
+function UserArticleContent() {
+  const params = useParams();
+  const username = params?.user as string;
+  const article = params?.article as string;
+  const { t } = useI18n();
+  const { isSudo } = useAuth();
+
+  const { articleData, userData, loading, rawContent } = useArticleFetcher(username, article);
+
+  const [showRaw, setShowRaw] = useState(false);
+  const articleRef = React.useRef<HTMLDivElement>(null);
+
+  const { config: siteConfig } = useConfig();
+  const { mainColor } = useMainTone(
+    articleData?.coverImage,
+    siteConfig?.mainTone?.mode,
+    siteConfig?.mainTone?.enable,
+  );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
+        <GlobalLoading size="large" />
+      </div>
+    );
+  }
+
+  if (!articleData) {
+    return (
+      <div className="min-h-screen flex flex-col bg-zinc-50">
+        <Navbar />
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+          <h1 className="text-4xl font-display font-black text-zinc-900 mb-4">{t('error.404')}</h1>
+          <p className="text-zinc-500 mb-8">{t('error.notFound')}</p>
+          <Link href="/" className="bg-zinc-900 text-white px-8 py-3 rounded-xl hover:bg-zinc-800 transition-colors">
+            {t('common.back')}
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ArticlePageBody
+      articleData={articleData}
+      userData={userData}
+      username={username}
+      isSudo={isSudo}
+      showRaw={showRaw}
+      rawContent={rawContent}
+      articleRef={articleRef}
+      siteConfig={siteConfig}
+      mainColor={mainColor}
+      article={article}
+      onToggleRaw={() => setShowRaw(!showRaw)}
+    />
   );
 }
 

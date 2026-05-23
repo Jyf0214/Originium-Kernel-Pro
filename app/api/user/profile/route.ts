@@ -96,6 +96,66 @@ function buildUserResponse(
   };
 }
 
+/**
+ * 验证并解析请求体，返回验证结果
+ */
+function validateAndSanitizeInput(body: Record<string, unknown>): {
+  avatar: unknown;
+  username: unknown;
+  name: unknown;
+  sanitized: { value: string | null; error?: string };
+  error?: string;
+  details?: Record<string, unknown>;
+} {
+  const { avatar, username, name } = body;
+
+  if (areAllUndefined(avatar, username, name)) {
+    return { avatar, username, name, sanitized: { value: null }, error: '没有要更新的字段' };
+  }
+
+  const sanitized = sanitizeUsername(username);
+  if (sanitized.error) {
+    return { avatar, username, name, sanitized, error: sanitized.error, details: { username } };
+  }
+
+  return { avatar, username, name, sanitized };
+}
+
+/**
+ * 处理用户名变更：删除旧用户名映射
+ */
+async function handleUsernameChange(
+  db: ReturnType<typeof getDb>,
+  user: Record<string, unknown>,
+  sanitized: { value: string | null },
+): Promise<void> {
+  if (user.username && sanitized.value !== null && sanitized.value !== user.username) {
+    await db.del(`user:username:${user.username}`);
+  }
+}
+
+/**
+ * 更新用户对象字段并写入数据库
+ */
+async function updateUserInDb(options: {
+  db: ReturnType<typeof getDb>;
+  user: Record<string, unknown>;
+  sanitized: { value: string | null };
+  avatar: unknown;
+  name: unknown;
+  uid: string;
+}): Promise<void> {
+  if (options.avatar !== undefined) options.user.avatar = options.avatar;
+  if (options.sanitized.value !== null) options.user.username = options.sanitized.value;
+  if (options.name !== undefined) options.user.name = options.name;
+
+  await options.db.set(`user:uid:${options.uid}`, JSON.stringify(options.user));
+
+  if (options.sanitized.value) {
+    await options.db.set(`user:username:${options.sanitized.value}`, options.uid);
+  }
+}
+
 export async function PUT(req: NextRequest) {
   try {
     const session = await getSession();
@@ -105,17 +165,10 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { avatar, username, name } = body;
-
-    if (areAllUndefined(avatar, username, name)) {
-      logger.warn('PUT', '没有要更新的字段');
-      return NextResponse.json({ error: '没有要更新的字段' }, { status: 400 });
-    }
-
-    const sanitized = sanitizeUsername(username);
-    if (sanitized.error) {
-      logger.warn('PUT', '用户名格式无效', { username });
-      return NextResponse.json({ error: sanitized.error }, { status: 400 });
+    const validation = validateAndSanitizeInput(body);
+    if (validation.error) {
+      logger.warn('PUT', validation.error, validation.details);
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
     const db = getDb();
@@ -127,25 +180,14 @@ export async function PUT(req: NextRequest) {
 
     const user = JSON.parse(userStr);
 
-    const conflict = await checkUsernameConflict(db, sanitized.value, user.username);
+    const conflict = await checkUsernameConflict(db, validation.sanitized.value, user.username);
     if (conflict) {
-      logger.warn('PUT', '用户名已被使用', { username });
+      logger.warn('PUT', '用户名已被使用', { username: validation.username });
       return NextResponse.json({ error: conflict }, { status: 409 });
     }
 
-    if (user.username && sanitized.value !== null && sanitized.value !== user.username) {
-      await db.del(`user:username:${user.username}`);
-    }
-
-    if (avatar !== undefined) user.avatar = avatar;
-    if (sanitized.value !== null) user.username = sanitized.value;
-    if (name !== undefined) user.name = name;
-
-    await db.set(`user:uid:${session.uid}`, JSON.stringify(user));
-
-    if (sanitized.value) {
-      await db.set(`user:username:${sanitized.value}`, session.uid);
-    }
+    await handleUsernameChange(db, user, validation.sanitized);
+    await updateUserInDb({ db, user, sanitized: validation.sanitized, avatar: validation.avatar, name: validation.name, uid: session.uid });
 
     const configAvatar = await getUserAvatarAsync(session.uid, session.role === 'admin' || session.role === 'sudo');
 

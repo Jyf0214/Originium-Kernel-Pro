@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Image from 'next/image';
 
 interface AvatarProps {
@@ -13,9 +15,10 @@ function avatarLoader({ src }: { src: string }) {
 }
 
 export function Avatar({ name, avatarUrl, size = 32 }: AvatarProps) {
+  const [imgError, setImgError] = useState(false);
   const initials = name ? name.charAt(0).toUpperCase() : '?';
 
-  if (avatarUrl) {
+  if (avatarUrl && !imgError) {
     return (
       <div
         className="flex items-center justify-center rounded-xl bg-zinc-100 overflow-hidden shrink-0"
@@ -29,6 +32,7 @@ export function Avatar({ name, avatarUrl, size = 32 }: AvatarProps) {
           loader={avatarLoader}
           unoptimized
           className="w-full h-full object-cover"
+          onError={() => setImgError(true)}
         />
       </div>
     );

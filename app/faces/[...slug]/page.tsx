@@ -11,6 +11,7 @@ import Footer from '@/components/Footer';
 import { notFound, useParams } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
+import { useConfig } from '@/hooks/use-config';
 import { showError } from '@/lib/error';
 
 export default function FaceDetailPage() {
@@ -19,6 +20,7 @@ export default function FaceDetailPage() {
   const fullPath = '/' + slugArray.join('/');
   const { t } = useI18n();
   const { isSudo } = useAuth();
+  const { config: siteConfig } = useConfig();
 
   const [file, setFile] = React.useState<ContentFile | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -131,7 +133,7 @@ export default function FaceDetailPage() {
                 {rawContent}
               </pre>
             ) : (
-              <MarkdownRenderer content={file.content} />
+              <MarkdownRenderer content={file.content} highlight={siteConfig?.highlight} />
             )}
           </div>
         </article>
