@@ -1,55 +1,88 @@
-import { NextResponse } from 'next/server';
-import { getContentFiles, getContentIndexes } from '@/lib/content';
-import { loadConfigAsync, canAccess, hasDatabase } from '@/lib/config';
+import { type NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
 
 const logger = createApiLogger('/api/diary');
 
-/**
- * 日记列表 API
- * 仅管理员可访问
- */
-export async function GET() {
-  const session = await getSession();
-  const isAdmin = session?.role === 'admin' || session?.role === 'sudo';
+export async function GET(req: NextRequest) {
+  try {
+    const session = await getSession();
+    const isAdmin = session?.role === 'admin' || session?.role === 'sudo';
+    if (!isAdmin) {
+      return NextResponse.json({ error: '无权限访问' }, { status: 403 });
+    }
 
-  if (!isAdmin) {
-    logger.warn('GET', '无权限访问', { role: session?.role });
-    return NextResponse.json({ error: '无权限访问' }, { status: 403 });
+    const { searchParams } = new URL(req.url);
+    const search = searchParams.get('search')?.trim();
+    const startDate = searchParams.get('startDate')?.trim();
+    const endDate = searchParams.get('endDate')?.trim();
+
+    const ands: Record<string, unknown>[] = [];
+
+    if (search) {
+      ands.push({
+        OR: [
+          { title: { contains: search } },
+          { content: { contains: search } },
+          { tags: { has: search } },
+        ],
+      });
+    }
+
+    if (startDate) {
+      ands.push({ createdAt: { gte: new Date(startDate) } });
+    }
+    if (endDate) {
+      ands.push({ createdAt: { lte: new Date(endDate) } });
+    }
+
+    const where = ands.length > 0 ? { AND: ands } : {};
+
+    const diaries = await prisma.diary.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        title: true,
+        tags: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return NextResponse.json({ diaries });
+  } catch {
+    logger.error('GET', '获取日记列表失败');
+    return NextResponse.json({ error: '获取日记列表失败' }, { status: 500 });
   }
+}
 
-  logger.info('GET', '读取日记列表');
-  const config = await loadConfigAsync();
-  const dbAvailable = hasDatabase();
-  const allFiles = getContentFiles('diary');
-  const indexes = getContentIndexes('diary');
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getSession();
+    const isAdmin = session?.role === 'admin' || session?.role === 'sudo';
+    if (!isAdmin) {
+      return NextResponse.json({ error: '无权限访问' }, { status: 403 });
+    }
 
-  const accessibleFiles = allFiles.filter((file) => {
-    const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
-    return canAccess('diary', file.slug, true, dbAvailable, config) &&
-           canAccess('diary', dirSlug || '/', true, dbAvailable, config);
-  });
+    const { title, content, tags } = await req.json();
+    if (!title || !content) {
+      return NextResponse.json({ error: '标题和内容不能为空' }, { status: 400 });
+    }
 
-  const accessibleIndexes = indexes.filter((idx) => {
-    return canAccess('diary', idx.slug, true, dbAvailable, config);
-  });
+    const diary = await prisma.diary.create({
+      data: {
+        title,
+        content,
+        tags: tags ?? [],
+      },
+    });
 
-  logger.info('GET', '日记列表读取成功', { count: accessibleFiles.length });
-  return NextResponse.json({
-    diaries: accessibleFiles.map((f) => ({
-      slug: f.slug,
-      title: f.meta.title,
-      date: f.meta.date,
-      tags: f.meta.tags ?? [],
-      description: f.meta.description,
-    })),
-    indexes: accessibleIndexes.map((idx) => ({
-      slug: idx.slug,
-      title: idx.title,
-      description: idx.description,
-      public: idx.public,
-      groupName: idx.groupName,
-    })),
-  });
+    logger.info('POST', '创建日记成功', { id: diary.id, title });
+    return NextResponse.json({ diary }, { status: 201 });
+  } catch {
+    logger.error('POST', '创建日记失败');
+    return NextResponse.json({ error: '创建日记失败' }, { status: 500 });
+  }
 }
