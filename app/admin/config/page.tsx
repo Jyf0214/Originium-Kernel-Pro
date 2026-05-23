@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { Button } from 'antd';
 import { Settings, Save, Shield, Loader2 } from 'lucide-react';
-import { GlobalLoading as _GlobalLoading } from '@/components/Loading';
+import { GlobalLoading } from '@/components/Loading';
 import { useGitHubConfigSync } from '@/hooks/use-github-config-sync';
 import ConfigSection from '@/components/ui/ConfigSection';
 import FormField from '@/components/ui/FormField';
@@ -468,7 +468,7 @@ export default function ConfigPage() {
     },
     users: {},
   });
-  const [_loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [githubConfigured, setGithubConfigured] = useState(false);
   const [remoteConfig, setRemoteConfig] = useState<string>('');
@@ -523,6 +523,10 @@ export default function ConfigPage() {
   const handleSave = () => {
     handleGitHubSave(initialConfigRef.current);
   };
+
+  if (loading) {
+    return <GlobalLoading />;
+  }
 
   return (
     <ConfigEditor

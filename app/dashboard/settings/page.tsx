@@ -7,6 +7,7 @@ import { Button, Input, Form, Avatar, message } from 'antd';
 import type { Rule } from 'antd/es/form';
 import { showError } from '@/lib/error';
 import { useGitHubConfigSync } from '@/hooks/use-github-config-sync';
+import { GlobalLoading } from '@/components/Loading';
 import { User, AtSign, Image as ImageIcon, Save, ArrowLeft, Check } from 'lucide-react';
 import Link from 'next/link';
 import ConfigSection from '@/components/ui/ConfigSection';
@@ -60,6 +61,7 @@ export default function SettingsPage() {
   const { user, refresh } = useAuth();
   const { t } = useI18n();
   const [form] = Form.useForm();
+  const [pageLoading, setPageLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [originalAvatar, setOriginalAvatar] = useState('');
   const [githubRepo, setGithubRepo] = useState('');
@@ -146,6 +148,7 @@ export default function SettingsPage() {
         username: user.name ?? '',
         displayName: user.displayName ?? user.name ?? '',
       });
+      setPageLoading(false);
     }
   }, [user, form]);
 
@@ -211,6 +214,10 @@ export default function SettingsPage() {
       effectiveRepo,
     );
   };
+
+  if (pageLoading) {
+    return <GlobalLoading />;
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50">
