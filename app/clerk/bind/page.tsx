@@ -89,7 +89,7 @@ export default function ClerkBindPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#f8f8f8]">
+      <div className="min-h-screen flex flex-col bg-zinc-50">
         <Navbar />
         <main className="flex-1 flex items-center justify-center">
           <p className="text-zinc-400">请先通过 Clerk 登录</p>
@@ -99,7 +99,7 @@ export default function ClerkBindPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8f8f8]">
+    <div className="min-h-screen flex flex-col bg-zinc-50">
       <Navbar />
       <main className="flex-1 flex items-center justify-center p-6">
         <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-10 max-w-md w-full">

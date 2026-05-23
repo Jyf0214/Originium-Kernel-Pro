@@ -8,7 +8,7 @@ import { Navbar } from '@/components/Navbar';
  */
 export default function ClerkSignUpPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8f8f8]">
+    <div className="min-h-screen flex flex-col bg-zinc-50">
       <Navbar />
       <main className="flex-1 flex items-center justify-center p-6">
         <SignUp

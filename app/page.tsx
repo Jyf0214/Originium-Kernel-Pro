@@ -63,7 +63,7 @@ export default async function HomePage() {
   const displayFacesCount = isAdmin ? facesCount : 0;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8f8f8]">
+    <div className="min-h-screen flex flex-col bg-zinc-50">
       <Navbar />
       <HomePostGrid
         posts={posts}

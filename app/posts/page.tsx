@@ -46,7 +46,7 @@ export default function PostsPage() {
   }));
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8f8f8]">
+    <div className="min-h-screen flex flex-col bg-zinc-50">
       <Navbar />
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12 md:py-20">
         <h1 className="text-5xl md:text-7xl font-display font-black tracking-tighter text-zinc-900 mb-4">

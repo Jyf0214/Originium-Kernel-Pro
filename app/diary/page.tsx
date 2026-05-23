@@ -59,7 +59,7 @@ export default function DiaryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#f8f8f8]">
+      <div className="min-h-screen flex flex-col bg-zinc-50">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
           <GlobalLoading tip="加载中..." />
@@ -69,7 +69,7 @@ export default function DiaryPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8f8f8]">
+    <div className="min-h-screen flex flex-col bg-zinc-50">
       <Navbar />
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12 md:py-20">
         <div className="flex items-center gap-3 mb-4">
