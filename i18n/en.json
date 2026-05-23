@@ -145,6 +145,7 @@
     "envVariablesDesc": "Check config status",
     "articles": "Articles",
     "users": "Users",
+    "personal": "Personal",
     "settings": "Settings",
     "requests": "Requests",
     "welcome": "Welcome back, {name}",

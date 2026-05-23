@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '@/hooks/use-auth';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -21,37 +20,39 @@ import {
 } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
 
+type SidebarVariant = 'user' | 'admin';
+
 interface MenuItem {
   key: string;
   icon: React.ElementType;
   href: string;
-  adminOnly?: boolean;
   group: string;
 }
 
-const menuItems: MenuItem[] = [
+const userMenuItems: MenuItem[] = [
   { key: 'sidebar.dashboard', icon: Home, href: '/dashboard', group: 'overview' },
   { key: 'sidebar.posts', icon: BookOpen, href: '/posts', group: 'content' },
   { key: 'sidebar.faces', icon: Users, href: '/faces', group: 'content' },
   { key: 'sidebar.write', icon: PenLine, href: '/editor', group: 'content' },
   { key: 'sidebar.articleManagement', icon: Archive, href: '/dashboard/articles', group: 'manage' },
   { key: 'sidebar.trash', icon: Trash2, href: '/dashboard/articles?status=pending_deletion', group: 'manage' },
+  { key: 'sidebar.diary', icon: FileText, href: '/diary', group: 'personal' },
   { key: 'sidebar.settings', icon: Settings, href: '/dashboard/settings', group: 'account' },
 ];
 
-const adminItems: MenuItem[] = [
-  { key: 'sidebar.diary', icon: FileText, href: '/diary', adminOnly: true, group: 'admin' },
-  { key: 'sidebar.systemConfig', icon: Settings, href: '/admin/config', adminOnly: true, group: 'admin' },
-  { key: 'sidebar.configPreview', icon: Eye, href: '/admin/config/preview', adminOnly: true, group: 'admin' },
-  { key: 'sidebar.envVariables', icon: Activity, href: '/admin/env', adminOnly: true, group: 'admin' },
-  { key: 'sidebar.tickets', icon: FileText, href: '/admin/tickets', adminOnly: true, group: 'admin' },
-  { key: 'sidebar.writeArticle', icon: FileText, href: '/admin/tickets/new', adminOnly: true, group: 'admin' },
+const adminMenuItems: MenuItem[] = [
+  { key: 'sidebar.systemConfig', icon: Settings, href: '/admin/config', group: 'admin' },
+  { key: 'sidebar.configPreview', icon: Eye, href: '/admin/config/preview', group: 'admin' },
+  { key: 'sidebar.envVariables', icon: Activity, href: '/admin/env', group: 'admin' },
+  { key: 'sidebar.tickets', icon: FileText, href: '/admin/tickets', group: 'admin' },
+  { key: 'sidebar.writeArticle', icon: FileText, href: '/admin/tickets/new', group: 'admin' },
 ];
 
 const groupKeys: Record<string, string> = {
   overview: 'dashboard.overview',
   content: 'dashboard.contentManagement',
   manage: 'dashboard.articles',
+  personal: 'dashboard.personal',
   account: 'user.settings',
   admin: 'dashboard.adminConsole',
 };
@@ -194,13 +195,12 @@ function SidebarContent({
   );
 }
 
-function Sidebar() {
-  const { isSudo } = useAuth();
+function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useI18n();
 
-  const allItems = isSudo ? [...menuItems, ...adminItems] : menuItems;
+  const items = variant === 'admin' ? adminMenuItems : userMenuItems;
 
   const isActive = (href: string) => {
     const [path = ''] = href.split('?');
@@ -223,7 +223,7 @@ function Sidebar() {
       {/* PC 端侧边栏 */}
       <div className="hidden md:flex w-[280px] min-h-screen z-[100] bg-white flex-col">
         <SidebarContent
-          items={allItems}
+          items={items}
           isActive={isActive}
           onItemClick={() => setIsOpen(false)}
           t={t}
@@ -244,7 +244,7 @@ function Sidebar() {
         style={{ left: 0, transform: isOpen ? 'translateX(0)' : 'translateX(-100%)' }}
       >
         <SidebarContent
-          items={allItems}
+          items={items}
           isActive={isActive}
           onItemClick={() => setIsOpen(false)}
           showCloseButton
