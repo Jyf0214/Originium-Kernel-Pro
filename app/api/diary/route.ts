@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
+import { encryptContent } from '@/lib/diary-crypto';
 
 const logger = createApiLogger('/api/diary');
 
@@ -24,7 +25,6 @@ export async function GET(req: NextRequest) {
       ands.push({
         OR: [
           { title: { contains: search } },
-          { content: { contains: search } },
           { tags: { has: search } },
         ],
       });
@@ -72,10 +72,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '标题和内容不能为空' }, { status: 400 });
     }
 
+    const encrypted = await encryptContent(content);
+
     const diary = await prisma.diary.create({
       data: {
         title,
-        content,
+        content: encrypted,
         tags: tags ?? [],
         date: date ? new Date(date) : undefined,
       },

@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
+import { encryptContent, decryptContent } from '@/lib/diary-crypto';
 
 const logger = createApiLogger('/api/diary/[id]');
 
@@ -19,7 +20,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: '日记不存在' }, { status: 404 });
     }
 
-    return NextResponse.json({ diary });
+    const decrypted = await decryptContent(diary.content);
+
+    return NextResponse.json({ diary: { ...diary, content: decrypted } });
   } catch {
     logger.error('GET', '获取日记失败');
     return NextResponse.json({ error: '获取日记失败' }, { status: 500 });
@@ -45,11 +48,13 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: '日记不存在' }, { status: 404 });
     }
 
+    const encrypted = await encryptContent(content);
+
     const diary = await prisma.diary.update({
       where: { id },
       data: {
         title,
-        content,
+        content: encrypted,
         tags: tags ?? [],
         date: date ? new Date(date) : undefined,
       },
