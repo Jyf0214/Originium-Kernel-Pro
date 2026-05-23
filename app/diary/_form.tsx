@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2, Cloud, CloudOff } from 'lucide-react';
+import { ArrowLeft, Cloud, CloudOff } from 'lucide-react';
 import { showError } from '@/lib/error';
 import { useDiaryDraft } from '@/hooks/use-diary-draft';
 
@@ -97,7 +97,7 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
             disabled={saving}
             className="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-zinc-900 text-white rounded-xl hover:bg-zinc-800 transition-colors font-medium text-sm sm:text-base disabled:opacity-50"
           >
-            {saving && <Loader2 size={14} className="sm:size-4 animate-spin" />}
+            {saving && <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
             {saving ? '保存中...' : '保存'}
           </button>
         </div>
@@ -114,7 +114,7 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
             />
             <div className="flex items-center gap-1.5 shrink-0 text-xs text-zinc-400">
               {saveStatus === 'saving' && (
-                <><Loader2 size={12} className="animate-spin" /><span>保存中...</span></>
+                <><div className="w-3 h-3 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" /><span>保存中...</span></>
               )}
               {saveStatus === 'saved' && (
                 <><Cloud size={14} className="text-green-500" /><span>{agoLabel() || '已保存'}</span></>
