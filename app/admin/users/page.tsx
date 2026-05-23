@@ -26,6 +26,8 @@ export default function UsersPage() {
         if (res.ok) {
           const data = await res.json();
           setUsers(data);
+        } else {
+          showError('用户列表加载失败');
         }
       } catch (error) {
 		console.error('获取用户列表失败:', error);

@@ -41,9 +41,12 @@ function EditorContent() {
             setCoverImage(data.coverImage ?? data.cover ?? '');
             setDescription(data.description ?? '');
             setSlug(data.slug ?? '');
+          } else {
+            showError('文章加载失败');
           }
         } catch (error) {
           console.error(t('editor.fetchFailed'), error);
+          showError(t('editor.fetchFailed'));
         } finally {
           setFetching(false);
         }
@@ -61,9 +64,12 @@ function EditorContent() {
           const repoSet = githubVars.find((v: { name: string; isSet: boolean }) => v.name === 'GITHUB_REPO')?.isSet;
           const tokenSet = githubVars.find((v: { name: string; isSet: boolean }) => v.name === 'GITHUB_TOKEN')?.isSet;
           setGithubConfigured(!!(repoSet && tokenSet));
+        } else {
+          showError('GitHub 环境变量加载失败');
         }
       } catch (error) {
         console.error('检查 GitHub 配置失败:', error);
+        showError('GitHub 配置检查失败');
       }
     };
     void checkGithubConfig();

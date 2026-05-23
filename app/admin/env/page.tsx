@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Card, Tag, Progress, Button } from 'antd';
 import { GlobalLoading } from '@/components/Loading';
+import { showError } from '@/lib/error';
 
 interface EnvVar {
   name: string;
@@ -290,9 +291,12 @@ const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
       if (res.ok) {
         const data = await res.json();
         setEnvStatus(data);
+      } else {
+        showError('环境变量状态加载失败');
       }
     } catch (error) {
       console.error('Failed to fetch env status:', error);
+      showError('环境变量状态加载失败');
     } finally {
       setLoading(false);
       hasFetched.current = true;

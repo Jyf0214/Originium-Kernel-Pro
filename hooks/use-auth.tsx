@@ -140,11 +140,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      const res = await fetch('/api/auth/logout', { method: 'POST' });
+      if (!res.ok) {
+        console.warn('登出请求失败:', res.status);
+      }
       setUser(null);
       message.info(t('common.info'));
     } catch (err) {
       console.error('登出错误:', err);
+      message.error(t('common.error') || '登出失败');
     }
   };
 

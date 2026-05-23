@@ -78,9 +78,11 @@ export default function SettingsPage() {
           if (data._githubRepo) {
             setGithubRepo(data._githubRepo);
           }
+        } else {
+          showError('GitHub 配置加载失败');
         }
       } catch {
-        // 静默失败，仓库地址保持为空
+        showError('GitHub 配置加载失败');
       }
     };
     void fetchGithubInfo();

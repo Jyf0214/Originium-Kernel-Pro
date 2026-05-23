@@ -29,8 +29,12 @@ export function useErrorImg() {
           const data = await res.json();
           cachedConfig = data.errorImg as ErrorImgConfig;
           setLoaded(true);
+        } else {
+          console.warn('错误图片配置获取失败:', res.status);
         }
-      } catch {}
+      } catch {
+        console.warn('错误图片配置请求异常');
+      }
     };
     void fetchConfig();
   }, []);

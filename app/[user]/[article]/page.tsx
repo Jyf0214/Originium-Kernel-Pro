@@ -21,6 +21,7 @@ import TableOfContents from '@/components/TableOfContents';
 import CopyInterceptor from '@/components/CopyInterceptor';
 import { useConfig, type FrontendConfig } from '@/hooks/use-config';
 import { useMainTone } from '@/hooks/use-main-tone';
+import { showError } from '@/lib/error';
 
 interface ArticleData {
   id: string;
@@ -236,9 +237,12 @@ function useArticleFetcher(username: string, article: string) {
           if (data.rawContent) {
             setRawContent(data.rawContent);
           }
+        } else {
+          showError('文章加载失败');
         }
       } catch (error) {
         console.error('Fetch article error:', error);
+        showError('文章加载失败');
       } finally {
         setLoading(false);
       }

@@ -109,6 +109,8 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
         const data = await res.json();
         setTicket(data);
         setNewStatus(data.status ?? 'open');
+      } else {
+        showError('工单详情加载失败');
       }
     } catch (error) {
 		console.error('Failed to fetch ticket:', error);

@@ -38,8 +38,12 @@ export default function Footer() {
           const data = await res.json();
           if (data.footer) setConfig(data.footer);
           if (data.social) setSocialData(data.social);
+        } else {
+          console.warn('页脚配置获取失败:', res.status);
         }
-      } catch {}
+      } catch {
+        console.warn('页脚配置请求异常');
+      }
     };
     void fetchConfig();
   }, []);

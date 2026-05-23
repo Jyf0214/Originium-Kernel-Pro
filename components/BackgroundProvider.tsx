@@ -17,6 +17,8 @@ async function fetchBackgroundFromSiteConfig(mountedRef: { current: boolean }, s
         if (mountedRef.current) setBackground(data.appearance.background);
         return true;
       }
+    } else {
+      console.warn('背景配置获取失败:', res.status);
     }
   } catch (error) {
     console.error('背景配置加载失败:', error);
@@ -34,6 +36,8 @@ async function fetchBackgroundFromBackupConfig(mountedRef: { current: boolean },
       } else if (data.background?.url) {
         if (mountedRef.current) setBackground(data.background);
       }
+    } else {
+      console.warn('备用背景配置获取失败:', res.status);
     }
   } catch (error) {
     console.error('背景配置加载失败:', error);

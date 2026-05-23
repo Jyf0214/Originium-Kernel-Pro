@@ -114,9 +114,11 @@ export function Navbar() {
           if (data.nav) {
             setNavConfig(data.nav);
           }
+        } else {
+          console.warn('导航配置获取失败:', res.status);
         }
       } catch {
-        // 静默失败，使用默认导航
+        console.warn('导航配置请求异常，使用默认导航');
       }
     };
     void fetchNav();
