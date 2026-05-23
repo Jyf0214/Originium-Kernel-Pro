@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, message } from 'antd';
 import { Github, CheckCircle2 } from 'lucide-react';
-import { diffLines, type Change } from 'diff';
+import { createTwoFilesPatch } from 'diff';
 
 interface GitHubDiffProps {
   filePath: string;
@@ -16,6 +16,35 @@ interface GitHubDiffProps {
   open?: boolean;
 }
 
+interface DiffLine {
+  type: 'add' | 'del' | 'ctx';
+  text: string;
+}
+
+interface DiffHunk {
+  lines: DiffLine[];
+}
+
+function parseUnifiedDiff(patch: string): DiffHunk[] {
+  const hunks: DiffHunk[] = [];
+  let current: DiffHunk | null = null;
+
+  for (const line of patch.split('\n')) {
+    if (line.startsWith('@@')) {
+      if (current) hunks.push(current);
+      current = { lines: [] };
+    } else if (line.startsWith('+') && !line.startsWith('+++')) {
+      current?.lines.push({ type: 'add', text: line.slice(1) });
+    } else if (line.startsWith('-') && !line.startsWith('---')) {
+      current?.lines.push({ type: 'del', text: line.slice(1) });
+    } else if (line.startsWith(' ')) {
+      current?.lines.push({ type: 'ctx', text: line.slice(1) });
+    }
+  }
+  if (current) hunks.push(current);
+  return hunks;
+}
+
 export function GitHubDiffModal({
   filePath,
   repo,
@@ -26,11 +55,11 @@ export function GitHubDiffModal({
   loading = false,
   open = false,
 }: GitHubDiffProps) {
-  const [changes, setChanges] = useState<Change[]>([]);
+  const [hunks, setHunks] = useState<DiffHunk[]>([]);
 
   useEffect(() => {
-    const result = diffLines(oldContent ?? '', newContent ?? '');
-    setChanges(result.filter(c => c.added || c.removed));
+    const patch = createTwoFilesPatch('', '', oldContent ?? '', newContent ?? '', '', '', { context: 3 });
+    setHunks(parseUnifiedDiff(patch));
   }, [oldContent, newContent]);
 
   return (
@@ -56,20 +85,23 @@ export function GitHubDiffModal({
           </div>
         </div>
 
-        <div className="bg-zinc-900 rounded-xl p-4 max-h-96 overflow-auto font-mono text-sm">
-          {changes.length === 0 && (
+        <div className="bg-zinc-900 rounded-xl max-h-96 overflow-auto font-mono text-sm leading-5">
+          {hunks.length === 0 && (
             <div className="text-zinc-500 text-center py-4">无变更</div>
           )}
-          {changes.map((change, idx) => (
-            <div key={idx}>
-              {change.value.split('\n').map((line, lineIdx) => {
-                if (line === '' && lineIdx === change.value.split('\n').length - 1) return null;
-                const prefix = change.added ? '+' : '-';
-                const color = change.added ? 'text-green-400' : 'text-red-400';
+          {hunks.map((hunk, hi) => (
+            <div key={hi}>
+              {hi > 0 && <div className="h-px bg-zinc-700 mx-4" />}
+              {hunk.lines.map((line, li) => {
+                let bg = '';
+                let fg = 'text-zinc-400';
+                let prefix = ' ';
+                if (line.type === 'add') { bg = 'bg-green-900/30'; fg = 'text-green-300'; prefix = '+'; }
+                if (line.type === 'del') { bg = 'bg-red-900/30'; fg = 'text-red-300'; prefix = '-'; }
                 return (
-                  <div key={lineIdx} className={`${color} whitespace-pre-wrap`}>
-                    <span className="select-none mr-2">{prefix}</span>
-                    {line}
+                  <div key={li} className={`${bg} ${fg} px-4 whitespace-pre-wrap`}>
+                    <span className="select-none w-4 inline-block text-center mr-3 opacity-60">{prefix}</span>
+                    {line.text}
                   </div>
                 );
               })}
