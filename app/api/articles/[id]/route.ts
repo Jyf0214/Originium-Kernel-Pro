@@ -260,9 +260,28 @@ export async function DELETE(
     const db = getDb();
     const metaStr = await db.get(`article:data:${id}`);
 
+    // 数据库无记录 → 可能是文件系统发布的文章 → 从 GitHub 删除
     if (!metaStr) {
-      logger.warn('DELETE', '文章不存在', { id });
-      return NextResponse.json({ error: '文章不存在' }, { status: 404 });
+      const { getContentFile } = await import('@/lib/content');
+      const slug = id.startsWith('/') ? id : `/${id}`;
+      const file = getContentFile('posts', slug);
+      if (!file) {
+        logger.warn('DELETE', '文章不存在', { id });
+        return NextResponse.json({ error: '文章不存在' }, { status: 404 });
+      }
+
+      // 从 GitHub 删除
+      fetch(`${req.nextUrl.origin}/api/github`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete',
+          path: `posts${slug}.md`,
+          message: `delete: remove post "${file.meta.title}"`,
+        }),
+      }).catch(() => logger.warn('DELETE', 'GitHub 文件删除失败（已忽略）', { slug }));
+
+      return NextResponse.json({ success: true, message: '已删除' });
     }
 
     const meta = JSON.parse(metaStr);
