@@ -54,6 +54,19 @@ model OriginiumKV {
   @@index([key])
 }
 
+// 日记表
+model Diary {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  tags      String[] @default([])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("diaries")
+  @@index([createdAt])
+}
+
 // 文章删除申请表
 model Request {
   id        String   @id @default(cuid())

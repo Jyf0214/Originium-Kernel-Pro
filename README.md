@@ -8,6 +8,7 @@
 - **文章管理** - 创建、编辑、删除文章，支持 Markdown 格式与语法高亮
 - **Posts 系统** - 支持公开/私密文章，基于 slug 的 URL 路由
 - **Faces 画廊** - 人脸/图片画廊管理，支持 CRUD 操作
+- **日记管理** - 日记内容全部存储于数据库，支持创建、编辑、删除，与 GitHub 无关
 - **GitHub 同步** - 发布文章自动同步到 GitHub 仓库
 - **用户管理** - 三级权限系统（sudo/admin/user），支持用户组管理
 - **工单系统** - 可自定义工单模板，支持多种字段类型
@@ -38,6 +39,7 @@
 | `/forgot-password` | 忘记密码 | 公开 |
 | `/reset-password` | 重置密码 | 公开 |
 | `/editor` | 文章编辑器 | 登录用户 |
+| `/diary` | 日记页面 | admin/sudo |
 | `/dashboard` | 用户仪表盘 | 登录用户 |
 | `/dashboard/articles` | 文章管理 | 登录用户 |
 | `/dashboard/settings` | 用户设置 | 登录用户 |
@@ -70,6 +72,12 @@
 | POST | `/api/auth/bind-send-code` | 发送绑定验证码 |
 | POST | `/api/auth/bind-verify` | 验证绑定码 |
 | GET | `/api/auth/clerk-check` | Clerk 认证状态检查 |
+
+### 日记相关
+| 方法 | 路径 | 描述 | 权限 |
+|------|------|------|------|
+| GET | `/api/diary` | 获取日记条目列表 | admin/sudo |
+| POST | `/api/diary` | 创建/更新日记条目 | admin/sudo |
 
 ### 文章相关
 | 方法 | 路径 | 描述 |
@@ -231,6 +239,7 @@ PrivateJournal/
 │   ├── api/                    # API 路由
 │   │   ├── auth/               # 认证相关 API
 │   │   ├── articles/           # 文章 CRUD API
+│   │   ├── diary/              # 日记 API（数据库存储）
 │   │   ├── posts/              # Posts API
 │   │   ├── faces/              # Faces 画廊 API
 │   │   ├── tickets/            # 工单 API
@@ -250,6 +259,7 @@ PrivateJournal/
 │   ├── admin/                  # 管理员页面
 │   ├── clerk/                  # Clerk 认证页面
 │   ├── dashboard/              # 用户仪表盘
+│   ├── diary/                  # 日记页面
 │   ├── editor/                 # 文章编辑器
 │   ├── posts/                  # Posts 页面
 │   ├── faces/                  # Faces 画廊页面
@@ -278,7 +288,7 @@ PrivateJournal/
 ├── lib/                        # 工具库
 │   ├── auth.ts                 # 认证逻辑
 │   ├── config.ts               # 配置管理
-│   ├── content.ts              # 内容管理
+│   ├── content.ts              # 内容管理（文件系统文章/posts/faces，日记除外）
 │   ├── db.ts                   # 数据库接口
 │   ├── env.ts                  # 环境变量
 │   ├── github.ts               # GitHub 集成
@@ -329,10 +339,11 @@ PrivateJournal/
 - **User** - 用户表（uid, email, username, name, password, role, userGroup, status, clerkId, clerkLinkedAt）
 - **UserGroup** - 用户组表（id, name, description, permissions）
 - **OriginiumKV** - 键值存储表（key, value, expiry）
+- **Diary** - 日记表（日记内容全部存入数据库，不依赖文件系统或 GitHub）
 
 ## 站点配置
 
-通过 `config.json` 或管理员面板配置：
+通过 `config.json` 或管理员面板配置（仅基础配置，日记内容不入配置文件）：
 
 ```json
 {
