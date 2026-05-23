@@ -45,7 +45,7 @@ export default function ClerkAfterAuthPage() {
 
   if (!isLoaded || checking) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#f8f8f8]">
+      <div className="min-h-screen flex flex-col bg-zinc-50">
         <Navbar />
         <main className="flex-1 flex items-center justify-center">
           <GlobalLoading size="large" />
@@ -55,7 +55,7 @@ export default function ClerkAfterAuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8f8f8]">
+    <div className="min-h-screen flex flex-col bg-zinc-50">
       <Navbar />
       <main className="flex-1 flex items-center justify-center p-6">
         <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-10 max-w-md w-full text-center">
