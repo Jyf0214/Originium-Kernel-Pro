@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
 import { Button } from 'antd';
 import { GlobalLoading } from '@/components/Loading';
+import { showError } from '@/lib/error';
   import { Link } from 'lucide-react';
 
 /**
@@ -33,9 +34,11 @@ export default function ClerkAfterAuthPage() {
             router.push('/dashboard');
             return;
           }
+        } else {
+          showError('账户检查失败');
         }
       } catch {
-        // 检查失败，继续显示绑定选项
+        showError('账户检查失败');
       }
       setChecking(false);
     };

@@ -131,6 +131,8 @@ export default function DashboardPage() {
             slug: a.slug,
             updatedAt: a.updatedAt ?? a.date ?? '',
           })));
+        } else {
+          showError('文章数据加载失败');
         }
       } catch (error) {
         console.error('Failed to fetch stats:', error);

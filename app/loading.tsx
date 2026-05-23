@@ -16,7 +16,13 @@ export default function Loading() {
       try { setLoadingConfig(JSON.parse(cached)); return; } catch { /* ignore */ }
     }
     fetch('/api/config')
-      .then(res => res.ok ? res.json() : null)
+      .then(res => {
+        if (!res.ok) {
+          console.warn('加载配置获取失败:', res.status);
+          return null;
+        }
+        return res.json();
+      })
       .then(data => {
         const lc = data?.appearance?.loading;
         if (lc) {
@@ -29,7 +35,9 @@ export default function Loading() {
           try { sessionStorage.setItem('loading-config', JSON.stringify(config)); } catch { /* ignore */ }
         }
       })
-      .catch(() => undefined);
+      .catch(() => {
+        console.warn('加载配置请求异常，使用默认加载状态');
+      });
   }, []);
 
   return (

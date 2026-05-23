@@ -94,8 +94,12 @@ export function useMainTone(
               checkImg.src = cdnUrl;
             });
             color = await getDominantColorFromCanvas(cdnUrl);
+          } else {
+            console.warn('CDN 色调检测 HEAD 请求失败:', res.status);
           }
-        } catch {}
+        } catch {
+          console.warn('CDN 色调检测请求异常');
+        }
       }
 
       if (!color && (mode === 'api' || mode === 'both')) {

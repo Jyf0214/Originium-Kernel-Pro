@@ -12,6 +12,7 @@ import { Avatar } from '@/components/Avatar';
 import Footer from '@/components/Footer';
 import AuthorCard from '@/components/AuthorCard';
 import { useConfig } from '@/hooks/use-config';
+import { showError } from '@/lib/error';
 import { Calendar, Mail, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 
@@ -46,10 +47,15 @@ function UserProfileContent() {
           if (articlesRes.ok) {
             const articlesData = await articlesRes.json();
             setArticles(articlesData.filter((a: Article) => a.status === 'published'));
+          } else {
+            showError('文章列表加载失败');
           }
+        } else {
+          showError('用户信息加载失败');
         }
       } catch (error) {
         console.error('Fetch user error:', error);
+        showError('用户信息加载失败');
       } finally {
         setLoading(false);
       }

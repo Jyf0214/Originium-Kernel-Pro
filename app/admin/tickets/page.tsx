@@ -44,6 +44,8 @@ export default function TicketsPage() {
       if (res.ok) {
         const data = await res.json();
         setTemplates(data);
+      } else {
+        showError('工单模板加载失败');
       }
 	} catch (error) {
 		console.error('Failed to fetch templates:', error);

@@ -6,6 +6,7 @@ import { useI18n } from '@/hooks/use-i18n';
 import { GlobalLoading } from '@/components/Loading';
 import { useGitHubConfigSync } from '@/hooks/use-github-config-sync';
 import ConfigEditor from './config-editor';
+import { showError } from '@/lib/error';
 import { buildConfigState, type ConfigState } from './config-builders';
 
 export default function ConfigPage() {
@@ -106,9 +107,12 @@ export default function ConfigPage() {
           setRemoteConfig((data._remoteConfig as string) ?? '');
           setRemoteConfigStatus((data._remoteConfigStatus as string) ?? '');
           setRemoteConfigError((data._remoteConfigError as string) ?? '');
+        } else {
+          showError('配置加载失败');
         }
       } catch (error) {
         console.error('获取配置失败:', error);
+        showError('配置加载失败');
       } finally {
         setLoading(false);
       }

@@ -91,19 +91,22 @@ export function useDiaryDraft({ id, title, content, tags, date, onDraftFound }: 
     }
 
     fetch(`/api/diary/draft?id=${encodeURIComponent(id)}`)
-      .then((res) => res.ok ? res.json() : null)
+      .then((res) => {
+        if (!res.ok) { console.warn('草稿加载失败:', res.status); return null; }
+        return res.json();
+      })
       .then((json) => {
         if (json?.draft && onDraftFound) {
           onDraftFound(json.draft);
         }
       })
-      .catch(() => undefined);
+      .catch((err) => console.warn('草稿加载异常:', err));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   function clearDraft() {
     removeLocalDraft(id);
-    fetch(`/api/diary/draft?id=${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(() => undefined);
+    fetch(`/api/diary/draft?id=${encodeURIComponent(id)}`, { method: 'DELETE' }).catch((err) => console.warn('草稿删除异常:', err));
   }
 
   return { clearDraft, saveStatus, lastSavedAt };

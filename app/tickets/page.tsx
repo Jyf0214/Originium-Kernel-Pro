@@ -30,7 +30,7 @@ export default function TicketsPage() {
   const fetchTickets = async () => {
     try {
       const res = await fetch('/api/tickets');
-      if (res.ok) { const data = await res.json(); setTickets(data); }
+      if (res.ok) { const data = await res.json(); setTickets(data); } else { showError('工单列表加载失败'); }
     } catch (error) {
 		console.error('Failed to fetch tickets:', error);
 		showError('工单列表加载失败');

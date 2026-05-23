@@ -40,7 +40,7 @@ export default function NewTicketPage() {
   useEffect(() => {
     if (!user) { router.push('/login'); return; }
     fetch('/api/ticket-templates')
-      .then(res => res.json())
+      .then(res => { if (!res.ok) throw new Error('工单模板加载失败'); return res.json(); })
       .then(data => setTemplates(data))
 		.catch(err => { console.error('Failed to fetch templates:', err); showError('工单模板加载失败'); });
   }, [user, router]);
