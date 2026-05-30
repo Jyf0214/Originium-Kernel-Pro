@@ -34,6 +34,19 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const { t } = useI18n();
 
+  // groupName → slug 前缀映射（如 "朋友圈" → "friends"）
+  const groupMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const g of groups) {
+      if (g.groupName && g.slug) {
+        // slug 如 "/friends"，取第一段
+        const segment = g.slug.split('/').filter(Boolean)[0];
+        if (segment) map.set(g.groupName, segment);
+      }
+    }
+    return map;
+  }, [groups]);
+
   const groupNames = useMemo(
     () => (Array.isArray(groups) ? [...new Set(groups.map((g) => g.groupName).filter(Boolean))] as string[] : []),
     [groups]
@@ -48,13 +61,15 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
 
       let matchesGroup = true;
       if (activeGroup) {
-        const faceGroup = f.slug.split('/').filter(Boolean)[0] ?? null;
-        matchesGroup = faceGroup === activeGroup;
+        const faceSlug = f.slug.split('/').filter(Boolean)[0] ?? null;
+        // 通过 groupMap 将 groupName 转为 slug 前缀进行比较
+        const expectedSlug = groupMap.get(activeGroup);
+        matchesGroup = !!expectedSlug && faceSlug === expectedSlug;
       }
 
       return matchesSearch && matchesGroup;
     });
-  }, [faces, searchTerm, activeGroup]);
+  }, [faces, searchTerm, activeGroup, groupMap]);
 
   return (
     <div>
