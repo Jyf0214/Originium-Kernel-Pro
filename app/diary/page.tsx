@@ -4,7 +4,7 @@ import React from 'react';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
-import { Plus, Edit3, Trash2, Calendar, Tag, Eye, X, Loader2, Search, FileText, Pin, ShieldAlert } from 'lucide-react';
+import { Plus, Edit3, Trash2, Calendar, Tag, Eye, X, Loader2, Search, FileText, Pin, ShieldAlert, Settings, Download } from 'lucide-react';
 import { showError } from '@/lib/error';
 import { GlobalLoading } from '@/components/Loading';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
@@ -44,6 +44,8 @@ export default function DiaryPage() {
   const [startDate, setStartDate] = React.useState('');
   const [endDate, setEndDate] = React.useState('');
   const [showSecurityInfo, setShowSecurityInfo] = React.useState(false);
+  const [showSettings, setShowSettings] = React.useState(false);
+  const [exportLoading, setExportLoading] = React.useState(false);
 
   const { user, isSudo, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -130,6 +132,28 @@ export default function DiaryPage() {
     }
   };
 
+  const handleExport = async () => {
+    setExportLoading(true);
+    try {
+      const res = await fetch('/api/diary/export');
+      if (!res.ok) throw new Error('导出失败');
+      const json = await res.json();
+      const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `diary-export-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      showError('导出日记失败');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   if (authLoading) return <GlobalLoading />;
 
   return (
@@ -153,6 +177,17 @@ export default function DiaryPage() {
             </p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 border rounded-xl transition-colors font-medium text-sm ${
+                showSettings
+                  ? 'border-zinc-900 bg-zinc-900 text-white'
+                  : 'border-zinc-200 text-zinc-600 hover:bg-zinc-100'
+              }`}
+              title="日记设置"
+            >
+              <Settings size={14} className="sm:size-4" />
+            </button>
             <button
               onClick={() => router.push('/diary/drafts')}
               className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 border border-zinc-200 text-zinc-600 rounded-xl hover:bg-zinc-100 transition-colors font-medium text-sm"
@@ -197,6 +232,23 @@ export default function DiaryPage() {
             title="结束日期"
           />
         </div>
+
+        {showSettings && (
+          <div className="mb-6 sm:mb-8 bg-white rounded-2xl border border-zinc-100 p-4 sm:p-6">
+            <h3 className="text-sm font-bold text-zinc-900 mb-3">日记设置</h3>
+            <div className="space-y-3">
+              <button
+                onClick={handleExport}
+                disabled={exportLoading}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-zinc-900 text-white rounded-xl hover:bg-zinc-800 transition-colors font-medium text-sm disabled:opacity-50"
+              >
+                {exportLoading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                导出全部日记（JSON）
+              </button>
+              <p className="text-xs text-zinc-400">导出的 JSON 文件包含所有日记的标题、内容、标签和日期。</p>
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex items-center justify-center py-24 sm:py-32">
