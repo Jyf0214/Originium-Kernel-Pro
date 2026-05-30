@@ -52,6 +52,9 @@ export function useDiaryDraft({ id, title, content, tags, date, onDraftFound }: 
   const hasCheckedRef = useRef(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  // 用 ref 保存最新 props，避免依赖变化导致定时器不断重置
+  const propsRef = useRef({ id, title, content, tags, date });
+  propsRef.current = { id, title, content, tags, date };
 
   // 将回调函数存入 ref，避免 useEffect 依赖重新创建导致无限循环
   const onDraftFoundRef = useRef(onDraftFound);
@@ -59,14 +62,18 @@ export function useDiaryDraft({ id, title, content, tags, date, onDraftFound }: 
     onDraftFoundRef.current = onDraftFound;
   }, [onDraftFound]);
 
-  const autoSave = useCallback(() => {
+  const doSave = useCallback(() => {
+    const p = propsRef.current;
+    // 不保存空内容
+    if (!p.title && !p.content) return;
+
     setSaveStatus('saving');
-    const data: DraftData = { title, content, tags, date };
-    saveLocalDraft(id, data);
+    const data: DraftData = { title: p.title, content: p.content, tags: p.tags, date: p.date };
+    saveLocalDraft(p.id, data);
     fetch('/api/diary/draft', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, title, content, tags, date }),
+      body: JSON.stringify({ id: p.id, title: p.title, content: p.content, tags: p.tags, date: p.date }),
     })
       .then((res) => {
         if (res.ok) {
@@ -79,15 +86,30 @@ export function useDiaryDraft({ id, title, content, tags, date, onDraftFound }: 
       .catch(() => {
         setSaveStatus('error');
       });
-  }, [id, title, content, tags, date]);
+  }, []);
 
+  // 防抖自动保存：仅当 title/content 真正变化时重置定时器
   useEffect(() => {
+    if (!title && !content) return;
+
     if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(autoSave, AUTOSAVE_DEBOUNCE_MS);
+    timerRef.current = setTimeout(doSave, AUTOSAVE_DEBOUNCE_MS);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [autoSave]);
+  }, [title, content, doSave]);
+
+  // 页面/标签页隐藏时立即保存
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden && (title || content)) {
+        if (timerRef.current) clearTimeout(timerRef.current);
+        doSave();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [title, content, doSave]);
 
   useEffect(() => {
     if (hasCheckedRef.current) return;
