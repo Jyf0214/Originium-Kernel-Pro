@@ -8,18 +8,41 @@ export const GET = apiHandler('GET', { label: '导出日记', requireAdmin: true
     orderBy: { date: 'desc' },
   });
 
-  const entries = await Promise.all(
-    diaries.map(async (d) => ({
-      id: d.id,
-      title: d.title,
-      content: await decryptContent(d.content),
-      tags: d.tags,
-      date: d.date.toISOString().slice(0, 10),
-      pinned: d.pinned,
-      createdAt: d.createdAt.toISOString(),
-      updatedAt: d.updatedAt.toISOString(),
-    })),
-  );
+  const parts: string[] = [];
 
-  return NextResponse.json({ entries, exportedAt: new Date().toISOString() });
+  for (const d of diaries) {
+    const content = await decryptContent(d.content);
+    const date = d.date.toISOString().slice(0, 10);
+    const tags = d.tags.length > 0 ? d.tags.join(', ') : '';
+    const pinned = d.pinned ? '是' : '否';
+
+    const front = [
+      `# ${d.title}`,
+      '',
+      `**日期**：${date}`,
+    ];
+    if (tags) front.push(`**标签**：${tags}`);
+    front.push(`**置顶**：${pinned}`);
+    front.push('', '---', '');
+
+    parts.push([...front, content, '', '---', '', ''].join('\n'));
+  }
+
+  const markdown = [
+    '# 日记导出',
+    '',
+    `**导出时间**：${new Date().toLocaleString('zh-CN')}`,
+    `**日记总数**：${diaries.length}`,
+    '',
+    '---',
+    '',
+    ...parts,
+  ].join('\n');
+
+  return new NextResponse(markdown, {
+    headers: {
+      'Content-Type': 'text/markdown; charset=utf-8',
+      'Content-Disposition': `attachment; filename="diary-export-${new Date().toISOString().slice(0, 10)}.md"`,
+    },
+  });
 });
