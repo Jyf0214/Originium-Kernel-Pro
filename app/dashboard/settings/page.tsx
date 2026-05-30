@@ -128,8 +128,8 @@ export default function SettingsPage() {
     void refresh();
   }, [refresh]);
 
-  const handleSyncError = useCallback((e: unknown) => {
-    showError(`头像同步失败: ${e instanceof Error ? e.message : '未知错误'}`);
+  const handleSyncError = useCallback(() => {
+    // 钩子内部已显示错误提示，无需重复显示
   }, []);
 
   const { handleSave: syncAvatar, DiffModal } = useGitHubConfigSync({
@@ -210,7 +210,7 @@ export default function SettingsPage() {
 
     setLoading(false);
     syncAvatar(
-      { avatarUrl: originalAvatar, _uid: uid, _ts: Date.now() },
+      { avatarUrl: originalAvatar, _uid: uid },
       remoteRaw,
       `chore: update avatar for user ${user?.name ?? uid}`,
       effectiveRepo,
