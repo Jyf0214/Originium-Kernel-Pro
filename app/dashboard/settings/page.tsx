@@ -65,10 +65,12 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [originalAvatar, setOriginalAvatar] = useState('');
   const [githubRepo, setGithubRepo] = useState('');
+  const [configData, setConfigData] = useState<Record<string, unknown> | null>(null);
+  const [configLoaded, setConfigLoaded] = useState(false);
 
   const watchedAvatarUrl = Form.useWatch('avatarUrl', form);
 
-  // 页面加载时从 /api/config 获取 GitHub 仓库地址
+  // 页面加载时从 /api/config 获取 GitHub 仓库地址及远程配置数据
   useEffect(() => {
     const fetchGithubInfo = async () => {
       try {
@@ -78,11 +80,14 @@ export default function SettingsPage() {
           if (data._githubRepo) {
             setGithubRepo(data._githubRepo);
           }
+          setConfigData(data);
         } else {
           showError('GitHub 配置加载失败');
         }
       } catch {
         showError('GitHub 配置加载失败');
+      } finally {
+        setConfigLoaded(true);
       }
     };
     void fetchGithubInfo();
@@ -142,17 +147,20 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    if (user) {
-      const avatar = user.avatar ?? '';
-      setOriginalAvatar(avatar);
+    if (user && configLoaded) {
+      // 优先使用远程配置中的头像，其次本地用户头像
+      const remoteAvatar = (configData as { users?: Record<string, { avatar?: string }> } | undefined)
+        ?.users?.[user.uid]?.avatar;
+      const effectiveAvatar = remoteAvatar ?? user.avatar ?? '';
+      setOriginalAvatar(effectiveAvatar);
       form.setFieldsValue({
-        avatarUrl: avatar,
+        avatarUrl: effectiveAvatar,
         username: user.name ?? '',
         displayName: user.displayName ?? user.name ?? '',
       });
       setPageLoading(false);
     }
-  }, [user, form]);
+  }, [user, configLoaded, configData, form]);
 
   const handleSave = async (values: Record<string, string>) => {
     setLoading(true);
@@ -197,15 +205,15 @@ export default function SettingsPage() {
   const syncAvatarChanges = async (uid: string) => {
     const configRes = await fetch('/api/config');
     if (!configRes.ok) throw new Error('读取配置失败');
-    const configData = await configRes.json();
+    const configResData = await configRes.json();
 
-    const effectiveRepo = githubRepo ?? configData._githubRepo ?? '';
+    const effectiveRepo = githubRepo ?? configResData._githubRepo ?? '';
     if (!effectiveRepo) {
       message.error('GitHub 未配置，无法同步头像');
       return;
     }
 
-    const remoteRaw = configData._remoteConfig ?? '';
+    const remoteRaw = configResData._remoteConfig ?? '';
     if (!remoteRaw) throw new Error('远程配置为空');
 
     setLoading(false);
