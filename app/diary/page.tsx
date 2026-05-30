@@ -4,7 +4,7 @@ import React from 'react';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
-import { Plus, Edit3, Trash2, Calendar, Tag, Eye, X, Loader2, Search, FileText, Pin } from 'lucide-react';
+import { Plus, Edit3, Trash2, Calendar, Tag, Eye, X, Loader2, Search, FileText, Pin, ShieldAlert } from 'lucide-react';
 import { showError } from '@/lib/error';
 import { GlobalLoading } from '@/components/Loading';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
@@ -43,6 +43,7 @@ export default function DiaryPage() {
   const [searchText, setSearchText] = React.useState('');
   const [startDate, setStartDate] = React.useState('');
   const [endDate, setEndDate] = React.useState('');
+  const [showSecurityInfo, setShowSecurityInfo] = React.useState(false);
 
   const { user, isSudo, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -140,7 +141,16 @@ export default function DiaryPage() {
             <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-black tracking-tighter text-zinc-900 mb-1 sm:mb-2">
               日记
             </h1>
-            <p className="text-sm sm:text-base text-zinc-400">仅管理员可查看 · 全部存储于数据库</p>
+            <p className="text-sm sm:text-base text-zinc-400">
+              安全 · 隐私
+              <button
+                onClick={() => setShowSecurityInfo(true)}
+                className="inline-flex items-center ml-1 text-amber-500 hover:text-amber-600 transition-colors"
+                title="查看详情"
+              >
+                <ShieldAlert size={16} className="sm:size-[18]" />
+              </button>
+            </p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <button
@@ -288,6 +298,41 @@ export default function DiaryPage() {
           </div>
         )}
       </PageContainer>
+
+      {/* 安全与隐私说明弹窗 */}
+      {showSecurityInfo && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={() => setShowSecurityInfo(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 sm:p-8 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowSecurityInfo(false)}
+              className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-900 transition-colors"
+            >
+              <X size={20} />
+            </button>
+            <h2 className="text-lg font-bold text-zinc-900 mb-4">安全与隐私</h2>
+            <ul className="space-y-3 text-sm text-zinc-600">
+              <li className="flex items-start gap-2">
+                <ShieldAlert size={16} className="shrink-0 mt-0.5 text-amber-500" />
+                <span>本页面仅管理员可查看，其他用户无法访问。</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <ShieldAlert size={16} className="shrink-0 mt-0.5 text-blue-500" />
+                <span>日记内容加密后全部存储于数据库中，服务端无法直接读取明文。</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <ShieldAlert size={16} className="shrink-0 mt-0.5 text-green-500" />
+                <span>本地 localStorage 同步缓存草稿，仅当前设备可访问。</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
