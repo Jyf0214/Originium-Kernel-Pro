@@ -137,12 +137,11 @@ export default function DiaryPage() {
     try {
       const res = await fetch('/api/diary/export');
       if (!res.ok) throw new Error('导出失败');
-      const json = await res.json();
-      const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
+      const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `diary-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `diary-export-${new Date().toISOString().slice(0, 10)}.md`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -243,9 +242,9 @@ export default function DiaryPage() {
                 className="inline-flex items-center gap-2 px-4 py-2.5 bg-zinc-900 text-white rounded-xl hover:bg-zinc-800 transition-colors font-medium text-sm disabled:opacity-50"
               >
                 {exportLoading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-                导出全部日记（JSON）
+                导出全部日记（Markdown）
               </button>
-              <p className="text-xs text-zinc-400">导出的 JSON 文件包含所有日记的标题、内容、标签和日期。</p>
+              <p className="text-xs text-zinc-400">导出的 Markdown 文件包含所有日记的标题、内容、标签和日期。</p>
             </div>
           </div>
         )}
