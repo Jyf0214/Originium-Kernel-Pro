@@ -21,7 +21,7 @@ interface RecentUpdatesBarProps {
  */
 export function RecentUpdatesBar({
   updates,
-  viewAllLink = '/updates',
+  viewAllLink = '/posts',
   viewAllText = '更多',
 }: RecentUpdatesBarProps) {
   const [currentIndex, setCurrentIndex] = useState(0);

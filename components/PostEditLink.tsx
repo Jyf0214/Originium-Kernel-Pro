@@ -17,7 +17,7 @@ export default function PostEditLink({ slug }: PostEditLinkProps) {
   if (!cfg?.enable) return null;
 
   const href = isLoggedIn
-    ? `/editor/${slug}`
+    ? `/editor?id=${slug}`
     : typeof cfg.github === 'string'
       ? `${cfg.github}${slug}.md`
       : null;
