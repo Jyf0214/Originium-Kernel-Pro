@@ -80,7 +80,7 @@ function NavAuthSection({ user, allowRegistration, clerkAvailable, t }: { user: 
         </Button>
       </Link>
       {allowRegistration && (
-        <Link href="/register">
+        <Link href="/login">
           <Button size="large" className="bg-zinc-900 text-white hover:bg-zinc-800 border-0 rounded-xl px-6">
             <span className="flex items-center gap-1.5">
               <LoginOutlined />

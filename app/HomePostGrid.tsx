@@ -161,9 +161,9 @@ export function HomePostGrid({ posts, postCount, facesCount, isAdmin = false, he
 
   // 硬编码最新动态列表
   const recentUpdates = [
-    { text: '新功能：暗色模式上线', link: '/updates' },
+    { text: '新功能：暗色模式上线', link: '/posts' },
     { text: '欢迎使用 Originium Kernel', link: '/about' },
-    { text: '日记功能已更新，支持 Markdown 编辑', link: '/updates' },
+    { text: '日记功能已更新，支持 Markdown 编辑', link: '/diary' },
     { text: '新增文章搜索与标签筛选功能', link: '/posts' },
   ];
 

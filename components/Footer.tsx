@@ -80,8 +80,8 @@ const DEFAULT_LINKS: FooterLinkGroup[] = [
     group: '服务',
     items: [
       { name: '关于我们', url: '/about' },
-      { name: '隐私政策', url: '/privacy' },
-      { name: '服务条款', url: '/terms' },
+      { name: '隐私政策', url: '/about' },
+      { name: '服务条款', url: '/about' },
     ],
   },
   {
