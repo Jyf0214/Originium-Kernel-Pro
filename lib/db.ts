@@ -63,10 +63,19 @@ export interface IDatabase {
   hset(key: string, field: string, value: string): Promise<void>
   hdel(key: string, field: string): Promise<void>
   hgetall(key: string): Promise<Record<string, string>>
+  /**
+   * Prisma 客户端直接访问入口。
+   * 当数据库未配置(DATABASE_URL 等均未设置)时返回 null,
+   * 调用方需自行降级处理(典型场景:视为「未配置」,跳过结构化数据访问)。
+   */
+  readonly prisma: PrismaClient | null
 }
 
 // Prisma 实现的数据库接口
 class PrismaDriver implements IDatabase {
+  /** 数据库未配置时为 null;调用方应将其视为「未配置」并降级处理 */
+  public readonly prisma: PrismaClient | null = getDatabaseUrl() ? prisma : null
+
   async get(key: string): Promise<string | null> {
     const record = await prisma.originiumKV.findUnique({ where: { key } })
     if (!record) return null

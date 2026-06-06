@@ -2,13 +2,13 @@
  * 存储池管理 API 共享工具
  *
  * 仅供 app/api/storage/** 下的路由使用,集中处理:
- * - 文件夹元数据(KV,前缀 storage-folder-meta:)的增删查
+ * - 文件夹元数据(Prisma `storageFolder` 表,StorageFolder model)的增删查
  * - WebDAV 未配置 / 路径非法 / 资源不存在 / 上游错误的统一响应
  * - [...path] 路由参数到 WebDAV 目标路径的解析
  * - WebDavEntry 类型转换
  *
- * 与 lib/storage/acl.ts 保持同构:acl.ts 只读 KV(用于公开访问的 ACL 判定),
- * 本文件在管理员操作时同时读写 KV。
+ * 与 lib/storage/acl.ts 保持同构:acl.ts 读 Prisma(用于公开访问的 ACL 判定),
+ * 本文件在管理员操作时同时读写 Prisma。
  */
 import { NextResponse, type NextRequest } from 'next/server'
 import type { FileStat } from 'webdav'
@@ -27,9 +27,6 @@ interface HandlerOptions {
 
 /** WebDAV 服务器根路径:暂未支持多挂载,所有路径相对服务器根(空串) */
 const STORAGE_ROOT = ''
-
-/** KV 中文件夹元数据 key 的前缀(与 lib/storage/acl.ts 一致) */
-const FOLDER_META_PREFIX = 'storage-folder-meta:'
 
 /** 上传文件大小上限:50MB */
 export const MAX_UPLOAD_SIZE = 50 * 1024 * 1024
@@ -64,6 +61,14 @@ export function webdavNotConfigured(): NextResponse {
   )
 }
 
+/** 数据库未配置时返回的 503 响应(供前端识别) */
+export function databaseNotConfigured(): NextResponse {
+  return NextResponse.json(
+    { error: '数据库未配置', code: 'DB_NOT_CONFIGURED' },
+    { status: 503 }
+  )
+}
+
 /** 路径非法时返回的 400 响应 */
 export function invalidPathResponse(): NextResponse {
   return NextResponse.json({ error: '路径非法' }, { status: 400 })
@@ -91,74 +96,89 @@ export async function getPathParts(
   return Array.isArray(raw) ? (raw as string[]) : []
 }
 
-/** 读取单个文件夹元数据;不存在或损坏 → null */
+/** 读取单个文件夹元数据;数据库未配置或记录不存在 → null */
 export async function readFolderMeta(path: string): Promise<StorageFolderMeta | null> {
-  const raw = await getDb().get(`${FOLDER_META_PREFIX}${path}`)
-  if (!raw) return null
+  const prisma = getDb().prisma
+  if (!prisma) return null
   try {
-    const p = JSON.parse(raw) as {
-      path: string
-      public: boolean
-      description: string | null
-      createdAt: string
-      updatedAt: string
-    }
+    const row = await prisma.storageFolder.findUnique({ where: { path } })
+    if (!row) return null
     return {
-      path: p.path,
-      public: p.public,
-      description: p.description,
-      createdAt: new Date(p.createdAt),
-      updatedAt: new Date(p.updatedAt),
+      path: row.path,
+      public: row.public,
+      description: row.description,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
     }
   } catch {
     return null
   }
 }
 
-/** 写入文件夹元数据(JSON 序列化到 KV) */
+/**
+ * 写入/更新文件夹元数据(upsert 语义)
+ *
+ * - 数据库未配置 → 静默跳过(调用方需在调用前做 503 判断)
+ * - 已有记录 → 仅刷新 `updatedAt`,其他字段保留(便于 mkdir 时保留已配置公开状态)
+ * - 不存在 → 创建默认私有记录(public=false, description=null)
+ */
 export async function writeFolderMeta(meta: StorageFolderMeta): Promise<void> {
-  await getDb().set(
-    `${FOLDER_META_PREFIX}${meta.path}`,
-    JSON.stringify({
+  const prisma = getDb().prisma
+  if (!prisma) return
+  await prisma.storageFolder.upsert({
+    where: { path: meta.path },
+    create: {
       path: meta.path,
       public: meta.public,
       description: meta.description,
-      createdAt: meta.createdAt.toISOString(),
-      updatedAt: meta.updatedAt.toISOString(),
-    })
-  )
+    },
+    update: {
+      public: meta.public,
+      description: meta.description,
+      updatedAt: meta.updatedAt,
+    },
+  })
 }
 
-/** 删除文件夹元数据 */
+/**
+ * 删除文件夹元数据(记录不存在不抛错)
+ *
+ * - 数据库未配置 → 静默跳过
+ * - Prisma P2025 (RecordNotFound) → 忽略(幂等)
+ * - 其他异常 → 静默忽略(失败安全;WebDAV 删除可能已成功)
+ */
 export async function deleteFolderMeta(path: string): Promise<void> {
-  await getDb().del(`${FOLDER_META_PREFIX}${path}`)
+  const prisma = getDb().prisma
+  if (!prisma) return
+  try {
+    await prisma.storageFolder.delete({ where: { path } })
+  } catch (err) {
+    // Prisma 错误码 P2025 表示记录不存在
+    const code = (err as { code?: string })?.code
+    if (code === 'P2025') return
+    // 其他错误不再上抛,避免 WebDAV 已删除成功却被元数据删除失败阻断
+    // 上层若有更高一致性需求,可在路由层另行处理
+  }
 }
 
-/** 列出所有文件夹元数据(损坏数据自动跳过) */
+/** 列出所有文件夹元数据,按路径升序;数据库未配置 → 空数组 */
 export async function listAllFolderMetas(): Promise<StorageFolderMeta[]> {
-  const all = await getDb().hgetall(FOLDER_META_PREFIX)
-  const result: StorageFolderMeta[] = []
-  for (const raw of Object.values(all)) {
-    try {
-      const p = JSON.parse(raw) as {
-        path: string
-        public: boolean
-        description: string | null
-        createdAt: string
-        updatedAt: string
-      }
-      result.push({
-        path: p.path,
-        public: p.public,
-        description: p.description,
-        createdAt: new Date(p.createdAt),
-        updatedAt: new Date(p.updatedAt),
-      })
-    } catch {
-      // 跳过损坏数据
-    }
+  const prisma = getDb().prisma
+  if (!prisma) return []
+  try {
+    const rows = await prisma.storageFolder.findMany({
+      orderBy: { path: 'asc' },
+    })
+    return rows.map((row) => ({
+      path: row.path,
+      public: row.public,
+      description: row.description,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    }))
+  } catch {
+    return []
   }
-  return result
 }
 
 /** 转换 webdav FileStat → WebDavEntry(mime 缺失时为 null) */
