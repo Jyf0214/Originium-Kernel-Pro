@@ -5,21 +5,27 @@
  */
 import { NextResponse } from 'next/server'
 import { ApiErr } from '@/lib/api-handler'
+import { getDb } from '@/lib/db'
 import {
   catchAllHandler,
+  databaseNotConfigured,
   getPathParts,
-  resolveStoragePath,
-  isValidStoragePath,
   invalidPathResponse,
+  isValidStoragePath,
   readFolderMeta,
-  writeFolderMeta,
+  resolveStoragePath,
+  webdavNotConfigured,
 } from '../../_helpers'
+import { isWebDavConfigured } from '@/lib/webdav'
 
 /** 读取单条文件夹元数据 */
 export const GET = catchAllHandler<{ path: string[] }>(
   'GET',
   { label: 'storage.folder.get', requireAdmin: true },
   async (_req, context) => {
+    if (!isWebDavConfigured()) return webdavNotConfigured()
+    if (!getDb().prisma) return databaseNotConfigured()
+
     const parts = await getPathParts(context)
     const path = resolveStoragePath(parts)
     if (!isValidStoragePath(path)) return invalidPathResponse()
@@ -35,6 +41,10 @@ export const PATCH = catchAllHandler<{ path: string[] }>(
   'PATCH',
   { label: 'storage.folder.patch', requireAdmin: true },
   async (req, context) => {
+    if (!isWebDavConfigured()) return webdavNotConfigured()
+    const prisma = getDb().prisma
+    if (!prisma) return databaseNotConfigured()
+
     const parts = await getPathParts(context)
     const path = resolveStoragePath(parts)
     if (!isValidStoragePath(path)) return invalidPathResponse()
@@ -62,15 +72,26 @@ export const PATCH = catchAllHandler<{ path: string[] }>(
       return ApiErr.badRequest('description 必须是 string 或 null')
     }
 
-    const next: typeof existing = {
-      path: existing.path,
-      public: rawPublic ?? existing.public,
-      description:
-        rawDescription === undefined ? existing.description : rawDescription,
-      createdAt: existing.createdAt,
-      updatedAt: new Date(),
-    }
-    await writeFolderMeta(next)
-    return NextResponse.json(next)
+    const nextPublic = rawPublic ?? existing.public
+    const nextDescription = rawDescription ?? existing.description
+    const updatedAt = new Date()
+
+    // Prisma 直接 update,保留 createdAt,刷新 updatedAt
+    const updated = await prisma.storageFolder.update({
+      where: { path },
+      data: {
+        public: nextPublic,
+        description: nextDescription,
+        updatedAt,
+      },
+    })
+
+    return NextResponse.json({
+      path: updated.path,
+      public: updated.public,
+      description: updated.description,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
+    })
   }
 )

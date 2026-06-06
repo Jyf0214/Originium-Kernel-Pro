@@ -1,12 +1,14 @@
 /**
- * 在 WebDAV 创建文件夹,并在 KV 写入对应元数据(默认私有)
+ * 在 WebDAV 创建文件夹,并在 Prisma `storageFolder` 表写入/更新对应元数据(默认私有)
  * POST /api/storage/mkdir/[...path]
- * 已有元数据时保留原 public/description/createdAt,只更新 updatedAt
+ * 已有元数据时保留原 public/description/createdAt,只刷新 updatedAt
  */
 import { NextResponse } from 'next/server'
+import { getDb } from '@/lib/db'
 import {
   buildWebDavTarget,
   catchAllHandler,
+  databaseNotConfigured,
   getPathParts,
   getWebDavClient,
   invalidPathResponse,
@@ -17,7 +19,6 @@ import {
   rootNotAllowedResponse,
   webdavErrorResponse,
   webdavNotConfigured,
-  writeFolderMeta,
 } from '../../_helpers'
 
 export const POST = catchAllHandler<{ path: string[] }>(
@@ -25,6 +26,8 @@ export const POST = catchAllHandler<{ path: string[] }>(
   { label: 'storage.mkdir', requireAdmin: true },
   async (_req, context) => {
     if (!isWebDavConfigured()) return webdavNotConfigured()
+    const prisma = getDb().prisma
+    if (!prisma) return databaseNotConfigured()
 
     const parts = await getPathParts(context)
     const rel = resolveStoragePath(parts)
@@ -40,19 +43,31 @@ export const POST = catchAllHandler<{ path: string[] }>(
       return webdavErrorResponse(err, '创建目录')
     }
 
-    // 再 upsert KV 元数据(保留已有公开/描述)
+    // 再 upsert Prisma 元数据(保留已有公开/描述,仅刷新 updatedAt)
     const existing = await readFolderMeta(rel)
     const now = new Date()
+    const upserted = await prisma.storageFolder.upsert({
+      where: { path: rel },
+      create: {
+        path: rel,
+        public: false,
+        description: null,
+      },
+      update: {
+        // 保留 public / description;仅刷新 updatedAt
+        updatedAt: now,
+      },
+    })
+
     const meta = existing
-      ? { ...existing, updatedAt: now }
+      ? { ...existing, updatedAt: upserted.updatedAt }
       : {
-          path: rel,
-          public: false,
-          description: null as string | null,
-          createdAt: now,
-          updatedAt: now,
+          path: upserted.path,
+          public: upserted.public,
+          description: upserted.description,
+          createdAt: upserted.createdAt,
+          updatedAt: upserted.updatedAt,
         }
-    await writeFolderMeta(meta)
 
     return NextResponse.json(meta)
   }

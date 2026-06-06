@@ -3,15 +3,13 @@
  *
  * 核心原则:
  * - 未配置的文件夹默认私有(失败安全)
- * - 所有 DB 调用走 `getDb()` 抽象,不直接耦合 Prisma
+ * - 文件夹元数据走 Prisma `storageFolder` 表(StorageFolder model)
+ * - 数据库未配置(`db.prisma` 为 null) → 视为「未配置」,所有读函数返回 false
  * - 顶层文件夹可见性决定子项:子路径与顶层共享同一权限
  */
 import { getDb } from '@/lib/db'
 import { isWebDavConfigured } from '@/lib/webdav'
 import type { AccessResult, StorageFolderMeta } from './types'
-
-/** 存储池文件夹元数据在 KV 中的前缀 */
-const STORAGE_FOLDER_META_PREFIX = 'storage-folder-meta:'
 
 /**
  * 规范化路径:去除前导/尾随斜杠,空字符串代表根
@@ -43,34 +41,29 @@ export function getTopLevelFolder(path: string): string {
 }
 
 /**
- * 从 KV 读取文件夹元数据(原始 JSON 形态)
+ * 从 Prisma `storageFolder` 表读取单条文件夹元数据
  *
- * 内部辅助函数,不做错误吞噬,只捕获 JSON 解析失败。
+ * 返回值:
+ * - 找到 → 标准化为 `StorageFolderMeta`(Date 类型)
+ * - 数据库未配置 → null
+ * - 记录不存在 → null
+ * - 异常 → null(失败安全)
  */
-interface StoredFolderMeta {
-  path: string
-  public: boolean
-  description: string | null
-  createdAt: string
-  updatedAt: string
-}
-
 async function readFolderMetaFromDb(path: string): Promise<StorageFolderMeta | null> {
-  const db = getDb()
-  const key = `${STORAGE_FOLDER_META_PREFIX}${path}`
-  const raw = await db.get(key)
-  if (!raw) return null
+  const prisma = getDb().prisma
+  if (!prisma) return null
   try {
-    const parsed = JSON.parse(raw) as StoredFolderMeta
+    const row = await prisma.storageFolder.findUnique({ where: { path } })
+    if (!row) return null
     return {
-      path: parsed.path,
-      public: parsed.public,
-      description: parsed.description,
-      createdAt: new Date(parsed.createdAt),
-      updatedAt: new Date(parsed.updatedAt),
+      path: row.path,
+      public: row.public,
+      description: row.description,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
     }
   } catch {
-    // 损坏数据视为不存在(失败安全)
+    // 读取异常视为不存在(失败安全)
     return null
   }
 }
