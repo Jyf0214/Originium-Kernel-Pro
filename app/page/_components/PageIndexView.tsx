@@ -1,0 +1,145 @@
+'use client';
+
+/**
+ * /page 索引页 — 客户端视图组件
+ *
+ * 与 app/page/page.tsx(服务端)配对:服务端只负责读取 WebDAV/DB,
+ * 把结果以 props 传入本组件,由本组件负责 i18n 渲染与交互。
+ */
+import Link from 'next/link';
+import { Globe, Folder, Lock, FileCode } from 'lucide-react';
+import { useI18n } from '@/hooks/use-i18n';
+import Sidebar from '@/components/Sidebar/index';
+import TopHeader from '@/components/TopHeader';
+
+export interface PageIndexItem {
+  href: string;
+  filename: string;
+  folder: string;
+  title: string;
+  isPrivate: boolean;
+}
+
+interface PageIndexViewProps {
+  notConfigured: boolean;
+  pages: PageIndexItem[];
+}
+
+export function PageIndexView({ notConfigured, pages }: PageIndexViewProps) {
+  const { t } = useI18n();
+
+  return (
+    <div className="flex min-h-screen">
+      <Sidebar variant="user" />
+      <div className="flex-1 flex flex-col md:ml-[280px] min-h-screen bg-zinc-50">
+        <TopHeader />
+        <main className="flex-1 p-6 md:p-10">
+          <div className="max-w-5xl mx-auto">
+            <header className="mb-8">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900 text-white">
+                  <Globe size={20} aria-hidden />
+                </span>
+                <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
+                  {t('page.indexTitle')}
+                </h1>
+              </div>
+              <p className="text-sm text-zinc-500 leading-relaxed max-w-2xl">
+                {notConfigured ? t('page.notConfiguredDesc') : t('page.indexSubtitle')}
+              </p>
+            </header>
+
+            {notConfigured ? (
+              <NotConfiguredCard />
+            ) : pages.length === 0 ? (
+              <EmptyCard />
+            ) : (
+              <PageGrid pages={pages} />
+            )}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function NotConfiguredCard() {
+  return (
+    <div className="rounded-2xl bg-white p-8 ring-1 ring-amber-200/60 bg-amber-50/30">
+      <div className="flex items-center gap-3 text-amber-700 font-semibold mb-3">
+        <Folder size={20} aria-hidden />
+        <span>WebDAV 未配置</span>
+      </div>
+      <p className="text-sm text-zinc-600 leading-relaxed mb-4">
+        页面索引依赖 WebDAV 读取 <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">pages/</code> 目录下的 HTML 文件。
+        请在 <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">.env.local</code> 中设置
+        <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs"> WEBDAV_URL</code> /
+        <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs"> WEBDAV_USER</code> /
+        <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs"> WEBDAV_PASS</code> 后重启服务。
+      </p>
+      <p className="text-xs text-zinc-500">
+        配置完成后,在 <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">pages/</code> 目录下放置
+        <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">.html</code> 文件即可在此列出。
+      </p>
+    </div>
+  );
+}
+
+function EmptyCard() {
+  const { t } = useI18n();
+  return (
+    <div className="rounded-2xl bg-white p-10 ring-1 ring-zinc-200 text-center">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-400">
+        <FileCode size={22} aria-hidden />
+      </div>
+      <h2 className="text-lg font-semibold text-zinc-900 mb-2">{t('page.indexEmpty')}</h2>
+      <p className="text-sm text-zinc-500 leading-relaxed max-w-md mx-auto">
+        {t('page.indexEmptyHint')}
+      </p>
+    </div>
+  );
+}
+
+function PageGrid({ pages }: { pages: PageIndexItem[] }) {
+  const { t } = useI18n();
+  return (
+    <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {pages.map(page => (
+        <li key={page.href}>
+          <Link
+            href={page.href}
+            className="group block h-full rounded-2xl bg-white p-5 ring-1 ring-zinc-200 hover:ring-zinc-900 hover:shadow-lg hover:shadow-zinc-200/50 transition-all duration-200 no-underline"
+          >
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-500 group-hover:bg-zinc-900 group-hover:text-white transition-colors">
+                <FileCode size={18} aria-hidden />
+              </div>
+              {page.isPrivate ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold text-amber-700 uppercase tracking-wider ring-1 ring-amber-200/60">
+                  <Lock size={10} aria-hidden />
+                  {t('page.indexPrivateBadge')}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700 uppercase tracking-wider ring-1 ring-emerald-200/60">
+                  {t('page.indexPublicBadge')}
+                </span>
+              )}
+            </div>
+            <h3
+              className="text-base font-semibold text-zinc-900 mb-1 truncate"
+              title={page.title}
+            >
+              {page.title}
+            </h3>
+            <p
+              className="text-xs text-zinc-400 font-mono truncate"
+              title={page.folder ? `${page.folder}/${page.filename}` : page.filename}
+            >
+              {page.folder ? `${page.folder}/${page.filename}` : page.filename}
+            </p>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}

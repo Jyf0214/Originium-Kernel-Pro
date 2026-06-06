@@ -175,7 +175,9 @@
     "diary": "日记",
     "originiumKernel": "Originium Kernel",
     "configPreview": "配置预览",
-    "returnDashboard": "返回用户面板"
+    "returnDashboard": "返回用户面板",
+    "customPages": "自定义页面",
+    "fileManager": "文件管理"
   },
   "tickets": {
     "add": "添加",
@@ -600,6 +602,13 @@
     "passwordSubmit": "进入",
     "wrongPassword": "密码错误,请重试",
     "showPassword": "显示密码",
-    "hidePassword": "隐藏密码"
+    "hidePassword": "隐藏密码",
+    "indexTitle": "自定义页面",
+    "indexSubtitle": "由 WebDAV `pages/` 目录驱动。私有页面会带锁标,首次访问需要密码。",
+    "indexEmpty": "暂无可用页面",
+    "indexEmptyHint": "在 WebDAV `pages/` 目录下放置 `.html` 文件后会自动列出。",
+    "indexFolder": "目录",
+    "indexPrivateBadge": "私有",
+    "indexPublicBadge": "公开"
   }
 }

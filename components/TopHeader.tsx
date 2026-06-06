@@ -17,6 +17,7 @@ const breadcrumbMap: Record<string, string> = {
   '/faces': 'sidebar.faces',
   '/editor': 'sidebar.writeArticle',
   '/diary': 'sidebar.diary',
+  '/page': 'sidebar.customPages',
 };
 
 export function TopHeader() {
