@@ -14,7 +14,7 @@ const variantStyles: Record<ButtonVariant, string> = {
   link: 'text-zinc-900 hover:underline',
   success: 'bg-emerald-600 text-white hover:bg-emerald-500 active:bg-emerald-700 shadow-sm hover:shadow-md',
   warning: 'bg-amber-500 text-white hover:bg-amber-400 active:bg-amber-600 shadow-sm hover:shadow-md',
-  filled: 'bg-zinc-900 text-white hover:bg-zinc-800 active:bg-zinc-700 shadow-sm hover:shadow-md',
+  filled: 'bg-transparent text-zinc-400 hover:text-zinc-700 active:text-zinc-900 border-none',
 };
 
 const sizePadding: Record<ButtonSize, string> = {
