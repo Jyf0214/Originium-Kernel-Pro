@@ -1,9 +1,14 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Link2, Check, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { ShareModalHeader } from './ShareModalHeader';
+import { ShareModalGrid } from './ShareModalGrid';
+import { ShareModalFooter } from './ShareModalFooter';
+import { useCopyFeedback } from './use-copy-feedback';
+import { MODAL_TRANSITION_EASE } from './share-modal-styles';
+import type { PlatformDef, ShareModalProps } from './types';
 
 /* ============================================================
    平台图标（复用 ShareButtons 中的 SVG）
@@ -60,17 +65,8 @@ function TelegramIcon({ size = 24 }: { size?: number }) {
 }
 
 /* ============================================================
-   平台定义
+   平台注册表
    ============================================================ */
-
-interface PlatformDef {
-  id: string;
-  name: string;
-  color: string;
-  hoverColor: string;
-  icon: React.ReactNode;
-  shareUrl: (url: string, title: string) => string | null;
-}
 
 const ALL_PLATFORMS: Record<string, PlatformDef> = {
   twitter: {
@@ -129,18 +125,6 @@ const ALL_PLATFORMS: Record<string, PlatformDef> = {
 };
 
 /* ============================================================
-   Props
-   ============================================================ */
-
-interface ShareModalProps {
-  open: boolean;
-  onClose: () => void;
-  url?: string;
-  title?: string;
-  platforms?: string[];
-}
-
-/* ============================================================
    分享弹窗
    ============================================================ */
 
@@ -151,15 +135,14 @@ export default function ShareModal({
   title: titleProp,
   platforms: platformOverride,
 }: ShareModalProps) {
-  const [copied, setCopied] = useState(false);
-  const [toast, setToast] = useState('');
-
   const shareUrl = urlProp ?? (typeof window !== 'undefined' ? window.location.href : '');
   const shareTitle = titleProp ?? (typeof document !== 'undefined' ? document.title : '');
 
   const displayPlatforms = platformOverride
     ? platformOverride.filter(k => ALL_PLATFORMS[k]).map(k => ALL_PLATFORMS[k]!)
     : Object.values(ALL_PLATFORMS);
+
+  const { copied, toast, copy, showToast } = useCopyFeedback(shareUrl);
 
   // ESC 关闭
   useEffect(() => {
@@ -178,26 +161,14 @@ export default function ShareModal({
 
   const handleShare = useCallback((platform: PlatformDef) => {
     if (platform.id === 'wechat') {
-      setToast('请在微信中粘贴链接分享');
-      setTimeout(() => setToast(''), 2500);
+      showToast('请在微信中粘贴链接分享');
       return;
     }
     const url = platform.shareUrl(shareUrl, shareTitle);
     if (url) {
       window.open(url, '_blank', 'noopener,noreferrer,width=640,height=480');
     }
-  }, [shareUrl, shareTitle]);
-
-  const handleCopyUrl = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setToast('复制失败');
-      setTimeout(() => setToast(''), 2500);
-    }
-  }, [shareUrl]);
+  }, [shareUrl, shareTitle, showToast]);
 
   return (
     <AnimatePresence>
@@ -224,65 +195,12 @@ export default function ShareModal({
             initial={{ opacity: 0, scale: 0.92, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 20 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.25, ease: MODAL_TRANSITION_EASE }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 顶部：标题 + 关闭 */}
-            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-zinc-100">
-              <h2 className="text-lg font-bold text-zinc-900">分享</h2>
-              <Button variant="ghost" size="sm" iconOnly onClick={onClose}>
-                <X size={18} />
-              </Button>
-            </div>
-
-            {/* 中间：平台网格 */}
-            <div className="px-6 py-6">
-              <div className="grid grid-cols-4 gap-4">
-                {displayPlatforms.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => handleShare(p)}
-                    className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-zinc-50 transition-colors group"
-                  >
-                    <span
-                      className="flex items-center justify-center w-14 h-14 rounded-2xl text-white transition-transform duration-200 group-hover:scale-110 group-active:scale-95"
-                      style={{ backgroundColor: p.color }}
-                    >
-                      {p.icon}
-                    </span>
-                    <span className="text-[11px] font-medium text-zinc-500 whitespace-nowrap">
-                      {p.name}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 底部：URL */}
-            <div className="px-6 pb-6">
-              <div className="flex items-center gap-2 bg-zinc-50 rounded-xl px-4 py-3 border border-zinc-100">
-                <Link2 size={14} className="text-zinc-400 shrink-0" />
-                <span className="flex-1 text-sm text-zinc-400 truncate">{shareUrl}</span>
-                <button
-                  type="button"
-                  onClick={handleCopyUrl}
-                  className="shrink-0 flex items-center gap-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
-                >
-                  {copied ? (
-                    <>
-                      <Check size={14} className="text-green-500" />
-                      <span className="text-green-500">已复制</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={14} />
-                      <span>复制</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
+            <ShareModalHeader onClose={onClose} />
+            <ShareModalGrid platforms={displayPlatforms} onShare={handleShare} />
+            <ShareModalFooter shareUrl={shareUrl} copied={copied} onCopy={copy} />
 
             {/* 底部通知 */}
             {toast && (

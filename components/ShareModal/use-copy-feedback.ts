@@ -1,0 +1,34 @@
+'use client';
+
+import { useState, useCallback } from 'react';
+import { TOAST_DURATION_MS, COPY_FEEDBACK_DURATION_MS } from './share-modal-styles';
+
+/* ============================================================
+   复制反馈 hook
+   - copied：复制成功时的勾选状态
+   - toast：底部通知文案
+   - copy：写入剪贴板并触发反馈
+   - showToast：直接显示一条通知
+   ============================================================ */
+
+export function useCopyFeedback(shareUrl: string) {
+  const [copied, setCopied] = useState(false);
+  const [toast, setToast] = useState('');
+
+  const showToast = useCallback((message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(''), TOAST_DURATION_MS);
+  }, []);
+
+  const copy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION_MS);
+    } catch {
+      showToast('复制失败');
+    }
+  }, [shareUrl, showToast]);
+
+  return { copied, toast, copy, showToast };
+}
