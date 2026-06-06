@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
-import { Form, Input, Button as AntButton, Select, message } from 'antd';
+import { Form, Input, Select, message } from 'antd';
+import { Button } from '@/components/ui/Button';
 import { Save, ArrowLeft, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { generateMarkdown, type FrontMatter } from '@/lib/markdown';
@@ -113,13 +114,13 @@ export default function NewFacePage() {
             <h2 className="text-2xl font-bold text-zinc-900 mb-2">需要管理员权限</h2>
             <p className="text-zinc-400 mb-8">此操作仅限超级管理员执行</p>
             <Link href="/faces">
-              <AntButton
-                type="default"
+              <Button
+                variant="default"
                 icon={<ArrowLeft size={16} />}
                 className="h-10 px-8 rounded-xl"
               >
                 返回通讯录
-              </AntButton>
+              </Button>
             </Link>
           </div>
         </PageContainer>
@@ -204,24 +205,24 @@ export default function NewFacePage() {
 
             <div className="flex items-center justify-between pt-6 border-t border-zinc-100">
               <Link href="/faces">
-                <AntButton
-                  type="default"
+                <Button
+                  variant="default"
                   icon={<ArrowLeft size={16} />}
                   className="h-10 px-6 rounded-xl"
                 >
                   {t('common.back')}
-                </AntButton>
+                </Button>
               </Link>
 
-              <AntButton
-                type="primary"
-                htmlType="submit"
+              <Button
+                variant="primary"
+                type="submit"
                 icon={<Save size={16} />}
                 loading={submitting}
                 className="h-10 px-8 rounded-xl bg-zinc-900 hover:bg-zinc-800"
               >
                 {t('common.create')}
-              </AntButton>
+              </Button>
             </div>
           </Form>
         </div>

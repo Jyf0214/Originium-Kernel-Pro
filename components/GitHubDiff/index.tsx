@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Modal, Button, message } from 'antd';
+import { Modal, message } from 'antd';
+import { Button } from '@/components/ui/Button';
 import { Github, CheckCircle2 } from 'lucide-react';
 import { createTwoFilesPatch } from 'diff';
 
@@ -110,17 +111,17 @@ export function GitHubDiffModal({
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <Button onClick={onCancel} disabled={loading}>
+          <Button onClick={onCancel} disabled={loading} variant="default">
             取消
           </Button>
           <Button
-            type="primary"
+            variant="primary"
             loading={loading}
             onClick={onConfirm}
             className="bg-zinc-900 hover:bg-zinc-800"
-            icon={loading ? null : <CheckCircle2 size={14} />}
+            icon={<CheckCircle2 size={14} />}
           >
-            '确认提交'
+            确认提交
           </Button>
         </div>
       </div>
