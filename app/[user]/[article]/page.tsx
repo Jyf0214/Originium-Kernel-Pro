@@ -87,13 +87,14 @@ function SudoActions({ showRaw, rawContent, onToggleRaw }: {
   return (
     <>
       <div className="h-8 w-px bg-zinc-100 hidden sm:block"></div>
-      <button
+      <Button
+        variant="ghost"
         onClick={onToggleRaw}
-        className="flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors"
+        className="hover:text-zinc-900"
       >
         {showRaw ? <Eye size={18} /> : <Code size={18} />}
-        <span className="text-sm font-bold">{showRaw ? '预览渲染' : '查看原始文件'}</span>
-      </button>
+        <span className="font-bold">{showRaw ? '预览渲染' : '查看原始文件'}</span>
+      </Button>
     </>
   );
 }

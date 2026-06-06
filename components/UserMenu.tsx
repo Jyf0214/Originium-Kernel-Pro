@@ -3,7 +3,8 @@
 import { Avatar } from '@/components/Avatar';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
-import { Button, Dropdown, type MenuProps } from 'antd';
+import { Button } from '@/components/ui/Button';
+import { Dropdown, type MenuProps } from 'antd';
 import { SettingOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 
@@ -54,7 +55,7 @@ export function UserMenu() {
         placement="bottomRight"
         arrow
       >
-        <Button type="text" className="flex items-center gap-2">
+        <Button variant="ghost" className="flex items-center gap-2">
           <Avatar name={displayName} avatarUrl={avatarUrl} size={36} />
           <div className="hidden md:block">
             <div className="flex items-center gap-1.5">
