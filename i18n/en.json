@@ -579,5 +579,15 @@
     "createFailed": "Create failed",
     "fileTooLarge": "File exceeds 50MB limit",
     "refresh": "Refresh"
+  },
+  "page": {
+    "title": "Custom Page",
+    "guest": "Guest",
+    "guestLoginPrompt": "Login to view personalized content",
+    "notConfigured": "Custom pages not configured",
+    "notConfiguredDesc": "Please set WEBDAV_URL, WEBDAV_USER, WEBDAV_PASS in .env.local and restart, then place HTML files in pages/.",
+    "notFound": "Page not found",
+    "loadError": "Failed to load page",
+    "loading": "Loading"
   }
 }
