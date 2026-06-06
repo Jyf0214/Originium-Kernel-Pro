@@ -80,6 +80,65 @@ function calcRelevance(title: string, description: string, tags: string[], _cont
 
 const POSTS_DIR = path.join(/* @__PURE__ */ process.cwd(), 'posts');
 
+/** 处理单个 markdown 文件，返回搜索结果或 undefined */
+function processSearchFile(
+  filePath: string,
+  baseDir: string,
+  query: string,
+  options: {
+    isAuthenticated: boolean;
+    dbAvailable: boolean;
+    tagFilter?: string;
+  },
+): SearchResult | undefined {
+  const relative = path.relative(baseDir, filePath);
+  const slug = '/' + relative.replace(/\.md$/, '').replace(/\\/g, '/');
+  const config = loadConfig();
+
+  if (!canAccess('posts', slug, options.isAuthenticated, options.dbAvailable, config)) {
+    return undefined;
+  }
+
+  const raw = fs.readFileSync(filePath, 'utf-8');
+  const { data, content } = matter(raw);
+
+  const title = String(data.title ?? '');
+  const description = String(data.description ?? '');
+  const tags: string[] = Array.isArray(data.tags) ? data.tags : [];
+
+  const qLower = query.toLowerCase();
+  const tLower = title.toLowerCase();
+  const dLower = description.toLowerCase();
+  const cLower = content.toLowerCase();
+
+  const matchesTitle = tLower.includes(qLower);
+  const matchesDesc = dLower.includes(qLower);
+  const matchesTags = tags.some((t) => t.toLowerCase().includes(qLower));
+  const matchesContent = cLower.includes(qLower);
+
+  const { tagFilter } = options;
+
+  if (!matchesTitle && !matchesDesc && !matchesTags && !matchesContent) {
+    return undefined;
+  }
+
+  if (tagFilter && !tags.some((t) => t.toLowerCase() === tagFilter.toLowerCase())) {
+    return undefined;
+  }
+
+  const matchPreview = extractMatchPreview(content, query);
+
+  return {
+    id: slug,
+    title,
+    description,
+    tags,
+    slug,
+    matchPreview,
+    type: 'post',
+  };
+}
+
 // ─── Search Functions ──────────────────────────────────────────────────────
 
 /**
@@ -89,12 +148,13 @@ function searchPostsDirectory(
   dir: string,
   baseDir: string,
   query: string,
-  isAuthenticated: boolean,
-  dbAvailable: boolean,
-  tagFilter?: string,
+  options: {
+    isAuthenticated: boolean;
+    dbAvailable: boolean;
+    tagFilter?: string;
+  },
 ): SearchResult[] {
   const results: SearchResult[] = [];
-  const config = loadConfig();
 
   if (!fs.existsSync(dir)) return results;
 
@@ -105,54 +165,18 @@ function searchPostsDirectory(
 
     if (entry.isDirectory()) {
       results.push(
-        ...searchPostsDirectory(fullPath, baseDir, query, isAuthenticated, dbAvailable, tagFilter),
+        ...searchPostsDirectory(fullPath, baseDir, query, options),
       );
     } else if (entry.isFile() && entry.name.endsWith('.md')) {
-      const relative = path.relative(baseDir, fullPath);
-      const slug = '/' + relative.replace(/\.md$/, '').replace(/\\/g, '/');
-
-      // 访问权限检查
-      if (!canAccess('posts', slug, isAuthenticated, dbAvailable, config)) {
-        continue;
+      const result = processSearchFile(
+        fullPath,
+        baseDir,
+        query,
+        options,
+      );
+      if (result) {
+        results.push(result);
       }
-
-      const raw = fs.readFileSync(fullPath, 'utf-8');
-      const { data, content } = matter(raw);
-
-      const title = String(data.title ?? '');
-      const description = String(data.description ?? '');
-      const tags: string[] = Array.isArray(data.tags) ? data.tags : [];
-
-      const qLower = query.toLowerCase();
-      const tLower = title.toLowerCase();
-      const dLower = description.toLowerCase();
-      const cLower = content.toLowerCase();
-
-      const matchesTitle = tLower.includes(qLower);
-      const matchesDesc = dLower.includes(qLower);
-      const matchesTags = tags.some((t) => t.toLowerCase().includes(qLower));
-      const matchesContent = cLower.includes(qLower);
-
-      if (!matchesTitle && !matchesDesc && !matchesTags && !matchesContent) {
-        continue;
-      }
-
-      // 标签筛选（点击热门标签时传入）
-      if (tagFilter && !tags.some((t) => t.toLowerCase() === tagFilter.toLowerCase())) {
-        continue;
-      }
-
-      const matchPreview = extractMatchPreview(content, query);
-
-      results.push({
-        id: slug,
-        title,
-        description,
-        tags,
-        slug,
-        matchPreview,
-        type: 'post',
-      });
     }
   }
 
@@ -216,7 +240,7 @@ export const GET = apiHandler('GET', { label: '搜索' }, async (req: NextReques
   }
 
   // 搜索词为空时使用标签作为搜索词
-  const searchQuery = query || tag || '';
+  const searchQuery = query || (tag ?? '');
 
   logger.info('GET', '执行搜索', { query: searchQuery, tag });
 
@@ -230,9 +254,7 @@ export const GET = apiHandler('GET', { label: '搜索' }, async (req: NextReques
     POSTS_DIR,
     POSTS_DIR,
     searchQuery,
-    isAuthenticated,
-    dbAvailable,
-    tag,
+    { isAuthenticated, dbAvailable, tagFilter: tag },
   );
 
   // 按相关性排序
