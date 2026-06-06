@@ -2,7 +2,7 @@
 name: unified-ui-component-extraction
 description: 系统化提取全项目硬编码按钮/标签/输入框样式为统一 UI 组件库并替换
 source: auto-skill
-extracted_at: '2026-06-06T08:00:31.191Z'
+extracted_at: '2026-06-06T10:57:26.163Z'
 ---
 
 # 统一 UI 组件提取与替换
@@ -77,6 +77,78 @@ extracted_at: '2026-06-06T08:00:31.191Z'
 | `block` | `boolean` | `w-full` |
 | `icon` | `ReactNode` | 前置图标 |
 | `loading` | `boolean` | 加载旋转态 |
+
+### 阶段 2.5：变体补齐检查
+
+**在启动并行替换前，必须先检查现有组件是否能覆盖所有硬编码按钮样式。** 这是防止 Agent 冲突的关键步骤。
+
+1. 审计所有硬编码按钮的样式模式，与组件 `variantStyles` 逐一对比
+2. 列出所有缺失的变体（例如 `filled`、`success`、`warning`）
+3. **一次性补全所有缺失变体到组件中**，再启动并行 Agent
+4. 这样所有 Agent 只需修改各自文件，不会同时修改组件文件导致冲突
+
+### 阶段 2.6：维度与动效对齐检查
+
+**静态度量对齐：** 计算自定义组件各 size 的实际渲染高度，与 AntD 标准对比：
+
+| Size | AntD height | 自定义公式 | 目标 py |
+|------|-------------|-----------|---------|
+| sm | 24px | `py-1`=4px + font-xs~18px = 26px | ✅ |
+| md | 32px | `py-1.5`=6px + font-sm~21px = 33px | ✅ |
+| lg | 40px | `py-2`=8px + font-base~24px = 40px | ✅ |
+
+**动效补齐检查：** AntD 默认包含 hover/active 动效，自定义组件容易遗漏：
+
+| 效果 | AntD 默认 | 检查点 |
+|------|-----------|--------|
+| default hover 背景 | `hover:bg-zinc-50` | 自定义 default variant 是否有？ |
+| secondary hover 背景 | `hover:bg-zinc-50` | 自定义 secondary variant 是否有？ |
+| danger active | `active:bg-red-100` | 自定义 danger variant 是否有？ |
+| 按压缩放 | 微妙缩小 | base styles 是否有 `active:scale-[0.97]`？ |
+| 阴影增强 | filled variant 有 shadow 变化 | 是否有 `shadow-sm hover:shadow-md`？ |
+
+**对齐原则：** 组件与 AntD 的视觉差距应该通过修改组件修复，不能通过修改页面 className 补偿。
+
+### AntD `type` → 自定义 `variant` 映射表
+
+当项目从 Ant Design 迁移到自定义 Button 时，使用此映射：
+
+| AntD Button prop | 自定义 Button prop |
+|---|---|
+| `type="primary"` | `variant="primary"` |
+| `type="text"` | `variant="ghost"` |
+| `type="link"` | `variant="link"` |
+| `type="default"` | `variant="default"` |
+| `danger` | `variant="danger"` |
+| `size="small"` | `size="sm"` |
+| `size="large"` | `size="lg"` |
+| `htmlType="submit"` | `type="submit"`（原生透传） |
+| `block` | `block` |
+| `loading` | `loading` |
+| `icon` | `icon` |
+| `style={{ marginTop: 24 }}` | `className="mt-6"` 或保留 style |
+
+### 警告：AntD props 继承陷阱
+
+**AntD 会静默忽略不认识的 props，自定义组件不会！**
+
+迁移中最常见的 bug：原始代码中 `variant="filled"` 是传给 AntD `<Button>` 的无效 prop，AntD 忽略它并渲染为默认透明按钮。
+迁移到自定义 Button 后，`variant="filled"` 变成了有效 prop，渲染为实心黑底按钮，出现视觉回归。
+
+**必须做两件事：**
+1. 在迁移时，对每个非标准 prop 判断：它是 AntD 忽略的遗留 prop，还是真正需要的样式？
+2. 如果是遗留 prop，在 **自定义组件中设计正确的样式**（如 `filled: 'bg-transparent text-zinc-400 border-none'` 用于 Input 后缀图标按钮），然后在页面中保留 `variant="filled"` 不变
+
+**规则：永远不要修改页面代码来适配组件缺陷。如果组件缺少所需样式，修改组件。**
+
+### Agent 提示词纪律
+
+并行替换 Agent 的提示词必须包含以下严格要求，否则 Agent 会只分析不修改：
+
+1. **必须直接修改文件** — "用 edit/write 工具写代码，不要只分析或建议"
+2. **禁止使用硬编码按钮** — "不允许自己写 `<button>` 标签，必须使用 `@/components/ui/Button`"
+3. **如果缺少需要的变体** — "先修改 `components/ui/Button.tsx` 添加该变体，再使用"
+4. **末尾加一句**：`你必须直接修改文件，只输出修改结果摘要，不做分析和方案`
 
 ### 阶段 3：并行替换
 
