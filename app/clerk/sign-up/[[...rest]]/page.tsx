@@ -4,7 +4,7 @@ import { useEffect, useState, createElement } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { useConfig } from '@/hooks/use-config';
 import Link from 'next/link';
-import { Button } from 'antd';
+import { Button } from '@/components/ui/Button';
 import { useI18n } from '@/hooks/use-i18n';
 import { loadClerkClient } from '@/lib/clerk-dynamic';
 
@@ -45,7 +45,7 @@ export default function ClerkSignUpPage() {
             <p className="text-zinc-500 mb-1">{t('config.registrationClosed')}</p>
             <p className="text-zinc-400 text-sm mb-4">{t('config.registrationClosedHint')}</p>
             <Link href="/login">
-              <Button type="primary">{t('auth.login')}</Button>
+              <Button variant="primary">{t('auth.login')}</Button>
             </Link>
           </div>
         </main>

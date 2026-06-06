@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { Navbar } from '@/components/Navbar';
-import { Button, Input, Steps, message } from 'antd';
+import { Input, Steps, message } from 'antd';
+import { Button } from '@/components/ui/Button';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 import { Mail, Shield, KeyRound, ArrowRight, CheckCircle2 } from 'lucide-react';
@@ -177,12 +178,12 @@ export default function ClerkBindPage() {
                 />
               </div>
               <Button
-                type="primary"
-                size="large"
+                variant="primary"
+                size="lg"
                 block
                 loading={loading}
                 onClick={handleSendCode}
-                className="h-12 rounded-xl bg-zinc-900"
+                rounded="md"
                 icon={<ArrowRight size={16} />}
               >
                 发送验证码
@@ -217,21 +218,22 @@ export default function ClerkBindPage() {
               </div>
               <div className="space-y-3">
                 <Button
-                  type="primary"
-                  size="large"
+                  variant="primary"
+                  size="lg"
                   block
                   loading={loading}
                   onClick={handleVerifyAndBind}
-                  className="h-12 rounded-xl bg-zinc-900"
+                  rounded="md"
                 >
                   验证并绑定
                 </Button>
                 <Button
-                  size="large"
+                  variant="default"
+                  size="lg"
                   block
                   disabled={countdown > 0}
                   onClick={handleSendCode}
-                  className="h-12 rounded-xl"
+                  rounded="md"
                 >
                   {countdown > 0 ? `${countdown}s 后重新发送` : '重新发送验证码'}
                 </Button>

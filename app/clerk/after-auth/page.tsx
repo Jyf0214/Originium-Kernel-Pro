@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
-import { Button } from 'antd';
+import { Button } from '@/components/ui/Button';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 import { Link } from 'lucide-react';
@@ -76,18 +76,19 @@ export default function ClerkAfterAuthPage() {
           </p>
           <div className="space-y-3">
             <Button
-              type="primary"
-              size="large"
+              variant="primary"
+              size="lg"
               block
-              className="h-12 rounded-xl bg-zinc-900"
+              rounded="md"
               onClick={() => router.push('/clerk/bind')}
             >
               绑定已有账户
             </Button>
             <Button
-              size="large"
+              variant="default"
+              size="lg"
               block
-              className="h-12 rounded-xl"
+              rounded="md"
               onClick={() => router.push('/dashboard')}
             >
               跳过，直接进入
