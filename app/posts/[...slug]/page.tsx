@@ -7,7 +7,7 @@ import { TOC } from '@/components/ui/TOC';
 import { CopyrightNotice } from '@/components/ui/CopyrightNotice';
 import ShareButtons from '@/components/ui/ShareButtons';
 import { Tag } from '@/components/ui/Tag';
-import { SITE_URL } from '@/const/url';
+import { getSiteUrl } from '@/const/url';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
@@ -72,7 +72,7 @@ export default async function PostDetailPage({ params }: PageProps) {
   const headingCount = (file.content.match(/^#{2,4}\s+.+$/gm) ?? []).length;
 
   // 完整 URL（用于分享按钮）
-  const fullUrl = `${SITE_URL}/posts${fullPath}`;
+  const fullUrl = `${getSiteUrl()}/posts${fullPath}`;
 
   // TOC 配置
   const tocConfig = {
