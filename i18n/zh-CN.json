@@ -579,5 +579,15 @@
     "createFailed": "创建失败",
     "fileTooLarge": "文件超过 50MB 限制",
     "refresh": "刷新"
+  },
+  "page": {
+    "title": "自定义页面",
+    "guest": "游客",
+    "guestLoginPrompt": "登录后查看个性化内容",
+    "notConfigured": "自定义页面未配置",
+    "notConfiguredDesc": "请在 .env.local 中设置 WEBDAV_URL、WEBDAV_USER、WEBDAV_PASS 后重启服务,并在 pages/ 目录下放置 HTML 文件。",
+    "notFound": "页面不存在",
+    "loadError": "页面加载失败",
+    "loading": "加载中"
   }
 }
