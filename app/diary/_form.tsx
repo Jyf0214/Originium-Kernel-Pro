@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Cloud, CloudOff, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { showError } from '@/lib/error';
 import { useDiaryDraft } from '@/hooks/use-diary-draft';
 import { PageContainer } from '@/components/ui/PageContainer';
@@ -97,13 +98,9 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
             <span className="hidden sm:inline">返回日记列表</span>
             <span className="sm:hidden">返回</span>
           </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-zinc-900 text-white rounded-xl hover:bg-zinc-800 transition-colors font-medium text-sm sm:text-base disabled:opacity-50"
-          >
+          <Button onClick={handleSave} disabled={saving} variant="primary" size="md">
             {saving ? <Loader2 size={16} className="animate-spin" /> : '保存'}
-          </button>
+          </Button>
         </div>
       </div>
 

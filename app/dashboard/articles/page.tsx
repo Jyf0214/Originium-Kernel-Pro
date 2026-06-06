@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { Plus, Search, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { Input, Tag, Popconfirm, message } from 'antd';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
@@ -141,10 +142,9 @@ export default function ArticlesPage() {
           </div>
           {!isRecycleBin && (
             <Link href="/editor">
-              <button className="h-9 px-4 bg-zinc-900 text-white text-sm font-medium rounded-lg hover:bg-zinc-800 transition-colors flex items-center gap-1.5">
-                <Plus size={14} />
+              <Button variant="primary" size="sm" icon={<Plus size={14} />}>
                 {t('sidebar.writeArticle')}
-              </button>
+              </Button>
             </Link>
           )}
         </div>
@@ -181,13 +181,15 @@ export default function ArticlesPage() {
                 <div className="flex items-center gap-1 shrink-0">
                   {isRecycleBin ? (
                     <>
-                      <button
+                      <Button
                         onClick={() => handleRestore(article.id)}
                         disabled={operating === article.id}
-                        className="px-3 py-1.5 text-xs font-medium text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+                        loading={operating === article.id}
+                        variant="primary"
+                        size="sm"
                       >
-                        {operating === article.id ? <Loader2 size={12} className="animate-spin" style={{ color: '#c084fc' }} /> : t('common.restore')}
-                      </button>
+                        {t('common.restore')}
+                      </Button>
                       <Popconfirm
                         title={t('article.permanentlyDeleteConfirm')}
                         onConfirm={() => handleDelete(article.id)}
@@ -195,24 +197,24 @@ export default function ArticlesPage() {
                         cancelText={t('common.cancel')}
                         okButtonProps={{ danger: true }}
                       >
-                        <button disabled={operating === article.id} className="px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5">
-                          {operating === article.id ? <Loader2 size={12} className="animate-spin" style={{ color: '#c084fc' }} /> : t('common.delete')}
-                        </button>
+                        <Button disabled={operating === article.id} variant="danger" size="sm">
+                          {t('common.delete')}
+                        </Button>
                       </Popconfirm>
                     </>
                   ) : (
                     <>
                       {article.status === 'published' && article.slug && (
                         <Link href={`/posts${article.slug}`}>
-                          <button className="px-3 py-1.5 text-xs font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 rounded-lg transition-colors">
+                          <Button variant="ghost" size="sm">
                             {t('common.view')}
-                          </button>
+                          </Button>
                         </Link>
                       )}
                       <Link href={`/editor?id=${article.id}`}>
-                        <button disabled={operating === article.id} className="px-3 py-1.5 text-xs font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 rounded-lg transition-colors disabled:opacity-50">
+                        <Button disabled={operating === article.id} variant="ghost" size="sm">
                           {t('common.edit')}
-                        </button>
+                        </Button>
                       </Link>
                       <Popconfirm
                         title={t('article.deleteConfirm')}
@@ -221,9 +223,9 @@ export default function ArticlesPage() {
                         cancelText={t('common.cancel')}
                         okButtonProps={{ danger: true }}
                       >
-                        <button disabled={operating === article.id} className="px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5">
-                          {operating === article.id ? <Loader2 size={12} className="animate-spin" style={{ color: '#c084fc' }} /> : t('common.delete')}
-                        </button>
+                        <Button disabled={operating === article.id} variant="danger" size="sm">
+                          {operating === article.id ? <Loader2 size={12} className="animate-spin" /> : t('common.delete')}
+                        </Button>
                       </Popconfirm>
                     </>
                   )}
@@ -240,9 +242,9 @@ export default function ArticlesPage() {
             </p>
             {!isRecycleBin && (
               <Link href="/editor" className="mt-4 inline-block">
-                <button className="mt-4 px-4 py-2 bg-zinc-900 text-white text-sm font-medium rounded-lg hover:bg-zinc-800 transition-colors">
+                <Button variant="primary" size="md">
                   {t('dashboard.writeFirstArticle')}
-                </button>
+                </Button>
               </Link>
             )}
           </div>

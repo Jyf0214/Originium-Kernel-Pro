@@ -4,7 +4,8 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
-import { Save, Send, ArrowLeft, Image as ImageIcon, XCircle, Loader2 } from 'lucide-react';
+import { Save, Send, ArrowLeft, Image as ImageIcon, XCircle } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { message } from 'antd';
 import { showError } from '@/lib/error';
 import { GlobalLoading } from '@/components/Loading';
@@ -179,23 +180,27 @@ if (res.ok) {
           <span>{t('editor.back')}</span>
         </Link>
         <div className="flex items-center gap-4">
-          <button
+          <Button
             onClick={handleSaveDraft}
             disabled={loading}
-            className="bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 flex items-center gap-2 px-4 py-2 rounded-lg"
+            loading={loading}
+            variant="secondary"
+            size="sm"
+            icon={<Save size={18} />}
           >
-            {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-            <span>{loading ? '' : t('editor.saveDraft')}</span>
-          </button>
+            {loading ? '' : t('editor.saveDraft')}
+          </Button>
           {githubConfigured ? (
-            <button
+            <Button
               onClick={handlePublish}
               disabled={loading}
-              className="bg-zinc-900 text-white hover:bg-zinc-800 flex items-center gap-2 px-4 py-2 rounded-lg"
+              loading={loading}
+              variant="primary"
+              size="sm"
+              icon={<Send size={18} />}
             >
-              {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-              <span>{loading ? '' : t('editor.publish')}</span>
-            </button>
+              {loading ? '' : t('editor.publish')}
+            </Button>
           ) : (
             <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-4 py-2 rounded-lg">
               <XCircle size={18} />
