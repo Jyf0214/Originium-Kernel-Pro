@@ -9,7 +9,7 @@ import {
   BookOpen, ArrowRight, Trash2,
   Globe, PenLine, Sparkles,
 } from 'lucide-react';
-import { Button } from 'antd';
+import { Button } from '@/components/ui/Button';
 import { Tag } from '@/components/ui/Tag';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
@@ -264,7 +264,7 @@ export default function DashboardPage() {
           title={t('dashboard.recentArticles')}
           extra={
             <Link href="/dashboard/articles">
-              <Button size="small" icon={<ArrowRight size={14} />} className="rounded-xl">
+              <Button size="sm" icon={<ArrowRight size={14} />} rounded="md">
                 {t('dashboard.viewAll')}
               </Button>
             </Link>
@@ -330,7 +330,7 @@ export default function DashboardPage() {
               description={t('dashboard.noArticles')}
               action={
                 <Link href="/editor">
-                  <Button type="primary" icon={<Plus size={14} />} className="bg-zinc-900 rounded-xl h-10">
+                  <Button variant="primary" icon={<Plus size={14} />} rounded="md">
                     {t('dashboard.writeFirstArticle')}
                   </Button>
                 </Link>
