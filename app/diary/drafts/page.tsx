@@ -4,6 +4,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Trash2, Loader2, FileText, Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { showError } from '@/lib/error';
 import { GlobalLoading } from '@/components/Loading';
 import { PageContainer } from '@/components/ui/PageContainer';
@@ -96,13 +97,10 @@ export default function DiaryDraftsPage() {
           <EmptyState
             description="暂无草稿"
             action={
-              <button
-                onClick={() => router.push('/diary/new')}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-zinc-900 text-white rounded-xl hover:bg-zinc-800 transition-colors font-medium text-sm sm:text-base"
-              >
+              <Button onClick={() => router.push('/diary/new')} variant="primary" size="lg">
                 <FileText size={16} />
                 写新日记
-              </button>
+              </Button>
             }
           />
         ) : (
@@ -128,24 +126,19 @@ export default function DiaryDraftsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => handleContinue(d)}
-                      className="px-3 py-1.5 text-xs sm:text-sm bg-zinc-100 text-zinc-700 rounded-lg hover:bg-zinc-200 transition-colors font-medium"
-                    >
+                    <Button onClick={() => handleContinue(d)} variant="ghost" size="sm">
                       继续
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={() => handleDelete(d.id)}
                       disabled={deleting === d.id}
-                      className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50"
+                      variant="danger"
+                      size="sm"
+                      loading={deleting === d.id}
                       title="删除草稿"
                     >
-                      {deleting === d.id ? (
-                        <Loader2 size={14} className="animate-spin" />
-                      ) : (
-                        <Trash2 size={14} />
-                      )}
-                    </button>
+                      <Trash2 size={14} />
+                    </Button>
                   </div>
                 </div>
               </div>
