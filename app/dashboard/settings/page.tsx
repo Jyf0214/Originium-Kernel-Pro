@@ -3,7 +3,8 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
-import { Button, Input, Form, Avatar, message } from 'antd';
+import { Input, Form, Avatar, message } from 'antd';
+import { Button } from '@/components/ui/Button';
 import type { Rule } from 'antd/es/form';
 import { showError } from '@/lib/error';
 import { useGitHubConfigSync } from '@/hooks/use-github-config-sync';
@@ -328,12 +329,13 @@ export default function SettingsPage() {
 
             <Form.Item className="mb-0 pt-2">
               <Button
-                type="primary"
-                htmlType="submit"
+                variant="primary"
+                type="submit"
                 loading={loading}
                 icon={!loading && <Save size={14} />}
                 block
-                className="!bg-zinc-900 hover:!bg-zinc-800 !h-10 !rounded-lg !text-sm !font-semibold !border-0 shadow-sm transition-all"
+                rounded="sm"
+                className="!h-10 !text-sm !font-semibold !border-0 shadow-sm transition-all"
               >
                 {t('common.save')}
               </Button>

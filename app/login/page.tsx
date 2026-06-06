@@ -3,7 +3,8 @@
 import React, { Suspense, useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-  import { Button, Input, Form } from 'antd';
+import { Input, Form } from 'antd';
+import { Button } from '@/components/ui/Button';
 import { showError } from '@/lib/error';
 import { ChevronRight, Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
@@ -110,7 +111,7 @@ function LoginForm() {
                 icon={<ChevronRight size={14} />}
                 loading={loading}
                 title={t('auth.nextStep')}
-                variant={'filled'}
+                variant="filled"
                 onClick={() => form.submit()}
               />
             }
@@ -132,7 +133,7 @@ function LoginForm() {
           </Link>
           <Button
             icon={<ChevronRight size={14} className="rotate-180" />}
-            size={'large'}
+            size="lg"
             onClick={handleBackToEmail}
           >
             {t('common.back')}
@@ -161,7 +162,7 @@ function LoginForm() {
                 loading={loading}
                 style={{ color: 'var(--ant-color-primary)' }}
                 title={t('auth.login')}
-                variant={'filled'}
+                variant="filled"
                 onClick={() => form.submit()}
               />
             }

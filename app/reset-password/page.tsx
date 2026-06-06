@@ -3,7 +3,8 @@
 import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Button, Input, Form, message } from 'antd';
+import { Input, Form, message } from 'antd';
+import { Button } from '@/components/ui/Button';
 import { showError } from '@/lib/error';
 import { ChevronRight, Lock, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
@@ -75,7 +76,7 @@ function ResetPasswordForm() {
           footer={
             <div className="flex items-center justify-center gap-2 py-6">
               <Link href="/login">
-                <Button icon={<ArrowLeft size={14} />} size="large">
+                <Button icon={<ArrowLeft size={14} />} size="lg">
                   {t('auth.backToLogin')}
                 </Button>
               </Link>
@@ -89,7 +90,7 @@ function ResetPasswordForm() {
             <span className="text-base">{t('auth.resetSuccess')}</span>
           </div>
           <Link href="/login">
-            <Button type="primary" size="large" block style={{ marginTop: 24 }}>
+            <Button variant="primary" size="lg" block style={{ marginTop: 24 }}>
               {t('auth.login')}
             </Button>
           </Link>
@@ -104,7 +105,7 @@ function ResetPasswordForm() {
         footer={
           <div className="flex items-center justify-center gap-2 py-6">
             <Link href="/login">
-              <Button icon={<ArrowLeft size={14} />} size="large">
+              <Button icon={<ArrowLeft size={14} />} size="lg">
                 {t('auth.backToLogin')}
               </Button>
             </Link>
