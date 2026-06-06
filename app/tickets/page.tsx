@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Tag, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Button } from 'antd';
+import { Button } from '@/components/ui/Button';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 import { useI18n } from '@/hooks/use-i18n';
@@ -90,7 +90,7 @@ export default function TicketsPage() {
           <h1 className="text-2xl font-bold text-zinc-900">{t('tickets.list')}</h1>
           <p className="text-sm text-zinc-400 mt-1">{t('tickets.viewAndManage')}</p>
         </div>
-        <Button type="primary" onClick={() => router.push('/tickets/new')} className="bg-zinc-900 rounded-xl">
+        <Button variant="primary" onClick={() => router.push('/tickets/new')} rounded="md">
           {t('tickets.createTicket')}
         </Button>
       </div>
@@ -98,7 +98,7 @@ export default function TicketsPage() {
       {/* 状态筛选 */}
       <div className="mb-4 flex gap-2">
         {['all', 'open', 'in-progress', 'closed'].map(status => (
-          <Button key={status} size="small" type={statusFilter === status ? 'primary' : 'default'} onClick={() => setStatusFilter(status)} className="rounded-lg">
+          <Button key={status} size="sm" variant={statusFilter === status ? 'primary' : 'default'} onClick={() => setStatusFilter(status)} rounded="sm">
             {getStatusText(status)}
           </Button>
         ))}
