@@ -9,6 +9,7 @@
  */
 import { getDb } from '@/lib/db'
 import { isWebDavConfigured } from '@/lib/webdav'
+import { splitDirFilename } from './path'
 import type { AccessResult, StorageFolderMeta } from './types'
 
 /**
@@ -147,4 +148,110 @@ export async function checkAccess(
   if (publicAccess) return { allowed: true }
   if (isAuthenticated) return { allowed: true }
   return { allowed: false, reason: 'private' }
+}
+
+/* ---------------------------------------------------------------------------
+ * 自定义 Page 私有化(密码保护)专用 ACL
+ *
+ * 与存储池 ACL 的核心差异:
+ * - 存储池 ACL 是「顶层文件夹共享可见性」,且未配置默认私有
+ * - Page ACL 是「页面所在目录元数据驱动」,未配置默认公开
+ *   (未配置页面按「无可见性配置」处理,符合「无配置 = 不限制」语义)
+ * - 额外支持单目录密码:目录 `public=false` 时,必须输入密码才能查看
+ *
+ * 设计原则:
+ * - 失败安全:DB 异常时不允许访问,等同「需要密码」
+ * - 密码明文存储(MVP):项目原则允许,生产可升级 bcrypt
+ * - 与现有 `checkAccess` 完全解耦,不动其行为
+ * ------------------------------------------------------------------------- */
+
+/** 自定义 Page 访问决策结果 */
+export interface PageAccessResult {
+  allowed: boolean
+  reason: 'public' | 'password-required' | 'wrong-password' | 'db-error'
+}
+
+/** 私有页面密码最大长度(防滥用,128 字符足够) */
+const PAGE_PASSWORD_MAX_LEN = 128
+
+/**
+ * 从页面完整路径提取其所在的子文件夹路径(用于查询 `StorageFolder` 元数据)
+ *
+ * 行为规则:
+ * - 先调用 `splitDirFilename` 切分目录与文件名
+ * - 直接返回 `dir` 段:若是文件路径,得到父目录;若是目录路径(含尾斜杠),
+ *   `splitDirFilename` 会先规范化去掉尾斜杠,得到该目录的父目录
+ * - 例:'pages/private/notes.html' → 'pages/private'
+ * - 例:'pages/about.html'         → 'pages'
+ * - 例:'private/notes.html'       → 'private'
+ * - 例:'about.html'               → ''   (根级文件)
+ * - 例:''                          → ''   (空路径)
+ *
+ * 注意:此函数只用于查询,不做合法性校验;调用方需保证 `fullPath` 已经过
+ * 路由层的 `isValidStoragePath` 检查。
+ */
+export function getPageFolderDir(fullPath: string): string {
+  return splitDirFilename(fullPath).dir
+}
+
+/**
+ * 自定义 Page 专用 ACL 检查
+ *
+ * 决策树(按顺序匹配,首个命中即返回):
+ * 1. DB 未配置(`getDb().prisma` 为 null) → 视为「无记录」→ `{ allowed: true, reason: 'public' }`
+ * 2. DB 调用异常 → `{ allowed: false, reason: 'db-error' }`(失败安全)
+ * 3. 记录不存在 → `{ allowed: true, reason: 'public' }`(无配置 = 公开)
+ * 4. 记录存在,`public=true` → `{ allowed: true, reason: 'public' }`
+ * 5. 记录存在,`public=false`,`password=null` → `{ allowed: false, reason: 'password-required' }`
+ * 6. 记录存在,`public=false`,`password` 已设:
+ *    - `queryPwd` 与 `password` 完全相等 → `{ allowed: true, reason: 'public' }`
+ *    - 其他情况(含 `queryPwd` 为 null) → `{ allowed: false, reason: 'wrong-password' }`
+ *
+ * 异常保护:整段逻辑被 try/catch 包裹,任何未捕获异常都返回
+ * `{ allowed: false, reason: 'db-error' }`,与 `db-error` 等价,等同 `password-required`。
+ */
+export async function checkPageAccess(
+  fullPath: string,
+  queryPwd: string | null
+): Promise<PageAccessResult> {
+  // 1. 数据库未配置 → 视为「无记录」,允许公开访问
+  const prisma = getDb().prisma
+  if (!prisma) {
+    return { allowed: true, reason: 'public' }
+  }
+
+  try {
+    // 2. 查询页面所在目录的元数据
+    const dir = getPageFolderDir(fullPath)
+    const row = await prisma.storageFolder.findUnique({ where: { path: dir } })
+
+    // 3. 无记录 → 公开
+    if (!row) {
+      return { allowed: true, reason: 'public' }
+    }
+
+    // 4. 标记为公开 → 直接放行
+    if (row.public) {
+      return { allowed: true, reason: 'public' }
+    }
+
+    // 5. 私有且未设密码 → 要求密码
+    if (!row.password) {
+      return { allowed: false, reason: 'password-required' }
+    }
+
+    // 6. 私有且设了密码 → 校验 queryPwd
+    if (
+      typeof queryPwd === 'string' &&
+      queryPwd.length > 0 &&
+      queryPwd.length <= PAGE_PASSWORD_MAX_LEN &&
+      queryPwd === row.password
+    ) {
+      return { allowed: true, reason: 'public' }
+    }
+    return { allowed: false, reason: 'wrong-password' }
+  } catch {
+    // 任何未捕获异常:失败安全,等同 password-required
+    return { allowed: false, reason: 'db-error' }
+  }
 }
