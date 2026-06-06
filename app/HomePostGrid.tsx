@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Filter, Sparkles, BookOpen, Users, ArrowRight, Calendar, User as UserIcon } from 'lucide-react';
+import { Search, Filter, Sparkles, BookOpen, Users, ArrowRight, Calendar, User as UserIcon, Pin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Input, Button } from 'antd';
 import Image from 'next/image';
 import { useI18n } from '@/hooks/use-i18n';
@@ -19,6 +19,7 @@ interface PostItem {
   tags: string[];
   cover?: string;
   description?: string;
+  pinned?: boolean;
 }
 
 interface HomePostGridProps {
@@ -110,6 +111,14 @@ function PostCardBody({
 }) {
   return (
     <div className="px-5 py-4 flex-1 flex flex-col">
+      {post.pinned && (
+        <div className="inline-flex items-center gap-1.5 mb-3 self-start bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700 px-2.5 py-1 rounded-lg">
+          <Pin size={10} className="text-amber-400/80" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400">
+            {t('home.pinned')}
+          </span>
+        </div>
+      )}
       <div className="flex flex-wrap gap-1.5 mb-3">
         {post.tags.slice(0, 3).map((tag) => (
           <span key={tag} className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 bg-zinc-50 px-2.5 py-1 rounded-lg">
@@ -154,7 +163,15 @@ export function HomePostGrid({ posts, postCount, facesCount, isAdmin = false, he
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const { t, locale } = useI18n();
+
+  const pageSize = 8;
+
+  // 筛选条件变化时重置到第 1 页
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedTag, selectedCategory]);
 
   // 硬编码分类列表（未来从 config.yaml 加载）
   const categories = ['技术', '生活', '随笔', '旅行', '读书'];
@@ -187,7 +204,18 @@ export function HomePostGrid({ posts, postCount, facesCount, isAdmin = false, he
       (p.description?.toLowerCase().includes(q) ?? false) ||
       (p.tags?.some((tag) => tag.toLowerCase().includes(q)) ?? false)
     );
+  }).sort((a, b) => {
+    // 置顶帖优先，再按日期降序
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime();
   });
+
+  const totalPages = Math.ceil(filteredPosts.length / pageSize);
+  const paginatedPosts = filteredPosts.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   return (
     <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12 md:py-20">
@@ -336,7 +364,7 @@ export function HomePostGrid({ posts, postCount, facesCount, isAdmin = false, he
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <AnimatePresence mode="popLayout">
             {filteredPosts.length > 0
-              ? filteredPosts.slice(0, 8).map((post) => {
+              ? paginatedPosts.map((post) => {
                   const isSide = coverConfig?.position === 'left' || coverConfig?.position === 'right';
                   return (
                     <motion.div
@@ -364,6 +392,41 @@ export function HomePostGrid({ posts, postCount, facesCount, isAdmin = false, he
                 )}
           </AnimatePresence>
         </div>
+
+        {/* 分页 */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-10">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-white text-zinc-600 border border-zinc-200 hover:border-zinc-300 hover:text-zinc-700"
+            >
+              <ChevronLeft size={16} />
+              <span className="hidden sm:inline">{t('common.previous')}</span>
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-9 h-9 rounded-xl text-sm font-bold transition-all ${
+                  page === currentPage
+                    ? 'bg-zinc-900 text-white shadow-lg shadow-zinc-900/20'
+                    : 'bg-white text-zinc-600 border border-zinc-200 hover:border-zinc-300 hover:text-zinc-700'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-white text-zinc-600 border border-zinc-200 hover:border-zinc-300 hover:text-zinc-700"
+            >
+              <span className="hidden sm:inline">{t('common.next')}</span>
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        )}
       </section>
     </main>
   );

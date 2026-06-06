@@ -116,7 +116,8 @@
     "siteStatus": "Originium Kernel 现已上线",
     "heroTitleLine1": "Write. Sync.",
     "heroTitleLine2": "Deploy.",
-    "emptyTitle": "这里空空如也"
+    "emptyTitle": "这里空空如也",
+    "pinned": "置顶"
   },
   "dashboard": {
     "title": "控制台",

@@ -209,6 +209,39 @@ export function getAllSlugs(section: 'posts' | 'faces' | 'diary'): string[] {
 }
 
 /**
+ * 获取指定文章的前一篇和后一篇（按日期降序排列）
+ * 仅考虑公开文章，用于文章详情页的上下篇导航
+ */
+export function getAdjacentPosts(currentSlug: string): {
+  prev: { slug: string; title: string } | null;
+  next: { slug: string; title: string } | null;
+} {
+  const allFiles = getContentFiles('posts');
+  const indexes = getContentIndexes('posts');
+
+  // 过滤非公开文章
+  const publicFiles = allFiles.filter((file) => {
+    const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
+    const dirIndex = indexes.find(
+      (idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'),
+    );
+    return dirIndex ? dirIndex.public : true;
+  });
+
+  const currentIndex = publicFiles.findIndex((f) => f.slug === currentSlug);
+  if (currentIndex === -1) return { prev: null, next: null };
+
+  // 数组按日期降序排列，索引越大日期越早
+  const prevFile = currentIndex < publicFiles.length - 1 ? publicFiles[currentIndex + 1] : null;
+  const nextFile = currentIndex > 0 ? publicFiles[currentIndex - 1] : null;
+
+  return {
+    prev: prevFile ? { slug: prevFile.slug, title: prevFile.meta.title } : null,
+    next: nextFile ? { slug: nextFile.slug, title: nextFile.meta.title } : null,
+  };
+}
+
+/**
  * 获取目录树结构（用于导航和面包屑）
  */
 export function getContentTree(section: 'posts' | 'faces' | 'diary'): ContentIndex[] {

@@ -35,6 +35,7 @@ export default function PostsPage() {
     tags: f.meta.tags ?? [],
     cover: f.meta.cover,
     description: f.meta.description,
+    pinned: f.meta.pinned === true,
   }));
 
   const groups = publicIndexes.map((idx) => ({
