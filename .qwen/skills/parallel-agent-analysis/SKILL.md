@@ -55,11 +55,18 @@ extracted_at: '2026-05-31T02:31:02.665Z'
 ```
 
 重要规则：
-- **始终直接修改主项目文件**，不使用 `isolation: "worktree"` 或其他隔离方式
+- **始终直接修改主项目文件**，不使用 `isolation: "worktree"` 或其他隔离方式（详见 [direct-modification-only](../direct-modification-only/SKILL.md)）
 - 如果项目中有遗留的工作树文件（`.qwen/worktrees/`），先清理：`rm -rf .qwen/worktrees/`
 - 修复 Agent 要给出具体的代码替换方案，按组分批验证
 
-### 第五步：合并 worktree（已废弃，不再使用）
+### 第五步：Agent 执行纪律
+
+修复 Agent 经常出现的问题：**只输出代码方案、不写文件**。必须强制写入：
+
+- prompt 中必须使用"Replace/Change/修改"等行动指令，而非"分析/建议"
+- 对 `general-purpose` Agent 的 prompt 末尾加一句：`你必须直接修改文件，只输出修改结果摘要，不做分析和方案'
+- 启动后检查 Agent 是否真的产生了 `git diff`（可通过 `git diff --stat` 验证）
+- 如果 Agent 只给了方案没写文件，立即重新启动并明确要求"写代码"
 
 ## 场景二：外部项目探索分析
 

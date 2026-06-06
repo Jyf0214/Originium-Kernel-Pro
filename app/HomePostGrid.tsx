@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, Filter, Sparkles, BookOpen, Users, ArrowRight, Calendar, User as UserIcon, Pin, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Input, Button as AntdButton } from 'antd';
+import { Input } from 'antd';
 import { Button } from '@/components/ui/Button';
 import Image from 'next/image';
 import { useI18n } from '@/hooks/use-i18n';
@@ -264,9 +264,9 @@ export function HomePostGrid({ posts, postCount, facesCount, isAdmin = false, he
                 variant="outlined"
               />
             </div>
-            <AntdButton size="large" icon={<Filter size={20} />} className="bg-white hover:bg-zinc-50 border-zinc-200 rounded-2xl">
+            <Button size="lg" variant="default" rounded="lg" icon={<Filter size={20} />} className="hover:bg-zinc-50">
               {t('common.sort')}
-            </AntdButton>
+            </Button>
           </div>
         </motion.div>
       </section>

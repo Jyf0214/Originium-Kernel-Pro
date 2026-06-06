@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState, createElement } from 'react';
-import { Button } from 'antd';
 import { loadClerkClient } from '@/lib/clerk-dynamic';
+import { Button } from '@/components/ui/Button';
 
 /**
  * Clerk 登录区块 — 动态加载 Clerk 组件
@@ -32,7 +32,7 @@ export function ClerkLoginSection({ variant = 'full' }: { variant?: 'full' | 'co
     return createElement(
       SignInButtonComp,
       { mode: 'modal', fallbackRedirectUrl: '/clerk/after-auth' },
-      <Button size="large" className="border-zinc-200 hover:border-zinc-300 rounded-xl px-4">
+      <Button size="lg" variant="default" rounded="md" className="px-4">
         <span className="flex items-center gap-1.5">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zm-9 9h7v7H4v-7zm9.5 0a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" fill="#6C47FF"/>
@@ -55,8 +55,10 @@ export function ClerkLoginSection({ variant = 'full' }: { variant?: 'full' | 'co
         { mode: 'modal', fallbackRedirectUrl: '/clerk/after-auth' },
         <Button
           block
-          size="large"
-          className="h-12 rounded-xl border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"
+          size="lg"
+          variant="default"
+          rounded="md"
+          className="h-12 hover:bg-zinc-50"
           style={{ fontSize: 14, fontWeight: 500 }}
         >
           <span className="flex items-center gap-2">
