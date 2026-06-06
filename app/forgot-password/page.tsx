@@ -2,7 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Button, Input, Form, message } from 'antd';
+import { Input, Form, message } from 'antd';
+import { Button } from '@/components/ui/Button';
 import { showError } from '@/lib/error';
 import { ChevronRight, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
@@ -58,7 +59,7 @@ export default function ForgotPasswordPage() {
           footer={
             <div className="flex items-center justify-center gap-2 py-6">
               <Link href="/login">
-                <Button icon={<ArrowLeft size={14} />} size="large">
+                <Button icon={<ArrowLeft size={14} />} size="lg">
                   {t('auth.backToLogin')}
                 </Button>
               </Link>
@@ -74,7 +75,7 @@ export default function ForgotPasswordPage() {
               <span className="text-sm text-zinc-400">{sentEmail}</span>
             </div>
           </div>
-          <Button size="large" block style={{ marginTop: 24 }} onClick={() => { setEmailSent(false); form.resetFields(); inputRef.current?.focus(); }}>
+          <Button size="lg" block className="mt-6" onClick={() => { setEmailSent(false); form.resetFields(); inputRef.current?.focus(); }}>
             {t('auth.resendEmail')}
           </Button>
         </AuthCard>
@@ -88,7 +89,7 @@ export default function ForgotPasswordPage() {
         footer={
           <div className="flex items-center justify-center gap-2 py-6">
             <Link href="/login">
-              <Button icon={<ArrowLeft size={14} />} size="large">
+              <Button icon={<ArrowLeft size={14} />} size="lg">
                 {t('auth.backToLogin')}
               </Button>
             </Link>
