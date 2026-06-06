@@ -175,7 +175,9 @@
     "diary": "Diary",
     "originiumKernel": "Originium Kernel",
     "configPreview": "Config Preview",
-    "returnDashboard": "Back to Dashboard"
+    "returnDashboard": "Back to Dashboard",
+    "customPages": "Custom Pages",
+    "fileManager": "File Manager"
   },
   "tickets": {
     "add": "Add",
@@ -600,6 +602,13 @@
     "passwordSubmit": "Enter",
     "wrongPassword": "Wrong password, please try again",
     "showPassword": "Show password",
-    "hidePassword": "Hide password"
+    "hidePassword": "Hide password",
+    "indexTitle": "Custom Pages",
+    "indexSubtitle": "Driven by the WebDAV `pages/` directory. Private pages are marked with a lock and require a password on first visit.",
+    "indexEmpty": "No custom pages yet",
+    "indexEmptyHint": "Place `.html` files under the WebDAV `pages/` directory and they will appear here automatically.",
+    "indexFolder": "Folder",
+    "indexPrivateBadge": "Private",
+    "indexPublicBadge": "Public"
   }
 }
