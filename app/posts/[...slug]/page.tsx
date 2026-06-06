@@ -1,4 +1,4 @@
-import { getContentFile, getAllSlugs, getContentIndexes } from '@/lib/content';
+import { getContentFile, getAllSlugs, getContentIndexes, getContentFiles, getAdjacentPosts } from '@/lib/content';
 import { getSession } from '@/lib/auth';
 import { loadConfig } from '@/lib/config';
 import { Navbar } from '@/components/Navbar';
@@ -41,6 +41,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+// eslint-disable-next-line complexity
 export default async function PostDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const fullPath = '/' + slug.join('/');
@@ -56,6 +57,35 @@ export default async function PostDetailPage({ params }: PageProps) {
   if (!file) notFound();
 
   const appConfig = loadConfig();
+
+  // 字数统计
+  const wordCount = file.content.length;
+  const readingTime = Math.ceil(wordCount / 500);
+  const showWordCount = appConfig.wordcount?.enable === true;
+
+  // 相关文章
+  const pubIndexes = getContentIndexes('posts');
+  const allPublicFiles = getContentFiles('posts').filter((f) => {
+    const dirSlug = '/' + f.slug.split('/').filter(Boolean).slice(0, -1).join('/');
+    const dirIndex = pubIndexes.find(
+      (idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'),
+    );
+    return dirIndex ? dirIndex.public : true;
+  });
+  const relatedPosts = allPublicFiles
+    .filter((f) => f.slug !== fullPath)
+    .map((f) => ({
+      slug: f.slug,
+      title: f.meta.title,
+      date: f.meta.date,
+      sharedTags: (f.meta.tags ?? []).filter((t) => (file.meta.tags ?? []).includes(t)).length,
+    }))
+    .filter((f) => f.sharedTags > 0)
+    .sort((a, b) => b.sharedTags - a.sharedTags)
+    .slice(0, 4);
+
+  // 上下篇导航
+  const adjacentPosts = getAdjacentPosts(fullPath);
 
   const breadcrumbs = slug.map((segment, index) => ({
     label: segment,
@@ -134,8 +164,80 @@ export default async function PostDetailPage({ params }: PageProps) {
           </div>
         </article>
 
+        {/* 字数统计 */}
+        {showWordCount && (
+          <div className="mt-12 px-6 py-4 bg-zinc-50 rounded-xl border border-zinc-100">
+            <div className="text-sm text-zinc-500 text-center">
+              <span>本文字数: {wordCount.toLocaleString()} 字</span>
+              <span className="mx-2 text-zinc-300">|</span>
+              <span>预计阅读: {readingTime} 分钟</span>
+            </div>
+          </div>
+        )}
+
+        {/* 相关文章 */}
+        {relatedPosts.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-lg font-bold text-zinc-900 mb-6">相关文章</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {relatedPosts.map((post) => (
+                <Link
+                  key={post.slug}
+                  href={post.slug}
+                  className="group p-4 rounded-xl bg-zinc-50 border border-zinc-100 hover:bg-zinc-100 transition-colors"
+                >
+                  <h3 className="text-sm font-semibold text-zinc-700 group-hover:text-zinc-900 transition-colors line-clamp-2 mb-2">
+                    {post.title}
+                  </h3>
+                  {post.date && (
+                    <time className="text-xs text-zinc-400">
+                      {new Date(post.date).toLocaleDateString('zh-CN', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </time>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* 底部导航 */}
         <div className="mt-20 pt-8 border-t border-zinc-100">
+          {/* 上下篇导航 */}
+          {(adjacentPosts.prev ?? adjacentPosts.next) && (
+            <div className="flex justify-between gap-4 mb-8">
+              {adjacentPosts.prev ? (
+                <Link
+                  href={adjacentPosts.prev.slug}
+                  className="group flex-1 flex flex-col p-4 rounded-xl bg-zinc-50 hover:bg-zinc-100 transition-colors min-w-0"
+                >
+                  <span className="text-xs text-zinc-400 mb-1">← 上一篇</span>
+                  <span className="text-sm font-medium text-zinc-700 group-hover:text-zinc-900 transition-colors truncate">
+                    {adjacentPosts.prev.title}
+                  </span>
+                </Link>
+              ) : (
+                <div className="flex-1" />
+              )}
+              {adjacentPosts.next ? (
+                <Link
+                  href={adjacentPosts.next.slug}
+                  className="group flex-1 flex flex-col p-4 rounded-xl bg-zinc-50 hover:bg-zinc-100 transition-colors min-w-0 text-right"
+                >
+                  <span className="text-xs text-zinc-400 mb-1">下一篇 →</span>
+                  <span className="text-sm font-medium text-zinc-700 group-hover:text-zinc-900 transition-colors truncate">
+                    {adjacentPosts.next.title}
+                  </span>
+                </Link>
+              ) : (
+                <div className="flex-1" />
+              )}
+            </div>
+          )}
+
           <Link
             href="/posts"
             className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors group"

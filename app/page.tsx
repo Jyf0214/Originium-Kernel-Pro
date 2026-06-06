@@ -38,6 +38,7 @@ export default async function HomePage() {
     tags: f.meta.tags ?? [],
     cover: f.meta.cover,
     description: f.meta.description,
+    pinned: f.meta.pinned === true,
   }));
 
   // facesCount - 游客无法看到通讯录

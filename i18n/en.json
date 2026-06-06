@@ -116,7 +116,8 @@
     "siteStatus": "Originium Kernel is Online",
     "heroTitleLine1": "Write. Sync.",
     "heroTitleLine2": "Deploy.",
-    "emptyTitle": "The kernel is empty"
+    "emptyTitle": "The kernel is empty",
+    "pinned": "Pinned"
   },
   "dashboard": {
     "title": "Dashboard",

@@ -16,6 +16,7 @@ interface PostItem {
   tags: string[];
   cover?: string;
   description?: string;
+  pinned?: boolean;
 }
 
 interface GroupItem {
