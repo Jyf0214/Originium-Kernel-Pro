@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Form } from 'antd';
 
+import { useI18n } from '@/hooks/use-i18n';
 import { showError } from '@/lib/error';
 import type { ContentFile } from '@/types/content';
 
@@ -12,6 +13,7 @@ import type { FormValues, GroupOption } from './types';
 /** 加载联系人详情和分组列表 */
 export function useFaceData(fullPath: string) {
   const router = useRouter();
+  const { t } = useI18n();
   const [form] = Form.useForm<FormValues>();
 
   const [file, setFile] = useState<ContentFile | null>(null);
@@ -28,11 +30,11 @@ export function useFaceData(fullPath: string) {
 
         if (!faceRes.ok) {
           if (faceRes.status === 404) {
-            showError('联系人不存在');
+            showError(t('faces.contactNotFound'));
             router.push('/faces');
             return;
           }
-          throw new Error('加载联系人失败');
+          throw new Error(t('faces.loadFaceFailed'));
         }
 
         const faceData: ContentFile = await faceRes.json();
@@ -57,14 +59,14 @@ export function useFaceData(fullPath: string) {
         }
       } catch (err) {
         console.error('加载数据失败:', err);
-        showError(err instanceof Error ? err.message : '加载数据失败');
+        showError(err instanceof Error ? err.message : t('faces.loadDataFailed'));
       } finally {
         setLoading(false);
       }
     };
 
     void fetchData();
-  }, [fullPath, form, router]);
+  }, [fullPath, form, router, t]);
 
   return { form, file, groups, loading };
 }

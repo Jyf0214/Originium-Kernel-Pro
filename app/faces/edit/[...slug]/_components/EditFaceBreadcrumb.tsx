@@ -30,7 +30,7 @@ export function EditFaceBreadcrumb({
         {title}
       </Link>
       <span>/</span>
-      <span className="text-zinc-900 font-medium">编辑</span>
+      <span className="text-zinc-900 font-medium">{t('faces.breadcrumbEdit')}</span>
     </nav>
   );
 }

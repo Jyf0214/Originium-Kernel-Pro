@@ -26,7 +26,7 @@ export interface EditFaceParams {
 export interface EditFaceResult {
   success: boolean;
   newSlug: string;
-  message: string;
+  messageKey: 'faces.editSuccessMoved' | 'faces.editSuccess';
 }
 
 /**
@@ -103,7 +103,7 @@ export async function editFace(params: EditFaceParams): Promise<EditFaceResult> 
       return {
         success: true,
         newSlug: `/${group}/${newSlug}`,
-        message: '联系人已更新并移动到新分组',
+        messageKey: 'faces.editSuccessMoved',
       };
     }
 
@@ -119,7 +119,7 @@ export async function editFace(params: EditFaceParams): Promise<EditFaceResult> 
     return {
       success: true,
       newSlug: `/${group}/${newSlug}`,
-      message: '联系人已更新',
+      messageKey: 'faces.editSuccess',
     };
   } catch (error) {
     logger.error('editFace', '编辑联系人失败', { error: error instanceof Error ? error.message : String(error) });
@@ -130,7 +130,7 @@ export async function editFace(params: EditFaceParams): Promise<EditFaceResult> 
 /**
  * 删除联系人（通过 GitHub API）
  */
-export async function deleteFace(path: string): Promise<{ success: boolean; message: string }> {
+export async function deleteFace(path: string): Promise<{ success: boolean; messageKey: 'faces.deleteSuccess' }> {
   const hasPermission = await checkPermission();
   if (!hasPermission) {
     throw new Error('无权限删除联系人');
@@ -146,7 +146,7 @@ export async function deleteFace(path: string): Promise<{ success: boolean; mess
 
     return {
       success: true,
-      message: '联系人已删除',
+      messageKey: 'faces.deleteSuccess',
     };
   } catch (error) {
     logger.error('deleteFace', '删除联系人失败', { error: error instanceof Error ? error.message : String(error) });
