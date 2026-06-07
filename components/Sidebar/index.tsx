@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { usePathname } from 'next/navigation';
-import { Settings } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
 import SidebarHeader from './SidebarHeader';
 import SidebarUserMenu from './SidebarUserMenu';
@@ -20,15 +19,13 @@ function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
   const { isOpen, open, close } = useSidebarState();
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
-  const items: MenuItem[] =
-    variant === 'admin'
-      ? adminMenuItems
-      : isSudo
-        ? [
-            ...userMenuItems,
-            { key: 'dashboard.adminConsole', icon: Settings, href: '/admin', group: 'admin' },
-          ]
-        : userMenuItems;
+  const visibleUserItems: MenuItem[] = userMenuItems.filter((item) => {
+    if (!item.roles || item.roles.length === 0) return true;
+    if (item.roles.includes('sudo')) return isSudo;
+    return false;
+  });
+
+  const items: MenuItem[] = variant === 'admin' ? adminMenuItems : visibleUserItems;
 
   const handleLogout = async () => {
     await logout();
@@ -75,7 +72,7 @@ function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
 
   return (
     <>
-      <MobileToggle isOpen={isOpen} onClick={open} />
+      <MobileToggle isOpen={isOpen} onClick={isOpen ? close : open} />
       <div className="hidden md:flex w-[280px] min-h-screen z-[100] bg-white flex-col">
         {renderContent(false)}
       </div>
@@ -86,6 +83,7 @@ function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
         />
       )}
       <div
+        id="primary-sidebar"
         className="md:hidden fixed top-0 h-screen w-[300px] z-[999] bg-white shadow-[20px_0_60px_-15px_rgba(0,0,0,0.3)] transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1)"
         style={{ left: 0, transform: isOpen ? 'translateX(0)' : 'translateX(-100%)' }}
       >

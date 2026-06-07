@@ -1,4 +1,4 @@
-import { Menu } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 interface MobileToggleProps {
@@ -7,15 +7,16 @@ interface MobileToggleProps {
 }
 
 export default function MobileToggle({ isOpen, onClick }: MobileToggleProps) {
-  if (isOpen) return null;
-
   return (
     <Button
       variant="primary"
       onClick={onClick}
+      aria-label={isOpen ? '关闭侧边栏' : '打开侧边栏'}
+      aria-expanded={isOpen}
+      aria-controls="primary-sidebar"
       className="md:hidden fixed top-6 left-6 z-[9999] rounded-2xl p-3.5 shadow-2xl shadow-zinc-900/20 hover:scale-110 active:scale-95"
     >
-      <Menu size={22} />
+      {isOpen ? <X size={22} /> : <Menu size={22} />}
     </Button>
   );
 }
