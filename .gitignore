@@ -41,7 +41,8 @@ next-env.d.ts
 lint-results.json
 bun.lock
 bun.lockb
-.qwen/skills/*
+.qwen/skills/**
+!.qwen/skills/.gitkeep
 
 # 构建期同步产物(由 npm run sync:pages 生成)
 /pages/
