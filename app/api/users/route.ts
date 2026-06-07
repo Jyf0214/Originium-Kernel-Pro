@@ -12,36 +12,14 @@ const logger = createApiLogger('/api/users');
  * GET /api/users/[username] - Get user by username
  */
 
-async function getUserByUsernameSearch(
+export async function getUserByUsernameSearch(
   db: ReturnType<typeof getDb>,
   username: string,
 ): Promise<Record<string, unknown> | null> {
-  const userListStr = await db.get('users:all:list');
-  if (!userListStr) {
-    return null;
-  }
-
-  const userIds = JSON.parse(userListStr) as string[];
-
-  for (const userId of userIds) {
-    const userStr = await db.get(`user:uid:${userId}`);
-    if (!userStr) continue;
-
-    const user = JSON.parse(userStr);
-    const userUsername = user.email.split('@')[0];
-    if (userUsername === username || user.uid === username) {
-      return {
-        uid: user.uid,
-        name: user.name,
-        email: user.email,
-        createdAt: user.createdAt,
-        role: user.role,
-        userGroup: user.userGroup,
-      };
-    }
-  }
-
-  return null;
+  // 使用反向索引 user:username:${username} -> uid,避免 N+1 全表扫描
+  const uid = await db.get(`user:username:${username}`);
+  if (!uid) return null;
+  return getUserByUidSearch(db, uid);
 }
 
 async function getUserByUidSearch(
