@@ -94,7 +94,7 @@ function buildViewModel(
     wordCount: stats.wordCount,
     readingTime: stats.readingTime,
     headingCount: stats.headingCount,
-    showWordCount: appConfig.wordcount?.enable === true,
+    showWordCount: appConfig.wordcount?.enable ?? false,
     highlight: appConfig.highlight,
     tocConfig,
     appConfig,
