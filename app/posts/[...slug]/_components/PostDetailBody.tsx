@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
+import { Giscus } from '@/components/Comments/Giscus';
 import { CopyrightNotice } from '@/components/ui/CopyrightNotice';
 import ShareButtons from '@/components/ui/ShareButtons';
 import { PostBreadcrumb, type Crumb } from './PostBreadcrumb';
@@ -56,6 +57,10 @@ export function PostDetailBody({
           <MarkdownRenderer content={file.content} highlight={highlight} />
         </div>
       </article>
+
+      <div className="mt-12 max-w-3xl">
+        <Giscus slug={fullPath} />
+      </div>
 
       {showWordCount && (
         <div className="mt-12 px-6 py-4 bg-zinc-50 rounded-xl border border-zinc-100">
