@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { Save, Send, ArrowLeft, Image as ImageIcon, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { message } from 'antd';
 import { showError } from '@/lib/error';
 import { GlobalLoading } from '@/components/Loading';
@@ -224,42 +225,54 @@ if (res.ok) {
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-mono">/posts</span>
-            <input
+            <Input
               type="text"
               placeholder="/category/my-post（留空自动生成）"
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
-              className="w-full border border-zinc-200 rounded-xl h-10 pl-16 pr-4 focus:ring-2 focus:ring-zinc-900 focus:outline-none text-sm font-mono"
+              size="md"
+              rounded="md"
+              ring="strong"
+              className="pl-16 pr-4 font-mono"
             />
           </div>
           <div className="flex-1 relative">
             <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-            <input
+            <Input
               type="text"
               placeholder={t('editor.coverUrl')}
               value={coverImage}
               onChange={(e) => setCoverImage(e.target.value)}
-              className="w-full border border-zinc-200 rounded-xl h-10 pl-10 px-4 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
+              size="md"
+              rounded="md"
+              ring="strong"
+              className="pl-10 px-4"
             />
           </div>
           <div className="flex-1">
-            <input
+            <Input
               type="text"
               placeholder={t('editor.tags')}
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              className="w-full border border-zinc-200 rounded-xl h-10 px-4 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
+              size="md"
+              rounded="md"
+              ring="strong"
+              className="px-4"
             />
           </div>
         </div>
 
         {/* 描述 */}
-        <input
+        <Input
           type="text"
           placeholder="文章描述（可选，用于列表预览）"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full border border-zinc-200 rounded-xl h-10 px-4 focus:ring-2 focus:ring-zinc-900 focus:outline-none text-sm"
+          size="md"
+          rounded="md"
+          ring="strong"
+          className="px-4"
         />
 
         {/* 内容编辑 */}

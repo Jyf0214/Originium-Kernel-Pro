@@ -17,9 +17,9 @@ export function PostCardBody({
       {post.pinned && (
         <div className="inline-flex items-center gap-1.5 mb-3 self-start bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700 px-2.5 py-1 rounded-lg">
           <Pin size={10} className="text-amber-400/80" />
-          <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400">
+          <Tag size="xs" variant="dark">
             {t('home.pinned')}
-          </span>
+          </Tag>
         </div>
       )}
       <div className="flex flex-wrap gap-1.5 mb-3">

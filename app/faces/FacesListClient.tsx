@@ -8,6 +8,7 @@ import { Input } from 'antd';
 import { useI18n } from '@/hooks/use-i18n';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Tag } from '@/components/ui/Tag';
+import { FilterPill } from '@/components/ui/FilterPill';
 
 export interface FaceItem {
   slug: string;
@@ -92,32 +93,20 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
       {/* 分组标签 + 数量统计 */}
       {groupNames.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 mb-8">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <FilterPill
+            selected={activeGroup === null}
             onClick={() => setActiveGroup(null)}
-            className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-              activeGroup === null
-                ? 'bg-zinc-900 text-white shadow-md shadow-zinc-900/20'
-                : 'bg-white text-zinc-600 border border-zinc-200 hover:border-zinc-300 hover:shadow-sm'
-            }`}
           >
             {t('faces.allFaces')}
-          </motion.button>
+          </FilterPill>
           {groupNames.map((name) => (
-            <motion.button
+            <FilterPill
               key={name}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              selected={activeGroup === name}
               onClick={() => setActiveGroup(name)}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                activeGroup === name
-                  ? 'bg-zinc-900 text-white shadow-md shadow-zinc-900/20'
-                  : 'bg-white text-zinc-600 border border-zinc-200 hover:border-zinc-300 hover:shadow-sm'
-              }`}
             >
               {name}
-            </motion.button>
+            </FilterPill>
           ))}
         </div>
       )}

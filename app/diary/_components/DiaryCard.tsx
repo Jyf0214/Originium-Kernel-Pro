@@ -86,7 +86,7 @@ export function DiaryCard({
               icon={<Edit3 size={14} />}
             />
             <Button
-              variant="ghost"
+              variant="dangerGhost"
               size="sm"
               iconOnly
               rounded="sm"
@@ -94,7 +94,7 @@ export function DiaryCard({
               disabled={deleting === diary.id}
               loading={deleting === diary.id}
               title="删除"
-              className="text-zinc-400 hover:text-red-500 hover:bg-red-50"
+              aria-label="删除"
               icon={<Trash2 size={14} />}
             />
             <div className="p-1.5 sm:p-2 text-zinc-400" title={isViewing ? '收起' : '展开'}>

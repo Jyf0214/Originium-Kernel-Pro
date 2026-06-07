@@ -120,13 +120,13 @@ export default function DiaryDraftsPage() {
                     <Button
                       onClick={() => handleDelete(d.id)}
                       disabled={deleting === d.id}
-                      variant="ghost"
+                      variant="dangerGhost"
                       size="sm"
                       iconOnly
                       icon={<Trash2 size={14} />}
                       loading={deleting === d.id}
-                      className="hover:text-red-500 hover:bg-red-50"
                       title="删除草稿"
+                      aria-label="删除草稿"
                     />
                   </div>
                 </div>

@@ -1,29 +1,31 @@
-import { type InputHTMLAttributes, memo, forwardRef } from 'react';
+import { type SelectHTMLAttributes, memo, forwardRef, type ReactNode } from 'react';
 import { cn } from '@/lib/ui';
 
-export type InputSize = 'sm' | 'md' | 'lg' | 'xl';
-export type InputRounded = 'sm' | 'md' | 'lg' | 'full' | 'none';
-export type InputRing = 'default' | 'strong';
+export type SelectSize = 'sm' | 'md' | 'lg' | 'xl';
+export type SelectRounded = 'sm' | 'md' | 'lg' | 'full' | 'none';
+export type SelectRing = 'default' | 'strong';
 
-export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
+export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
   label?: string;
   error?: string;
   /** 高度档位:sm=h-9 / md=h-10 / lg=h-11 / xl=h-12 */
-  size?: InputSize;
+  size?: SelectSize;
   /** 圆角档位:sm=rounded-lg / md=rounded-xl / lg=rounded-2xl / full=rounded-full / none=rounded-none */
-  rounded?: InputRounded;
+  rounded?: SelectRounded;
   /** 焦点环强度:default=ring-1 ring-zinc-400 / strong=ring-2 ring-zinc-900 */
-  ring?: InputRing;
+  ring?: SelectRing;
+  /** 选项节点(原生 <option> / <optgroup>) */
+  children: ReactNode;
 }
 
-const sizeStyles: Record<InputSize, string> = {
+const sizeStyles: Record<SelectSize, string> = {
   sm: 'h-9 px-3 text-xs',
   md: 'h-10 px-3 text-sm',
   lg: 'h-11 px-4 text-sm',
   xl: 'h-12 px-4 text-base',
 };
 
-const roundedStyles: Record<InputRounded, string> = {
+const roundedStyles: Record<SelectRounded, string> = {
   sm: 'rounded-lg',
   md: 'rounded-xl',
   lg: 'rounded-2xl',
@@ -31,27 +33,41 @@ const roundedStyles: Record<InputRounded, string> = {
   none: 'rounded-none',
 };
 
-const ringStyles: Record<InputRing, string> = {
+const ringStyles: Record<SelectRing, string> = {
   default: 'focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400',
   strong: 'focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900',
 };
 
 /**
- * 自定义输入框组件
+ * 自定义下拉选择器 — 原生 <select> 的样式封装
  * - 默认 h-10 px-3 rounded-lg text-sm + focus:ring-1 focus:ring-zinc-400
- * - size 改变高度,rounded 改变圆角,ring 改变焦点环强度
+ * - 透传所有原生 <select> 属性(value / onChange / defaultValue / disabled ...)
+ * - children 必须为 <option> / <optgroup>
  */
-export const Input = memo(
-  forwardRef<HTMLInputElement, InputProps>(
-    ({ className, label, error, id, size = 'md', rounded = 'sm', ring = 'default', ...props }, ref) => {
+export const Select = memo(
+  forwardRef<HTMLSelectElement, SelectProps>(
+    (
+      {
+        className,
+        label,
+        error,
+        id,
+        size = 'md',
+        rounded = 'sm',
+        ring = 'default',
+        children,
+        ...props
+      },
+      ref,
+    ) => {
       const inputId = id ?? (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
 
-      const inputEl = (
-        <input
+      const selectEl = (
+        <select
           ref={ref}
           id={inputId}
           className={cn(
-            'w-full border border-zinc-200 outline-none transition-colors',
+            'w-full border border-zinc-200 outline-none transition-colors bg-white',
             sizeStyles[size],
             roundedStyles[rounded],
             ringStyles[ring],
@@ -60,10 +76,12 @@ export const Input = memo(
             className,
           )}
           {...props}
-        />
+        >
+          {children}
+        </select>
       );
 
-      if (!label && !error) return inputEl;
+      if (!label && !error) return selectEl;
 
       return (
         <div className="w-full">
@@ -72,7 +90,7 @@ export const Input = memo(
               {label}
             </label>
           )}
-          {inputEl}
+          {selectEl}
           {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
         </div>
       );
@@ -80,5 +98,5 @@ export const Input = memo(
   ),
 );
 
-Input.displayName = 'Input';
-export default Input;
+Select.displayName = 'Select';
+export default Select;

@@ -4,6 +4,7 @@ import React from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'motion/react';
+import { Tag } from '@/components/ui/Tag';
 
 interface HeroBannerProps {
   tag?: string;
@@ -43,11 +44,11 @@ export function HeroBanner({
       <div className="relative p-6 md:p-7 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex-1 min-w-0">
           {/* 标签 */}
-          <div className="flex items-center gap-1.5 mb-3">
-            <Sparkles size={13} className="text-amber-400/80" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">
+          <div className="mb-3">
+            <Tag size="xs" variant="dark" className="inline-flex items-center gap-1.5">
+              <Sparkles size={13} className="text-amber-400/80" />
               {tag}
-            </span>
+            </Tag>
           </div>
 
           {/* 标题 */}

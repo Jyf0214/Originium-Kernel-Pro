@@ -27,11 +27,12 @@ export function TagInputRow({
       <div className="flex gap-2 mb-2">
         <Input
           type="text"
+          size="sm"
           value={inputValue}
           onChange={e => onInputChange(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && onSubmit()}
           placeholder={placeholder}
-          className="flex-1 h-9 px-3 border border-zinc-200 rounded-lg text-sm"
+          className="flex-1"
         />
         <Button onClick={onSubmit} size="sm">{addButtonLabel}</Button>
       </div>

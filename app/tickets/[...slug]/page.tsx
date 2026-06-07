@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, Clock, AlertCircle, Save } from 'lucide-react';
 import { message } from 'antd';
 import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 import { useI18n } from '@/hooks/use-i18n';
@@ -68,15 +69,15 @@ function TicketStatusUpdater({
     <div className="mt-6 pt-5 border-t border-zinc-100">
       <div className="flex items-center gap-3">
         <span className="text-sm font-medium text-zinc-700">{t('tickets.updateStatus')}:</span>
-        <select
+        <Select
           value={newStatus}
           onChange={e => onStatusChange(e.target.value)}
-          className="h-9 px-3 border border-zinc-200 rounded-lg text-sm"
+          size="sm"
         >
           <option value="open">{t('tickets.statusOpen')}</option>
           <option value="in-progress">{t('tickets.statusInProgress')}</option>
           <option value="closed">{t('tickets.statusClosed')}</option>
-        </select>
+        </Select>
         <Button
           variant="primary"
           icon={<Save size={14} />}
