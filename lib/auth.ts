@@ -8,13 +8,18 @@ import { SESSION_EXPIRY_MS, SESSION_EXPIRY } from '@/lib/constants';
  * Originium Kernel 认证逻辑（Serverless/Edge）
  */
 
+/**
+ * 获取用于 JWT 签名的密钥。AUTH_SECRET 必须至少 32 个字符。
+ * 生产环境强制要求配置 AUTH_SECRET 且长度 ≥ 32，缺失或过短会直接抛出错误。
+ * 开发环境下若缺失或过短，会输出警告并退回到随机临时密钥。
+ */
 export function getSecret(): string {
   const secret = process.env.AUTH_SECRET;
-  if (!secret) {
+  if (!secret || secret.length < 32) {
     if (process.env.NODE_ENV === 'production') {
-      throw new Error('AUTH_SECRET 环境变量未配置，生产环境必须设置');
+      throw new Error('AUTH_SECRET 环境变量未配置或长度小于 32，生产环境必须设置至少 32 字符的密钥');
     }
-    console.warn('[auth] AUTH_SECRET 未配置，使用随机临时密钥（仅开发环境，会话重启后失效）');
+    console.warn('[auth] AUTH_SECRET 未配置或长度不足 32 字符，使用随机临时密钥（仅开发环境，会话重启后失效）');
     return crypto.randomBytes(32).toString('hex');
   }
   return secret;
