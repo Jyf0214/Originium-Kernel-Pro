@@ -8,7 +8,60 @@ import { useState, useCallback } from 'react';
  * - autoLoading 默认开启：点击后自动进入加载，按钮变淡且不可重复点击
  * - 若 onClick 返回 Promise，加载状态在 Promise 完成后自动解除
  * - loading prop 传入时进入受控模式，autoLoading 不生效
+ *
+ * 注意：内部使用 `runWithMinLoadingDuration` 保证 loading 状态至少保持
+ * `MIN_LOADING_DURATION_MS` 毫秒，避免同步 onClick 在同一微任务内
+ * setLoading(true) / setLoading(false) 被 React 合并掉、用户根本看不到 spinner。
  */
+
+/** 加载动画最小显示时长：保证用户能感知到旋转图标，而不是一闪而过 */
+export const MIN_LOADING_DURATION_MS = 400;
+
+/**
+ * 以「最小显示时长」为约束执行一个动作，期间持续触发 loading 状态。
+ *
+ * - 抽出为纯函数便于在 node 测试环境中独立验证（无需 react-testing-library）
+ * - 若 action 是同步或耗时 < minMs，会用 setTimeout 补足剩余时间
+ * - 若 action 是异步且耗时 >= minMs，则在 action 完成后立即解除 loading
+ *
+ * @param setLoading 控制 loading 状态的 setter
+ * @param action 要执行的动作（可以返回 Promise；返回 void 也可）
+ * @param minMs 最小显示时长（毫秒）
+ */
+export function runWithMinLoadingDuration(
+  setLoading: (loading: boolean) => void,
+  action: () => void | Promise<unknown>,
+  minMs: number = MIN_LOADING_DURATION_MS,
+): void {
+  setLoading(true);
+  const start = Date.now();
+  let released = false;
+
+  const release = () => {
+    if (released) return;
+    released = true;
+    const elapsed = Date.now() - start;
+    const remaining = Math.max(0, minMs - elapsed);
+    if (remaining === 0) {
+      setLoading(false);
+    } else {
+      setTimeout(() => setLoading(false), remaining);
+    }
+  };
+
+  try {
+    const result = action();
+    if (result && typeof result.then === 'function') {
+      void result.finally(release);
+    } else {
+      release();
+    }
+  } catch (err) {
+    release();
+    throw err;
+  }
+}
+
 export function useAutoLoading(
   loading: boolean | undefined,
   autoLoading: boolean,
@@ -25,8 +78,10 @@ export function useAutoLoading(
       onClick?.(e);
       return;
     }
-    setInternalLoading(true);
-    void Promise.resolve(onClick?.(e)).finally(() => setInternalLoading(false));
+    runWithMinLoadingDuration(
+      setInternalLoading,
+      () => onClick?.(e),
+    );
   }, [isLoading, disabled, autoLoading, isControlled, onClick]);
 
   return { isLoading, handleClick, showLoading: loading || (autoLoading && internalLoading) };
