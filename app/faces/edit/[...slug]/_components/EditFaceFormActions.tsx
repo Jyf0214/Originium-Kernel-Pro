@@ -35,7 +35,7 @@ export function EditFaceFormActions({
       <div className="flex gap-3">
         <Popconfirm
           title={t('common.confirm')}
-          description="确定要删除此联系人吗？此操作不可撤销。"
+          description={t('faces.deleteConfirm')}
           onConfirm={onDelete}
           okText={t('common.confirm')}
           cancelText={t('common.cancel')}

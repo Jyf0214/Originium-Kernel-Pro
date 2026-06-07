@@ -25,17 +25,17 @@ export default function FacesPage() {
         });
       } else {
         console.error('API response not ok:', res.status);
-        showError('通讯录加载失败');
+        showError(t('faces.loadFailed'));
       }
     } catch (err) {
       console.error('Failed to fetch faces:', err);
-      showError('通讯录加载失败');
+      showError(t('faces.loadFailed'));
     } finally {
       setLoading(false);
     }
     };
     void fetchData();
-  }, []);
+  }, [t]);
 
   if (loading) {
     return (

@@ -36,7 +36,7 @@ export default function NewFacePage() {
   /** 提交表单：生成 Markdown 并推送至 GitHub */
   const handleSubmit = async (values: NewFaceFormValues) => {
     if (!githubRepo) {
-      showError('GitHub 未配置，请检查环境变量');
+      showError(t('faces.githubNotConfigured'));
       return;
     }
 
@@ -76,14 +76,14 @@ export default function NewFacePage() {
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error ?? '创建失败');
+        throw new Error(err.error ?? t('faces.createFailedShort'));
       }
 
-      message.success('联系人创建成功');
+      message.success(t('faces.createSuccess'));
       router.push(`/faces/${groupPath}/${safeName}`);
     } catch (error: unknown) {
       const errorMsg = error instanceof Error ? error.message : t('common.error');
-      showError(`创建联系人失败: ${errorMsg}`);
+      showError(`${t('faces.createFailed')}: ${errorMsg}`);
     } finally {
       setSubmitting(false);
     }
@@ -111,15 +111,15 @@ export default function NewFacePage() {
             <div className="w-16 h-16 bg-zinc-50 rounded-xl flex items-center justify-center mb-6">
               <Lock size={28} className="text-zinc-400" />
             </div>
-            <h2 className="text-2xl font-bold text-zinc-900 mb-2">需要管理员权限</h2>
-            <p className="text-zinc-400 mb-8">此操作仅限超级管理员执行</p>
+            <h2 className="text-2xl font-bold text-zinc-900 mb-2">{t('faces.needAdmin')}</h2>
+            <p className="text-zinc-400 mb-8">{t('faces.needAdminDesc')}</p>
             <Link href="/faces">
               <Button
                 variant="default"
                 icon={<ArrowLeft size={16} />}
                 className="h-10 px-8 rounded-xl"
               >
-                返回通讯录
+                {t('faces.backToFaces')}
               </Button>
             </Link>
           </div>
@@ -134,9 +134,9 @@ export default function NewFacePage() {
       <PageContainer maxWidth="4xl">
         <div className="flex flex-col gap-3 mb-8">
           <h1 className="text-2xl font-bold text-zinc-900">
-            新建联系人
+            {t('faces.newFace')}
           </h1>
-          <p className="text-sm text-zinc-400">添加新联系人到通讯录</p>
+          <p className="text-sm text-zinc-400">{t('faces.newFaceDesc')}</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-zinc-100 p-6">
@@ -154,24 +154,24 @@ export default function NewFacePage() {
             }}
           >
             <Form.Item
-              label={<span className="text-zinc-700 font-medium">联系人姓名</span>}
+              label={<span className="text-zinc-700 font-medium">{t('faces.nameLabel')}</span>}
               name="name"
-              rules={[{ required: true, message: '请输入联系人姓名' }]}
+              rules={[{ required: true, message: t('faces.nameRequired') }]}
             >
               <Input
-                placeholder="请输入联系人姓名"
+                placeholder={t('faces.namePlaceholder')}
                 className="h-10 rounded-lg text-sm border-zinc-200 hover:border-zinc-300 focus:border-zinc-900"
               />
             </Form.Item>
 
             <Form.Item
-              label={<span className="text-zinc-700 font-medium">分组/标签</span>}
+              label={<span className="text-zinc-700 font-medium">{t('faces.groupsLabel')}</span>}
               name="groups"
-              extra="可输入多个标签，第一个标签将作为分组目录"
+              extra={t('faces.groupsHint')}
             >
               <Select
                 mode="tags"
-                placeholder="输入后按回车添加标签"
+                placeholder={t('faces.groupsPlaceholder')}
                 className="rounded-lg text-sm border-zinc-200 hover:border-zinc-300 focus:border-zinc-900"
                 style={{ minHeight: 40 }}
                 tokenSeparators={[',']}
@@ -179,24 +179,24 @@ export default function NewFacePage() {
             </Form.Item>
 
             <Form.Item
-              label={<span className="text-zinc-700 font-medium">描述</span>}
+              label={<span className="text-zinc-700 font-medium">{t('faces.descriptionLabel')}</span>}
               name="description"
-              extra="简短描述，将显示在 Front Matter 中"
+              extra={t('faces.descriptionHint')}
             >
               <Input
-                placeholder="请输入简短描述（可选）"
+                placeholder={t('faces.descriptionPlaceholder')}
                 className="h-10 rounded-lg text-sm border-zinc-200 hover:border-zinc-300 focus:border-zinc-900"
               />
             </Form.Item>
 
             <Form.Item
-              label={<span className="text-zinc-700 font-medium">详细内容 *</span>}
+              label={<span className="text-zinc-700 font-medium">{t('faces.contentLabel')} *</span>}
               name="content"
-              rules={[{ required: true, message: '请输入详细内容' }]}
-              extra="支持 Markdown 格式"
+              rules={[{ required: true, message: t('faces.contentRequired') }]}
+              extra={t('faces.contentHint')}
             >
               <TextArea
-                placeholder="使用 Markdown 编写联系人详细内容..."
+                placeholder={t('faces.contentPlaceholder')}
                 className="rounded-lg text-sm border-zinc-200 hover:border-zinc-300 focus:border-zinc-900"
                 rows={12}
                 style={{ fontFamily: 'inherit', resize: 'vertical' }}

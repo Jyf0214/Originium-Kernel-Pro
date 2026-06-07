@@ -64,6 +64,7 @@ function FaceDetailHeader({ file, isSudo, rawContent, showRaw, setShowRaw }: {
   setShowRaw: (v: boolean) => void;
 }) {
   const { config: siteConfig } = useConfig();
+  const { t } = useI18n();
   return (
     <header className="mb-12 text-center">
       <div className="flex justify-center mb-6">
@@ -96,7 +97,7 @@ function FaceDetailHeader({ file, isSudo, rawContent, showRaw, setShowRaw }: {
             size="sm"
             icon={showRaw ? <Eye size={18} /> : <Code size={18} />}
           >
-            {showRaw ? '预览渲染' : '查看原始文件'}
+            {showRaw ? t('faces.previewRender') : t('faces.viewRaw')}
           </Button>
         </div>
       )}
@@ -128,6 +129,7 @@ export default function FaceDetailPage() {
   const slugArray = params?.slug as string[] || [];
   const fullPath = '/' + slugArray.join('/');
   const { isSudo } = useAuth();
+  const { t } = useI18n();
 
   const [file, setFile] = React.useState<ContentFile | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -149,13 +151,13 @@ export default function FaceDetailPage() {
         }
       } catch (err) {
         console.error('Failed to fetch face details:', err);
-        showError('联系人详情加载失败');
+        showError(t('faces.detailLoadFailed'));
       } finally {
         setLoading(false);
       }
     };
     void fetchData();
-  }, [fullPath]);
+  }, [fullPath, t]);
 
   if (loading) return <LoadingView />;
   if (!file) notFound();
