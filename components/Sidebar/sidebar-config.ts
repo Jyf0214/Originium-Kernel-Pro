@@ -21,13 +21,13 @@ export const userMenuItems: MenuItem[] = [
   { key: 'sidebar.posts', icon: BookOpen, href: '/posts', group: 'content' },
   { key: 'sidebar.faces', icon: Users, href: '/faces', group: 'content' },
   { key: 'sidebar.write', icon: PenLine, href: '/editor', group: 'content' },
+  { key: 'sidebar.fileManager', icon: Folder, href: '/admin/storage', group: 'content', roles: ['admin', 'sudo'] },
   { key: 'sidebar.customPages', icon: Globe, href: '/page', group: 'content' },
   { key: 'sidebar.articleManagement', icon: Archive, href: '/dashboard/articles', group: 'manage' },
   { key: 'sidebar.trash', icon: Trash2, href: '/dashboard/articles?status=pending_deletion', group: 'manage' },
   { key: 'sidebar.diary', icon: FileText, href: '/diary', group: 'personal' },
   { key: 'sidebar.settings', icon: Settings, href: '/dashboard/settings', group: 'account' },
   { key: 'dashboard.adminConsole', icon: Shield, href: '/admin', group: 'admin', roles: ['sudo'] },
-  { key: 'sidebar.fileManager', icon: Folder, href: '/admin/storage', group: 'storage', roles: ['admin', 'sudo'] },
 ];
 
 export const adminMenuItems: MenuItem[] = [
@@ -38,7 +38,7 @@ export const adminMenuItems: MenuItem[] = [
   { key: 'sidebar.userManagement', icon: Users, href: '/admin/users', group: 'admin' },
   { key: 'sidebar.tickets', icon: FileText, href: '/admin/tickets', group: 'admin' },
   { key: 'sidebar.writeArticle', icon: FileText, href: '/admin/tickets/new', group: 'admin' },
-  { key: 'sidebar.fileManager', icon: Folder, href: '/admin/storage', group: 'storage' },
+  { key: 'sidebar.fileManager', icon: Folder, href: '/admin/storage', group: 'admin' },
 ];
 
 export const groupKeys: Record<string, string> = {
