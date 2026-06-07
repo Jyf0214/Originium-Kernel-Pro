@@ -27,6 +27,7 @@ export const userMenuItems: MenuItem[] = [
   { key: 'sidebar.diary', icon: FileText, href: '/diary', group: 'personal' },
   { key: 'sidebar.settings', icon: Settings, href: '/dashboard/settings', group: 'account' },
   { key: 'dashboard.adminConsole', icon: Shield, href: '/admin', group: 'admin', roles: ['sudo'] },
+  { key: 'sidebar.fileManager', icon: Folder, href: '/admin/storage', group: 'storage', roles: ['admin', 'sudo'] },
 ];
 
 export const adminMenuItems: MenuItem[] = [
