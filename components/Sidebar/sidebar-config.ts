@@ -12,6 +12,7 @@ import {
   Eye,
   Folder,
   Globe,
+  Shield,
 } from 'lucide-react';
 import type { MenuItem } from './types';
 
@@ -25,6 +26,7 @@ export const userMenuItems: MenuItem[] = [
   { key: 'sidebar.trash', icon: Trash2, href: '/dashboard/articles?status=pending_deletion', group: 'manage' },
   { key: 'sidebar.diary', icon: FileText, href: '/diary', group: 'personal' },
   { key: 'sidebar.settings', icon: Settings, href: '/dashboard/settings', group: 'account' },
+  { key: 'dashboard.adminConsole', icon: Shield, href: '/admin', group: 'admin', roles: ['sudo'] },
 ];
 
 export const adminMenuItems: MenuItem[] = [
