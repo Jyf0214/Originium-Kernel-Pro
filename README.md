@@ -165,7 +165,7 @@
 | `AUTH_SECRET` | JWT 签名密钥（至少32字符） | 是 | - |
 | `ADMIN_EMAIL` | 初始管理员邮箱 | 否 | - |
 | `ADMIN_PASSWORD` | 初始管理员密码 | 否 | - |
-| `APP_URL` | 应用 URL（用于回调等） | 否 | `http://localhost:3000` |
+| `APP_URL` | 站点根地址(用于 og:url / 分享链接 / 版权链接 / OAuth 回调等)。生产环境必填;不填时运行时回退到 Vercel 自动注入的环境变量(部署时会有 build 警告) | 否 | `http://localhost:3000` |
 | `GITHUB_REPO` | GitHub 仓库（格式：`用户名/仓库名`） | 否 | - |
 | `GITHUB_TOKEN` | GitHub 访问令牌（需要 repo 权限） | 否 | - |
 | `CRON_SECRET` | 定时任务认证密钥 | 否 | - |
