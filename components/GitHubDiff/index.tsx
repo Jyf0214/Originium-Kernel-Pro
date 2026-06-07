@@ -118,7 +118,6 @@ export function GitHubDiffModal({
             variant="primary"
             loading={loading}
             onClick={onConfirm}
-            className="bg-zinc-900 hover:bg-zinc-800"
             icon={<CheckCircle2 size={14} />}
           >
             确认提交

@@ -39,7 +39,7 @@ function ArticleMetaSection({ articleData, userParam }: { articleData: ArticleDa
         <div>
           <div className="font-black text-zinc-900 leading-none mb-1">{articleData.authorName ?? articleData.author ?? 'Anonymous'}</div>
           {userParam && (
-            <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">@{userParam}</div>
+            <Tag size="xs" variant="outline">@{userParam}</Tag>
           )}
         </div>
       </div>

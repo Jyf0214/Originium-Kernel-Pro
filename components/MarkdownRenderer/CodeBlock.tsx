@@ -3,6 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { Copy, Check, ChevronDown, ChevronUp, WrapText } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import { Tag } from '@/components/ui/Tag';
 import type { HighlightConfig, HighlighterInstance } from './types';
 
 function CodeToolbar({
@@ -32,9 +33,9 @@ function CodeToolbar({
     <div className="flex items-center justify-between px-4 py-1.5 bg-zinc-800 rounded-t-2xl border-b border-zinc-700">
       <div className="flex items-center gap-2">
         {cfg.lang && (
-          <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+          <Tag size="xs" variant="dark">
             {language}
-          </span>
+          </Tag>
         )}
       </div>
       <div className="flex items-center gap-1">

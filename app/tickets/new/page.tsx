@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { Input, message } from 'antd';
 import { Button } from '@/components/ui/Button';
+import { Textarea } from '@/components/ui/Textarea';
+import { Select } from '@/components/ui/Select';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 import { useI18n } from '@/hooks/use-i18n';
@@ -132,24 +134,24 @@ export default function NewTicketPage() {
                 <Input value={formData[field.name] ?? ''} onChange={e => setFormData({ ...formData, [field.name]: e.target.value })} placeholder={`${t('common.input')}${field.label}`} className="rounded-xl" />
               )}
               {field.type === 'textarea' && (
-                <textarea
+                <Textarea
                   value={formData[field.name] ?? ''}
                   onChange={e => setFormData({ ...formData, [field.name]: e.target.value })}
                   placeholder={`${t('common.input')}${field.label}`}
-                  className="w-full min-h-[100px] p-3 border border-zinc-200 rounded-xl text-sm resize-vertical outline-none focus:border-zinc-400"
+                  minH="min-h-[100px]"
+                  rounded="md"
                 />
               )}
               {field.type === 'dropdown' && (
-                <select
+                <Select
                   value={formData[field.name] ?? ''}
                   onChange={e => setFormData({ ...formData, [field.name]: e.target.value })}
-                  className="w-full h-10 px-3 border border-zinc-200 rounded-lg text-sm"
                 >
                   <option value="">{t('common.select')}</option>
                   {field.options?.map((opt: string) => (
                     <option key={opt} value={opt}>{opt}</option>
                   ))}
-                </select>
+                </Select>
               )}
             </div>
           ))}

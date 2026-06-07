@@ -197,7 +197,7 @@ export default function ArticlesPage() {
                         cancelText={t('common.cancel')}
                         okButtonProps={{ danger: true }}
                       >
-                        <Button disabled={operating === article.id} variant="ghost" size="sm" className="text-red-500 hover:bg-red-50">
+                        <Button disabled={operating === article.id} variant="dangerGhost" size="sm">
                           {t('common.delete')}
                         </Button>
                       </Popconfirm>
@@ -223,7 +223,7 @@ export default function ArticlesPage() {
                         cancelText={t('common.cancel')}
                         okButtonProps={{ danger: true }}
                       >
-                        <Button disabled={operating === article.id} variant="ghost" size="sm" className="text-red-500 hover:bg-red-50">
+                        <Button disabled={operating === article.id} variant="dangerGhost" size="sm">
                           {operating === article.id ? <Loader2 size={12} className="animate-spin" /> : t('common.delete')}
                         </Button>
                       </Popconfirm>

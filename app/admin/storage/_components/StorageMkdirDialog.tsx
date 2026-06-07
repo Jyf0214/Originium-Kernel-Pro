@@ -6,6 +6,7 @@
 import { useState, type FormEvent } from 'react';
 import { Modal } from 'antd';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 
 interface Props {
   open: boolean;
@@ -66,14 +67,14 @@ export function StorageMkdirDialog({
         </div>
         <label className="block">
           <span className="text-sm font-medium text-zinc-700">{nameLabel}</span>
-          <input
+          <Input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={namePlaceholder}
             disabled={disabled}
             autoFocus
-            className="mt-1 w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:border-zinc-900 disabled:opacity-50"
+            className="mt-1"
           />
         </label>
         <div className="flex justify-end gap-2 mt-5">

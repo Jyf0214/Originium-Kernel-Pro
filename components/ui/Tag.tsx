@@ -2,7 +2,7 @@ import { type ReactNode, memo } from 'react';
 import { cn } from '@/lib/ui';
 
 type TagVariant = 'light' | 'dark' | 'outline' | 'emerald' | 'amber' | 'danger' | 'success' | 'warning';
-type TagSize = 'sm' | 'md' | 'lg';
+type TagSize = 'xs' | 'sm' | 'md' | 'lg';
 
 const variantStyles: Record<TagVariant, string> = {
   light: 'bg-zinc-100 text-zinc-600 border-zinc-200',
@@ -16,6 +16,7 @@ const variantStyles: Record<TagVariant, string> = {
 };
 
 const sizeStyles: Record<TagSize, string> = {
+  xs: 'px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full',
   sm: 'px-2 py-0.5 text-xs rounded',
   md: 'px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full',
   lg: 'px-4 py-1.5 text-sm font-medium rounded-full',

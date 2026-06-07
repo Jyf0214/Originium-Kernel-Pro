@@ -5,6 +5,7 @@ export const variantStyles: Record<ButtonVariant, string> = {
   default: 'bg-white border border-zinc-300 text-zinc-700 hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-900',
   secondary: 'border border-zinc-200 text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-800',
   danger: 'bg-white border border-red-300 text-red-600 hover:border-red-500 hover:bg-red-50 active:bg-red-100',
+  dangerGhost: 'text-red-500 hover:bg-red-50 active:bg-red-100',
   ghost: 'text-zinc-600 hover:bg-zinc-100',
   link: 'text-zinc-900 hover:underline',
   success: 'bg-emerald-600 text-white hover:bg-emerald-500 active:bg-emerald-700 shadow-sm hover:shadow-md',

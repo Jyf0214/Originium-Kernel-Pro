@@ -7,6 +7,7 @@ import { Save, Trash2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Input, Form, Popconfirm, message } from 'antd';
 import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
 import { showError } from '@/lib/error';
 import { useI18n } from '@/hooks/use-i18n';
 
@@ -191,10 +192,7 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
             name="group"
             rules={[{ required: true, message: t('validation.required') }]}
           >
-            <select
-              className="w-full h-12 rounded-xl border border-zinc-200 px-4 text-zinc-900 bg-white focus:outline-none focus:border-zinc-400 transition-colors"
-              style={{ fontSize: '16px' }}
-            >
+            <Select size="xl" rounded="md" className="text-base" style={{ fontSize: '16px' }}>
               {groups.map((group) => {
                 const groupValue = group.groupName ?? group.slug.replace('/', '');
                 const groupLabel = group.title ?? groupValue;
@@ -204,7 +202,7 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
                   </option>
                 );
               })}
-            </select>
+            </Select>
           </Form.Item>
         </div>
 
@@ -253,9 +251,10 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
             <Button
               type="submit"
               variant="primary"
+              size="lg"
+              rounded="md"
               icon={<Save size={16} />}
               loading={loading}
-              className="h-12 px-8 rounded-xl bg-zinc-900 hover:bg-zinc-800"
             >
               {isEdit ? t('common.save') : t('common.create')}
             </Button>

@@ -64,10 +64,10 @@ function ArticleLabelBadge({ postMeta, category }: {
         </Tag>
       )}
       {postMeta?.unread && (
-        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-red-500">
+        <Tag size="xs" variant="danger" className="inline-flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
           未读
-        </span>
+        </Tag>
       )}
       {postMeta?.categories && category && (
         <Tag variant="light" size="sm">
@@ -120,7 +120,7 @@ export function ArticleHeader({
           <Avatar name={articleData.authorName} avatarUrl={userData?.avatar ?? undefined} size={48} />
           <div>
             <div className="font-black text-zinc-900 leading-none mb-1">{articleData.authorName}</div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">@{username}</div>
+            <Tag size="xs" variant="outline">@{username}</Tag>
           </div>
         </div>
 

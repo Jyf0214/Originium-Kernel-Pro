@@ -2,6 +2,7 @@
 
 // Markdown 正文编辑 / 预览区块
 import { Eye, Code } from 'lucide-react';
+import { Textarea } from '@/components/ui/Textarea';
 import { useI18n } from '@/hooks/use-i18n';
 
 interface MarkdownBodySectionProps {
@@ -34,10 +35,12 @@ export function MarkdownBodySection({
           {previewContent}
         </pre>
       ) : (
-        <textarea
+        <Textarea
+          minH="min-h-[200px]"
+          rounded="sm"
           value={body}
           onChange={e => onBodyChange(e.target.value)}
-          className="w-full min-h-[200px] p-3 border border-zinc-200 rounded-lg text-sm font-mono"
+          className="font-mono"
           placeholder={t('tickets.placeholderBody')}
         />
       )}

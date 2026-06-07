@@ -3,6 +3,7 @@
 // 单个表单字段行(用于 FormFieldsSection 内)
 import { Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { useI18n } from '@/hooks/use-i18n';
 import { FIELD_TYPES } from '../_lib/field-types';
@@ -39,35 +40,35 @@ export function FieldRow({ field, index, removable, onUpdate, onRemove }: FieldR
           <label className="block text-xs mb-1">{t('tickets.fieldName')}</label>
           <Input
             type="text"
+            size="sm"
             value={field.name}
             onChange={e => onUpdate(index, 'name', e.target.value)}
             placeholder="environment"
-            className="w-full h-9 px-3 border border-zinc-200 rounded-lg text-sm"
           />
         </div>
         <div>
           <label className="block text-xs mb-1">{t('tickets.inputLabel')}</label>
           <Input
             type="text"
+            size="sm"
             value={field.label}
             onChange={e => onUpdate(index, 'label', e.target.value)}
             placeholder="环境"
-            className="w-full h-9 px-3 border border-zinc-200 rounded-lg text-sm"
           />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div>
           <label className="block text-xs mb-1">{t('tickets.fieldType')}</label>
-          <select
+          <Select
             value={field.type}
             onChange={e => onUpdate(index, 'type', e.target.value)}
-            className="w-full h-9 px-3 border border-zinc-200 rounded-lg text-sm"
+            size="sm"
           >
             {FIELD_TYPES.map(ft => (
               <option key={ft.value} value={ft.value}>{t(ft.labelKey)}</option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="flex items-end gap-3">
           <label className="flex items-center gap-2 text-sm">

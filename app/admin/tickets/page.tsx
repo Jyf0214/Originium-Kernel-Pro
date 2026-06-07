@@ -11,6 +11,7 @@ import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
 
 interface TicketTemplate {
   id: string;
@@ -245,11 +246,12 @@ const handleDelete = async (id: string) => {
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">{t('tickets.templateDescription')}</label>
-            <textarea
+            <Textarea
               value={formData.description}
               onChange={e => setFormData({ ...formData, description: e.target.value })}
               placeholder={t('tickets.placeholderDesc')}
-              className="w-full min-h-[80px] p-3 border border-zinc-200 rounded-lg text-sm resize-vertical outline-none focus:border-zinc-400 transition-colors"
+              minH="min-h-[80px]"
+              rounded="sm"
             />
           </div>
           <div>

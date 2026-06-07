@@ -53,10 +53,11 @@ export function EditFaceFormActions({
 
         <Button
           variant="primary"
+          size="lg"
+          rounded="md"
           type="submit"
           icon={<Save size={16} />}
           loading={submitting}
-          className="h-10 px-8 rounded-xl bg-zinc-900 hover:bg-zinc-800"
         >
           {t('common.save')}
         </Button>
