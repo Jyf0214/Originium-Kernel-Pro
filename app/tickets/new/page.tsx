@@ -43,12 +43,13 @@ export default function NewTicketPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) { router.push('/login'); return; }
     fetch('/api/ticket-templates')
       .then(res => { if (!res.ok) throw new Error(t('tickets.templateLoadFailed')); return res.json(); })
       .then(data => setTemplates(data))
 		.catch(err => { console.error('Failed to fetch templates:', err); showError(t('tickets.templateLoadFailed')); });
-  }, [user, router, t]);
+  }, [authLoading, user, router, t]);
 
   const handleTemplateSelect = (template: TicketTemplate) => {
     setSelectedTemplate(template);

@@ -46,6 +46,7 @@ export default function UsersPage() {
     if (targetUser?.role === 'sudo' && editRole !== 'sudo') {
       message.warning(t('admin.cannotDemoteFirstAdmin'));
       setEditingId(null);
+      setOperating(null);
       return;
     }
     try {

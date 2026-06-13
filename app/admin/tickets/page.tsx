@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
 import { Plus, Trash2, Edit2, FileText, X, Save, Loader2 } from 'lucide-react';
-import { Modal, message } from 'antd';
+import { Modal, Popconfirm, message } from 'antd';
 import { Button } from '@/components/ui/Button';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
@@ -126,7 +126,6 @@ export default function TicketsPage() {
   };
 
 const handleDelete = async (id: string) => {
-    if (!confirm(t('tickets.deleteConfirm'))) return;
     setDeleting(id);
     const originalTemplates = [...templates];
     setTemplates(templates.filter(tmpl => tmpl.id !== id));
@@ -206,7 +205,13 @@ const handleDelete = async (id: string) => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Button size="sm" rounded="sm" icon={<Edit2 size={13} />} onClick={() => handleEdit(template)}>{t('tickets.edit')}</Button>
-                  <Button size="sm" variant="danger" rounded="sm" icon={deleting === template.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />} onClick={() => handleDelete(template.id)} disabled={deleting === template.id}>{t('tickets.delete')}</Button>
+                  <Popconfirm
+                    title={t('tickets.deleteConfirm')}
+                    onConfirm={() => handleDelete(template.id)}
+                    okButtonProps={{ danger: true, loading: deleting === template.id }}
+                  >
+                    <Button size="sm" variant="danger" rounded="sm" icon={deleting === template.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />} disabled={deleting === template.id}>{t('tickets.delete')}</Button>
+                  </Popconfirm>
                 </div>
               </div>
             ))}

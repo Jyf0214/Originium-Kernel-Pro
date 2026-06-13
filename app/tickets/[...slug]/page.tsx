@@ -124,10 +124,11 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
   }, [slug, t]);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/login');
     }
-  }, [user, router]);
+  }, [authLoading, user, router]);
 
   useEffect(() => {
     if (user) {

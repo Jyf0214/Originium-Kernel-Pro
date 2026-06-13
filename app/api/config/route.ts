@@ -337,7 +337,14 @@ export async function POST(req: NextRequest) {
  * 从 GitHub 拉取配置
  */
 export async function PUT() {
-  logger.info('PUT', '开始从 GitHub 同步配置');
+  // 认证检查：仅管理员或超级管理员可同步远程配置
+  const session = await getSession();
+  if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
+    logger.warn('PUT', '无权限访问', { role: session?.role });
+    return NextResponse.json({ error: '无权限' }, { status: 403 });
+  }
+
+  logger.info('PUT', '开始从 GitHub 同步配置', { role: session.role });
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
   if (!repo || !token) {
@@ -351,7 +358,7 @@ export async function PUT() {
       logger.warn('PUT', 'config.yaml 不存在');
       return NextResponse.json({ error: 'config.yaml 不存在' }, { status: 404 });
     }
-    const parsed = JSON.parse(remote.content) as Partial<AppConfig>;
+    const parsed = yaml.load(remote.content) as Partial<AppConfig>;
     const currentConfig = loadConfig();
     const mergedConfig = mergeAppConfig(currentConfig, parsed);
 

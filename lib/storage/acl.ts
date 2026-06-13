@@ -9,6 +9,7 @@
  */
 import { getDb } from '@/lib/db'
 import { isWebDavConfigured } from '@/lib/webdav'
+import { verifyPassword } from '@/lib/hash'
 import { splitDirFilename } from './path'
 import type { AccessResult, StorageFolderMeta } from './types'
 
@@ -161,7 +162,7 @@ export async function checkAccess(
  *
  * 设计原则:
  * - 失败安全:DB 异常时不允许访问,等同「需要密码」
- * - 密码明文存储(MVP):项目原则允许,生产可升级 bcrypt
+ * - 密码使用 scrypt 哈希存储,验证通过 `verifyPassword` 常量时间比较
  * - 与现有 `checkAccess` 完全解耦,不动其行为
  * ------------------------------------------------------------------------- */
 
@@ -204,7 +205,7 @@ export function getPageFolderDir(fullPath: string): string {
  * 4. 记录存在,`public=true` → `{ allowed: true, reason: 'public' }`
  * 5. 记录存在,`public=false`,`password=null` → `{ allowed: false, reason: 'password-required' }`
  * 6. 记录存在,`public=false`,`password` 已设:
- *    - `queryPwd` 与 `password` 完全相等 → `{ allowed: true, reason: 'public' }`
+ *    - `queryPwd` 通过 `verifyPassword` 常量时间哈希验证 → `{ allowed: true, reason: 'public' }`
  *    - 其他情况(含 `queryPwd` 为 null) → `{ allowed: false, reason: 'wrong-password' }`
  *
  * 异常保护:整段逻辑被 try/catch 包裹,任何未捕获异常都返回
@@ -240,12 +241,12 @@ export async function checkPageAccess(
       return { allowed: false, reason: 'password-required' }
     }
 
-    // 6. 私有且设了密码 → 校验 queryPwd
+    // 6. 私有且设了密码 → 使用 scrypt 常量时间比较验证
     if (
       typeof queryPwd === 'string' &&
       queryPwd.length > 0 &&
       queryPwd.length <= PAGE_PASSWORD_MAX_LEN &&
-      queryPwd === row.password
+      await verifyPassword(queryPwd, row.password)
     ) {
       return { allowed: true, reason: 'public' }
     }

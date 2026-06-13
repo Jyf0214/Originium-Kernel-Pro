@@ -5,6 +5,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { showError } from '@/lib/error';
 import type { SearchGroup, SearchResponse, SearchResult } from './types';
 
 export interface UseSearchOptions {
@@ -78,10 +79,12 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
       } else {
         setResults([]);
         setGroups([]);
+        showError(`搜索请求失败（HTTP ${res.status}）`);
       }
-    } catch {
+    } catch (err) {
       setResults([]);
       setGroups([]);
+      showError(`搜索出错：${err instanceof Error ? err.message : '网络异常'}`);
     } finally {
       setLoading(false);
     }

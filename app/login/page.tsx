@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Input, Form } from 'antd';
 import { Button } from '@/components/ui/Button';
-import { showError } from '@/lib/error';
 import { ChevronRight, Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
@@ -38,15 +37,8 @@ function LoginForm() {
   }, [step]);
 
   const handleCheckUser = (values: { login: string }) => {
-    setLoading(true);
-    try {
-      setEmail(values.login);
-      setStep('password');
-    } catch {
-      showError(t('auth.loginFailed'));
-    } finally {
-      setLoading(false);
-    }
+    setEmail(values.login);
+    setStep('password');
   };
 
   const handleLogin = async (values: { password: string }) => {

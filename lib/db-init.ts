@@ -35,16 +35,13 @@ export async function ensureAdminUser(): Promise<{ created: boolean; error?: str
       if (userStr) {
         const user = JSON.parse(userStr);
         if (isLegacyPassword(user.password)) {
+          // 仅在检测到旧版明文/可逆密码时执行一次性迁移
           const newHash = await hashPassword(adminPassword);
           user.password = newHash;
           await db.set(`user:uid:${uid}`, JSON.stringify(user));
           console.warn(`[数据库初始化] ✓ 迁移旧版用户密码: ${user.email ?? user.username ?? user.uid}`);
-        } else {
-          const newHash = await hashPassword(adminPassword);
-          user.password = newHash;
-          await db.set(`user:uid:${uid}`, JSON.stringify(user));
-          console.warn(`[数据库初始化] ✓ 更新用户密码: ${user.email ?? user.username ?? user.uid}`);
         }
+        // 用户已存在且密码已为哈希格式，跳过更新，避免每次启动覆盖密码
       }
       initResult = { created: false };
       return initResult;
