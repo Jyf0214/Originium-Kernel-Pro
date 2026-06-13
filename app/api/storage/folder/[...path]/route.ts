@@ -15,6 +15,7 @@ import {
   isValidStoragePath,
   readFolderMeta,
   resolveStoragePath,
+  writeFolderMeta,
   webdavNotConfigured,
 } from '../../_helpers'
 import { isWebDavConfigured } from '@/lib/webdav'
@@ -32,8 +33,13 @@ export const GET = catchAllHandler<{ path: string[] }>(
     if (!isValidStoragePath(path)) return invalidPathResponse()
 
     const meta = await readFolderMeta(path)
-    if (!meta) return ApiErr.notFound('文件夹元数据不存在')
-    return NextResponse.json(meta)
+    if (meta) return NextResponse.json(meta)
+
+    // 元数据不存在时自动创建默认记录(public=true,便于页面默认可访问)
+    const now = new Date()
+    await writeFolderMeta({ path, public: true, description: null, createdAt: now, updatedAt: now })
+    const created = await readFolderMeta(path)
+    return NextResponse.json(created ?? { path, public: true, description: null, createdAt: now, updatedAt: now })
   }
 )
 
