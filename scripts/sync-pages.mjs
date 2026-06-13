@@ -39,6 +39,7 @@ process.env.PRISMA_HIDE_UPDATE_MESSAGE = 'true';
 
 import { promises as fs } from 'fs';
 import path from 'path';
+import https from 'https';
 import { createClient } from 'webdav';
 import { fileURLToPath } from 'url';
 import { normalizeWebDavContent } from '../lib/page-source/normalize-webdav.mjs';
@@ -214,6 +215,51 @@ async function downloadAll(entries, downloader) {
   console.log(`${LOG_PREFIX} 同步完成: ${total} 个文件 → ${path.relative(PROJECT_ROOT, LOCAL_DIR)}/`);
 }
 
+// ─── HTTPS 下载工具 ────────────────────────────────────────────────────────
+
+/**
+ * 通过 Node.js 原生 HTTPS 下载 WebDAV 文件
+ *
+ * 绕过 webdav 库的 fetch 实现(Koofr 在 Vercel 环境下 fetch body 会 abort)。
+ * 与 app/files/[...path]/route.ts 的 HTTPS 回退策略一致。
+ *
+ * @param {string} baseUrls WebDAV 服务器基础 URL
+ * @param {string} relPath 文件相对路径(如 'pages/hello-world/index.html')
+ * @param {string} auth Basic auth header 值
+ * @param {number} timeoutMs 超时毫秒数
+ * @returns {Promise<Buffer>} 文件内容
+ */
+function downloadViaHttps(baseUrls, relPath, auth, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const encoded = relPath.split('/').map(segment => encodeURIComponent(segment)).join('/');
+    const url = `${baseUrls}/${encoded}`;
+
+    const req = https.get(url, {
+      headers: {
+        Authorization: auth,
+        Accept: '*/*',
+      },
+      timeout: timeoutMs,
+    }, (res) => {
+      if (res.statusCode !== 200) {
+        res.resume();
+        reject(new Error(`HTTPS download failed: HTTP ${res.statusCode} ${relPath}`));
+        return;
+      }
+      const chunks = [];
+      res.on('data', (chunk) => chunks.push(chunk));
+      res.on('end', () => resolve(Buffer.concat(chunks)));
+      res.on('error', reject);
+    });
+
+    req.on('error', reject);
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error(`HTTPS download timeout: ${relPath}`));
+    });
+  });
+}
+
 // ─── WebDAV 后端 ───────────────────────────────────────────────────────────
 
 /**
@@ -372,18 +418,13 @@ async function syncFromWebdav() {
 
   await resetLocalPages();
 
-  // 并发下载:使用 WebDAV 客户端
+  // 并发下载:使用 Node.js 原生 https 下载(webdav 库的 fetch 在 Koofr 上会 abort)
   const DOWNLOAD_TIMEOUT_MS = 30_000;
+  const webdavUrl = process.env.WEBDAV_URL.replace(/\/+$/, '');
+  const auth = `Basic ${Buffer.from(`${process.env.WEBDAV_USER}:${process.env.WEBDAV_PASS}`).toString('base64')}`;
 
   await downloadAll(entries, async (relPath) => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
-    try {
-      const raw = await client.getFileContents(relPath, { signal: controller.signal });
-      return raw;
-    } finally {
-      clearTimeout(timer);
-    }
+    return downloadViaHttps(webdavUrl, relPath, auth, DOWNLOAD_TIMEOUT_MS);
   });
 }
 
