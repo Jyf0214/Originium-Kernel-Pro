@@ -1,17 +1,20 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiHandler } from '@/lib/api-handler';
-import { decryptContent } from '@/lib/diary-crypto';
+import { decryptContentBatch } from '@/lib/diary-crypto';
 
 export const GET = apiHandler('GET', { label: '导出日记', requireAdmin: true }, async () => {
   const diaries = await prisma.diary.findMany({
     orderBy: { date: 'desc' },
   });
 
+  // 批量并行解密所有日记内容
+  const decryptedContents = await decryptContentBatch(diaries.map((d) => d.content));
+
   const parts: string[] = [];
 
-  for (const d of diaries) {
-    const content = await decryptContent(d.content);
+  diaries.forEach((d, i) => {
+    const content = decryptedContents[i];
     const date = d.date.toISOString().slice(0, 10);
     const tags = d.tags.length > 0 ? d.tags.join(', ') : '';
     const pinned = d.pinned ? '是' : '否';
@@ -26,7 +29,7 @@ export const GET = apiHandler('GET', { label: '导出日记', requireAdmin: true
     front.push('', '---', '');
 
     parts.push([...front, content, '', '---', '', ''].join('\n'));
-  }
+  });
 
   const markdown = [
     '# 日记导出',

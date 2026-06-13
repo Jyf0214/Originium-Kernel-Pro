@@ -33,3 +33,11 @@ export async function decryptContent(stored: string): Promise<string> {
   const decrypted = await crypto.subtle.decrypt({ name: ALGORITHM, iv }, key, data);
   return new TextDecoder().decode(decrypted);
 }
+
+/**
+ * 批量并行解密多条内容
+ * 使用 Promise.all 实现并行解密，减少 I/O 等待时间
+ */
+export async function decryptContentBatch(storedList: string[]): Promise<string[]> {
+  return Promise.all(storedList.map((stored) => decryptContent(stored)));
+}
