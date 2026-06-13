@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Navbar } from '@/components/Navbar';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { ArrowLeft, User, Calendar, Tag as TagIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -79,7 +78,6 @@ function ArticleHeaderSection({ articleData, userParam }: { articleData: Article
 function NotFoundView() {
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Navbar />
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
         <h1 className="text-4xl font-display font-black text-zinc-900 mb-4">404</h1>
         <p className="text-zinc-500 mb-8">Article not found in this kernel.</p>
@@ -136,7 +134,6 @@ function ArticleViewContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Navbar />
       <PageContainer maxWidth="4xl" padding="wide">
         <Link href="/" className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-900 mb-12 transition-all group">
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />

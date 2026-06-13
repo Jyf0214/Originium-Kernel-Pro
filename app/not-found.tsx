@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Navbar } from '@/components/Navbar';
 import { SearchX, Home, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/ui';
@@ -10,7 +9,6 @@ import { cn } from '@/lib/ui';
 export default function NotFound() {
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
-      <Navbar />
       <main className="flex-1 flex items-center justify-center px-4 py-16">
         <div className="max-w-lg w-full text-center">
           {/* 搜索图标 */}

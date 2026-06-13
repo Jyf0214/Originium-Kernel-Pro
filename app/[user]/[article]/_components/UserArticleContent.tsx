@@ -3,7 +3,6 @@
 import { useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Navbar } from '@/components/Navbar';
 import { GlobalLoading } from '@/components/Loading';
 import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
@@ -43,7 +42,6 @@ export function UserArticleContent() {
   if (!articleData) {
     return (
       <div className="min-h-screen flex flex-col bg-zinc-50">
-        <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
           <h1 className="text-4xl font-display font-black text-zinc-900 mb-4">{t('error.404')}</h1>
           <p className="text-zinc-500 mb-8">{t('error.notFound')}</p>

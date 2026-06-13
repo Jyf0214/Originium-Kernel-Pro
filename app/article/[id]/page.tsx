@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Navbar } from '@/components/Navbar';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { ArrowLeft, User } from 'lucide-react';
 import { GlobalLoading } from '@/components/Loading';
@@ -59,7 +58,6 @@ export default function ArticlePage() {
 
   if (loading) return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
       <div className="flex-1 flex items-center justify-center">
         <GlobalLoading size="large" />
       </div>
@@ -70,7 +68,6 @@ export default function ArticlePage() {
 
   if (!article) return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Navbar />
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
         <div className="w-20 h-20 bg-zinc-50 rounded-full flex items-center justify-center mb-6 text-zinc-300">
           <User size={40} />
@@ -86,7 +83,6 @@ export default function ArticlePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Navbar />
       <PageContainer maxWidth="4xl" padding="wide">
         <Link href="/" className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 mb-10 transition-colors group">
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />

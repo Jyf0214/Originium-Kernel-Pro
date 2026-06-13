@@ -1,5 +1,4 @@
 import { getContentFiles, getContentIndexes } from '@/lib/content';
-import { Navbar } from '@/components/Navbar';
 import Link from 'next/link';
 import { ArrowLeft, Hash } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -50,7 +49,6 @@ export default async function TagPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
-      <Navbar />
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12 md:py-20">
         {/* 返回链接 */}
         <Link

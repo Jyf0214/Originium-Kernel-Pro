@@ -3,7 +3,6 @@
 import React from 'react';
 import { type ContentFile } from '@/types/content';
 import { Avatar } from '@/components/Avatar';
-import { Navbar } from '@/components/Navbar';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import Link from 'next/link';
 import { ArrowLeft, Code, Eye } from 'lucide-react';
@@ -164,7 +163,6 @@ export default function FaceDetailPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
-      <Navbar />
       <PageContainer maxWidth="4xl">
         <BreadcrumbsNav slugArray={slugArray} />
         <article>

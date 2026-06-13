@@ -10,7 +10,6 @@ import { Save, ArrowLeft, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { generateMarkdown, type FrontMatter } from '@/lib/markdown';
 import { showError } from '@/lib/error';
-import { Navbar } from '@/components/Navbar';
 import { GlobalLoading } from '@/components/Loading';
 import { PageContainer } from '@/components/ui/PageContainer';
 
@@ -93,7 +92,6 @@ export default function NewFacePage() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-zinc-50">
-        <Navbar />
         <div className="flex-1 flex items-center justify-center">
           <GlobalLoading size="large" />
         </div>
@@ -105,7 +103,6 @@ export default function NewFacePage() {
   if (!isSudo) {
     return (
       <div className="min-h-screen flex flex-col bg-zinc-50">
-        <Navbar />
         <PageContainer maxWidth="4xl">
           <div className="bg-white rounded-2xl border border-zinc-100 p-6 flex flex-col items-center justify-center text-center">
             <div className="w-16 h-16 bg-zinc-50 rounded-xl flex items-center justify-center mb-6">
@@ -130,7 +127,6 @@ export default function NewFacePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
-      <Navbar />
       <PageContainer maxWidth="4xl">
         <div className="flex flex-col gap-3 mb-8">
           <h1 className="text-2xl font-bold text-zinc-900">

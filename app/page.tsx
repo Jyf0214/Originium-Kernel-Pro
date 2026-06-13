@@ -1,6 +1,5 @@
 import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { loadConfig, hasDatabase, canAccess } from '@/lib/config';
-import { Navbar } from '@/components/Navbar';
 import { HomePostGrid } from '@/components/HomePostGrid';
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
@@ -73,7 +72,6 @@ export default async function HomePage() {
   return (
     <div className={`min-h-screen flex flex-col bg-zinc-50 ${isMournDay ? 'mourn-mode' : ''}`}
       style={isMournDay ? { filter: 'grayscale(1)' } : undefined}>
-      <Navbar />
       <HomePostGrid
         posts={posts}
         postCount={posts.length}
