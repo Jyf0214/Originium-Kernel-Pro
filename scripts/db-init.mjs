@@ -58,16 +58,9 @@ async function main() {
         })
         console.log('[数据库初始化] ✓ Schema 推送成功')
       } catch (dbError) {
-        const errorMsg = dbError.message || ''
-        if (errorMsg.includes('MaxClientsInSessionMode') ||
-            errorMsg.includes('max clients reached') ||
-            errorMsg.includes('too many clients') ||
-            errorMsg.includes('connection pool')) {
-          console.log('[数据库初始化] ⚠️ 数据库连接池已满，跳过 Schema 推送')
-        } else {
-          console.log('[数据库初始化] ⚠️ Schema 推送失败:', errorMsg.split('\n')[0])
-        }
-        return
+        console.error('[数据库初始化] ✗ Schema 推送失败，构建中止')
+        console.error(dbError.message?.split('\n').slice(0, 5).join('\n'))
+        process.exit(1)
       }
     } else {
       console.log('[数据库初始化] db push skipped — set ALLOW_DB_PUSH=1 to opt in')
