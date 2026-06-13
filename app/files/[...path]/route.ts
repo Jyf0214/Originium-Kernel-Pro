@@ -68,8 +68,17 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<Route
       return debugResponse(relativePath, stat, Math.round(performance.now() - start))
     }
 
-    // 用 webdav 客户端读取文件(处理路径和认证一致)
-    const buf = await client.getFileContents(relativePath, { format: 'binary' }) as ArrayBuffer
+    // 直连 WebDAV 读取文件体(不用 client.getFileContents 因其内部 node-fetch 与 Koofr 不兼容)
+    const webdavBase = process.env.WEBDAV_URL!.replace(/\/+$/, '')
+    const auth = Buffer.from(`${process.env.WEBDAV_USER}:${process.env.WEBDAV_PASS}`).toString('base64')
+    const encodedPath = relativePath.split('/').map(encodeURIComponent).join('/')
+    const upstream = await fetch(`${webdavBase}/${encodedPath}`, {
+      headers: { 'Authorization': `Basic ${auth}` },
+    })
+    if (!upstream.ok) {
+      return NextResponse.json({ error: `上游 ${upstream.status}` }, { status: upstream.status })
+    }
+    const buf = await upstream.arrayBuffer()
     const headers: Record<string, string> = {
       'Content-Type': stat.mime ?? 'application/octet-stream',
       'Content-Length': String(stat.size),
