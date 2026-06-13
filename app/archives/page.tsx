@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   description: '按年份浏览所有公开文章',
 };
 
+export const revalidate = 300; // 5 分钟 ISR
+
 interface YearGroup {
   year: number;
   posts: {

@@ -97,8 +97,9 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   transpilePackages: ['motion'],
   // 按需加载 antd / 图标库, 减少 bundle 体积 (Next.js 16 中已迁移至 experimental)
+  // motion 运动动画库同样支持 tree-shaking, 加入优化以进一步减小产物体积
   experimental: {
-    optimizePackageImports: ['antd', '@ant-design/icons', 'lucide-react'],
+    optimizePackageImports: ['antd', '@ant-design/icons', 'lucide-react', 'motion'],
   },
   turbopack: {},
   webpack: (
