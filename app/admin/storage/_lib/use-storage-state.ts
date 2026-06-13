@@ -105,7 +105,9 @@ export function useStorageState(): UseStorageState {
     }
 
     try {
-      nextFolders = await fetchFolders();
+      const result = await fetchFolders();
+      // 防御：API 可能返回非数组（如 204 空响应或意外格式）
+      nextFolders = Array.isArray(result) ? result : [];
     } catch (err) {
       if (err instanceof ApiError && err.isNotConfigured) {
         nextConfigured = false;
@@ -129,7 +131,8 @@ export function useStorageState(): UseStorageState {
     }
     try {
       const res = await fetchEntries(path);
-      setEntries(res.entries ?? []);
+      // 防御：API 可能返回 undefined（如 204 空响应）
+      setEntries(Array.isArray(res?.entries) ? res.entries : []);
     } catch (err) {
       setEntries([]);
       if (err instanceof ApiError && err.isNotConfigured) {
