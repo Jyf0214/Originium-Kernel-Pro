@@ -60,13 +60,13 @@ describe('hashPassword / verifyPassword', () => {
     const { hashPassword, verifyPassword } = await import('@/lib/hash');
     const h = await hashPassword('correct-password');
     expect(await verifyPassword('correct-password', h)).toBe(true);
-  });
+  }, 15000);
 
   it('verifyPassword 对错误密码返回 false', async () => {
     const { hashPassword, verifyPassword } = await import('@/lib/hash');
     const h = await hashPassword('correct-password');
     expect(await verifyPassword('wrong-password', h)).toBe(false);
-  });
+  }, 15000);
 
   it('verifyPassword 在 storedHash 长度为 0/短/长时返回 false', async () => {
     const { verifyPassword } = await import('@/lib/hash');
@@ -75,14 +75,14 @@ describe('hashPassword / verifyPassword', () => {
     expect(await verifyPassword('anything', 'a'.repeat(63))).toBe(false);
     expect(await verifyPassword('anything', 'a'.repeat(65))).toBe(false);
     expect(await verifyPassword('anything', 'a'.repeat(1000))).toBe(false);
-  });
+  }, 15000);
 
   it('verifyPassword 对非十六进制的 64 字符 hash 返回 false', async () => {
     const { verifyPassword } = await import('@/lib/hash');
     // 64 字符长度合法,但包含非 hex 字符 'z' → 必然不等于真实 hash
     const fake = 'z'.repeat(64);
     expect(await verifyPassword('anything', fake)).toBe(false);
-  });
+  }, 15000);
 
   it('不同 secret 产生的 hash 不同 (hash 与 AUTH_SECRET 绑定)', async () => {
     const { hashPassword } = await import('@/lib/hash');

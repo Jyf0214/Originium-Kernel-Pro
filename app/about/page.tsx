@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { HeroBanner } from '@/components/ui/HeroBanner';
 import { BookOpen, Github, Shield, Globe } from 'lucide-react';
@@ -31,6 +31,11 @@ const features = [
 ];
 
 export default function AboutPage() {
+  const [version, setVersion] = useState<string>('');
+  useEffect(() => {
+    fetch('/api/version').then(r => r.json()).then((d: { version: string }) => setVersion(d.version)).catch(() => { /* ignore */ });
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
       <PageContainer maxWidth="5xl" padding="compact">
@@ -113,6 +118,16 @@ export default function AboutPage() {
             </ul>
           </div>
         </section>
+
+        {/* 版本信息 */}
+        {version && (
+          <section className="mb-10 sm:mb-12">
+            <div className="bg-white rounded-2xl border border-zinc-100 p-5 sm:p-6 text-center">
+              <p className="text-xs text-zinc-400 mb-1">当前版本</p>
+              <p className="text-lg font-mono font-bold text-zinc-900">{version}</p>
+            </div>
+          </section>
+        )}
 
         {/* 链接 */}
         <section className="mb-6">
