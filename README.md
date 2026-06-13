@@ -277,9 +277,14 @@
 | `SMTP_PASS` | SMTP 密码 | 否 | - |
 | `SMTP_FROM` | 发件人邮箱地址 | 否 | - |
 | `SMTP_SECURE` | 是否使用 SSL（布尔值） | 否 | 自动（端口 465 时为 true） |
-| `WEBDAV_URL` | WebDAV 服务器地址（如 `https://dav.example.com/remote.php/dav/files/user`）。缺失时整个存储池与自定义页面功能降级为不可用 | 否 | - |
+| `WEBDAV_URL` | WebDAV 服务器地址（如 `https://dav.example.com/remote.php/dav/files/user`）。缺省时整个存储池与自定义页面功能降级为不可用 | 否(WebDAV 模式) | - |
 | `WEBDAV_USER` | WebDAV 用户名 | 否 | - |
 | `WEBDAV_PASS` | WebDAV 密码 | 否 | - |
+| `STORAGE_TYPE` | 存储后端类型：`webdav`（默认）或 `backblaze` | 否 | `webdav` |
+| `B2_KEY_ID` | Backblaze B2 应用程序密钥 ID | 否(B2 模式) | - |
+| `B2_APP_KEY` | Backblaze B2 应用程序密钥 | 否(B2 模式) | - |
+| `B2_BUCKET` | Backblaze B2 存储桶名称 | 否(B2 模式) | - |
+| `B2_DOWNLOAD_URL` | (可选) 自定义下载端点（如 Cloudflare CDN URL，无尾斜杠）。启用后下载请求走 CDN 而非 B2 直连 | 否 | - |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk 公钥（启用 Clerk 认证时需要） | 否 | - |
 | `CLERK_SECRET_KEY` | Clerk 私钥（启用 Clerk 认证时需要） | 否 | - |
 | `SKIP_DB_INIT` | 跳过数据库初始化 | 否 | - |

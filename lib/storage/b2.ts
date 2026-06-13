@@ -75,6 +75,7 @@ interface B2ApiError {
 const globalForB2 = globalThis as unknown as {
   __b2AuthToken?: AuthToken | undefined
   __b2UploadUrl?: UploadUrl | undefined
+  __b2BucketId?: string | undefined
 }
 
 /**
@@ -203,9 +204,12 @@ async function getUploadUrl(): Promise<UploadUrl> {
 }
 
 /**
- * 获取存储桶 ID（按名称查找）
+ * 获取存储桶 ID（按名称查找），结果缓存到 globalThis
  */
 async function getBucketId(): Promise<string> {
+  const g = globalForB2
+  if (g.__b2BucketId) return g.__b2BucketId
+
   const auth = await getAuthToken()
 
   const resp = await b2Request(
@@ -222,8 +226,10 @@ async function getBucketId(): Promise<string> {
   const bucketName = process.env.B2_BUCKET!
   const bucket = data.buckets.find((b) => b.bucketName === bucketName)
   if (!bucket) {
-    throw new Error(`B2 存储桶 "${bucketName}" 不存在`)
+    const names = data.buckets.map((b) => `"${b.bucketName}"`).join(', ')
+    throw new Error(`B2 存储桶 "${bucketName}" 不存在, 可用: [${names || '无'}]`)
   }
+  g.__b2BucketId = bucket.bucketId
   return bucket.bucketId
 }
 
@@ -293,7 +299,7 @@ export class B2Provider implements StorageProvider {
     const entries: FileStat[] = []
 
     // 添加子目录（folders 字段包含虚拟目录名）
-    for (const folder of data.folders) {
+    for (const folder of data.folders ?? []) {
       // folder 格式: "pages/subdir/" — 提取最后一段目录名
       const folderName = folder.replace(fullPrefix, '').replace(/\/$/, '')
       if (!folderName) continue

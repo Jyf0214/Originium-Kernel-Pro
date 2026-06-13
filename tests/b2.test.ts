@@ -48,10 +48,11 @@ beforeEach(() => {
   delete process.env.B2_DOWNLOAD_URL
   delete process.env.B2_ENDPOINT
   b2Mocks.fetch.mockReset()
-  // 清除 B2 全局缓存（auth token + upload URL），避免测试间污染
+  // 清除 B2 全局缓存（auth token + upload URL + bucket ID），避免测试间污染
   const g = globalThis as Record<string, unknown>
   delete g.__b2AuthToken
   delete g.__b2UploadUrl
+  delete g.__b2BucketId
 })
 
 afterEach(() => {
@@ -145,22 +146,22 @@ describe('B2Provider.listDirectory', () => {
     process.env.B2_BUCKET = 'my-bucket'
   })
 
-  it('列出根目录文件和子目录', async () => {
-    // Mock authorize
+  /** 模拟公共调用链: getAuthToken + getBucketId */
+  function mockAuthAndBucket() {
+    // getAuthToken → 1st call
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
-      accountId: 'acc1',
-      authorizationToken: 'token1',
-      apiUrl: 'https://api.backblazeb2.com',
-      downloadUrl: 'https://download.backblazeb2.com',
-      recommendedPartSize: 100000000,
+      accountId: 'acc1', authorizationToken: 'token1',
+      apiUrl: 'https://api.backblazeb2.com', downloadUrl: 'https://dl.backblazeb2.com', recommendedPartSize: 100000000,
     }))
-
-    // Mock list_buckets
+    // getBucketId (list_buckets) → 2nd call, caches result
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       buckets: [{ bucketId: 'bid1', bucketName: 'my-bucket' }],
     }))
+  }
 
-    // Mock list_file_names
+  it('列出根目录文件和子目录', async () => {
+    mockAuthAndBucket()
+    // list_file_names → 3rd call
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       files: [
         { fileId: 'f1', fileName: 'pages/index.html', contentType: 'text/html', contentLength: 1024, contentSha1: null, fileInfo: {}, action: 'upload', uploadTimestamp: 1700000000000 },
@@ -174,24 +175,16 @@ describe('B2Provider.listDirectory', () => {
     const entries = await provider.listDirectory('pages')
 
     expect(entries).toHaveLength(3)
-    // 目录
     const blogDir = entries.find((e) => e.type === 'directory')
     expect(blogDir?.filename).toBe('blog')
     expect(blogDir?.basename).toBe('pages/blog')
-    // 文件
     const htmlFile = entries.find((e) => e.type === 'file' && e.filename === 'index.html')
     expect(htmlFile?.size).toBe(1024)
     expect(htmlFile?.mime).toBe('text/html')
   })
 
   it('空目录返回空数组', async () => {
-    b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
-      accountId: 'acc1', authorizationToken: 'token1',
-      apiUrl: 'https://api.backblazeb2.com', downloadUrl: 'https://dl.backblazeb2.com', recommendedPartSize: 100000000,
-    }))
-    b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
-      buckets: [{ bucketId: 'bid1', bucketName: 'my-bucket' }],
-    }))
+    mockAuthAndBucket()
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({ files: [], folders: [] }))
 
     const { B2Provider } = await import('@/lib/storage/b2')
@@ -201,13 +194,7 @@ describe('B2Provider.listDirectory', () => {
   })
 
   it('过滤隐藏文件（action=hide）', async () => {
-    b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
-      accountId: 'acc1', authorizationToken: 'token1',
-      apiUrl: 'https://api.backblazeb2.com', downloadUrl: 'https://dl.backblazeb2.com', recommendedPartSize: 100000000,
-    }))
-    b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
-      buckets: [{ bucketId: 'bid1', bucketName: 'my-bucket' }],
-    }))
+    mockAuthAndBucket()
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       files: [
         { fileId: 'f1', fileName: 'pages/visible.html', contentType: 'text/html', contentLength: 100, contentSha1: null, fileInfo: {}, action: 'upload', uploadTimestamp: 1700000000000 },
@@ -292,23 +279,25 @@ describe('B2Provider.putFileContents', () => {
     process.env.B2_BUCKET = 'my-bucket'
   })
 
-  it('上传文件成功', async () => {
-    // Mock auth
+  function mockAuthAndBucket() {
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       accountId: 'acc1', authorizationToken: 'token1',
       apiUrl: 'https://api.backblazeb2.com', downloadUrl: 'https://dl.backblazeb2.com', recommendedPartSize: 100000000,
     }))
-    // Mock list_buckets
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       buckets: [{ bucketId: 'bid1', bucketName: 'my-bucket' }],
     }))
-    // Mock get_upload_url
+  }
+
+  it('上传文件成功', async () => {
+    mockAuthAndBucket()
+    // get_upload_url → getAuthToken(cached) + getBucketId(cached) + b2Request(get_upload_url) → 3rd call
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       uploadUrl: 'https://upload.backblazeb2.com/b2api/v3/b2_upload_file/bid1',
       authorizationToken: 'upload-token',
       bucketId: 'bid1',
     }))
-    // Mock upload response
+    // upload response → 4th call
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       fileId: 'new-f1',
       fileName: 'pages/test.html',
@@ -318,7 +307,7 @@ describe('B2Provider.putFileContents', () => {
     const provider = new B2Provider()
     await provider.putFileContents('pages/test.html', Buffer.from('<html></html>'))
 
-    // 验证上传调用
+    // 验证上传调用（第 4 次 fetch 调用）
     const uploadCall = b2Mocks.fetch.mock.calls[3] as [string, RequestInit] | undefined
     expect(uploadCall).toBeDefined()
     expect(uploadCall![0]).toBe('https://upload.backblazeb2.com/b2api/v3/b2_upload_file/bid1')
@@ -329,20 +318,12 @@ describe('B2Provider.putFileContents', () => {
   })
 
   it('上传认证失败时清除缓存', async () => {
-    // Mock auth (will succeed)
-    b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
-      accountId: 'acc1', authorizationToken: 'token1',
-      apiUrl: 'https://api.backblazeb2.com', downloadUrl: 'https://dl.backblazeb2.com', recommendedPartSize: 100000000,
-    }))
-    b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
-      buckets: [{ bucketId: 'bid1', bucketName: 'my-bucket' }],
-    }))
+    mockAuthAndBucket()
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       uploadUrl: 'https://upload.backblazeb2.com/b2api/v3/b2_upload_file/bid1',
       authorizationToken: 'upload-token',
       bucketId: 'bid1',
     }))
-    // Upload returns 401
     b2Mocks.fetch.mockResolvedValueOnce(new Response('Unauthorized', { status: 401 }))
 
     const { B2Provider } = await import('@/lib/storage/b2')
@@ -364,41 +345,36 @@ describe('B2Provider.deleteFile', () => {
     process.env.B2_BUCKET = 'my-bucket'
   })
 
-  it('删除文件成功', async () => {
-    // Mock auth
+  function mockAuthAndBucket() {
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       accountId: 'acc1', authorizationToken: 'token1',
       apiUrl: 'https://api.backblazeb2.com', downloadUrl: 'https://dl.backblazeb2.com', recommendedPartSize: 100000000,
     }))
-    // Mock list_buckets
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       buckets: [{ bucketId: 'bid1', bucketName: 'my-bucket' }],
     }))
-    // Mock list_file_versions
+  }
+
+  it('删除文件成功', async () => {
+    mockAuthAndBucket()
+    // list_file_versions → 3rd call
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       files: [{ fileId: 'f1', fileName: 'pages/test.html', contentType: 'text/html', contentLength: 100, contentSha1: null, fileInfo: {}, action: 'upload', uploadTimestamp: 1700000000000 }],
     }))
-    // Mock delete_file_version
+    // delete_file_version → 4th call
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({ fileId: 'f1', fileName: 'pages/test.html' }))
 
     const { B2Provider } = await import('@/lib/storage/b2')
     const provider = new B2Provider()
     await provider.deleteFile('pages/test.html')
 
-    // 验证删除调用
     const deleteCall = b2Mocks.fetch.mock.calls[3] as [string, RequestInit] | undefined
     expect(deleteCall).toBeDefined()
     expect(deleteCall![1].method).toBe('POST')
   })
 
   it('删除不存在的文件 → 404', async () => {
-    b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
-      accountId: 'acc1', authorizationToken: 'token1',
-      apiUrl: 'https://api.backblazeb2.com', downloadUrl: 'https://dl.backblazeb2.com', recommendedPartSize: 100000000,
-    }))
-    b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
-      buckets: [{ bucketId: 'bid1', bucketName: 'my-bucket' }],
-    }))
+    mockAuthAndBucket()
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({ files: [] }))
 
     const { B2Provider } = await import('@/lib/storage/b2')
@@ -414,8 +390,7 @@ describe('B2Provider.stat', () => {
     process.env.B2_BUCKET = 'my-bucket'
   })
 
-  it('统计文件返回 file 类型', async () => {
-    // Mock auth + list_buckets
+  function mockAuthAndBucket() {
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       accountId: 'acc1', authorizationToken: 'token1',
       apiUrl: 'https://api.backblazeb2.com', downloadUrl: 'https://dl.backblazeb2.com', recommendedPartSize: 100000000,
@@ -423,9 +398,14 @@ describe('B2Provider.stat', () => {
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       buckets: [{ bucketId: 'bid1', bucketName: 'my-bucket' }],
     }))
-    // Mock list_file_names (exact match)
+  }
+
+  it('统计文件返回 file 类型', async () => {
+    mockAuthAndBucket()
+    // list_file_names (exact match) → 3rd call
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       files: [{ fileId: 'f1', fileName: 'pages/test.html', contentType: 'text/html', contentLength: 1024, contentSha1: null, fileInfo: {}, action: 'upload', uploadTimestamp: 1700000000000 }],
+      folders: [],
     }))
 
     const { B2Provider } = await import('@/lib/storage/b2')
@@ -447,22 +427,11 @@ describe('B2Provider.stat', () => {
   })
 
   it('不存在的路径返回 404', async () => {
-    // Mock: auth + list_buckets(getBucketId) + list_file_names + list_buckets(getBucketId again) + list_file_names
-    b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
-      accountId: 'acc1', authorizationToken: 'token1',
-      apiUrl: 'https://api.backblazeb2.com', downloadUrl: 'https://dl.backblazeb2.com', recommendedPartSize: 100000000,
-    }))
-    b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
-      buckets: [{ bucketId: 'bid1', bucketName: 'my-bucket' }],
-    }))
-    // Mock: no exact match for file
-    b2Mocks.fetch.mockResolvedValueOnce(mockResponse({ files: [] }))
-    // Mock: second getBucketId call
-    b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
-      buckets: [{ bucketId: 'bid1', bucketName: 'my-bucket' }],
-    }))
-    // Mock: no dir contents → stat will throw 404
-    b2Mocks.fetch.mockResolvedValueOnce(mockResponse({ files: [] }))
+    mockAuthAndBucket()
+    // list_file_names (file check, no match) → 3rd call
+    b2Mocks.fetch.mockResolvedValueOnce(mockResponse({ files: [], folders: [] }))
+    // list_file_names (dir check, getBucketId cached) → 4th call
+    b2Mocks.fetch.mockResolvedValueOnce(mockResponse({ files: [], folders: [] }))
 
     const { B2Provider } = await import('@/lib/storage/b2')
     const provider = new B2Provider()
@@ -477,9 +446,7 @@ describe('B2Provider.createDirectory', () => {
     process.env.B2_BUCKET = 'my-bucket'
   })
 
-  it('创建目录上传 .keep 占位文件', async () => {
-    // Mock auth chain (每个 getBucketId 调用都独立请求 list_buckets)
-    // ensureDirectory → getAuthToken + getBucketId + list_file_names + getUploadUrl(getBucketId) + upload
+  function mockAuthAndBucket() {
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       accountId: 'acc1', authorizationToken: 'token1',
       apiUrl: 'https://api.backblazeb2.com', downloadUrl: 'https://dl.backblazeb2.com', recommendedPartSize: 100000000,
@@ -487,18 +454,19 @@ describe('B2Provider.createDirectory', () => {
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       buckets: [{ bucketId: 'bid1', bucketName: 'my-bucket' }],
     }))
-    // Mock check if dir exists (empty)
+  }
+
+  it('创建目录上传 .keep 占位文件', async () => {
+    mockAuthAndBucket()
+    // ensureDirectory → list_file_names (check exists) → 3rd call
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({ files: [], folders: [] }))
-    // Mock get_upload_url → getBucketId → list_buckets
-    b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
-      buckets: [{ bucketId: 'bid1', bucketName: 'my-bucket' }],
-    }))
+    // ensureDirectory → putFileContents → get_upload_url (getAuthToken cached, getBucketId cached) → 4th call
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       uploadUrl: 'https://upload.backblazeb2.com/b2api/v3/b2_upload_file/bid1',
       authorizationToken: 'upload-token',
       bucketId: 'bid1',
     }))
-    // Mock upload .keep
+    // upload .keep → 5th call
     b2Mocks.fetch.mockResolvedValueOnce(mockResponse({
       fileId: 'f-keep', fileName: 'new-dir/.keep',
     }))
@@ -507,15 +475,13 @@ describe('B2Provider.createDirectory', () => {
     const provider = new B2Provider()
     await provider.createDirectory('new-dir')
 
-    // 验证上传了 .keep 文件
-    expect(b2Mocks.fetch).toHaveBeenCalledTimes(6)
+    expect(b2Mocks.fetch).toHaveBeenCalledTimes(5)
   })
 
   it('空路径静默返回', async () => {
     const { B2Provider } = await import('@/lib/storage/b2')
     const provider = new B2Provider()
     await provider.createDirectory('')
-    // 不应发起任何请求
     expect(b2Mocks.fetch).not.toHaveBeenCalled()
   })
 })
