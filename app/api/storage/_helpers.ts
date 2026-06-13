@@ -3,17 +3,19 @@
  *
  * 仅供 app/api/storage/** 下的路由使用,集中处理:
  * - 文件夹元数据(Prisma `storageFolder` 表,StorageFolder model)的增删查
- * - WebDAV 未配置 / 路径非法 / 资源不存在 / 上游错误的统一响应
- * - [...path] 路由参数到 WebDAV 目标路径的解析
+ * - 存储后端未配置 / 路径非法 / 资源不存在 / 上游错误的统一响应
+ * - [...path] 路由参数到存储目标路径的解析
  * - WebDavEntry 类型转换
  *
  * 与 lib/storage/acl.ts 保持同构:acl.ts 读 Prisma(用于公开访问的 ACL 判定),
  * 本文件在管理员操作时同时读写 Prisma。
+ *
+ * 支持 WebDAV / Backblaze B2 双后端(通过 StorageProvider 接口)。
  */
 import { NextResponse } from 'next/server'
 import type { FileStat } from 'webdav'
 import { getDb } from '@/lib/db'
-import { isWebDavConfigured, getWebDavClient } from '@/lib/webdav'
+import { isStorageConfigured, getStorageProvider } from '@/lib/storage/storage-provider'
 import { isValidPath, joinPath } from '@/lib/storage/path'
 import { apiHandler } from '@/lib/api-handler'
 import type { StorageFolderMeta, WebDavEntry } from '@/lib/storage/types'
@@ -21,7 +23,7 @@ import type { StorageFolderMeta, WebDavEntry } from '@/lib/storage/types'
 /** 直接复用 lib/api-handler 导出的 ApiHandlerOptions(已支持泛型 + requireSudo) */
 export { apiHandler, type ApiHandlerOptions } from '@/lib/api-handler'
 
-/** WebDAV 服务器根路径:暂未支持多挂载,所有路径相对服务器根(空串) */
+/** 存储根路径:暂未支持多挂载,所有路径相对根(空串) */
 const STORAGE_ROOT = ''
 
 /** 上传文件大小上限:50MB */
@@ -44,15 +46,15 @@ export function isValidStoragePath(path: string): boolean {
   return isValidPath(path)
 }
 
-/** 把 [...path] 与 STORAGE_ROOT 拼接,得到 WebDAV 目标路径 */
+/** 把 [...path] 与 STORAGE_ROOT 拼接,得到存储目标路径 */
 export function buildWebDavTarget(parts: string[] | undefined): string {
   return joinPath(STORAGE_ROOT, resolveStoragePath(parts))
 }
 
-/** WebDAV 未配置时返回的 503 响应(供前端识别) */
-export function webdavNotConfigured(): NextResponse {
+/** 存储后端未配置时返回的 503 响应(供前端识别) */
+export function storageNotConfigured(): NextResponse {
   return NextResponse.json(
-    { error: 'WebDAV 未配置', code: 'NOT_CONFIGURED' },
+    { error: '存储后端未配置', code: 'NOT_CONFIGURED' },
     { status: 503 }
   )
 }
@@ -191,18 +193,18 @@ export function toWebDavEntry(stat: FileStat): WebDavEntry {
 
 /**
  * 把任意错误转换为 NextResponse
- * - WebDAV 404 → 404
- * - WebDAV 5xx → 502(上游故障)
+ * - 存储 404 → 404
+ * - 存储 5xx → 502(上游故障)
  * - 其他 → 500(本地错误)
  */
-export function webdavErrorResponse(err: unknown, op: string): NextResponse {
+export function storageErrorResponse(err: unknown, op: string): NextResponse {
   const e = err as { status?: number; message?: string }
   if (e?.status === 404) {
     return NextResponse.json({ error: '资源不存在' }, { status: 404 })
   }
   if (e?.status && e.status >= 500) {
     return NextResponse.json(
-      { error: `${op} 失败`, details: e.message ?? 'WebDAV 上游错误' },
+      { error: `${op} 失败`, details: e.message ?? '存储上游错误' },
       { status: 502 }
     )
   }
@@ -213,7 +215,13 @@ export function webdavErrorResponse(err: unknown, op: string): NextResponse {
 }
 
 /** 重新导出供各路由直接使用 */
-export { isWebDavConfigured, getWebDavClient }
+export { isStorageConfigured, getStorageProvider }
+
+/** @deprecated 使用 storageNotConfigured 代替 */
+export const webdavNotConfigured = storageNotConfigured
+
+/** @deprecated 使用 storageErrorResponse 代替 */
+export const webdavErrorResponse = storageErrorResponse
 
 /**
  * 兼容旧调用:catch-all 路由可直接复用 apiHandler(已内置泛型)

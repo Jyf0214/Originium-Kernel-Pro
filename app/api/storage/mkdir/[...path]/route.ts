@@ -10,22 +10,22 @@ import {
   catchAllHandler,
   databaseNotConfigured,
   getPathParts,
-  getWebDavClient,
+  getStorageProvider,
   invalidPathResponse,
   isValidStoragePath,
-  isWebDavConfigured,
+  isStorageConfigured,
   readFolderMeta,
   resolveStoragePath,
   rootNotAllowedResponse,
-  webdavErrorResponse,
-  webdavNotConfigured,
+  storageErrorResponse,
+  storageNotConfigured,
 } from '../../_helpers'
 
 export const POST = catchAllHandler<{ path: string[] }>(
   'POST',
   { label: 'storage.mkdir', requireAdmin: true },
   async (_req, context) => {
-    if (!isWebDavConfigured()) return webdavNotConfigured()
+    if (!isStorageConfigured()) return storageNotConfigured()
     const prisma = getDb().prisma
     if (!prisma) return databaseNotConfigured()
 
@@ -35,13 +35,13 @@ export const POST = catchAllHandler<{ path: string[] }>(
     if (!isValidStoragePath(rel)) return invalidPathResponse()
     const target = buildWebDavTarget(parts)
 
-    // 先在 WebDAV 上真实创建,失败直接返回
+    // 先在存储后端上真实创建,失败直接返回
     try {
-      const client = getWebDavClient()
-      await client.createDirectory(target, { recursive: true })
+      const provider = await getStorageProvider()
+      await provider.createDirectory(target, { recursive: true })
     } catch (err) {
-      console.error(`[storage.mkdir] target="${target}" WebDAV 创建失败`, err)
-      return webdavErrorResponse(err, '创建目录')
+      console.error(`[storage.mkdir] target="${target}" 存储后端创建失败`, err)
+      return storageErrorResponse(err, '创建目录')
     }
 
     // 再 upsert Prisma 元数据(保留已有公开/描述,仅刷新 updatedAt)

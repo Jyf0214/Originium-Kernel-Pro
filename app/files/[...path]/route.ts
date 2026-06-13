@@ -17,7 +17,7 @@ import nodePath from 'node:path'
 import https from 'node:https'
 import http2 from 'node:http2'
 import { getSession } from '@/lib/auth'
-import { getWebDavClient, isWebDavConfigured } from '@/lib/webdav'
+import { getStorageProvider, isStorageConfigured } from '@/lib/storage/storage-provider'
 import { checkAccess } from '@/lib/storage/acl'
 import { isValidPath, joinPath } from '@/lib/storage/path'
 import type { FileStat, ResponseDataDetailed } from 'webdav'
@@ -121,7 +121,7 @@ function httpsFallback(webdavBase: string, relPath: string, auth: string): Promi
 
 function accessDenied(reason: string | undefined): NextResponse {
   if (reason === 'not-found') return NextResponse.json({ error: '资源不存在' }, { status: 404 })
-  if (reason === 'not-configured') return NextResponse.json({ error: 'WebDAV 未配置', code: 'NOT_CONFIGURED' }, { status: 503 })
+  if (reason === 'not-configured') return NextResponse.json({ error: '存储后端未配置', code: 'NOT_CONFIGURED' }, { status: 503 })
   return NextResponse.json({ error: '请先登录' }, { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Storage"' } })
 }
 
@@ -168,16 +168,16 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<Route
     if (!relativePath || !isValidPath(relativePath)) {
       return NextResponse.json({ error: '路径非法' }, { status: 400 })
     }
-    if (!isWebDavConfigured()) {
-      return NextResponse.json({ error: 'WebDAV 未配置', code: 'NOT_CONFIGURED' }, { status: 503 })
+    if (!isStorageConfigured()) {
+      return NextResponse.json({ error: '存储后端未配置', code: 'NOT_CONFIGURED' }, { status: 503 })
     }
     const session = await getSession()
     const access = await checkAccess(relativePath, !!session)
     if (!access.allowed) return accessDenied('reason' in access ? access.reason : undefined)
-    const client = getWebDavClient()
+    const provider = await getStorageProvider()
     let stat: FileStat
     try {
-      stat = unwrapStat(await client.stat(relativePath))
+      stat = unwrapStat(await provider.stat(relativePath))
     } catch (statErr) {
       console.error(`[files] stat 失败 path="${relativePath}" error="${statErr}"`)
       throw statErr

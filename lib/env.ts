@@ -87,3 +87,37 @@ export function isWebDavConfigured(): boolean {
   const pass = process.env.WEBDAV_PASS;
   return !!(url && user && pass);
 }
+
+/**
+ * 检测 Backblaze B2 存储池是否已配置
+ * - B2_KEY_ID + B2_APP_KEY + B2_BUCKET 三个必须全部存在
+ * - 部分缺失视为未配置(失败安全)
+ */
+export function isBackblazeConfigured(): boolean {
+  return !!(
+    process.env.B2_KEY_ID &&
+    process.env.B2_APP_KEY &&
+    process.env.B2_BUCKET
+  );
+}
+
+/**
+ * 获取当前激活的存储后端类型
+ * - STORAGE_TYPE=backblaze → 'backblaze'
+ * - 其他或未设置 → 'webdav'（向后兼容）
+ */
+export function getStorageType(): 'webdav' | 'backblaze' {
+  return process.env.STORAGE_TYPE?.toLowerCase() === 'backblaze'
+    ? 'backblaze'
+    : 'webdav';
+}
+
+/**
+ * 检测当前配置的存储后端是否已就绪
+ * - 根据 STORAGE_TYPE 选择检查哪个后端
+ */
+export function isStorageConfigured(): boolean {
+  return getStorageType() === 'backblaze'
+    ? isBackblazeConfigured()
+    : isWebDavConfigured();
+}

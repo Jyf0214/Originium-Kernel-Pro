@@ -4,33 +4,30 @@
  * 请求体:原始二进制流(请求体即文件内容)
  * 大小上限 50MB;超限返回 413
  *
- * 流式上传:不再把整个文件读到 V8 堆,而是直接把请求体流过 WebDAV 写入流,
- * 通过 TransformStream 实时累计字节数,超限时立即终止并清理已写入的部分文件。
+ * 流式读取请求体,通过 TransformStream 实时累计字节数,超限时立即终止;
+ * 完整数据收集后通过 StorageProvider.putFileContents() 写入。
  */
-import { Readable } from 'node:stream'
-import { pipeline } from 'node:stream/promises'
-import type { ReadableStream as NodeReadableStream } from 'node:stream/web'
 import { NextResponse } from 'next/server'
 import {
   MAX_UPLOAD_SIZE,
   buildWebDavTarget,
   catchAllHandler,
   getPathParts,
-  getWebDavClient,
+  getStorageProvider,
   invalidPathResponse,
   isValidStoragePath,
-  isWebDavConfigured,
+  isStorageConfigured,
   payloadTooLargeResponse,
   resolveStoragePath,
-  webdavErrorResponse,
-  webdavNotConfigured,
+  storageErrorResponse,
+  storageNotConfigured,
 } from '../../_helpers'
 
 export const POST = catchAllHandler<{ path: string[] }>(
   'POST',
   { label: 'storage.upload', requireAdmin: true },
   async (req, context) => {
-    if (!isWebDavConfigured()) return webdavNotConfigured()
+    if (!isStorageConfigured()) return storageNotConfigured()
 
     const parts = await getPathParts(context)
     const rel = resolveStoragePath(parts)
@@ -50,14 +47,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
       return NextResponse.json({ error: '请求体为空' }, { status: 400 })
     }
 
-    let client
-    try {
-      client = getWebDavClient()
-    } catch (err) {
-      return webdavErrorResponse(err, '上传文件')
-    }
-
-    // 实时累计字节数,超限时立即终止流并通过管道错误信号上报
+    // 实时累计字节数,超限时立即终止
     let bytesReceived = 0
     let sizeExceeded = false
     const sizeGuard = new TransformStream<Uint8Array, Uint8Array>({
@@ -71,24 +61,35 @@ export const POST = catchAllHandler<{ path: string[] }>(
         controller.enqueue(chunk)
       },
     })
-    const guarded = req.body.pipeThrough(sizeGuard) as unknown as NodeReadableStream
+    const guarded = req.body.pipeThrough(sizeGuard)
 
-    const writeStream = client.createWriteStream(target, { overwrite: true })
+    // 收集完整 body 为 Buffer
+    let buffer: Buffer
     try {
-      await pipeline(Readable.fromWeb(guarded), writeStream)
-    } catch (err) {
-      // 清理已写入的部分文件(尽力而为,不抛错)
-      try {
-        await client.deleteFile(target)
-      } catch {
-        // ignore: 文件可能尚未创建,或远端已无该记录
+      const reader = guarded.getReader()
+      const chunks: Uint8Array[] = []
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        chunks.push(value)
       }
+      buffer = Buffer.concat(chunks)
+    } catch (err) {
       if (sizeExceeded) {
         console.warn(`[storage.upload] target="${target}" 超限 size=${bytesReceived} bytes`)
         return payloadTooLargeResponse(bytesReceived)
       }
+      console.error(`[storage.upload] target="${target}" 读取失败`, err)
+      return storageErrorResponse(err, '上传文件')
+    }
+
+    // 通过 StorageProvider 写入
+    try {
+      const provider = await getStorageProvider()
+      await provider.putFileContents(target, buffer, { headers: { overwrite: 'true' } })
+    } catch (err) {
       console.error(`[storage.upload] target="${target}" 写入失败`, err)
-      return webdavErrorResponse(err, '上传文件')
+      return storageErrorResponse(err, '上传文件')
     }
 
     console.warn(`[storage.upload] target="${target}" size=${bytesReceived} bytes`)
