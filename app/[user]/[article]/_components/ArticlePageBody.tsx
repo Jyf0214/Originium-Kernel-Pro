@@ -3,7 +3,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { Navbar } from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ShareButtons from '@/components/ShareButtons';
 import ArticleCopyright from '@/components/ArticleCopyright';
@@ -49,7 +48,6 @@ export function ArticlePageBody({
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
-      <Navbar />
       <PageContainer maxWidth="4xl" padding="wide">
         <Link href={`/${username}`} className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-900 mb-12 transition-all group">
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />

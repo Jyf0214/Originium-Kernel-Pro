@@ -1,5 +1,4 @@
 import { getContentFiles, getContentIndexes } from '@/lib/content';
-import { Navbar } from '@/components/Navbar';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { Tag } from '@/components/ui/Tag';
 import Link from 'next/link';
@@ -80,7 +79,6 @@ export default function ArchivesPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
-      <Navbar />
       <PageContainer maxWidth="4xl" padding="wide">
         <h1 className="text-4xl md:text-5xl font-display font-black tracking-tighter text-zinc-900 mb-2">
           归档 Archives

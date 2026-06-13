@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Plus, Settings, ShieldAlert, FileText, Loader2 } from 'lucide-react';
-import { Navbar } from '@/components/Navbar';
 import { GlobalLoading } from '@/components/Loading';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -25,7 +24,6 @@ export function DiaryPageClient() {
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
-      <Navbar />
       <PageContainer maxWidth="4xl" padding="compact">
         <HeroBanner
           title="日记"

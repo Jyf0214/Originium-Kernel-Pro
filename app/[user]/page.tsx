@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useParams } from 'next/navigation';
-import { Navbar } from '@/components/Navbar';
 import { ArticleCard } from '@/components/ArticleCard';
 import type { UserProfile } from '@/lib/user';
 import { type Article } from '@/types/content';
@@ -73,7 +72,6 @@ function UserProfileContent() {
 
   if (!user) return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Navbar />
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
         <h1 className="text-4xl font-display font-black text-zinc-900 mb-4">{t('error.404')}</h1>
         <p className="text-zinc-500 mb-8">{t('error.notFound')}</p>
@@ -86,7 +84,6 @@ function UserProfileContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Navbar />
 
       <main className="flex-1">
         {/* User Profile Header */}

@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Navbar } from '@/components/Navbar';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { HeroBanner } from '@/components/ui/HeroBanner';
 import { BookOpen, Github, Shield, Globe } from 'lucide-react';
@@ -34,7 +33,6 @@ const features = [
 export default function AboutPage() {
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
-      <Navbar />
       <PageContainer maxWidth="5xl" padding="compact">
         <HeroBanner
           title="关于"

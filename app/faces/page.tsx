@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Navbar } from '@/components/Navbar';
 import { FacesListClient, type FaceItem, type GroupItem } from './FacesListClient';
 import { useI18n } from '@/hooks/use-i18n';
 import { GlobalLoading } from '@/components/Loading';
@@ -40,7 +39,6 @@ export default function FacesPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-zinc-50">
-        <Navbar />
         <div className="flex-1 flex items-center justify-center">
           <GlobalLoading size="large" />
         </div>
@@ -50,7 +48,6 @@ export default function FacesPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
-      <Navbar />
       <PageContainer maxWidth="4xl">
         <div className="flex flex-col gap-3 mb-8">
           <h1 className="text-2xl font-bold text-zinc-900">
