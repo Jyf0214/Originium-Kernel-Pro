@@ -125,10 +125,6 @@ export function useStorageState(): UseStorageState {
 
   /** 加载当前路径文件列表 */
   const loadEntries = useCallback(async (path: string) => {
-    if (!path) {
-      setEntries([]);
-      return;
-    }
     try {
       const res = await fetchEntries(path);
       // 防御：API 可能返回 undefined（如 204 空响应）
@@ -151,10 +147,6 @@ export function useStorageState(): UseStorageState {
   const navigateTo = useCallback(
     async (path: string) => {
       setCurrentPath(path);
-      if (!path) {
-        setEntries([]);
-        return;
-      }
       await loadEntries(path);
     },
     [loadEntries]
@@ -167,13 +159,9 @@ export function useStorageState(): UseStorageState {
     }
   }, [loadInitial]);
 
-  /** 进入后默认加载根 entries(若已配置) */
+  /** 进入后默认加载 entries(若已配置) */
   useEffect(() => {
     if (!hasFetched.current) return;
-    if (!currentPath) {
-      setEntries([]);
-      return;
-    }
     void loadEntries(currentPath);
   }, [currentPath, loadEntries]);
 
