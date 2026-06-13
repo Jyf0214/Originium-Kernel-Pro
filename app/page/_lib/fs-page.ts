@@ -18,6 +18,7 @@ import 'server-only';
 import { promises as fs, type Dirent } from 'fs';
 import path from 'path';
 import { PAGES_PREFIX, isHtmlPath, extractTitle } from '@/lib/page-source/shared';
+import { fetchPageHtml, scanPagesHtmlDeep } from '@/lib/page-source/webdav';
 
 /** 本地镜像目录绝对路径(项目根的 `./pages/`) */
 const LOCAL_PAGES_DIR = path.join(process.cwd(), PAGES_PREFIX);
@@ -34,10 +35,12 @@ export interface ScannedLocalPage {
 }
 
 /**
- * 读取本地镜像的 HTML 文件内容
+ * 读取 HTML 文件内容：本地优先，不存在时从 WebDAV 运行时读取
  *
- * - 文件不存在(`ENOENT`)→ 返回 `null`
- * - 其它读取错误 → 抛给上层(不应静默)
+ * - 本地文件存在 → 直接读取（快速）
+ * - 本地不存在 → fallback 到 WebDAV getFileContents（新建页面首次访问）
+ * - 两者都不存在 → 返回 `null`
+ * - 其它读取错误 → 抛给上层
  *
  * @param relativePath 已通过 `buildPageRelativePath` 校验的相对路径(含 `pages/` 前缀)
  */
@@ -48,9 +51,10 @@ export async function readPageHtml(relativePath: string): Promise<string | null>
     return content;
   } catch (err) {
     const code = (err as NodeJS.ErrnoException)?.code;
-    if (code === 'ENOENT') return null;
-    throw err;
+    if (code !== 'ENOENT') throw err;
   }
+  // 本地不存在 → 从 WebDAV 运行时读取
+  return fetchPageHtml(relativePath);
 }
 
 /**
@@ -70,20 +74,27 @@ export async function isLocalPageAvailable(relativePath: string): Promise<boolea
 }
 
 /**
- * 判断 `./pages/` 目录是否为空(不存在 / 无任何条目)
+ * 判断是否有任何可用页面(本地 + WebDAV)
  *
- * - 用于索引页(`app/page/page.tsx`)决定展示哪种空状态卡片
- * - 注意:WebDAV 未配置时 `sync-pages.mjs` 会清空 `./pages/`,
- *   运行时无需再区分"未配置"和"空"两种状态,统一走同一张空状态卡
+ * - 本地有文件 → false（非空）
+ * - 本地为空但 WebDAV 有页面 → false（新建页面运行时可见）
+ * - 两者都空 → true
  */
 export async function isLocalPagesEmpty(): Promise<boolean> {
   try {
     const entries = await fs.readdir(LOCAL_PAGES_DIR);
-    return entries.length === 0;
+    if (entries.length > 0) return false;
   } catch (err) {
     const code = (err as NodeJS.ErrnoException)?.code;
-    if (code === 'ENOENT') return true;
-    throw err;
+    if (code !== 'ENOENT') throw err;
+    // 本地目录不存在，继续检查 WebDAV
+  }
+  // 本地为空/不存在 → 检查 WebDAV
+  try {
+    const webdavPages = await scanPagesHtmlDeep();
+    return webdavPages.length === 0;
+  } catch {
+    return true; // WebDAV 也不可用
   }
 }
 
@@ -118,14 +129,17 @@ export async function scanEmptyDirs(): Promise<string[]> {
 }
 
 /**
- * 浅层递归扫描本地 `./pages/` 目录,收集根级与 1 级子目录下的所有 .html/.htm
+ * 浅层递归扫描本地 + WebDAV,收集所有 .html/.htm 页面
  *
- * - 与 `lib/page-source/webdav.ts` 的 `scanPagesHtmlDeep` 保持同构
- * - 索引页用此函数生成卡片列表
+ * - 本地 ./pages/ 优先(构建时同步,快速)
+ * - WebDAV 补充(新建页面可能仅存在于 WebDAV,尚未同步到本地)
+ * - 相对路径重复时本地优先(WebDAV 条目被跳过)
  */
 export async function scanLocalPagesHtml(): Promise<ScannedLocalPage[]> {
   const out: ScannedLocalPage[] = [];
+  const seenPaths = new Set<string>();
 
+  // 1. 扫描本地 ./pages/
   const rootEntries = await safeReaddir(LOCAL_PAGES_DIR);
   for (const entry of rootEntries) {
     if (entry.isFile() && isHtmlPath(entry.name)) {
@@ -139,6 +153,7 @@ export async function scanLocalPagesHtml(): Promise<ScannedLocalPage[]> {
         size: stat.size,
         lastModified: stat.mtime.toISOString(),
       });
+      seenPaths.add(relativePath);
       continue;
     }
     if (entry.isDirectory() && MAX_SCAN_DEPTH >= 2) {
@@ -156,9 +171,31 @@ export async function scanLocalPagesHtml(): Promise<ScannedLocalPage[]> {
             size: stat.size,
             lastModified: stat.mtime.toISOString(),
           });
+          seenPaths.add(relativePath);
         }
       }
     }
+  }
+
+  // 2. 补充 WebDAV 上存在但本地没有的页面(新建页面运行时可见)
+  try {
+    const webdavPages = await scanPagesHtmlDeep();
+    for (const { relativePath } of webdavPages) {
+      if (seenPaths.has(relativePath)) continue;
+      // 从相对路径提取目录和文件名
+      const parts = relativePath.split('/');
+      const filename = parts[parts.length - 1] ?? '';
+      const dir = parts.slice(0, -1).join('/');
+      out.push({
+        relativePath,
+        dir,
+        filename,
+        size: 0, // WebDAV 未提供 size,标记为 0
+        lastModified: new Date().toISOString(),
+      });
+    }
+  } catch {
+    // WebDAV 不可用或扫描失败,不阻断(本地结果已足够)
   }
 
   return out;
