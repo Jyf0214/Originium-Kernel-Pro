@@ -52,6 +52,9 @@ export async function GET() {
       groupName: idx.groupName,
     })),
     site: config.site,
+  }, {
+    // 通讯录缓存：CDN 缓存 600s，过期后后台重验证 1200s
+    headers: { 'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=1200' },
   });
 }
 

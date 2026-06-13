@@ -18,7 +18,10 @@ export const GET = apiHandler('GET', { label: '获取模板列表', requireAuth:
   logger.info('GET', '获取模板列表');
   const templates = getTicketTemplates();
   logger.info('GET', '获取模板列表成功', { count: templates.length });
-  return NextResponse.json(templates);
+  // 工单模板缓存：CDN 缓存 300s，过期后后台重验证 600s
+  return NextResponse.json(templates, {
+    headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
+  });
 });
 
 // 创建新模板（仅 admin/sudo）

@@ -5,6 +5,11 @@ import { type ContentFile, type ContentIndex } from '@/types/content';
 
 export type { ContentMeta, ContentFile, ContentIndex } from '@/types/content';
 
+// 内存缓存：避免重复的文件系统扫描和 Markdown 解析
+// 开发模式下禁用缓存（热重载时文件内容可能变化）
+const contentCache = new Map<string, { data: ContentFile[]; timestamp: number }>();
+const CACHE_TTL = process.env.NODE_ENV === 'development' ? 0 : 5 * 60 * 1000; // 生产 5 分钟
+
 const CONTENT_DIR = {
   posts: path.join(/*turbopackIgnore: true*/ process.cwd(), 'posts'),
   faces: path.join(/*turbopackIgnore: true*/ process.cwd(), 'faces'),
@@ -127,6 +132,13 @@ function readIndexFile(dir: string): ContentIndex | null {
  * @param includeIndex 是否包含目录索引信息
  */
 export function getContentFiles(section: 'posts' | 'faces' | 'diary'): ContentFile[] {
+  const cacheKey = section;
+  const now = Date.now();
+  const cached = contentCache.get(cacheKey);
+  if (cached && now - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+
   const rootDir = CONTENT_DIR[section];
   if (!fs.existsSync(rootDir)) return [];
 
@@ -147,7 +159,19 @@ export function getContentFiles(section: 'posts' | 'faces' | 'diary'): ContentFi
     return dateB - dateA;
   });
 
+  contentCache.set(cacheKey, { data: files, timestamp: Date.now() });
   return files;
+}
+
+/**
+ * 清除内容缓存，文件变更后调用
+ */
+export function clearContentCache(section?: 'posts' | 'faces' | 'diary') {
+  if (section) {
+    contentCache.delete(section);
+  } else {
+    contentCache.clear();
+  }
 }
 
 /**
