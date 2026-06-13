@@ -9,8 +9,6 @@
  *
  * 认证: 仅限超级管理员(requireSudo)
  */
-import { Readable } from 'node:stream'
-import { pipeline } from 'node:stream/promises'
 import { NextResponse } from 'next/server'
 import { apiHandler } from '@/lib/api-handler'
 import { isWebDavConfigured, getWebDavClient } from '@/lib/webdav'
@@ -49,15 +47,14 @@ function validateParams(body: CreatePageBody): NextResponse | null {
   return null
 }
 
-/** 写入 WebDAV */
+/** 写入 WebDAV（等待服务端确认写入） */
 async function writeToWebDav(name: string, htmlContent: string): Promise<NextResponse | null> {
   const webdavDir = `pages/${name}`
   const webdavFile = `${webdavDir}/index.html`
   try {
     const client = getWebDavClient()
     await client.createDirectory(webdavDir, { recursive: true })
-    const writeStream = client.createWriteStream(webdavFile, { overwrite: true })
-    await pipeline(Readable.from([Buffer.from(htmlContent, 'utf-8')]), writeStream)
+    await client.putFileContents(webdavFile, Buffer.from(htmlContent, 'utf-8'), { overwrite: true })
     return null
   } catch (err) {
     return NextResponse.json(
