@@ -18,7 +18,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { buildPageRelativePath, extractTitle } from '@/lib/page-source/shared';
-import { isWebDavConfigured } from '@/lib/webdav';
+import { isStorageConfigured } from '@/lib/storage/storage-provider';
 import { fetchPageHtml } from '@/lib/page-source/webdav';
 import { checkPageAccess, type PageAccessResult } from '@/lib/storage/acl';
 import { UserWidget } from '../_components/UserWidget';
@@ -43,7 +43,7 @@ function isPasswordReason(reason: PageAccessResult['reason']): boolean {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { path } = await params;
   const relativePath = buildPageRelativePath(path);
-  if (!relativePath || !isWebDavConfigured()) {
+  if (!relativePath || !isStorageConfigured()) {
     return { title: 'Custom Page' };
   }
   const html = await fetchPageHtml(relativePath);
@@ -55,7 +55,7 @@ export default async function CustomPage({ params, searchParams }: PageProps) {
   const { path } = await params;
   const { pwd } = await searchParams;
 
-  if (!isWebDavConfigured()) {
+  if (!isStorageConfigured()) {
     return <NotConfiguredView />;
   }
 

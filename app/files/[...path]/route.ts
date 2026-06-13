@@ -159,6 +159,22 @@ function fileResponse(body: Buffer, stat: FileStat): NextResponse {
   })
 }
 
+/**
+ * B2 后端文件下载：使用 StorageProvider.getFileContents 下载
+ */
+async function b2Download(provider: StorageProvider, relativePath: string): Promise<Buffer> {
+  const raw = await provider.getFileContents(relativePath)
+  if (raw instanceof Buffer) return raw
+  if (raw instanceof ArrayBuffer) return Buffer.from(raw)
+  if (typeof raw === 'string') return Buffer.from(raw, 'utf8')
+  if (raw && typeof raw === 'object' && 'data' in raw) {
+    const d = raw.data
+    return d instanceof Buffer || d instanceof ArrayBuffer
+      ? Buffer.from(d) : Buffer.from(String(d), 'utf8')
+  }
+  return Buffer.alloc(0)
+}
+
 export async function GET(_req: NextRequest, { params }: { params: Promise<RouteParams> }) {
   let relativePath = ''
   try {
@@ -187,8 +203,14 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<Route
       return NextResponse.json({
         relativePath,
         stat: { type: stat.type, size: stat.size, mime: stat.mime, lastmod: stat.lastmod },
-        webdavUrl: (process.env.WEBDAV_URL ?? '').substring(0, 40) + '...',
+        backend: provider.backend,
       })
+    }
+    // B2 后端: 通过 provider.getFileContents 直接下载，跳过 WebDAV 特定逻辑
+    if (provider.backend === 'backblaze') {
+      const body = await b2Download(provider, relativePath)
+      console.warn(`[files] b2 下载成功 path="${relativePath}" size=${body.length}`)
+      return fileResponse(body, stat)
     }
     const webdavBase = process.env.WEBDAV_URL!.replace(/\/+$/, '')
     const auth = `Basic ${Buffer.from(`${process.env.WEBDAV_USER}:${process.env.WEBDAV_PASS}`).toString('base64')}`
