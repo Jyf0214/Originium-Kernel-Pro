@@ -332,6 +332,7 @@ async function main() {
   let nextIndex = 0;
   let completed = 0;
   let downloadErrors = 0;
+  let corruptedFiles = 0;
   const total = entries.length;
   const DOWNLOAD_TIMEOUT_MS = 30_000;
   const MAX_RETRIES = 3;
@@ -346,10 +347,12 @@ async function main() {
 
       // 先 stat 检查文件元信息
       let fileSize = null;
+      let statOk = false;
       try {
         const info = await client.stat(relPath);
         fileSize = info.size ?? null;
         console.log(`${LOG_PREFIX} stat: ${relPath} → size=${fileSize}, type=${info.type}`);
+        statOk = true;
         if (fileSize === 0) {
           console.warn(`${LOG_PREFIX} ⚠️ 跳过空文件(size=0): ${relPath}`);
           downloadErrors += 1;
@@ -398,19 +401,38 @@ async function main() {
       }
       if (lastErr) {
         downloadErrors += 1;
-        console.warn(`${LOG_PREFIX} ⚠️ 跳过下载失败(重试${MAX_RETRIES}次): ${relPath} (${lastErr.message})`);
+        if (statOk) {
+          corruptedFiles += 1;
+          console.warn(`${LOG_PREFIX} ⚠️ 损坏文件(重试${MAX_RETRIES}次): ${relPath} (stat size=${fileSize} 但内容不可读)`);
+          // 尝试从 WebDAV 删除损坏文件,避免后续构建反复遇到
+          try {
+            await client.deleteFile(relPath);
+            console.warn(`${LOG_PREFIX}   → 已从 WebDAV 删除损坏文件: ${relPath}`);
+          } catch (delErr) {
+            console.warn(`${LOG_PREFIX}   → 删除损坏文件失败(需手动清理): ${relPath} (${delErr.message})`);
+          }
+        } else {
+          console.warn(`${LOG_PREFIX} ⚠️ 跳过下载失败(重试${MAX_RETRIES}次): ${relPath} (${lastErr.message})`);
+        }
       }
     }
   });
 
   await Promise.all(workers);
 
+  // 所有文件下载失败时才终止构建
+  // 纯损坏文件(stat 成功但内容不可读)不阻断构建,仅警告
+  const connectivityErrors = downloadErrors - corruptedFiles;
   if (downloadErrors > 0 && completed === 0) {
-    console.error(`${LOG_PREFIX} ❌ 所有文件下载失败,构建终止`);
-    process.exit(1);
-  }
-  if (downloadErrors > 0) {
-    console.warn(`${LOG_PREFIX} ⚠️ ${downloadErrors} 个文件下载失败已跳过,${completed}/${total} 成功`);
+    if (corruptedFiles > 0 && connectivityErrors === 0) {
+      // 所有失败都是损坏文件,不阻断构建
+      console.warn(`${LOG_PREFIX} ⚠️ ${corruptedFiles} 个文件内容损坏已跳过,构建继续`);
+    } else {
+      console.error(`${LOG_PREFIX} ❌ ${connectivityErrors} 个文件下载失败(连通性问题),构建终止`);
+      process.exit(1);
+    }
+  } else if (downloadErrors > 0) {
+    console.warn(`${LOG_PREFIX} ⚠️ ${downloadErrors} 个文件失败已跳过(${corruptedFiles} 损坏),${completed}/${total} 成功`);
   }
 
   console.log(`${LOG_PREFIX} 同步完成: ${total} 个文件 → ${path.relative(PROJECT_ROOT, LOCAL_DIR)}/`);
