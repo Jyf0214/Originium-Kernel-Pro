@@ -44,7 +44,7 @@ export function StorageFolderTree({
           type="button"
           onClick={onNewFolder}
           disabled={disabled}
-          title={disabled ? 'WebDAV 未配置' : '新建文件夹'}
+          title={disabled ? '存储后端未配置' : '新建文件夹'}
           className="inline-flex items-center justify-center w-7 h-7 rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           <Plus size={14} />

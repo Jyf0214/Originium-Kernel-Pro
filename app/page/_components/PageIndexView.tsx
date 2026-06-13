@@ -122,15 +122,25 @@ function NotConfiguredCard() {
     <div className="rounded-2xl bg-white p-8 ring-1 ring-amber-200/60 bg-amber-50/30">
       <div className="flex items-center gap-3 text-amber-700 font-semibold mb-3">
         <Folder size={20} aria-hidden />
-        <span>WebDAV 未配置</span>
+        <span>存储后端未配置</span>
       </div>
       <p className="text-sm text-zinc-600 leading-relaxed mb-4">
-        页面索引依赖 WebDAV 读取 <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">pages/</code> 目录下的 HTML 文件。
-        请在 <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">.env.local</code> 中设置
-        <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs"> WEBDAV_URL</code> /
-        <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs"> WEBDAV_USER</code> /
-        <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs"> WEBDAV_PASS</code> 后重启服务。
+        页面索引依赖存储后端读取 <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">pages/</code> 目录下的 HTML 文件。
+        请在环境变量中配置以下之一:
       </p>
+      <ul className="text-sm text-zinc-600 leading-relaxed mb-4 ml-4 list-disc space-y-1">
+        <li>
+          <strong>WebDAV:</strong> <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">WEBDAV_URL</code> /
+          <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs"> WEBDAV_USER</code> /
+          <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs"> WEBDAV_PASS</code>
+        </li>
+        <li>
+          <strong>Backblaze B2:</strong> <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">B2_KEY_ID</code> /
+          <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs"> B2_APP_KEY</code> /
+          <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs"> B2_BUCKET</code>
+          {' + '}<code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">STORAGE_TYPE=backblaze</code>
+        </li>
+      </ul>
       <p className="text-xs text-zinc-500">
         配置完成后,在 <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">pages/</code> 目录下放置
         <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">.html</code> 文件即可在此列出。

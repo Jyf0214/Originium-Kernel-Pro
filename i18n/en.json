@@ -378,8 +378,8 @@
         "desc": "Comments widget on post detail pages. All four variables must be set together; otherwise a placeholder is rendered."
       },
       "storage": {
-        "name": "Storage Pool (WebDAV)",
-        "desc": "WebDAV remote storage backend. All three variables (URL / USER / PASS) must be set together; partial configuration is treated as unconfigured."
+        "name": "Storage Pool",
+        "desc": "Remote storage backend for file assets. Configure via WEBDAV_* variables for WebDAV backends, or set STORAGE_TYPE=b2 with B2_* variables for Backblaze B2. All required variables for the chosen backend must be set together; partial configuration is treated as unconfigured."
       },
       "smtp": {
         "name": "SMTP Email",
@@ -428,9 +428,9 @@
         "NEXT_PUBLIC_GISCUS_CATEGORY_ID": "Category ID issued by giscus.app. Required together with NEXT_PUBLIC_GISCUS_CATEGORY."
       },
       "storage": {
-        "WEBDAV_URL": "WebDAV server base URL (e.g. https://dav.example.com/dav). Must point to a directory writable by the configured user.",
-        "WEBDAV_USER": "Username for HTTP Basic auth against the WebDAV server.",
-        "WEBDAV_PASS": "Password for HTTP Basic auth against the WebDAV server."
+        "WEBDAV_URL": "WebDAV server base URL (e.g. https://dav.example.com/dav). Must point to a directory writable by the configured user. For B2 backend, set STORAGE_TYPE=b2 and configure B2_KEY_ID, B2_APPLICATION_KEY, B2_BUCKET, B2_PREFIX instead.",
+        "WEBDAV_USER": "Username for HTTP Basic auth against the WebDAV server. For B2 backend, use B2_KEY_ID instead.",
+        "WEBDAV_PASS": "Password for HTTP Basic auth against the WebDAV server. For B2 backend, use B2_APPLICATION_KEY instead."
       },
       "smtp": {
         "SMTP_HOST": "SMTP server hostname (e.g. smtp.gmail.com, smtp.sendgrid.net).",
@@ -690,8 +690,8 @@
   },
   "storage": {
     "title": "Storage Pool",
-    "notConfigured": "WebDAV Not Configured",
-    "notConfiguredDesc": "Please set WEBDAV_URL, WEBDAV_USER and WEBDAV_PASS in .env.local, then restart the server.",
+    "notConfigured": "Storage Not Configured",
+    "notConfiguredDesc": "Please set WEBDAV_URL, WEBDAV_USER and WEBDAV_PASS for WebDAV backends, or set STORAGE_TYPE=b2 with B2_* variables for B2 backend, in .env.local then restart the server.",
     "folders": "Folders",
     "files": "Files",
     "root": "Root",
@@ -739,7 +739,7 @@
     "guest": "Guest",
     "guestLoginPrompt": "Login to view personalized content",
     "notConfigured": "Custom pages not configured",
-    "notConfiguredDesc": "Please set WEBDAV_URL, WEBDAV_USER, WEBDAV_PASS in .env.local and restart, then place HTML files in pages/.",
+    "notConfiguredDesc": "Please set WEBDAV_URL, WEBDAV_USER, WEBDAV_PASS for WebDAV backends, or set STORAGE_TYPE=b2 with B2_* variables for B2 backend, in .env.local and restart, then place HTML files in pages/.",
     "notFound": "Page not found",
     "loadError": "Failed to load page",
     "loading": "Loading",
@@ -750,9 +750,9 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "indexTitle": "Custom Pages",
-    "indexSubtitle": "Driven by the WebDAV `pages/` directory. Private pages are marked with a lock and require a password on first visit.",
+    "indexSubtitle": "Driven by the storage backend's `pages/` directory (WebDAV or B2). Private pages are marked with a lock and require a password on first visit.",
     "indexEmpty": "No custom pages yet",
-    "indexEmptyHint": "Place `.html` files under the WebDAV `pages/` directory and they will appear here automatically.",
+    "indexEmptyHint": "Place `.html` files under the `pages/` directory in your configured storage backend (WebDAV or B2) and they will appear here automatically.",
     "indexFolder": "Folder",
     "indexPrivateBadge": "Private",
     "indexPublicBadge": "Public"

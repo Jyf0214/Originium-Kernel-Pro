@@ -190,7 +190,7 @@ export function useStorageState(): UseStorageState {
     async (files: File[]) => {
       if (!files.length) return;
       if (!configured) {
-        message.error('WebDAV 未配置,无法上传');
+        message.error('存储后端未配置,无法上传');
         return;
       }
       const oversize = files.find((f) => f.size > MAX_FILE_SIZE);
@@ -205,7 +205,7 @@ export function useStorageState(): UseStorageState {
           if (err instanceof ApiError) {
             if (err.isNotConfigured) {
               setConfigured(false);
-              message.error('WebDAV 未配置,上传失败');
+              message.error('存储后端未配置,上传失败');
               return;
             }
             message.error(err.message);
@@ -235,7 +235,7 @@ export function useStorageState(): UseStorageState {
         return;
       }
       if (!configured) {
-        message.error('WebDAV 未配置,无法创建');
+        message.error('存储后端未配置,无法创建');
         return;
       }
       const fullPath = currentPath ? `${currentPath}/${trimmed}` : trimmed;
@@ -255,7 +255,7 @@ export function useStorageState(): UseStorageState {
         if (err instanceof ApiError) {
           if (err.isNotConfigured) {
             setConfigured(false);
-            message.error('WebDAV 未配置');
+            message.error('存储后端未配置');
             return;
           }
           message.error(err.message);
@@ -270,7 +270,7 @@ export function useStorageState(): UseStorageState {
   const removeFile = useCallback(
     async (path: string) => {
       if (!configured) {
-        message.error('WebDAV 未配置,无法删除');
+        message.error('存储后端未配置,无法删除');
         return;
       }
       try {
@@ -296,7 +296,7 @@ export function useStorageState(): UseStorageState {
   const removeFolder = useCallback(
     async (path: string) => {
       if (!configured) {
-        message.error('WebDAV 未配置,无法删除');
+        message.error('存储后端未配置,无法删除');
         return;
       }
       try {
@@ -327,7 +327,7 @@ export function useStorageState(): UseStorageState {
   const toggleFolderPublic = useCallback(
     async (path: string, next: boolean) => {
       if (!configured) {
-        message.error('WebDAV 未配置,无法切换');
+        message.error('存储后端未配置,无法切换');
         return null;
       }
       try {
@@ -360,7 +360,7 @@ export function useStorageState(): UseStorageState {
   const setFolderPassword = useCallback(
     async (path: string, password: string | null) => {
       if (!configured) {
-        message.error('WebDAV 未配置,无法设置密码');
+        message.error('存储后端未配置,无法设置密码');
         return null;
       }
       try {
