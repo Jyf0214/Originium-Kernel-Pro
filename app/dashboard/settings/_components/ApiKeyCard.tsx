@@ -130,11 +130,10 @@ export function ApiKeyCard() {
         <Button
           variant="primary"
           size="sm"
-          icon={<Plus size={14} />}
           onClick={handleGenerate}
           disabled={generating}
         >
-          {generating ? '生成中…' : '生成密钥'}
+          {generating ? '生成中…' : <><span className="hidden sm:inline"><Plus size={14} className="inline mr-1" />生成密钥</span><span className="sm:hidden"><Plus size={14} /></span></>}
         </Button>
       </div>
 
