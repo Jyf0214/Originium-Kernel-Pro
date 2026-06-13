@@ -1,5 +1,3 @@
-import { Octokit } from 'octokit';
-
 /**
  * GitHub 集成 — 文件推送/读取/删除
  */
@@ -12,10 +10,16 @@ interface GithubSyncParams {
   message: string;
 }
 
+/** 动态导入 Octokit，避免所有引用此文件的路由都加载完整的 Octokit bundle */
+async function getOctokit(token: string) {
+  const { Octokit } = await import('octokit');
+  return new Octokit({ auth: token });
+}
+
 /** 从 GitHub 获取文件内容 */
 export async function getFileFromGithub(repo: string, token: string, path: string) {
   const [owner = '', repoName = ''] = repo.split('/');
-  const octokit = new Octokit({ auth: token });
+  const octokit = await getOctokit(token);
 
   try {
     const { data } = await octokit.rest.repos.getContent({
@@ -39,7 +43,7 @@ export async function getFileFromGithub(repo: string, token: string, path: strin
 /** 创建或更新 GitHub 上的文件 */
 export async function updateFileInGithub({ repo, token, path, content, message }: GithubSyncParams) {
   const [owner = '', repoName = ''] = repo.split('/');
-  const octokit = new Octokit({ auth: token });
+  const octokit = await getOctokit(token);
   const existingFile = await getFileFromGithub(repo, token, path);
 
   return await octokit.rest.repos.createOrUpdateFileContents({
@@ -55,7 +59,7 @@ export async function updateFileInGithub({ repo, token, path, content, message }
 /** 删除 GitHub 上的文件 */
 export async function deleteFileFromGithub(repo: string, token: string, path: string) {
   const [owner = '', repoName = ''] = repo.split('/');
-  const octokit = new Octokit({ auth: token });
+  const octokit = await getOctokit(token);
   const existingFile = await getFileFromGithub(repo, token, path);
   if (!existingFile) return null;
 
