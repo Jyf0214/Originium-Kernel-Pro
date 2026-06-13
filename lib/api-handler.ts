@@ -35,25 +35,41 @@ export function apiHandler<
 ) {
   const logger = createApiLogger(options.label);
   return async (req: NextRequest, ctx?: ApiCtx<P>) => {
+    const start = performance.now();
+    const pathname = req.nextUrl.pathname;
+
+    /** 记录请求耗时，非 4xx/5xx 使用 console.warn */
+    const logResponse = (status: number) => {
+      const duration = Math.round(performance.now() - start);
+      const msg = `[API] ${method} ${pathname} → ${status} (${duration}ms)`;
+      console.warn(msg);
+    };
+
     try {
       // 权限验证
       if (options.requireAuth || options.requireAdmin) {
         const session = await getSession();
         if (!session) {
+          logResponse(401);
           return NextResponse.json({ error: '未登录' }, { status: 401 });
         }
         if (options.requireAdmin && session.role !== 'admin' && session.role !== 'sudo') {
+          logResponse(403);
           return NextResponse.json({ error: '无权限访问' }, { status: 403 });
         }
       }
       if (options.requireSudo) {
         const result = await requireSudo();
         if (result instanceof NextResponse) {
+          logResponse(result.status);
           return result;
         }
       }
-      return await handler(req, ctx);
+      const response = await handler(req, ctx);
+      logResponse(response.status);
+      return response;
     } catch (error) {
+      logResponse(500);
       const msg = `${options.label} 失败`;
       logger.error(method, msg, {
         error: error instanceof Error ? error.message : String(error),
