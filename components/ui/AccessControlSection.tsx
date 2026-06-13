@@ -9,6 +9,7 @@ interface AccessItem {
 }
 
 interface AccessControlSectionProps {
+  id?: string;
   title: string;
   items: AccessItem[];
   isPublic: (key: 'posts' | 'faces' | 'diary') => boolean;
@@ -18,6 +19,7 @@ interface AccessControlSectionProps {
 }
 
 export default function AccessControlSection({
+  id,
   title,
   items,
   isPublic,
@@ -26,7 +28,7 @@ export default function AccessControlSection({
   privateLabel,
 }: AccessControlSectionProps) {
   return (
-    <ConfigSection title={title} icon={Shield} color="bg-rose-500">
+    <ConfigSection id={id} title={title} icon={Shield} color="bg-rose-500">
       <div className="space-y-3">
         {items.map(item => {
           const publicState = isPublic(item.key);
