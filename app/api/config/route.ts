@@ -7,6 +7,17 @@ import yaml from 'js-yaml';
 
 const logger = createApiLogger('/api/config');
 
+// 内存缓存：避免每次请求都调用 GitHub API
+// 配置变更频率极低，5 分钟缓存足以覆盖大多数场景
+type ConfigResponse = AppConfig & {
+  _githubRepo?: string;
+  _remoteConfig?: string;
+  _remoteConfigStatus?: string;
+  _remoteConfigError?: string;
+};
+let configCache: { data: ConfigResponse; timestamp: number } | null = null;
+const CACHE_TTL = 5 * 60 * 1000; // 5 分钟
+
 /**
  * System Configuration API
  *
@@ -17,6 +28,15 @@ const logger = createApiLogger('/api/config');
  * 所有配置统一使用 AppConfig 结构
  */
 export async function GET() {
+  // 检查内存缓存，命中则直接返回
+  const now = Date.now();
+  if (configCache && now - configCache.timestamp < CACHE_TTL) {
+    logger.info('GET', '使用缓存配置');
+    return NextResponse.json(configCache.data, {
+      headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
+    });
+  }
+
   logger.info('GET', '读取配置');
   const githubRepo = process.env.GITHUB_REPO;
   const githubToken = process.env.GITHUB_TOKEN;
@@ -53,12 +73,7 @@ export async function GET() {
     logger.info('GET', 'GitHub 未配置，使用本地配置');
   }
 
-  const response: typeof config & {
-    _githubRepo?: string;
-    _remoteConfig?: string;
-    _remoteConfigStatus?: string;
-    _remoteConfigError?: string;
-  } = {
+  const response: ConfigResponse = {
     ...config,
     _remoteConfig: remoteConfigRaw,
     _remoteConfigStatus: remoteConfigStatus,
@@ -72,6 +87,8 @@ export async function GET() {
   }
 
   logger.info('GET', '配置读取成功', { source: remoteConfigStatus || 'local' });
+  // 更新内存缓存
+  configCache = { data: response, timestamp: Date.now() };
   return NextResponse.json(response, {
     headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
   });
@@ -307,6 +324,8 @@ export async function POST(req: NextRequest) {
     const mergedConfig = mergeAppConfig(currentConfig, newConfig);
 
     logger.info('POST', '配置已合并');
+    // 配置已更新，清除缓存使下次 GET 重新拉取
+    configCache = null;
     return NextResponse.json({ success: true, config: mergedConfig });
   } catch (error: unknown) {
     logger.error('POST', '更新配置失败', { error: error instanceof Error ? error.message : '未知错误' });
