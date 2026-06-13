@@ -8,7 +8,6 @@
  * - 不写管理 UI(留给其他 Agent)
  * - 目录访问拒绝(由 /admin/storage 提供浏览能力)
  */
-import { Readable } from 'node:stream'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { getWebDavClient, isWebDavConfigured } from '@/lib/webdav'
@@ -113,12 +112,12 @@ async function proxyWebDav(
       return debugResponse(relativePath, stat, statMs)
     }
 
-    console.warn(`[files] 开始 stream path="${relativePath}" size=${stat.size}`)
-    const nodeStream = client.createReadStream(relativePath)
-    const webStream = Readable.toWeb(nodeStream) as ReadableStream
+    console.warn(`[files] 开始读取文件 path="${relativePath}" size=${stat.size}`)
+    const buf = await client.getFileContents(relativePath, { format: 'binary' }) as ArrayBuffer
+    const body = new Uint8Array(buf)
 
-    console.warn(`[files] 响应已返回 path="${relativePath}" 耗时=${Math.round(performance.now() - start)}ms`)
-    return new NextResponse(webStream, {
+    console.warn(`[files] 响应已返回 path="${relativePath}" size=${body.length} 耗时=${Math.round(performance.now() - start)}ms`)
+    return new NextResponse(body, {
       headers: {
         'Content-Type': stat.mime ?? 'application/octet-stream',
         'Content-Length': String(stat.size),
