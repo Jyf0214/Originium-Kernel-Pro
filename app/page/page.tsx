@@ -12,7 +12,7 @@
 import 'server-only';
 import { getDb } from '@/lib/db';
 import { PAGES_PREFIX } from '@/lib/page-source/shared';
-import { isWebDavConfigured } from '@/lib/webdav';
+import { isStorageConfigured } from '@/lib/storage/storage-provider';
 import { scanPagesHtmlDeep, fetchPageHtml } from '@/lib/page-source/webdav';
 import { PageIndexView, type PageIndexItem } from './_components/PageIndexView';
 
@@ -39,7 +39,7 @@ async function loadPrivateDirs(dirs: readonly string[]): Promise<Set<string>> {
 }
 
 export default async function PageIndex() {
-  if (!isWebDavConfigured()) {
+  if (!isStorageConfigured()) {
     return <PageIndexView notConfigured={true} pages={[]} emptyDirs={[]} />;
   }
 
