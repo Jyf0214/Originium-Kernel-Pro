@@ -1,10 +1,9 @@
 /**
- * WebDAV 读取诊断端点（管理员 + curl 直连）
+ * WebDAV 读取诊断端点（管理员 + Koofr REST API）
  * GET /api/storage/debug?path=pages/hello-world/index.html
  */
 import { NextResponse } from 'next/server'
 import https from 'node:https'
-import { execSync } from 'node:child_process'
 import { getSession } from '@/lib/auth'
 import { getWebDavClient, isWebDavConfigured } from '@/lib/webdav'
 import { joinPath } from '@/lib/storage/path'
@@ -12,6 +11,20 @@ import { joinPath } from '@/lib/storage/path'
 export const dynamic = 'force-dynamic'
 
 type R = Record<string, unknown>
+
+function httpsGet(url: string, auth: string, timeoutMs = 8_000): Promise<{ status: number; body: Buffer; ms: number; error?: string }> {
+  const start = Date.now()
+  return new Promise((resolve) => {
+    const req = https.get(url, { headers: { Authorization: auth } }, (res) => {
+      const chunks: Buffer[] = []
+      res.on('data', (c: Buffer) => chunks.push(c))
+      res.on('end', () => resolve({ status: res.statusCode ?? 0, body: Buffer.concat(chunks), ms: Date.now() - start }))
+      res.on('error', (e) => resolve({ status: 0, body: Buffer.alloc(0), ms: Date.now() - start, error: `res:${e.message}` }))
+    })
+    req.on('error', (e) => resolve({ status: 0, body: Buffer.alloc(0), ms: Date.now() - start, error: `req:${e.message}` }))
+    req.setTimeout(timeoutMs, () => { req.destroy(new Error('timeout')); })
+  })
+}
 
 export async function GET(req: Request) {
   const session = await getSession()
@@ -24,71 +37,78 @@ export async function GET(req: Request) {
   if (!isWebDavConfigured()) return NextResponse.json({ error: 'WebDAV 未配置' })
 
   const webdavBase = process.env.WEBDAV_URL!.replace(/\/+$/, '')
-  const auth = `Basic ${Buffer.from(`${process.env.WEBDAV_USER}:${process.env.WEBDAV_PASS}`).toString('base64')}`
+  const user = process.env.WEBDAV_USER!
+  const pass = process.env.WEBDAV_PASS!
+  const auth = `Basic ${Buffer.from(`${user}:${pass}`).toString('base64')}`
   const encodedPath = relPath.split('/').map(encodeURIComponent).join('/')
   const fullUrl = `${webdavBase}/${encodedPath}`
   results.url = fullUrl
 
-  // 1. stat
+  // 1. PROPFIND stat (已知可行)
   try {
     const start = Date.now()
     const statRaw = await getWebDavClient().stat(relPath)
-    results.stat = { ok: true, ms: Date.now() - start, data: JSON.stringify(statRaw).slice(0, 300) }
-  } catch (e) { results.stat = { ok: false, error: String(e).slice(0, 200) } }
+    results.stat = { ok: true, ms: Date.now() - start, data: JSON.stringify(statRaw).slice(0, 200) }
+  } catch (e) { results.stat = { ok: false, error: String(e).slice(0, 150) } }
 
-  // 2. curl 直连 (绕过所有 Node.js HTTP 层)
+  // 2. GET 响应头 (不读 body)
+  const headResult = await httpsGet(fullUrl, auth, 5_000)
+  results.getHeaders = {
+    ok: headResult.status === 200,
+    status: headResult.status,
+    bodyLen: headResult.body.length,
+    ms: headResult.ms,
+    error: headResult.error,
+  }
+
+  // 3. Koofr REST API: 获取挂载列表
+  const koofrApiBase = 'https://api.koofr.net/v2'
   try {
     const start = Date.now()
-    const curlCmd = `curl -s -o /dev/null -w '%{http_code}' -H 'Authorization: ${auth}' '${fullUrl}'`
-    const statusCode = execSync(curlCmd, { timeout: 10_000, encoding: 'utf-8' }).trim()
-    results.curl_status = { ok: true, status: Number(statusCode), ms: Date.now() - start }
-  } catch (e) { results.curl_status = { ok: false, error: String(e).slice(0, 200) } }
+    const mountsResult = await httpsGet(`${koofrApiBase}/accounts/mounts`, auth, 5_000)
+    let mounts: unknown = null
+    try { mounts = JSON.parse(mountsResult.body.toString('utf8')); } catch { /* not json */ }
+    results.koofrMounts = {
+      ok: mountsResult.status === 200,
+      status: mountsResult.status,
+      ms: Date.now() - start,
+      error: mountsResult.error,
+      data: JSON.stringify(mounts).slice(0, 500),
+    }
+  } catch (e) { results.koofrMounts = { ok: false, error: String(e).slice(0, 150) } }
 
-  // 3. curl 下载完整内容
+  // 4. Koofr REST API: 用 content 端点下载文件 (尝试已知 mountId)
+  for (const mountId of ['none', 'appdata']) {
+    try {
+      const start = Date.now()
+      const apiUrl = `${koofrApiBase}/files/${mountId}/content?path=/${encodedPath}`
+      const dlResult = await httpsGet(apiUrl, auth, 8_000)
+      results[`koofrDl_${mountId}`] = {
+        ok: dlResult.status === 200 && dlResult.body.length > 0,
+        status: dlResult.status,
+        bodyLen: dlResult.body.length,
+        preview: dlResult.body.toString('utf8').slice(0, 100),
+        ms: Date.now() - start,
+        error: dlResult.error,
+      }
+    } catch (e) { results[`koofrDl_${mountId}`] = { ok: false, error: String(e).slice(0, 150) } }
+  }
+
+  // 5. PROPFIND getDirectoryContents 看文件系统结构
   try {
     const start = Date.now()
-    const curlCmd = `curl -s -H 'Authorization: ${auth}' '${fullUrl}'`
-    const content = execSync(curlCmd, { timeout: 10_000, encoding: 'utf-8' })
-    results.curl_body = { ok: true, ms: Date.now() - start, len: content.length, preview: content.slice(0, 200) }
-  } catch (e) { results.curl_body = { ok: false, error: String(e).slice(0, 200) } }
-
-  // 4. Node.js https GET (headers only, 不读 body)
-  try {
-    const start = Date.now()
-    const resp = await new Promise<{ status: number; headers: Record<string, string> }>((resolve, reject) => {
-      const r = https.get(fullUrl, { headers: { Authorization: auth } }, (res) => {
-        resolve({ status: res.statusCode ?? 0, headers: res.headers as Record<string, string> })
-        res.resume()
-      })
-      r.on('error', reject)
-      r.setTimeout(5_000, () => r.destroy(new Error('timeout')))
-    })
-    results.httpsHeaders = { ok: true, ms: Date.now() - start, status: resp.status, headers: resp.headers }
-  } catch (e) { results.httpsHeaders = { ok: false, error: String(e).slice(0, 200) } }
-
-  // 5. https get 完整读取
-  try {
-    const start = Date.now()
-    const content = await new Promise<Buffer>((resolve, reject) => {
-      const r = https.get(fullUrl, { headers: { Authorization: auth } }, (res) => {
-        const chunks: Buffer[] = []
-        res.on('data', (c: Buffer) => chunks.push(c))
-        res.on('end', () => resolve(Buffer.concat(chunks)))
-        res.on('error', reject)
-      })
-      r.on('error', reject)
-      r.setTimeout(5_000, () => r.destroy(new Error('timeout')))
-    })
-    results.httpsFull = { ok: true, ms: Date.now() - start, len: content.length, preview: content.toString('utf8').slice(0, 200) }
-  } catch (e) { results.httpsFull = { ok: false, error: String(e).slice(0, 200) } }
-
-  // 6. 全局 fetch (headers only)
-  try {
-    const start = Date.now()
-    const resp = await fetch(fullUrl, { headers: { Authorization: auth } })
-    results.fetchHeaders = { ok: resp.ok, status: resp.status, ms: Date.now() - start, contentType: resp.headers.get('content-type'), contentLength: resp.headers.get('content-length') }
-    await resp.body?.cancel()
-  } catch (e) { results.fetchHeaders = { ok: false, error: String(e).slice(0, 200) } }
+    const client = getWebDavClient()
+    const contents = await client.getDirectoryContents('', { deep: false }) as unknown[]
+    results.rootListing = {
+      ok: true,
+      ms: Date.now() - start,
+      count: contents.length,
+      items: contents.map((c: unknown) => {
+        const item = c as Record<string, unknown>;
+        return { name: item.basename, type: item.type, size: item.size };
+      }),
+    }
+  } catch (e) { results.rootListing = { ok: false, error: String(e).slice(0, 150) } }
 
   return NextResponse.json(results, { headers: { 'Cache-Control': 'no-store' } })
 }
