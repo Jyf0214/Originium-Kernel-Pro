@@ -185,16 +185,19 @@ async function listHtmlRecursive(client) {
 
   const out = [];
   for (const entry of rootEntries) {
-    if (entry.type === 'file' && /\.html?$/i.test(entry.filename)) {
-      out.push(`${WEBDAV_PREFIX}/${entry.filename}`);
+    // WebDAV 库可能返回带前导 / 的 filename,统一剥离避免路径拼接出双斜杠
+    const name = entry.filename.replace(/^\//, '');
+    if (entry.type === 'file' && /\.html?$/i.test(name)) {
+      out.push(`${WEBDAV_PREFIX}/${name}`);
       continue;
     }
     if (entry.type === 'directory') {
-      const subPath = `${WEBDAV_PREFIX}/${entry.filename}`;
+      const subPath = `${WEBDAV_PREFIX}/${name}`;
       const subEntries = await listDir(client, subPath);
       for (const sub of subEntries) {
-        if (sub.type === 'file' && /\.html?$/i.test(sub.filename)) {
-          out.push(`${subPath}/${sub.filename}`);
+        const subName = sub.filename.replace(/^\//, '');
+        if (sub.type === 'file' && /\.html?$/i.test(subName)) {
+          out.push(`${subPath}/${subName}`);
         }
       }
     }
@@ -218,20 +221,27 @@ async function listHtmlRecursive(client) {
  */
 async function bootstrapRemoteAndExit(client) {
   console.log(`${LOG_PREFIX} 检测到 WebDAV 目标目录缺失或为空,开始自动创建必需结构`);
+  let allFailed = true;
   for (const dir of REQUIRED_WEBDAV_DIRS) {
     try {
       await client.createDirectory(dir, { recursive: true });
       console.log(`${LOG_PREFIX} ✅ 已创建 WebDAV 目录: ${dir}`);
+      allFailed = false;
     } catch (err) {
       const status = readErrorStatus(err);
       if (status === 405 || status === 301 || status === 200) {
         // "目录已存在"在不同 WebDAV 服务器上的常见返回码,视作成功
         console.log(`${LOG_PREFIX} ✅ WebDAV 目录已存在: ${dir}`);
+        allFailed = false;
       } else {
         // 真实失败(网络 / 鉴权 / 5xx):记录但继续创建其他目录
-        console.warn(`${LOG_PREFIX} ⚠️ 自动创建 WebDAV 目录失败: ${dir} (${err.message})`);
+        console.error(`${LOG_PREFIX} ❌ 自动创建 WebDAV 目录失败: ${dir} (${err.message})`);
       }
     }
+  }
+  if (allFailed) {
+    console.error(`${LOG_PREFIX} ❌ 所有必需目录创建失败,构建终止`);
+    process.exit(1);
   }
   console.log(`${LOG_PREFIX} ℹ️ 目标目录原本缺失,已自动创建必需结构,build 继续`);
 
