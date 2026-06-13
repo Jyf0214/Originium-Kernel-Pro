@@ -51,10 +51,10 @@ export function getWebDavClient(): WebDAVClient {
     const pass = process.env.WEBDAV_PASS
 
     if (!url || !user || !pass) {
-      // 显式抛出,让上层立即失败而不是构造一个无效客户端
       throw new Error(NOT_CONFIGURED_MESSAGE)
     }
 
+    console.warn(`[webdav] 初始化客户端 url="${url.substring(0, 30)}..." user="${user.substring(0, 10)}..."`)
     globalForWebDav.webDavClient = createClient(url, {
       username: user,
       password: pass,

@@ -25,9 +25,6 @@ interface RouteParams {
 function unwrapStat(
   raw: FileStat | ResponseDataDetailed<FileStat>
 ): FileStat {
-  // 仅当 details 选项打开时,stat 会返回 ResponseDataDetailed
-  // 由于本调用未传 details,正常情况下 raw 即 FileStat;
-  // 此处用 'filename' 字段判别(FileStat 必有,包装对象没有)
   if (
     typeof (raw as ResponseDataDetailed<FileStat>).data === 'object' &&
     (raw as ResponseDataDetailed<FileStat>).data !== null &&
@@ -38,87 +35,103 @@ function unwrapStat(
   return raw as FileStat
 }
 
+/** 诊断模式:返回 WebDAV 连接信息而非文件流 */
+function debugResponse(
+  relativePath: string,
+  stat: FileStat,
+  statMs: number,
+): NextResponse {
+  return NextResponse.json({
+    relativePath,
+    stat: { type: stat.type, size: stat.size, mime: stat.mime, lastmod: stat.lastmod },
+    statMs,
+    webdavUrl: process.env.WEBDAV_URL?.substring(0, 40) + '...',
+    webdavUser: process.env.WEBDAV_USER?.substring(0, 10) + '...',
+  })
+}
+
+/** ACL 拒绝时的统一响应 */
+function accessDenied(reason: string | undefined): NextResponse {
+  if (reason === 'not-found') {
+    return NextResponse.json({ error: '资源不存在' }, { status: 404 })
+  }
+  if (reason === 'not-configured') {
+    return NextResponse.json({ error: 'WebDAV 未配置', code: 'NOT_CONFIGURED' }, { status: 503 })
+  }
+  return NextResponse.json(
+    { error: '请先登录' },
+    { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Storage"' } }
+  )
+}
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<RouteParams> }
 ) {
   const { path: segments } = await params
   const relativePath = joinPath(...segments)
+  const start = performance.now()
 
-  // 1. 路径合法性
+  console.warn(`[files] 请求路径="${relativePath}" segments=${JSON.stringify(segments)}`)
+
   if (!relativePath || !isValidPath(relativePath)) {
     return NextResponse.json({ error: '路径非法' }, { status: 400 })
   }
 
-  // 2. WebDAV 是否配置
   if (!isWebDavConfigured()) {
-    return NextResponse.json(
-      { error: 'WebDAV 未配置', code: 'NOT_CONFIGURED' },
-      { status: 503 }
-    )
+    return NextResponse.json({ error: 'WebDAV 未配置', code: 'NOT_CONFIGURED' }, { status: 503 })
   }
 
-  // 3. ACL 校验
   const session = await getSession()
   const access = await checkAccess(relativePath, !!session)
-  if (!access.allowed) {
-    if (access.reason === 'not-found') {
-      return NextResponse.json({ error: '资源不存在' }, { status: 404 })
-    }
-    if (access.reason === 'not-configured') {
-      return NextResponse.json(
-        { error: 'WebDAV 未配置', code: 'NOT_CONFIGURED' },
-        { status: 503 }
-      )
-    }
-    // private:统一 401 + Basic realm,鼓励登录
-    return NextResponse.json(
-      { error: '请先登录' },
-      {
-        status: 401,
-        headers: { 'WWW-Authenticate': 'Basic realm="Storage"' },
-      }
-    )
-  }
+  console.warn(`[files] ACL path="${relativePath}" uid=${session?.uid ?? 'null'} allowed=${access.allowed} reason=${'reason' in access ? access.reason : 'none'}`)
+  if (!access.allowed) return accessDenied('reason' in access ? access.reason : undefined)
 
-  // 4. 代理 WebDAV
   const client = getWebDavClient()
+  return proxyWebDav(client, relativePath, _req, start)
+}
+
+/** WebDAV 代理:stat → stream */
+async function proxyWebDav(
+  client: ReturnType<typeof getWebDavClient>,
+  relativePath: string,
+  _req: NextRequest,
+  start: number,
+): Promise<NextResponse> {
   try {
-    // stat 加超时保护,避免 PROPFIND 请求无限挂起
-    const statRaw = await Promise.race([
-      client.stat(relativePath),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('stat timeout')), 8000)),
-    ])
+    console.warn(`[files] 开始 stat path="${relativePath}"`)
+    const statStart = performance.now()
+    const statRaw = await client.stat(relativePath)
     const stat = unwrapStat(statRaw)
+    const statMs = Math.round(performance.now() - statStart)
+    console.warn(`[files] stat 完成 type=${stat.type} size=${stat.size} mime=${stat.mime} 耗时=${statMs}ms`)
     if (stat.type === 'directory') {
       return NextResponse.json({ error: '资源不存在' }, { status: 404 })
     }
 
+    if (new URL(_req.url).searchParams.get('_debug') === '1') {
+      return debugResponse(relativePath, stat, statMs)
+    }
+
+    console.warn(`[files] 开始 stream path="${relativePath}" size=${stat.size}`)
     const nodeStream = client.createReadStream(relativePath)
     const webStream = Readable.toWeb(nodeStream) as ReadableStream
 
+    console.warn(`[files] 响应已返回 path="${relativePath}" 耗时=${Math.round(performance.now() - start)}ms`)
     return new NextResponse(webStream, {
       headers: {
         'Content-Type': stat.mime ?? 'application/octet-stream',
         'Content-Length': String(stat.size),
         'Last-Modified': stat.lastmod ?? new Date().toUTCString(),
-        // 私有缓存:防止用户上传的恶意文件经共享 CDN/代理缓存投递给其他用户
         'Cache-Control': 'private, max-age=3600',
-        // 禁止 MIME 嗅探:防止浏览器将 text/plain 误判为 text/html 并执行内联脚本
         'X-Content-Type-Options': 'nosniff',
-        // 严格 CSP:用户控制的文件不应获得脚本执行能力,资源加载限制到 self/data
-        'Content-Security-Policy':
-          "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline';",
-        // HTML 强制下载而非渲染:避免用户上传的 HTML 文件成为 XSS 攻击载体
+        'Content-Security-Policy': "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline';",
         'Content-Disposition': stat.mime === 'text/html' ? 'attachment' : 'inline',
       },
     })
   } catch (err) {
-    // 上游 WebDAV 错误(文件不存在、网络故障、权限不足等)
-    console.error('[files] webdav proxy error:', err)
-    return NextResponse.json(
-      { error: '资源不存在' },
-      { status: 404 }
-    )
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error(`[files] webdav 错误 path="${relativePath}" 耗时=${Math.round(performance.now() - start)}ms error="${msg}"`)
+    return NextResponse.json({ error: '资源不存在' }, { status: 404 })
   }
 }
