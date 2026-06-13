@@ -87,12 +87,20 @@ function ErrorBanner({ message }: { message: string }) {
   );
 }
 
-function DialogFooter({ onClose, onSubmit, canSubmit, submitting }: {
-  onClose: () => void; onSubmit: () => void; canSubmit: boolean; submitting: boolean;
+function SuccessBanner({ message }: { message: string }) {
+  return (
+    <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 ring-1 ring-emerald-200">
+      <p className="text-sm text-emerald-700 flex-1">{message}</p>
+    </div>
+  );
+}
+
+function DialogFooter({ onClose, onSubmit, canSubmit, submitting, disabled }: {
+  onClose: () => void; onSubmit: () => void; canSubmit: boolean; submitting: boolean; disabled?: boolean;
 }) {
   return (
     <div className="flex items-center justify-end gap-2 px-5 py-3 bg-zinc-50 border-t border-zinc-100 rounded-b-2xl">
-      <Button variant="default" size="sm" onClick={onClose} disabled={submitting} autoLoading={false}>
+      <Button variant="default" size="sm" onClick={onClose} disabled={submitting || !!disabled} autoLoading={false}>
         取消
       </Button>
       <Button
@@ -100,7 +108,7 @@ function DialogFooter({ onClose, onSubmit, canSubmit, submitting }: {
         size="sm"
         onClick={onSubmit}
         loading={submitting}
-        disabled={!canSubmit}
+        disabled={!canSubmit || !!disabled}
         icon={submitting ? <Loader2 size={14} className="animate-spin" /> : undefined}
       >
         {submitting ? '创建中...' : '创建'}
@@ -116,6 +124,7 @@ export function CreatePageDialog({ open, onClose, onCreated }: CreatePageDialogP
   const [isPublic, setIsPublic] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
@@ -126,6 +135,7 @@ export function CreatePageDialog({ open, onClose, onCreated }: CreatePageDialogP
       setIsPublic(true);
       setSubmitting(false);
       setErrorMsg(null);
+      setSuccessMsg(null);
       setDuplicateError(null);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
@@ -168,8 +178,9 @@ export function CreatePageDialog({ open, onClose, onCreated }: CreatePageDialogP
       });
       const data = await res.json();
       if (res.ok && data.ok) {
+        setSuccessMsg(`页面 "${name.trim()}" 创建成功`);
         onCreated();
-        onClose();
+        setTimeout(() => onClose(), 1500);
       } else {
         setErrorMsg(data.error ?? '创建失败，请重试');
       }
@@ -181,18 +192,18 @@ export function CreatePageDialog({ open, onClose, onCreated }: CreatePageDialogP
   }, [canSubmit, name, isPublic, onCreated, onClose]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Escape' && !submitting) onClose();
+    if (e.key === 'Escape' && !submitting && !successMsg) onClose();
     if (e.key === 'Enter' && canSubmit) void handleCreate();
-  }, [submitting, onClose, canSubmit, handleCreate]);
+  }, [submitting, successMsg, onClose, canSubmit, handleCreate]);
 
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" onKeyDown={handleKeyDown}>
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={submitting ? undefined : onClose} />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={submitting || !!successMsg ? undefined : onClose} />
 
       <div className="relative w-full max-w-sm mx-4 bg-white rounded-2xl shadow-2xl ring-1 ring-zinc-200">
-        <DialogHeader onClose={onClose} disabled={submitting} />
+        <DialogHeader onClose={onClose} disabled={submitting || !!successMsg} />
 
         <div className="px-5 pb-4 space-y-4">
           <Input
@@ -212,9 +223,10 @@ export function CreatePageDialog({ open, onClose, onCreated }: CreatePageDialogP
           <VisibilityToggle isPublic={isPublic} onToggle={() => setIsPublic(!isPublic)} disabled={submitting} />
 
           {errorMsg && <ErrorBanner message={errorMsg} />}
+          {successMsg && <SuccessBanner message={successMsg} />}
         </div>
 
-        <DialogFooter onClose={onClose} onSubmit={() => void handleCreate()} canSubmit={canSubmit} submitting={submitting} />
+        <DialogFooter onClose={onClose} onSubmit={() => void handleCreate()} canSubmit={canSubmit} submitting={submitting} disabled={!!successMsg} />
       </div>
     </div>
   );
