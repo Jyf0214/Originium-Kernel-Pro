@@ -8,7 +8,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Database, FolderPlus, Upload } from 'lucide-react';
+import { Database, FolderPlus, RotateCw, Upload } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
 import { showError } from '@/lib/error';
 import { Button } from '@/components/ui/Button';
@@ -40,10 +40,21 @@ export function StorageAdminShell() {
   const { t } = useI18n();
   const state = useStorageState();
   const [appUrl, setAppUrl] = useState<string>('');
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     setAppUrl(getAppUrl());
   }, []);
+
+  const handleRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      await state.refreshAll();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // 当前选中文件夹元数据
   const currentFolder = useMemo(() => {
@@ -162,6 +173,15 @@ export function StorageAdminShell() {
             </p>
           </div>
         </div>
+        <Button
+          variant="default"
+          size="sm"
+          icon={<RotateCw size={14} className={refreshing ? 'animate-spin' : ''} />}
+          onClick={handleRefresh}
+          disabled={refreshing || !state.configured}
+        >
+          {labels.refresh}
+        </Button>
       </div>
 
       {/* 降级提示 */}
