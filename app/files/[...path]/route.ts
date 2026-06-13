@@ -17,7 +17,7 @@ import nodePath from 'node:path'
 import https from 'node:https'
 import http2 from 'node:http2'
 import { getSession } from '@/lib/auth'
-import { getStorageProvider, isStorageConfigured } from '@/lib/storage/storage-provider'
+import { getStorageProvider, isStorageConfigured, type StorageProvider } from '@/lib/storage/storage-provider'
 import { checkAccess } from '@/lib/storage/acl'
 import { isValidPath, joinPath } from '@/lib/storage/path'
 import type { FileStat, ResponseDataDetailed } from 'webdav'
@@ -164,13 +164,14 @@ function fileResponse(body: Buffer, stat: FileStat): NextResponse {
  */
 async function b2Download(provider: StorageProvider, relativePath: string): Promise<Buffer> {
   const raw = await provider.getFileContents(relativePath)
-  if (raw instanceof Buffer) return raw
-  if (raw instanceof ArrayBuffer) return Buffer.from(raw)
+  if (Buffer.isBuffer(raw)) return raw
+  if (raw instanceof ArrayBuffer) return Buffer.from(new Uint8Array(raw))
   if (typeof raw === 'string') return Buffer.from(raw, 'utf8')
   if (raw && typeof raw === 'object' && 'data' in raw) {
     const d = raw.data
-    return d instanceof Buffer || d instanceof ArrayBuffer
-      ? Buffer.from(d) : Buffer.from(String(d), 'utf8')
+    if (Buffer.isBuffer(d)) return d
+    if (d instanceof ArrayBuffer) return Buffer.from(new Uint8Array(d))
+    return Buffer.from(String(d), 'utf8')
   }
   return Buffer.alloc(0)
 }
