@@ -96,13 +96,43 @@ const nextConfig: NextConfig = {
   },
   output: 'standalone',
   transpilePackages: ['motion'],
+  // 按需加载 antd / 图标库, 减少 bundle 体积 (Next.js 16 中已迁移至 experimental)
+  experimental: {
+    optimizePackageImports: ['antd', '@ant-design/icons', 'lucide-react'],
+  },
   turbopack: {},
-  webpack: (config: { watchOptions?: { ignored?: RegExp } }, {dev}: {dev?: boolean}) => {
+  webpack: (
+    config: {
+      watchOptions?: { ignored?: RegExp };
+      optimization?: { minimizer?: { options?: Record<string, unknown> }[] };
+    },
+    {dev}: {dev?: boolean},
+  ) => {
+    // 开发环境: 禁用 HMR 时屏蔽文件监听
     if (dev && process.env.DISABLE_HMR === 'true') {
       config.watchOptions = {
         ignored: /.*/,
       };
     }
+
+    // 生产环境: 移除 console 语句减小 bundle 体积
+    // TerserPlugin 位于 optimization.minimizer 数组中, 逐个匹配并注入 drop_console
+    if (!dev && Array.isArray(config.optimization?.minimizer)) {
+      for (const plugin of config.optimization.minimizer) {
+        if (!plugin?.options) continue;
+        const terserOptions = plugin.options['terserOptions'] as
+          | Record<string, unknown>
+          | undefined;
+        plugin.options['terserOptions'] = {
+          ...(terserOptions ?? {}),
+          compress: {
+            ...((terserOptions?.['compress'] as Record<string, unknown>) ?? {}),
+            drop_console: true,
+          },
+        };
+      }
+    }
+
     return config;
   },
 };
