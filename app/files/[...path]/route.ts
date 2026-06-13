@@ -112,22 +112,10 @@ async function proxyWebDav(
       return debugResponse(relativePath, stat, statMs)
     }
 
-    console.warn(`[files] 开始读取文件 path="${relativePath}" size=${stat.size}`)
-    const buf = await client.getFileContents(relativePath, { format: 'binary' }) as ArrayBuffer
-    const body = new Uint8Array(buf)
-
-    console.warn(`[files] 响应已返回 path="${relativePath}" size=${body.length} 耗时=${Math.round(performance.now() - start)}ms`)
-    return new NextResponse(body, {
-      headers: {
-        'Content-Type': stat.mime ?? 'application/octet-stream',
-        'Content-Length': String(stat.size),
-        'Last-Modified': stat.lastmod ?? new Date().toUTCString(),
-        'Cache-Control': 'private, max-age=3600',
-        'X-Content-Type-Options': 'nosniff',
-        'Content-Security-Policy': "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline';",
-        'Content-Disposition': stat.mime === 'text/html' ? 'attachment' : 'inline',
-      },
-    })
+    // 直接通过 WebDAV 直链重定向(避免 serverless 代理文件流/缓冲区超时)
+    const downloadLink = client.getFileDownloadLink(relativePath)
+    console.warn(`[files] 重定向 path="${relativePath}" → ${downloadLink.substring(0, 60)}...`)
+    return NextResponse.redirect(downloadLink)
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error(`[files] webdav 错误 path="${relativePath}" 耗时=${Math.round(performance.now() - start)}ms error="${msg}"`)
