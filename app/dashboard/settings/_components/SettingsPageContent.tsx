@@ -7,6 +7,7 @@ import ConfigSection from '@/components/ui/ConfigSection';
 import { SettingsPageHeader } from './SettingsPageHeader';
 import { UserCard } from './UserCard';
 import { SettingsForm } from './SettingsForm';
+import { ApiKeyCard } from './ApiKeyCard';
 import { useConfigData } from '../_lib/use-config-data';
 import { useSettingsForm } from '../_lib/use-settings-form';
 import { useSettingsSave } from '../_lib/use-settings-save';
@@ -51,6 +52,7 @@ export function SettingsPageContent() {
         <ConfigSection title={t('settings.title')} color="bg-zinc-500">
           <SettingsForm form={form} loading={loading} onSubmit={handleSave} />
         </ConfigSection>
+        <ApiKeyCard />
         {DiffModal}
       </div>
     </div>
