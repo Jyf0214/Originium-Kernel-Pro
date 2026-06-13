@@ -20,7 +20,7 @@
 import 'server-only';
 import { getDb } from '@/lib/db';
 import { PAGES_PREFIX } from '@/lib/page-source/shared';
-import { isLocalPagesEmpty, scanLocalPagesHtml, readPageTitle } from './_lib/fs-page';
+import { isLocalPagesEmpty, scanLocalPagesHtml, scanEmptyDirs, readPageTitle } from './_lib/fs-page';
 import { PageIndexView, type PageIndexItem } from './_components/PageIndexView';
 
 export const dynamic = 'force-dynamic';
@@ -51,9 +51,9 @@ async function loadPrivateDirs(dirs: readonly string[]): Promise<Set<string>> {
 }
 
 export default async function PageIndex() {
-  // ./pages/ 不存在 / 为空 → 统一走空状态卡(WebDAV 未配置时同步脚本已清空目录)
+  // ./pages/ 不存在 / 为空 → 扫描是否有空文件夹
   if (await isLocalPagesEmpty()) {
-    return <PageIndexView notConfigured={false} pages={[]} />;
+    return <PageIndexView notConfigured={false} pages={[]} emptyDirs={[]} />;
   }
 
   const scanned = (await scanLocalPagesHtml()).map((entry) => ({
@@ -62,8 +62,11 @@ export default async function PageIndex() {
     filename: entry.filename,
   }));
 
-  if (scanned.length === 0) {
-    return <PageIndexView notConfigured={false} pages={[]} />;
+  // 扫描没有 HTML 文件的子目录
+  const emptyDirs = await scanEmptyDirs();
+
+  if (scanned.length === 0 && emptyDirs.length === 0) {
+    return <PageIndexView notConfigured={false} pages={[]} emptyDirs={[]} />;
   }
 
   const privateDirs = await loadPrivateDirs(scanned.map(s => s.dir));
@@ -92,5 +95,5 @@ export default async function PageIndex() {
     }),
   );
 
-  return <PageIndexView notConfigured={false} pages={items} />;
+  return <PageIndexView notConfigured={false} pages={items} emptyDirs={emptyDirs} />;
 }
