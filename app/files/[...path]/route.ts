@@ -84,7 +84,11 @@ export async function GET(
   // 4. 代理 WebDAV
   const client = getWebDavClient()
   try {
-    const statRaw = await client.stat(relativePath)
+    // stat 加超时保护,避免 PROPFIND 请求无限挂起
+    const statRaw = await Promise.race([
+      client.stat(relativePath),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('stat timeout')), 8000)),
+    ])
     const stat = unwrapStat(statRaw)
     if (stat.type === 'directory') {
       return NextResponse.json({ error: '资源不存在' }, { status: 404 })
