@@ -14,8 +14,8 @@
 - **工单系统** - 可自定义工单模板，支持多种字段类型（input / textarea / dropdown）
 - **文章删除申请** - 普通用户可对私密 Posts 发起删除申请，管理员审批
 - **回收站** - 文章删除后进入回收站，30 天缓冲期可恢复
-- **WebDAV 存储池** - 通过 WebDAV 协议接入远端存储（Nextcloud / 群晖 / 坚果云等），支持文件夹级 ACL、公开/私有访问与目录密码
-- **自定义 HTML 页面** - 构建时从 WebDAV 同步到本地 `./pages/`，通过沙箱 iframe 渲染，支持目录密码保护
+- **存储池（WebDAV / Backblaze B2）** - 通过环境变量 `STORAGE_TYPE` 切换存储后端：WebDAV（Nextcloud / 群晖 / 坚果云等）或 Backblaze B2（S3 兼容，支持 Cloudflare CDN 免费出口流量）。支持文件夹级 ACL、公开/私有访问与目录密码
+- **自定义 HTML 页面** - 构建时从远端存储同步到本地 `./pages/`，通过沙箱 iframe 渲染，支持目录密码保护
 - **全局搜索** - `Ctrl/Cmd+K` 唤起搜索面板，跨文章/Posts/Faces/页面
 - **密码重置** - 基于 SMTP 邮件的密码重置功能
 - **多语言支持** - 完整的中英文国际化（next-intl）
@@ -253,7 +253,9 @@
 ## 环境变量
 
 > **URL 解析顺序**（详见 `const/url.ts`）：`APP_URL` → `NEXT_PUBLIC_SITE_URL`（已弃用，命中时 warn）→ `VERCEL_PROJECT_PRODUCTION_URL`（warn）→ `VERCEL_URL`（warn）→ 抛错。
+> **存储后端切换**（`STORAGE_TYPE`）：`webdav`（默认）或 `backblaze`，决定存储池与自定义页面使用哪个后端。
 > **WebDAV 启用判定**（`lib/env.ts → isWebDavConfigured`）：`WEBDAV_URL` / `WEBDAV_USER` / `WEBDAV_PASS` 三者必须同时存在。
+> **Backblaze B2 启用判定**（`lib/env.ts → isBackblazeConfigured`）：`B2_KEY_ID` / `B2_APP_KEY` / `B2_BUCKET` 三者必须同时存在。
 
 | 变量名 | 描述 | 必需 | 默认值 |
 |--------|------|------|--------|
