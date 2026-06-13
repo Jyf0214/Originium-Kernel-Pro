@@ -17,7 +17,9 @@ export const GET = apiHandler(
     if (!session) return NextResponse.json({ error: '未登录' }, { status: 401 });
 
     const db = getDb();
+    const hasPrisma = !!db.prisma;
     if (!db.prisma) {
+      console.warn(`[api-keys.list] db.prisma=null uid=${session.uid}`);
       return NextResponse.json({ error: '数据库未配置' }, { status: 503 });
     }
 
@@ -27,10 +29,11 @@ export const GET = apiHandler(
         select: { id: true, name: true, lastUsed: true, createdAt: true },
         orderBy: { createdAt: 'desc' },
       });
+      console.warn(`[api-keys.list] uid="${session.uid}" count=${rows.length}`);
       return NextResponse.json({ keys: rows });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error('[api-keys.list] 查询失败', msg);
+      console.error(`[api-keys.list] uid="${session.uid}" hasPrisma=${hasPrisma} error:`, msg);
       return NextResponse.json({ error: `查询失败: ${msg}` }, { status: 500 });
     }
   }
@@ -65,11 +68,12 @@ export const POST = apiHandler(
         data: { uid: session.uid, key: hashed, name },
         select: { id: true, name: true, createdAt: true },
       });
+      console.warn(`[api-keys.create] uid="${session.uid}" id=${row.id} name="${name}"`);
       // 明文仅此一次返回
       return NextResponse.json({ ...row, key: rawKey });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error('[api-keys.create] 创建失败', msg);
+      console.error(`[api-keys.create] uid="${session.uid}" error:`, msg);
       return NextResponse.json({ error: `创建失败: ${msg}` }, { status: 500 });
     }
   }
