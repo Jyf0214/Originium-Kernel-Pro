@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Copy, Key, Plus, Trash2, Check, AlertCircle } from 'lucide-react';
+import { Copy, Key, Plus, Trash2, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ProCard } from '@/components/ui/ProCard';
 
@@ -20,6 +20,7 @@ export function ApiKeyCard() {
   const [showNewKey, setShowNewKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadKeys = useCallback(async () => {
@@ -79,6 +80,7 @@ export function ApiKeyCard() {
   const handleDelete = async (id: string) => {
     if (deletingId) return;
     setDeletingId(id);
+    setConfirmDeleteId(null);
     setError(null);
     try {
       const res = await fetch(`/api/auth/api-keys/${id}`, { method: 'DELETE' });
@@ -130,10 +132,16 @@ export function ApiKeyCard() {
         <Button
           variant="primary"
           size="sm"
+          autoLoading={false}
           onClick={handleGenerate}
           disabled={generating}
+          loading={generating}
         >
-          {generating ? '生成中…' : <><span className="hidden sm:inline"><Plus size={14} className="inline mr-1" />生成密钥</span><span className="sm:hidden"><Plus size={14} /></span></>}
+          {generating ? (
+            <><Loader2 size={14} className="inline mr-1 animate-spin" />生成中…</>
+          ) : (
+            <><span className="hidden sm:inline"><Plus size={14} className="inline mr-1" />生成密钥</span><span className="sm:hidden"><Plus size={14} /></span></>
+          )}
         </Button>
       </div>
 
@@ -168,26 +176,58 @@ export function ApiKeyCard() {
         <p className="text-sm text-zinc-400 py-4">暂无 API 密钥</p>
       ) : (
         <div className="space-y-2">
-          {keys.map((k) => (
-            <div key={k.id} className="flex items-center justify-between p-3 bg-zinc-50 rounded-lg border border-zinc-100">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-zinc-900 truncate">{k.name}</p>
-                <p className="text-xs text-zinc-400">
-                  创建于 {formatDate(k.createdAt)}
-                  {k.lastUsed && ` · 最后使用 ${formatDate(k.lastUsed)}`}
-                </p>
+          {keys.map((k) => {
+            const isDeleting = deletingId === k.id;
+            const isConfirming = confirmDeleteId === k.id;
+            return (
+              <div key={k.id} className="flex items-center justify-between p-3 bg-zinc-50 rounded-lg border border-zinc-100">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-zinc-900 truncate">{k.name}</p>
+                  <p className="text-xs text-zinc-400">
+                    创建于 {formatDate(k.createdAt)}
+                    {k.lastUsed && ` · 最后使用 ${formatDate(k.lastUsed)}`}
+                  </p>
+                </div>
+                <div className="shrink-0 flex items-center gap-1">
+                  {isConfirming ? (
+                    <>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        autoLoading={false}
+                        loading={isDeleting}
+                        onClick={() => void handleDelete(k.id)}
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? <Loader2 size={12} className="animate-spin" /> : '确认'}
+                      </Button>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        autoLoading={false}
+                        onClick={() => setConfirmDeleteId(null)}
+                        disabled={isDeleting}
+                      >
+                        取消
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      iconOnly
+                      autoLoading={false}
+                      onClick={() => setConfirmDeleteId(k.id)}
+                      disabled={isDeleting}
+                      title="撤销密钥"
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  )}
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => void handleDelete(k.id)}
-                disabled={deletingId === k.id}
-                className="shrink-0 p-2 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                title="撤销密钥"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </ProCard>
