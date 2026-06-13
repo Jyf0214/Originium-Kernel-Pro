@@ -47,23 +47,24 @@ const ALLOWED_RESPONSE_HEADERS = new Set([
 ])
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<RouteParams> }) {
-  const { path: segments } = await params
-  const relativePath = joinPath(...segments)
-  const start = performance.now()
-
-  if (!relativePath || !isValidPath(relativePath)) {
-    return NextResponse.json({ error: '路径非法' }, { status: 400 })
-  }
-  if (!isWebDavConfigured()) {
-    return NextResponse.json({ error: 'WebDAV 未配置', code: 'NOT_CONFIGURED' }, { status: 503 })
-  }
-
-  const session = await getSession()
-  const access = await checkAccess(relativePath, !!session)
-  if (!access.allowed) return accessDenied('reason' in access ? access.reason : undefined)
-
-  const client = getWebDavClient()
+  let relativePath = ''
   try {
+    const { path: segments } = await params
+    relativePath = joinPath(...segments)
+    const start = performance.now()
+
+    if (!relativePath || !isValidPath(relativePath)) {
+      return NextResponse.json({ error: '路径非法' }, { status: 400 })
+    }
+    if (!isWebDavConfigured()) {
+      return NextResponse.json({ error: 'WebDAV 未配置', code: 'NOT_CONFIGURED' }, { status: 503 })
+    }
+
+    const session = await getSession()
+    const access = await checkAccess(relativePath, !!session)
+    if (!access.allowed) return accessDenied('reason' in access ? access.reason : undefined)
+
+    const client = getWebDavClient()
     // stat 校验文件存在
     const statRaw = await client.stat(relativePath)
     const stat = unwrapStat(statRaw)
@@ -77,7 +78,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<Route
     // fetch 流式代理:直接请求 WebDAV 服务器,零缓冲流式返回
     const webdavUrl = `${process.env.WEBDAV_URL!.replace(/\/+$/, '')}/${relativePath}`
     const auth = Buffer.from(`${process.env.WEBDAV_USER}:${process.env.WEBDAV_PASS}`).toString('base64')
-    console.warn(`[files] fetch 代理 path="${relativePath}" url="${webdavUrl.substring(0, 60)}..."`)
 
     const upstream = await fetch(webdavUrl, {
       headers: { 'Authorization': `Basic ${auth}` },
@@ -100,8 +100,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<Route
     console.warn(`[files] 返回流 path="${relativePath}" 耗时=${Math.round(performance.now() - start)}ms`)
     return new NextResponse(upstream.body, { status: upstream.status, headers })
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    console.error(`[files] 错误 path="${relativePath}" 耗时=${Math.round(performance.now() - start)}ms error="${msg}"`)
-    return NextResponse.json({ error: `文件读取失败: ${msg}` }, { status: 404 })
+    const msg = err instanceof Error ? err.message : JSON.stringify(err)
+    console.error(`[files] 未捕获异常 path="${relativePath || '?'}" error="${msg}"`)
+    return NextResponse.json({ error: `内部错误: ${msg}` }, { status: 500 })
   }
 }
