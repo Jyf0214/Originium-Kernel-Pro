@@ -15,7 +15,7 @@ import {
   webdavErrorResponse,
 } from '../../_helpers'
 
-export const GET = catchAllHandler<{ path: string[] }>(
+export const GET = catchAllHandler<{ path?: string[] }>(
   'GET',
   { label: 'storage.list', requireAdmin: true },
   async (_req, context) => {
