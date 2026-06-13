@@ -3,7 +3,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
-import { Tag, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Tag } from '@/components/ui/Tag';
 import { Button } from '@/components/ui/Button';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
@@ -40,10 +41,11 @@ export default function TicketsPage() {
   }, [t]);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/login');
     }
-  }, [user, router]);
+  }, [authLoading, user, router]);
 
   useEffect(() => {
     if (user) {

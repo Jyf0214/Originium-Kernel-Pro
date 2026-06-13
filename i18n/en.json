@@ -128,6 +128,7 @@
     "allArticles": "All Articles",
     "published": "Published",
     "drafts": "Drafts",
+    "ofTotal": "of Total",
     "totalUsers": "Total Users",
     "pendingDeletion": "Pending Deletion",
     "quickActions": "Quick Actions",
@@ -330,10 +331,15 @@
     "auth": "Authentication",
     "github": "GitHub Sync",
     "tip": "Tip: Configure environment variables in Vercel project Settings → Environment Variables. Redeploy after changes.",
-    "summary": "Set {set}/{total} variables, required {requiredSet}/{required}",
-    "missingList": "Missing: {missing}",
     "ready": "Ready",
     "notReady": "Not Ready",
+    "refresh": "Refresh",
+    "summary": {
+      "total": "Total",
+      "set": "Set",
+      "requiredMissing": "Required Missing",
+      "optionalMissing": "Optional Missing"
+    },
     "ui": {
       "deprecated": "Deprecated",
       "renamedTo": "Renamed to {name}",
@@ -543,6 +549,7 @@
     "tags": "Tags (comma separated)",
     "contentPlaceholder": "Write your article content in Markdown here...",
     "fetchFailed": "Failed to fetch article",
+    "publishSuccess": "Published successfully",
     "pleaseLogin": "Please login first",
     "titleContentRequired": "Title and content are required",
     "saveFailed": "Save failed"

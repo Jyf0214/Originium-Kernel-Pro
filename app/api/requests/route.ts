@@ -1,11 +1,17 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { requireAdmin } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
 
 const logger = createApiLogger('/api/requests');
 
 export async function GET(request: NextRequest) {
   try {
+    const authResult = await requireAdmin();
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') ?? 'pending';
 

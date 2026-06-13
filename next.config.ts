@@ -81,9 +81,6 @@ if (
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
     remotePatterns: [
       {
@@ -95,7 +92,7 @@ const nextConfig: NextConfig = {
     ],
   },
   output: 'standalone',
-  transpilePackages: ['motion'],
+  transpilePackages: ['antd', 'antd-style', '@ant-design/icons', 'motion'],
   // 按需加载 antd / 图标库, 减少 bundle 体积 (Next.js 16 中已迁移至 experimental)
   // motion 运动动画库同样支持 tree-shaking, 加入优化以进一步减小产物体积
   experimental: {

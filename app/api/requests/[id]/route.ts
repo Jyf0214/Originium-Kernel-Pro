@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { requireAdmin } from '@/lib/auth';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
 import { createApiLogger } from '@/lib/api-logger';
@@ -11,6 +12,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAdmin();
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
     const { id } = await params;
     const body = await request.json();
     const { action } = body;

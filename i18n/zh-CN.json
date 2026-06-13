@@ -128,6 +128,7 @@
     "allArticles": "全部文章",
     "published": "已发布",
     "drafts": "草稿箱",
+    "ofTotal": "占比",
     "totalUsers": "用户总数",
     "pendingDeletion": "待删除",
     "quickActions": "快捷操作",
@@ -330,10 +331,15 @@
     "auth": "认证",
     "github": "GitHub 同步",
     "tip": "提示：在 Vercel 项目的 Settings → Environment Variables 中配置环境变量。修改后需要重新部署才能生效。",
-    "summary": "已设置 {set}/{total} 个变量，必需 {requiredSet}/{required} 个",
-    "missingList": "缺少: {missing}",
     "ready": "就绪",
     "notReady": "未就绪",
+    "refresh": "刷新",
+    "summary": {
+      "total": "总变量",
+      "set": "已设置",
+      "requiredMissing": "必需缺失",
+      "optionalMissing": "可选缺失"
+    },
     "ui": {
       "deprecated": "已弃用",
       "renamedTo": "已重命名为 {name}",
@@ -543,6 +549,7 @@
     "tags": "标签（逗号分隔）",
     "contentPlaceholder": "在此使用 Markdown 编写文章内容...",
     "fetchFailed": "获取文章失败",
+    "publishSuccess": "发布成功",
     "pleaseLogin": "请先登录",
     "titleContentRequired": "标题和内容不能为空",
     "saveFailed": "保存失败"
