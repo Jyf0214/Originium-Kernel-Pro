@@ -38,8 +38,8 @@ vi.mock('@/lib/db', () => ({
   getDb: () => mocks.getDb(),
 }));
 
-vi.mock('@/lib/webdav', () => ({
-  isWebDavConfigured: () => mocks.isWebDavConfigured(),
+vi.mock('@/lib/storage/storage-provider', () => ({
+  isStorageConfigured: () => mocks.isWebDavConfigured(),
 }));
 
 vi.mock('@/lib/hash', () => ({

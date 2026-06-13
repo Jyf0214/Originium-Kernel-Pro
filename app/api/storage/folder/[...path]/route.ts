@@ -13,19 +13,19 @@ import {
   getPathParts,
   invalidPathResponse,
   isValidStoragePath,
+  isStorageConfigured,
   readFolderMeta,
   resolveStoragePath,
+  storageNotConfigured,
   writeFolderMeta,
-  webdavNotConfigured,
 } from '../../_helpers'
-import { isWebDavConfigured } from '@/lib/webdav'
 
 /** 读取单条文件夹元数据 */
 export const GET = catchAllHandler<{ path: string[] }>(
   'GET',
   { label: 'storage.folder.get', requireAdmin: true },
   async (_req, context) => {
-    if (!isWebDavConfigured()) return webdavNotConfigured()
+    if (!isStorageConfigured()) return storageNotConfigured()
     if (!getDb().prisma) return databaseNotConfigured()
 
     const parts = await getPathParts(context)
@@ -100,7 +100,7 @@ export const PATCH = catchAllHandler<{ path: string[] }>(
   'PATCH',
   { label: 'storage.folder.patch', requireAdmin: true },
   async (req, context) => {
-    if (!isWebDavConfigured()) return webdavNotConfigured()
+    if (!isStorageConfigured()) return storageNotConfigured()
     const prisma = getDb().prisma
     if (!prisma) return databaseNotConfigured()
 

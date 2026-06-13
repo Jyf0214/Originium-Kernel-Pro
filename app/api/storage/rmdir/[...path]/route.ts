@@ -10,21 +10,21 @@ import {
   catchAllHandler,
   deleteFolderMeta,
   getPathParts,
-  getWebDavClient,
+  getStorageProvider,
   invalidPathResponse,
   isValidStoragePath,
-  isWebDavConfigured,
+  isStorageConfigured,
   resolveStoragePath,
   rootNotAllowedResponse,
-  webdavErrorResponse,
-  webdavNotConfigured,
+  storageErrorResponse,
+  storageNotConfigured,
 } from '../../_helpers'
 
 export const DELETE = catchAllHandler<{ path: string[] }>(
   'DELETE',
   { label: 'storage.rmdir', requireAdmin: true },
   async (req, context) => {
-    if (!isWebDavConfigured()) return webdavNotConfigured()
+    if (!isStorageConfigured()) return storageNotConfigured()
 
     const parts = await getPathParts(context)
     const rel = resolveStoragePath(parts)
@@ -33,11 +33,11 @@ export const DELETE = catchAllHandler<{ path: string[] }>(
     const target = buildWebDavTarget(parts)
 
     try {
-      const client = getWebDavClient()
-      await client.deleteFile(target)
+      const provider = await getStorageProvider()
+      await provider.deleteFile(target)
     } catch (err) {
-      console.error(`[storage.rmdir] target="${target}" WebDAV 删除失败`, err)
-      return webdavErrorResponse(err, '删除目录')
+      console.error(`[storage.rmdir] target="${target}" 存储后端删除失败`, err)
+      return storageErrorResponse(err, '删除目录')
     }
 
     await deleteFolderMeta(rel)

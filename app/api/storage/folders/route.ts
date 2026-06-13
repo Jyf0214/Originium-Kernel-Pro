@@ -6,18 +6,18 @@
 import { NextResponse } from 'next/server'
 import { apiHandler } from '@/lib/api-handler'
 import { getDb } from '@/lib/db'
-import { isWebDavConfigured } from '@/lib/webdav'
 import {
   databaseNotConfigured,
+  isStorageConfigured,
   listAllFolderMetas,
-  webdavNotConfigured,
+  storageNotConfigured,
 } from '../_helpers'
 
 export const GET = apiHandler(
   'GET',
   { label: 'storage.folders', requireAdmin: true },
   async () => {
-    if (!isWebDavConfigured()) return webdavNotConfigured()
+    if (!isStorageConfigured()) return storageNotConfigured()
     if (!getDb().prisma) return databaseNotConfigured()
     const folders = await listAllFolderMetas()
     console.warn(`[storage.folders] 共 ${folders.length} 个文件夹元数据`)

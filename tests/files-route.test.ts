@@ -16,9 +16,9 @@ const mocks = vi.hoisted(() => ({
   _httpsGet: vi.fn(),
 }));
 
-vi.mock('@/lib/webdav', () => ({
-  getWebDavClient: () => ({ stat: mocks._stat }),
-  isWebDavConfigured: () => mocks._isWebDavConfigured(),
+vi.mock('@/lib/storage/storage-provider', () => ({
+  isStorageConfigured: () => mocks._isWebDavConfigured(),
+  getStorageProvider: () => Promise.resolve({ stat: mocks._stat }),
 }));
 vi.mock('@/lib/auth', () => ({ getSession: () => mocks._getSession() }));
 vi.mock('@/lib/storage/acl', () => ({ checkAccess: () => mocks._checkAccess() }));

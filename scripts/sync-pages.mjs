@@ -4,27 +4,30 @@ process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS = 'true';
 process.env.PRISMA_HIDE_UPDATE_MESSAGE = 'true';
 
 /**
- * 构建期同步脚本 — 把 WebDAV 的 `pages/` 完整镜像到本地 `./pages/`
+ * 构建期同步脚本 — 把远端存储(pages/)完整镜像到本地 `./pages/`
  *
  * 触发链:
  *   `npm run build` → `prebuild` → `npm run sync:pages` → 本脚本 → `next build`
  *
+ * 存储后端(通过 STORAGE_TYPE 环境变量切换):
+ *   - 'webdav'(默认):使用 webdav 客户端连接 WebDAV 服务器
+ *   - 'backblaze':使用 fetch() 调用 B2 原生 API (无新依赖)
+ *
  * 行为契约(与设计文档一致):
- *   1. WebDAV 未配置(WEBDAV_URL / WEBDAV_USER / WEBDAV_PASS 任一缺失):
+ *   1. 存储未配置(缺必要环境变量):
  *      - 清空本地 `./pages/`(`fs.rm` recursive + force)
  *      - 以 exit 0 退出
  *      - 运行时索引页 /page 看到空目录,展示「暂无可用页面」
- *   2. WebDAV 已配置:
- *      - 浅层扫描 WebDAV `pages/` 根 + 1 级子目录(2 层)
+ *   2. 存储已配置:
+ *      - 浅层扫描远端 `pages/` 根 + 1 级子目录(2 层)
  *      - 完全镜像:先 `fs.rm` 清空本地,再逐个下载写入
  *      - 任何 await 失败 → console.error 打印上下文 + process.exit(1)
- *   3. 容错分支(Vercel 构建友好,2026-06 增补):
- *      - 远端 `pages/` 不存在(WebDAV 404)或返回空数组 →
- *        自动通过 `createDirectory` 在远端创建必需结构,
- *        让 build 继续(exit 0),不再因「首次部署 / 远端空目录」失败
+ *   3. 容错分支(Vercel 构建友好):
+ *      - 远端 `pages/` 不存在(404)或返回空数组 →
+ *        自动在远端创建必需结构,让 build 继续(exit 0)
  *      - 其他真实错误(鉴权失败 / 网络超时 / 5xx)继续抛出 → fail
  *   4. 退出码:
- *      - 0:成功(含 WebDAV 未配置场景 + 远端目录缺失/空场景)
+ *      - 0:成功(含存储未配置场景 + 远端目录缺失/空场景)
  *      - 1:任意阶段(网络 / 鉴权 / IO)失败
  *
  * 设计要点:
@@ -32,9 +35,6 @@ process.env.PRISMA_HIDE_UPDATE_MESSAGE = 'true';
  *   - 不引入 p-limit,自写一个简单信号量(MAX_CONCURRENCY = 8)
  *   - 复用 `lib/page-source/normalize-webdav.mjs` 的归一化函数,
  *     避免与 lib/page-source/shared.ts 中的 TS 版本漂移
- *   - 复用 `lib/page-source/webdav.ts` 的扫描逻辑?不:该文件依赖
- *     'server-only' 副作用以外的运行时类型注解,且会带 next 生态依赖,
- *     故同步脚本的扫描逻辑这里手写一遍(纯 ESM,只依赖 webdav 客户端)
  */
 
 import { promises as fs } from 'fs';
@@ -58,18 +58,18 @@ const MAX_CONCURRENCY = 8;
 const LOG_PREFIX = '[sync-pages]';
 
 /**
- * 容错分支:WebDAV 远端必须存在的子目录清单
+ * 容错分支:远端必须存在的子目录清单
  *
  * 推断依据:
- * - 本脚本唯一依赖的 WebDAV 前缀是 `WEBDAV_PREFIX = 'pages'`(见上方常量)
- * - 项目其他 WebDAV 路径(`app/api/storage/**` / `app/files/**`)都是
+ * - 本脚本唯一依赖的远端前缀是 `WEBDAV_PREFIX = 'pages'`(见上方常量)
+ * - 项目其他远端路径(`app/api/storage/**` / `app/files/**`)都是
  *   管理员 / 用户在 `/admin/storage` 页面动态创建的,没有固定子目录约定
  * - 因此,本脚本职责范围内「必需存在的文件夹」只有 `pages/` 这一个
  *
  * 数组按依赖顺序排列:父目录先于子目录。当前只有根这一层,后续若新增
  * 子目录(例如 `pages/blog/`),把更深的路径追加到数组末尾即可。
  */
-const REQUIRED_WEBDAV_DIRS = [WEBDAV_PREFIX];
+const REQUIRED_DIRS = [WEBDAV_PREFIX];
 
 /** 终止并以非零退出码退出(供任何 catch 复用) */
 function fail(stage, detail) {
@@ -82,9 +82,9 @@ function fail(stage, detail) {
 }
 
 /**
- * 从任意错误对象中读取 HTTP 状态码,兼容 webdav 客户端的多种错误形态
+ * 从任意错误对象中读取 HTTP 状态码,兼容多种客户端的错误形态
  *
- * - `err.status`:webdav 库 `WebDAVError` 的顶层属性
+ * - `err.status`:顶层属性
  * - `err.response.status`:fetch / Octokit 风格
  * - 取不到 → null
  */
@@ -130,12 +130,99 @@ async function runWithLimit(limit, worker) {
 }
 
 /**
+ * 同步清空并重建本地 pages/ 目录
+ */
+async function resetLocalPages() {
+  try {
+    await fs.rm(LOCAL_DIR, { recursive: true, force: true });
+    await fs.mkdir(LOCAL_DIR, { recursive: true });
+  } catch (err) {
+    fail('reset local pages/', err);
+  }
+}
+
+/**
+ * 并发下载全部文件到本地 pages/
+ *
+ * @param {string[]} entries 远端文件路径列表(如 ['pages/index.html', 'pages/blog/post.html'])
+ * @param {(entry: string) => Promise<Buffer | string>} downloader 下载单个文件的函数
+ */
+async function downloadAll(entries, downloader) {
+  let nextIndex = 0;
+  let completed = 0;
+  let downloadErrors = 0;
+  let corruptedFiles = 0;
+  const total = entries.length;
+  const MAX_RETRIES = 3;
+
+  const workers = Array.from({ length: Math.min(MAX_CONCURRENCY, total) }, async () => {
+    while (true) {
+      const i = nextIndex++;
+      if (i >= total) return;
+      const relPath = entries[i];
+      const relNoPrefix = relPath.slice(WEBDAV_PREFIX.length + 1);
+      const localPath = path.join(LOCAL_DIR, relNoPrefix);
+
+      let lastErr = null;
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+          const raw = await downloader(relPath);
+          const content = normalizeWebDavContent(raw);
+          if (!content) {
+            throw new Error(`文件内容为空: ${relPath}`);
+          }
+          const dir = path.dirname(localPath);
+          await fs.mkdir(dir, { recursive: true });
+          await fs.writeFile(localPath, content, 'utf8');
+          completed += 1;
+          lastErr = null;
+          if (completed % 25 === 0 || completed === total) {
+            console.log(`${LOG_PREFIX} 进度: ${completed}/${total}`);
+          }
+          break;
+        } catch (err) {
+          lastErr = err;
+          const status = err.status ?? err.statusCode ?? 'unknown';
+          const errName = err.name ?? 'Error';
+          console.warn(`${LOG_PREFIX} ⚠️ 下载失败(第${attempt + 1}/${MAX_RETRIES}次): ${relPath}`);
+          console.warn(`${LOG_PREFIX}   错误类型: ${errName}, HTTP状态: ${status}`);
+          console.warn(`${LOG_PREFIX}   错误消息: ${err.message}`);
+          if (attempt < MAX_RETRIES - 1) {
+            const delayMs = 1000 * (attempt + 1);
+            console.log(`${LOG_PREFIX}   ${delayMs}ms 后重试...`);
+            await new Promise((r) => setTimeout(r, delayMs));
+          }
+        }
+      }
+      if (lastErr) {
+        downloadErrors += 1;
+        console.warn(`${LOG_PREFIX} ⚠️ 跳过(重试${MAX_RETRIES}次): ${relPath} (${lastErr.message})`);
+      }
+    }
+  });
+
+  await Promise.all(workers);
+
+  // 所有文件下载失败时才终止构建
+  if (downloadErrors > 0 && completed === 0) {
+    console.error(`${LOG_PREFIX} ❌ 全部 ${downloadErrors} 个文件下载失败,构建终止`);
+    process.exit(1);
+  } else if (downloadErrors > 0) {
+    console.warn(`${LOG_PREFIX} ⚠️ ${downloadErrors} 个文件失败已跳过,${completed}/${total} 成功`);
+  }
+
+  console.log(`${LOG_PREFIX} 同步完成: ${total} 个文件 → ${path.relative(PROJECT_ROOT, LOCAL_DIR)}/`);
+}
+
+// ─── WebDAV 后端 ───────────────────────────────────────────────────────────
+
+/**
  * 单层 `getDirectoryContents` 包装:用于子目录扫描
  *
  * - 子目录 404 → 记录警告,返回空数组(跳过该目录,不阻断构建)
  * - 其他异常 → fail 终止构建
  */
-async function listDir(client, dir) {
+async function webdavListDir(client, dir) {
   try {
     return await client.getDirectoryContents(dir, { deep: false });
   } catch (err) {
@@ -151,12 +238,12 @@ async function listDir(client, dir) {
 /**
  * 根目录 `pages/` 的 `getDirectoryContents` 包装:专门处理"远端尚未建仓"的容错
  *
- * - 返回 `null`:WebDAV 返回 404(目录不存在),由 `main()` 进入自动建仓分支
- * - 返回 `[]`:目录存在但为空(由 `main()` 同样视为需要容错)
+ * - 返回 `null`:WebDAV 返回 404(目录不存在),由调用方进入自动建仓分支
+ * - 返回 `[]`:目录存在但为空(由调用方同样视为需要容错)
  * - 返回数组:正常列表
- * - 其他异常(鉴权 / 网络 / 5xx)继续抛,由 `main()` 的 try/catch 兜底 fail
+ * - 其他异常(鉴权 / 网络 / 5xx)继续抛
  */
-async function listRootDir(client) {
+async function webdavListRootDir(client) {
   try {
     return await client.getDirectoryContents(WEBDAV_PREFIX, { deep: false });
   } catch (err) {
@@ -164,29 +251,24 @@ async function listRootDir(client) {
     if (status === 404) {
       return null;
     }
-    // 真实错误:继续抛,让 main() 的 catch 转 fail()
     throw err;
   }
 }
 
 /**
- * 浅层递归(2 层)收集 `pages/` 下所有 .html/.htm 路径
+ * 浅层递归(2 层)收集 `pages/` 下所有 .html/.htm 路径(WebDAV)
  *
- * @param {{ getDirectoryContents: (p: string, opts: object) => Promise<Array<{ type: 'file' | 'directory'; filename: string }>> }} client
- * @returns {Promise<string[] | null>} 形如 ['pages/index.html', 'pages/blog/post.html'] 的数组;
+ * @returns {Promise<string[] | null>} 形如 ['pages/index.html', 'pages/blog/post.html'];
  *   根目录缺失(404)时返回 `null`
  */
-async function listHtmlRecursive(client) {
-  const rootEntries = await listRootDir(client);
+async function webdavListHtmlRecursive(client) {
+  const rootEntries = await webdavListRootDir(client);
   if (rootEntries === null) {
-    // 根目录 404 → 交给 main() 进入自动建仓分支
     return null;
   }
 
   const out = [];
   for (const entry of rootEntries) {
-    // WebDAV 库可能返回完整路径(如 /pages/hello-world)或仅文件名(hello-world)
-    // 统一取 basename 避免路径拼接出 pages/pages/...
     const name = entry.filename.split('/').pop() || entry.filename;
     if (entry.type === 'file' && /\.html?$/i.test(name)) {
       out.push(`${WEBDAV_PREFIX}/${name}`);
@@ -194,7 +276,7 @@ async function listHtmlRecursive(client) {
     }
     if (entry.type === 'directory') {
       const subPath = `${WEBDAV_PREFIX}/${name}`;
-      const subEntries = await listDir(client, subPath);
+      const subEntries = await webdavListDir(client, subPath);
       for (const sub of subEntries) {
         const subName = sub.filename.split('/').pop() || sub.filename;
         if (sub.type === 'file' && /\.html?$/i.test(subName)) {
@@ -207,23 +289,12 @@ async function listHtmlRecursive(client) {
 }
 
 /**
- * 容错分支:在 WebDAV 远端自动创建项目必需的目录结构,然后清空本地镜像,build 继续。
- *
- * 行为细节:
- * - 按 `REQUIRED_WEBDAV_DIRS` 的依赖顺序(父目录先于子目录)依次创建
- * - 任一目录创建失败 → 记录错误但**继续创建其他目录**(尽力而为)
- *   - 405 / 301 / 200:WebDAV 服务器对"目录已存在"的常见返回,视作成功
- *   - 其他:仅 console.warn,不阻断流程
- * - 全部完成后,清空本地 `./pages/` 镜像保持一致,然后 `process.exit(0)`
- *
- * 为何这样设计:Vercel 构建链路(prebuild → build)是连续的,任何一次
- * 失败都会让 build 红;对于"远端是首次部署 / 远端目录被人为清空"这类
- * 应当自愈的场景,主动建仓比把错误抛回给 CI 更友好。
+ * 容错分支:在 WebDAV 远端自动创建必需目录结构,然后清空本地镜像,build 继续
  */
-async function bootstrapRemoteAndExit(client) {
+async function webdavBootstrapAndExit(client) {
   console.log(`${LOG_PREFIX} 检测到 WebDAV 目标目录缺失或为空,开始自动创建必需结构`);
   let allFailed = true;
-  for (const dir of REQUIRED_WEBDAV_DIRS) {
+  for (const dir of REQUIRED_DIRS) {
     try {
       await client.createDirectory(dir, { recursive: true });
       console.log(`${LOG_PREFIX} ✅ 已创建 WebDAV 目录: ${dir}`);
@@ -231,11 +302,9 @@ async function bootstrapRemoteAndExit(client) {
     } catch (err) {
       const status = readErrorStatus(err);
       if (status === 405 || status === 301 || status === 200) {
-        // "目录已存在"在不同 WebDAV 服务器上的常见返回码,视作成功
         console.log(`${LOG_PREFIX} ✅ WebDAV 目录已存在: ${dir}`);
         allFailed = false;
       } else {
-        // 真实失败(网络 / 鉴权 / 5xx):记录但继续创建其他目录
         console.error(`${LOG_PREFIX} ❌ 自动创建 WebDAV 目录失败: ${dir} (${err.message})`);
       }
     }
@@ -246,25 +315,24 @@ async function bootstrapRemoteAndExit(client) {
   }
   console.log(`${LOG_PREFIX} ℹ️ 目标目录原本缺失,已自动创建必需结构,build 继续`);
 
-  // 同步清空本地 pages/ 镜像,保持"远端有 / 本地空"的一致性
   try {
     await fs.rm(LOCAL_DIR, { recursive: true, force: true });
     await fs.mkdir(LOCAL_DIR, { recursive: true });
   } catch (err) {
-    // best-effort:本地清空失败不阻断 build
     console.warn(`${LOG_PREFIX} ⚠️ 清空本地 ./pages/ 失败: ${err.message}`);
   }
 
   process.exit(0);
 }
 
-async function main() {
-  // 1. 读取环境变量
+/**
+ * WebDAV 同步主路径
+ */
+async function syncFromWebdav() {
   const url = process.env.WEBDAV_URL;
   const user = process.env.WEBDAV_USER;
   const pass = process.env.WEBDAV_PASS;
 
-  // 2. 未配置 → 清空本地 ./pages/ → 退出
   if (!url || !user || !pass) {
     console.log(`${LOG_PREFIX} WebDAV 未配置(WEBDAV_URL/USER/PASS 任一缺失),清空 ./pages/ 后跳过`);
     try {
@@ -275,7 +343,6 @@ async function main() {
     return;
   }
 
-  // 3. 已配置 → 创建客户端(此处不再缓存,脚本生命周期只跑一次)
   let client;
   try {
     client = createClient(url, { username: user, password: pass });
@@ -283,151 +350,469 @@ async function main() {
     fail('create webdav client', err);
   }
 
-  // 4. 列出全部目标 HTML 路径
-  //    - 根目录 404 → listHtmlRecursive 返回 null → 走 bootstrap 分支
-  //    - 根目录返回 [] → 视为空目录 → 同样走 bootstrap 分支
-  //    - 其他异常 → fail
   let entries;
   try {
-    entries = await listHtmlRecursive(client);
+    entries = await webdavListHtmlRecursive(client);
   } catch (err) {
     fail('list html recursive', err);
   }
 
   if (entries === null) {
-    // 容错:远端 pages/ 缺失(404),自动建仓 + exit 0
-    await bootstrapRemoteAndExit(client);
-    return; // 不可达(bootstrap 内部已 process.exit(0))
+    await webdavBootstrapAndExit(client);
+    return;
   }
 
-  // 目录存在但无 HTML 文件 → 清空本地后正常退出(不触发 bootstrap)
   if (entries.length === 0) {
     console.log(`${LOG_PREFIX} WebDAV pages/ 目录存在但无 HTML 文件`);
-    try {
-      await fs.rm(LOCAL_DIR, { recursive: true, force: true });
-      await fs.mkdir(LOCAL_DIR, { recursive: true });
-    } catch (err) {
-      fail('reset local pages/', err);
-    }
+    await resetLocalPages();
     return;
   }
 
   console.log(`${LOG_PREFIX} WebDAV pages/ 共发现 ${entries.length} 个 HTML 文件`);
 
-  // 5. 完全镜像:先清空本地,再逐个写入
+  await resetLocalPages();
+
+  // 并发下载:使用 WebDAV 客户端
+  const DOWNLOAD_TIMEOUT_MS = 30_000;
+
+  await downloadAll(entries, async (relPath) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
+    try {
+      const raw = await client.getFileContents(relPath, { signal: controller.signal });
+      return raw;
+    } finally {
+      clearTimeout(timer);
+    }
+  });
+}
+
+// ─── Backblaze B2 后端 ─────────────────────────────────────────────────────
+
+/** B2 鉴权结果缓存(脚本生命周期内复用) */
+let _b2Auth = null;
+
+/**
+ * B2 鉴权:POST 到 b2_authorize_account
+ *
+ * @returns {Promise<{ apiUrl: string, downloadUrl: string, authorizationToken: string, bucketId: string }>}
+ */
+async function b2Authorize() {
+  if (_b2Auth) return _b2Auth;
+
+  const keyId = process.env.B2_KEY_ID;
+  const appKey = process.env.B2_APP_KEY;
+  const bucketName = process.env.B2_BUCKET;
+
+  if (!keyId || !appKey || !bucketName) {
+    throw new Error('B2 环境变量缺失(B2_KEY_ID / B2_APP_KEY / B2_BUCKET)');
+  }
+
+  const credentials = Buffer.from(`${keyId}:${appKey}`).toString('base64');
+
+  const resp = await fetch('https://api.backblazeb2.com/b2api/v3/b2_authorize_account', {
+    method: 'GET',
+    headers: { Authorization: `Basic ${credentials}` },
+  });
+
+  if (!resp.ok) {
+    const body = await resp.text().catch(() => '');
+    throw new Error(`B2 鉴权失败(HTTP ${resp.status}): ${body.slice(0, 500)}`);
+  }
+
+  const data = await resp.json();
+
+  // 通过 bucket name 查找 bucketId
+  const buckets = data.allowed?.buckets;
+  if (!buckets || buckets.length === 0) {
+    throw new Error('B2 鉴权成功但无可用 bucket,请检查 B2_APP_KEY 权限');
+  }
+
+  const bucket = buckets.find((b) => b.bucketName === bucketName);
+  if (!bucket) {
+    throw new Error(
+      `B2 鉴权成功但未找到名为 "${bucketName}" 的 bucket,` +
+        `可用: [${buckets.map((b) => b.bucketName).join(', ')}]`
+    );
+  }
+
+  _b2Auth = {
+    apiUrl: data.apiUrl,
+    downloadUrl: process.env.B2_DOWNLOAD_URL || data.downloadUrl,
+    authorizationToken: data.authorizationToken,
+    bucketId: bucket.bucketId,
+    bucketName,
+  };
+
+  console.log(`${LOG_PREFIX} B2 鉴权成功: bucket="${bucketName}" id=${bucket.bucketId}`);
+  return _b2Auth;
+}
+
+/**
+ * B2 清除鉴权缓存并重新鉴权(用于 401 重试)
+ */
+function b2ClearAuth() {
+  _b2Auth = null;
+}
+
+/**
+ * B2 列出文件:POST b2_list_file_names
+ *
+ * @param {string} prefix 前缀(如 'pages/')
+ * @param {string} [delimiter='/'] 分隔符
+ * @returns {Promise<{ files: Array<{ fileName: string }>, folders: string[] }>}
+ */
+async function b2ListFiles(prefix, delimiter = '/') {
+  const auth = await b2Authorize();
+
+  const resp = await fetch(`${auth.apiUrl}/b2api/v3/b2_list_file_names`, {
+    method: 'POST',
+    headers: {
+      Authorization: auth.authorizationToken,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      bucketId: auth.bucketId,
+      prefix,
+      delimiter,
+      maxFileCount: 10000,
+    }),
+  });
+
+  if (resp.status === 401) {
+    b2ClearAuth();
+    // 重新鉴权后重试一次
+    const auth2 = await b2Authorize();
+    const resp2 = await fetch(`${auth2.apiUrl}/b2api/v3/b2_list_file_names`, {
+      method: 'POST',
+      headers: {
+        Authorization: auth2.authorizationToken,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        bucketId: auth2.bucketId,
+        prefix,
+        delimiter,
+        maxFileCount: 10000,
+      }),
+    });
+    if (!resp2.ok) {
+      const body = await resp2.text().catch(() => '');
+      throw new Error(`B2 list files 失败(HTTP ${resp2.status}): ${body.slice(0, 500)}`);
+    }
+    return resp2.json();
+  }
+
+  if (!resp.ok) {
+    const body = await resp.text().catch(() => '');
+    throw new Error(`B2 list files 失败(HTTP ${resp.status}): ${body.slice(0, 500)}`);
+  }
+
+  return resp.json();
+}
+
+/**
+ * B2 下载文件内容
+ *
+ * 优先使用 B2_DOWNLOAD_URL(CDN 直链,无需 Authorization 头),
+ * 否则回退到 apiUrl 直连(需 Authorization 头)
+ *
+ * @param {string} filePath B2 上的文件路径(如 'pages/index.html')
+ * @returns {Promise<Buffer>} 文件内容
+ */
+async function b2DownloadFile(filePath) {
+  const auth = await b2Authorize();
+  const bucketPath = `${auth.bucketName}/${filePath}`;
+  const useCdn = !!process.env.B2_DOWNLOAD_URL;
+
+  let url;
+  let headers = {};
+
+  if (useCdn) {
+    // CDN 直链格式: {download_url}/file/{bucket_name}/{path}
+    url = `${auth.downloadUrl}/file/${bucketPath}`;
+  } else {
+    // API 直连格式: {apiUrl}/file/{bucket_name}/{path}
+    url = `${auth.apiUrl}/file/${bucketPath}`;
+    headers.Authorization = auth.authorizationToken;
+  }
+
+  const resp = await fetch(url, { headers, redirect: 'follow' });
+
+  if (resp.status === 401 && !useCdn) {
+    // API 直连鉴权过期:清缓存 → 重新鉴权 → 重试一次
+    b2ClearAuth();
+    const auth2 = await b2Authorize();
+    const resp2 = await fetch(`${auth2.apiUrl}/file/${bucketPath}`, {
+      headers: { Authorization: auth2.authorizationToken },
+      redirect: 'follow',
+    });
+    if (!resp2.ok) {
+      const body = await resp2.text().catch(() => '');
+      throw new Error(`B2 download 失败(HTTP ${resp2.status}): ${body.slice(0, 200)}`);
+    }
+    const arrayBuf2 = await resp2.arrayBuffer();
+    return Buffer.from(arrayBuf2);
+  }
+
+  if (resp.status === 404) {
+    throw new Error(`B2 文件不存在(404): ${filePath}`);
+  }
+
+  if (!resp.ok) {
+    const body = await resp.text().catch(() => '');
+    throw new Error(`B2 download 失败(HTTP ${resp.status}): ${body.slice(0, 200)}`);
+  }
+
+  const arrayBuf = await resp.arrayBuffer();
+  return Buffer.from(arrayBuf);
+}
+
+/**
+ * B2 在远端创建"目录":上传一个 .keep 占位文件
+ *
+ * @param {string} dirPath 目录路径(如 'pages/')
+ */
+async function b2CreateDir(dirPath) {
+  const auth = await b2Authorize();
+  const normalized = dirPath.endsWith('/') ? dirPath : `${dirPath}/`;
+  const keepFile = `${normalized}.keep`;
+
+  // 获取上传授权
+  const authResp = await fetch(`${auth.apiUrl}/b2api/v3/b2_get_upload_authorization`, {
+    method: 'POST',
+    headers: {
+      Authorization: auth.authorizationToken,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      bucketId: auth.bucketId,
+      fileNamePrefix: keepFile,
+    }),
+  });
+
+  if (authResp.status === 401) {
+    b2ClearAuth();
+    const auth2 = await b2Authorize();
+    const authResp2 = await fetch(`${auth2.apiUrl}/b2api/v3/b2_get_upload_authorization`, {
+      method: 'POST',
+      headers: {
+        Authorization: auth2.authorizationToken,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        bucketId: auth2.bucketId,
+        fileNamePrefix: keepFile,
+      }),
+    });
+    if (!authResp2.ok) {
+      const body = await authResp2.text().catch(() => '');
+      throw new Error(`B2 get upload auth 失败(HTTP ${authResp2.status}): ${body.slice(0, 200)}`);
+    }
+    const authData2 = await authResp2.json();
+    const uploadResp2 = await fetch(authData2.uploadUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: authData2.authorizationToken,
+        'X-Bz-File-Name': keepFile,
+        'Content-Type': 'application/octet-stream',
+        'X-Bz-Content-Sha1': 'do_not_verify',
+      },
+      body: Buffer.alloc(0),
+    });
+    if (!uploadResp2.ok) {
+      const body = await uploadResp2.text().catch(() => '');
+      throw new Error(`B2 upload .keep 失败(HTTP ${uploadResp2.status}): ${body.slice(0, 200)}`);
+    }
+    return;
+  }
+
+  if (!authResp.ok) {
+    const body = await authResp.text().catch(() => '');
+    throw new Error(`B2 get upload auth 失败(HTTP ${authResp.status}): ${body.slice(0, 200)}`);
+  }
+
+  const authData = await authResp.json();
+
+  const uploadResp = await fetch(authData.uploadUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: authData.authorizationToken,
+      'X-Bz-File-Name': keepFile,
+      'Content-Type': 'application/octet-stream',
+      'X-Bz-Content-Sha1': 'do_not_verify',
+    },
+    body: Buffer.alloc(0),
+  });
+
+  if (!uploadResp.ok) {
+    const body = await uploadResp.text().catch(() => '');
+    throw new Error(`B2 upload .keep 失败(HTTP ${uploadResp.status}): ${body.slice(0, 200)}`);
+  }
+}
+
+/**
+ * 浅层递归(2 层)收集 B2 `pages/` 下所有 .html/.htm 路径
+ *
+ * @returns {Promise<string[] | null>} 文件路径列表; 根目录缺失时返回 `null`
+ */
+async function b2ListHtmlRecursive() {
+  // 列出根目录内容
+  let rootData;
+  try {
+    rootData = await b2ListFiles(`${WEBDAV_PREFIX}/`);
+  } catch (err) {
+    const msg = err.message || '';
+    if (msg.includes('404') || msg.includes('not found')) {
+      return null;
+    }
+    fail('b2 list root', err);
+  }
+
+  // B2 可能返回 { files: [...], folders: [...] } 或 { files: { files: [...], nextFileName: ... } }
+  const rootFiles = rootData.files?.files || rootData.files || [];
+  const rootFolders = rootData.folders || [];
+
+  if (rootFiles.length === 0 && rootFolders.length === 0) {
+    return null; // 空目录视为缺失,触发 bootstrap
+  }
+
+  const out = [];
+
+  // 处理根级文件
+  for (const f of rootFiles) {
+    const name = f.fileName.split('/').pop();
+    if (name && /\.html?$/i.test(name) && name !== '.keep') {
+      out.push(`${WEBDAV_PREFIX}/${name}`);
+    }
+  }
+
+  // 处理子目录(只下一层)
+  for (const folder of rootFolders) {
+    // folder 可能是 'pages/blog/' 或 'pages/blog'
+    const folderName = folder.replace(`${WEBDAV_PREFIX}/`, '').replace(/\/$/, '');
+    if (!folderName) continue;
+
+    const subPrefix = `${WEBDAV_PREFIX}/${folderName}/`;
+    let subData;
+    try {
+      subData = await b2ListFiles(subPrefix);
+    } catch (err) {
+      console.warn(`${LOG_PREFIX} ⚠️ B2 子目录扫描失败(跳过): ${subPrefix} → ${err.message}`);
+      continue;
+    }
+
+    const subFiles = subData.files?.files || subData.files || [];
+    for (const f of subFiles) {
+      const subName = f.fileName.split('/').pop();
+      if (subName && /\.html?$/i.test(subName) && subName !== '.keep') {
+        out.push(`${WEBDAV_PREFIX}/${folderName}/${subName}`);
+      }
+    }
+  }
+
+  return out;
+}
+
+/**
+ * 容错分支:在 B2 远端自动创建必需目录结构,然后清空本地镜像,build 继续
+ */
+async function b2BootstrapAndExit() {
+  console.log(`${LOG_PREFIX} 检测到 B2 目标目录缺失或为空,开始自动创建必需结构`);
+  let allFailed = true;
+  for (const dir of REQUIRED_DIRS) {
+    try {
+      await b2CreateDir(dir);
+      console.log(`${LOG_PREFIX} ✅ 已创建 B2 目录: ${dir}`);
+      allFailed = false;
+    } catch (err) {
+      console.error(`${LOG_PREFIX} ❌ 自动创建 B2 目录失败: ${dir} (${err.message})`);
+    }
+  }
+  if (allFailed) {
+    console.error(`${LOG_PREFIX} ❌ 所有必需目录创建失败,构建终止`);
+    process.exit(1);
+  }
+  console.log(`${LOG_PREFIX} ℹ️ 目标目录原本缺失,已自动创建必需结构,build 继续`);
+
   try {
     await fs.rm(LOCAL_DIR, { recursive: true, force: true });
     await fs.mkdir(LOCAL_DIR, { recursive: true });
   } catch (err) {
-    fail('reset local pages/', err);
+    console.warn(`${LOG_PREFIX} ⚠️ 清空本地 ./pages/ 失败: ${err.message}`);
   }
 
-  if (entries.length === 0) {
-    console.log(`${LOG_PREFIX} 同步完成: 0 个文件(本地 ./pages/ 已清空)`);
+  process.exit(0);
+}
+
+/**
+ * Backblaze B2 同步主路径
+ */
+async function syncFromB2() {
+  // 1. 验证环境变量
+  const keyId = process.env.B2_KEY_ID;
+  const appKey = process.env.B2_APP_KEY;
+  const bucket = process.env.B2_BUCKET;
+
+  if (!keyId || !appKey || !bucket) {
+    console.log(
+      `${LOG_PREFIX} B2 未配置(B2_KEY_ID/B2_APP_KEY/B2_BUCKET 任一缺失),清空 ./pages/ 后跳过`
+    );
+    try {
+      await fs.rm(LOCAL_DIR, { recursive: true, force: true });
+    } catch (err) {
+      fail('rm local pages/ (b2 unconfigured path)', err);
+    }
     return;
   }
 
-  // 6. 并发下载(MAX_CONCURRENCY 上限)
-  //    单个文件下载失败重试 3 次(指数退避),仍失败则跳过
-  let nextIndex = 0;
-  let completed = 0;
-  let downloadErrors = 0;
-  let corruptedFiles = 0;
-  const total = entries.length;
-  const DOWNLOAD_TIMEOUT_MS = 30_000;
-  const MAX_RETRIES = 3;
-
-  const workers = Array.from({ length: Math.min(MAX_CONCURRENCY, total) }, async () => {
-    while (true) {
-      const i = nextIndex++;
-      if (i >= total) return;
-      const relPath = entries[i];
-      const relNoPrefix = relPath.slice(WEBDAV_PREFIX.length + 1);
-      const localPath = path.join(LOCAL_DIR, relNoPrefix);
-
-      // 先 stat 检查文件元信息
-      let fileSize = null;
-      let statOk = false;
-      try {
-        const info = await client.stat(relPath);
-        fileSize = info.size ?? null;
-        console.log(`${LOG_PREFIX} stat: ${relPath} → size=${fileSize}, type=${info.type}`);
-        statOk = true;
-        if (fileSize === 0) {
-          console.warn(`${LOG_PREFIX} ⚠️ 跳过空文件(size=0): ${relPath}`);
-          downloadErrors += 1;
-          continue;
-        }
-      } catch (statErr) {
-        console.warn(`${LOG_PREFIX} stat 失败: ${relPath} → ${statErr.message}`);
-        // stat 失败不阻断,继续尝试下载
-      }
-
-      // 带重试的下载
-      let lastErr = null;
-      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-        try {
-          const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
-          const raw = await client.getFileContents(relPath, { signal: controller.signal });
-          clearTimeout(timer);
-          const content = normalizeWebDavContent(raw);
-          if (!content) {
-            throw new Error(`WebDAV 文件内容为空: ${relPath}`);
-          }
-          const dir = path.dirname(localPath);
-          await fs.mkdir(dir, { recursive: true });
-          await fs.writeFile(localPath, content, 'utf8');
-          completed += 1;
-          lastErr = null;
-          if (completed % 25 === 0 || completed === total) {
-            console.log(`${LOG_PREFIX} 进度: ${completed}/${total}`);
-          }
-          break;
-        } catch (err) {
-          lastErr = err;
-          // 提取详细错误信息: HTTP 状态码、错误名、完整消息
-          const status = err.status ?? err.statusCode ?? 'unknown';
-          const errName = err.name ?? 'Error';
-          console.warn(`${LOG_PREFIX} ⚠️ 下载失败(第${attempt + 1}/${MAX_RETRIES}次): ${relPath}`);
-          console.warn(`${LOG_PREFIX}   错误类型: ${errName}, HTTP状态: ${status}`);
-          console.warn(`${LOG_PREFIX}   错误消息: ${err.message}`);
-          if (attempt < MAX_RETRIES - 1) {
-            const delayMs = 1000 * (attempt + 1);
-            console.log(`${LOG_PREFIX}   ${delayMs}ms 后重试...`);
-            await new Promise((r) => setTimeout(r, delayMs));
-          }
-        }
-      }
-      if (lastErr) {
-        downloadErrors += 1;
-        if (statOk) {
-          corruptedFiles += 1;
-          console.warn(`${LOG_PREFIX} ⚠️ 跳过(重试${MAX_RETRIES}次): ${relPath} (stat size=${fileSize} 但内容读取失败)`);
-        } else {
-          console.warn(`${LOG_PREFIX} ⚠️ 跳过下载失败(重试${MAX_RETRIES}次): ${relPath} (${lastErr.message})`);
-        }
-      }
-    }
-  });
-
-  await Promise.all(workers);
-
-  // 所有文件下载失败时才终止构建
-  // 纯损坏文件(stat 成功但内容不可读)不阻断构建,仅警告
-  const connectivityErrors = downloadErrors - corruptedFiles;
-  if (downloadErrors > 0 && completed === 0) {
-    if (corruptedFiles > 0 && connectivityErrors === 0) {
-      console.warn(`${LOG_PREFIX} ⚠️ ${corruptedFiles} 个文件内容读取失败已跳过,构建继续`);
-    } else {
-      console.error(`${LOG_PREFIX} ❌ ${connectivityErrors} 个文件下载失败(连通性问题),构建终止`);
-      process.exit(1);
-    }
-  } else if (downloadErrors > 0) {
-    console.warn(`${LOG_PREFIX} ⚠️ ${downloadErrors} 个文件失败已跳过,${completed}/${total} 成功`);
+  // 2. 鉴权(提前触发,错误信息更清晰)
+  try {
+    await b2Authorize();
+  } catch (err) {
+    fail('b2 authorize', err);
   }
 
-  console.log(`${LOG_PREFIX} 同步完成: ${total} 个文件 → ${path.relative(PROJECT_ROOT, LOCAL_DIR)}/`);
+  // 3. 列出全部 HTML 路径
+  let entries;
+  try {
+    entries = await b2ListHtmlRecursive();
+  } catch (err) {
+    fail('b2 list html recursive', err);
+  }
+
+  if (entries === null) {
+    await b2BootstrapAndExit();
+    return;
+  }
+
+  if (entries.length === 0) {
+    console.log(`${LOG_PREFIX} B2 pages/ 目录存在但无 HTML 文件`);
+    await resetLocalPages();
+    return;
+  }
+
+  console.log(`${LOG_PREFIX} B2 pages/ 共发现 ${entries.length} 个 HTML 文件`);
+
+  await resetLocalPages();
+
+  // 4. 并发下载:使用 B2 下载函数
+  await downloadAll(entries, (relPath) => b2DownloadFile(relPath));
+}
+
+// ─── 入口 ──────────────────────────────────────────────────────────────────
+
+async function main() {
+  const storageType = (process.env.STORAGE_TYPE || 'webdav').toLowerCase();
+
+  if (storageType === 'backblaze') {
+    console.log(`${LOG_PREFIX} 存储后端: Backblaze B2`);
+    await syncFromB2();
+  } else {
+    // 默认 WebDAV,完全保持原有逻辑
+    console.log(`${LOG_PREFIX} 存储后端: WebDAV`);
+    await syncFromWebdav();
+  }
 }
 
 main().catch((err) => {

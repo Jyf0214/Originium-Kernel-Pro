@@ -11,7 +11,7 @@
  */
 import { NextResponse } from 'next/server'
 import { apiHandler } from '@/lib/api-handler'
-import { isWebDavConfigured, getWebDavClient } from '@/lib/webdav'
+import { isStorageConfigured, getStorageProvider } from '@/lib/storage/storage-provider'
 import { renderTemplate, type TemplateType } from '@/lib/page-templates'
 
 /** 名称白名单:字母、数字、中文、连字符、下划线，1-100 字符 */
@@ -47,18 +47,18 @@ function validateParams(body: CreatePageBody): NextResponse | null {
   return null
 }
 
-/** 写入 WebDAV（等待服务端确认写入） */
-async function writeToWebDav(name: string, htmlContent: string): Promise<NextResponse | null> {
-  const webdavDir = `pages/${name}`
-  const webdavFile = `${webdavDir}/index.html`
+/** 写入存储后端（等待服务端确认写入） */
+async function writeToStorage(name: string, htmlContent: string): Promise<NextResponse | null> {
+  const storageDir = `pages/${name}`
+  const storageFile = `${storageDir}/index.html`
   try {
-    const client = getWebDavClient()
-    await client.createDirectory(webdavDir, { recursive: true })
-    await client.putFileContents(webdavFile, Buffer.from(htmlContent, 'utf-8'), { overwrite: true })
+    const provider = await getStorageProvider()
+    await provider.createDirectory(storageDir, { recursive: true })
+    await provider.putFileContents(storageFile, Buffer.from(htmlContent, 'utf-8'), { headers: { overwrite: 'true' } })
     return null
   } catch (err) {
     return NextResponse.json(
-      { error: `WebDAV 写入失败: ${err instanceof Error ? err.message : String(err)}` },
+      { error: `存储写入失败: ${err instanceof Error ? err.message : String(err)}` },
       { status: 500 },
     )
   }
@@ -77,9 +77,9 @@ export const POST = apiHandler('POST', { label: 'page.create', requireSudo: true
   const validateError = validateParams(body)
   if (validateError) return validateError
 
-  if (!isWebDavConfigured()) {
+  if (!isStorageConfigured()) {
     return NextResponse.json(
-      { error: 'WebDAV 未配置，无法创建页面', code: 'NOT_CONFIGURED' },
+      { error: '存储后端未配置，无法创建页面', code: 'NOT_CONFIGURED' },
       { status: 503 },
     )
   }
@@ -94,8 +94,8 @@ export const POST = apiHandler('POST', { label: 'page.create', requireSudo: true
     )
   }
 
-  const webdavError = await writeToWebDav(body.name, htmlContent)
-  if (webdavError) return webdavError
+  const storageError = await writeToStorage(body.name, htmlContent)
+  if (storageError) return storageError
 
   return NextResponse.json({
     ok: true,

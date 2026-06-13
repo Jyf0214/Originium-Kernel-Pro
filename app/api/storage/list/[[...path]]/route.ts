@@ -8,24 +8,24 @@ import {
   catchAllHandler,
   getPathParts,
   buildWebDavTarget,
-  getWebDavClient,
-  isWebDavConfigured,
+  getStorageProvider,
+  isStorageConfigured,
   toWebDavEntry,
-  webdavNotConfigured,
-  webdavErrorResponse,
+  storageNotConfigured,
+  storageErrorResponse,
 } from '../../_helpers'
 
 export const GET = catchAllHandler<{ path?: string[] }>(
   'GET',
   { label: 'storage.list', requireAdmin: true },
   async (_req, context) => {
-    if (!isWebDavConfigured()) return webdavNotConfigured()
+    if (!isStorageConfigured()) return storageNotConfigured()
 
     const parts = await getPathParts(context)
     const target = buildWebDavTarget(parts)
     try {
-      const client = getWebDavClient()
-      const stats = await client.getDirectoryContents(target)
+      const provider = await getStorageProvider()
+      const stats = await provider.listDirectory(target)
       const entries = stats.map(toWebDavEntry)
       console.warn(`[storage.list] target="${target}" entries=${entries.length}`)
       return NextResponse.json(
@@ -34,7 +34,7 @@ export const GET = catchAllHandler<{ path?: string[] }>(
       )
     } catch (err) {
       console.error(`[storage.list] target="${target}" 失败`, err)
-      return webdavErrorResponse(err, '列出目录')
+      return storageErrorResponse(err, '列出目录')
     }
   }
 )

@@ -8,7 +8,7 @@
  * - 顶层文件夹可见性决定子项:子路径与顶层共享同一权限
  */
 import { getDb } from '@/lib/db'
-import { isWebDavConfigured } from '@/lib/webdav'
+import { isStorageConfigured } from '@/lib/storage/storage-provider'
 import { verifyPassword } from '@/lib/hash'
 import { splitDirFilename } from './path'
 import type { AccessResult, StorageFolderMeta } from './types'
@@ -119,7 +119,7 @@ export async function checkAccess(
   isAuthenticated: boolean
 ): Promise<AccessResult> {
   // 1. 模块未配置
-  if (!isWebDavConfigured()) {
+  if (!isStorageConfigured()) {
     return { allowed: false, reason: 'not-configured' }
   }
 

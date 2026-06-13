@@ -5,16 +5,16 @@
  */
 import { NextResponse } from 'next/server'
 import { apiHandler } from '@/lib/api-handler'
-import { isWebDavConfigured, listAllFolderMetas } from '../_helpers'
+import { isStorageConfigured, listAllFolderMetas } from '../_helpers'
 
 export const GET = apiHandler(
   'GET',
   { label: 'storage.config', requireAdmin: true },
   async () => {
-    const configured = isWebDavConfigured()
-    // 未配置时也允许读 folder 数量(只读 KV,不依赖 WebDAV)
+    const configured = isStorageConfigured()
+    // 未配置时也允许读 folder 数量(只读 KV,不依赖存储后端)
     const folders = configured ? await listAllFolderMetas() : []
-    console.warn(`[storage.config] webdav=${configured} folderCount=${folders.length}`)
+    console.warn(`[storage.config] storage=${configured} folderCount=${folders.length}`)
     return NextResponse.json({
       configured,
       folderCount: folders.length,
