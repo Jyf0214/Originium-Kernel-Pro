@@ -434,6 +434,49 @@ async function syncFromWebdav() {
 let _b2Auth = null;
 
 /**
+ * B2 获取 bucket ID（根据 bucket name 查询）
+ *
+ * 当 b2_authorize_account 的 allowed.buckets 为空时（"所有 bucket"权限），
+ * 需要额外调用 b2_list_buckets 来获取 bucket ID。
+ */
+async function b2ResolveBucketId(authToken, apiUrl, bucketName) {
+  // 先尝试从鉴权响应中获取
+  if (_b2AuthorizeData?.allowed?.buckets?.length > 0) {
+    const found = _b2AuthorizeData.allowed.buckets.find((b) => b.bucketName === bucketName);
+    if (found) return found.bucketId;
+  }
+
+  // 回退:调用 b2_list_buckets 列出所有 bucket
+  const resp = await fetch(`${apiUrl}/b2api/v3/b2_list_buckets`, {
+    method: 'POST',
+    headers: {
+      Authorization: authToken,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({}),
+  });
+
+  if (!resp.ok) {
+    throw new Error(`B2 列出 bucket 失败(HTTP ${resp.status})`);
+  }
+
+  const data = await resp.json();
+  const buckets = data.buckets ?? [];
+  const found = buckets.find((b) => b.bucketName === bucketName);
+  if (!found) {
+    const names = buckets.map((b) => `"${b.bucketName}"`).join(', ');
+    throw new Error(
+      `B2 bucket "${bucketName}" 不存在,可用 bucket: [${names || '无'}]`
+    );
+  }
+
+  return found.bucketId;
+}
+
+/** 缓存 b2_authorize_account 的完整响应（用于 b2ResolveBucketId） */
+let _b2AuthorizeData = null;
+
+/**
  * B2 鉴权:POST 到 b2_authorize_account
  *
  * @returns {Promise<{ apiUrl: string, downloadUrl: string, authorizationToken: string, bucketId: string }>}
@@ -463,29 +506,25 @@ async function b2Authorize() {
 
   const data = await resp.json();
 
-  // 通过 bucket name 查找 bucketId
-  const buckets = data.allowed?.buckets;
-  if (!buckets || buckets.length === 0) {
-    throw new Error('B2 鉴权成功但无可用 bucket,请检查 B2_APP_KEY 权限');
-  }
+  // 缓存完整响应供 b2ResolveBucketId 使用
+  _b2AuthorizeData = data;
 
-  const bucket = buckets.find((b) => b.bucketName === bucketName);
-  if (!bucket) {
-    throw new Error(
-      `B2 鉴权成功但未找到名为 "${bucketName}" 的 bucket,` +
-        `可用: [${buckets.map((b) => b.bucketName).join(', ')}]`
-    );
-  }
+  // 通过 bucket name 查找 bucketId
+  const bucketId = await b2ResolveBucketId(
+    data.authorizationToken,
+    data.apiUrl,
+    bucketName
+  );
 
   _b2Auth = {
     apiUrl: data.apiUrl,
     downloadUrl: process.env.B2_DOWNLOAD_URL || data.downloadUrl,
     authorizationToken: data.authorizationToken,
-    bucketId: bucket.bucketId,
+    bucketId,
     bucketName,
   };
 
-  console.log(`${LOG_PREFIX} B2 鉴权成功: bucket="${bucketName}" id=${bucket.bucketId}`);
+  console.log(`${LOG_PREFIX} B2 鉴权成功: bucket="${bucketName}" id=${bucketId}`);
   return _b2Auth;
 }
 
@@ -494,6 +533,7 @@ async function b2Authorize() {
  */
 function b2ClearAuth() {
   _b2Auth = null;
+  _b2AuthorizeData = null;
 }
 
 /**
