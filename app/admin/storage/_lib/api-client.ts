@@ -78,8 +78,9 @@ export function fetchConfig(): Promise<StorageConfig> {
   return request<StorageConfig>('/api/storage/config');
 }
 
-export function fetchFolders(): Promise<StorageFolderMeta[]> {
-  return request<StorageFolderMeta[]>('/api/storage/folders');
+export async function fetchFolders(): Promise<StorageFolderMeta[]> {
+  const res = await request<{ folders: StorageFolderMeta[] }>('/api/storage/folders');
+  return Array.isArray(res?.folders) ? res.folders : [];
 }
 
 export function fetchFolderMeta(path: string): Promise<StorageFolderMeta> {
