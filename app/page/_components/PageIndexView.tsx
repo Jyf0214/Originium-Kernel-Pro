@@ -6,11 +6,16 @@
  * 与 app/page/page.tsx(服务端)配对:服务端只负责读取 WebDAV/DB,
  * 把结果以 props 传入本组件,由本组件负责 i18n 渲染与交互。
  */
+import { useState } from 'react';
 import Link from 'next/link';
-import { Globe, Folder, Lock, FileCode } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Globe, Folder, Lock, FileCode, Plus } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
+import { useAuth } from '@/hooks/use-auth';
 import Sidebar from '@/components/Sidebar/index';
 import TopHeader from '@/components/TopHeader';
+import { Button } from '@/components/ui/Button';
+import { CreatePageDialog } from './CreatePageDialog';
 
 export interface PageIndexItem {
   href: string;
@@ -27,6 +32,9 @@ interface PageIndexViewProps {
 
 export function PageIndexView({ notConfigured, pages }: PageIndexViewProps) {
   const { t } = useI18n();
+  const { isSudo } = useAuth();
+  const router = useRouter();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   return (
     <div className="flex min-h-screen">
@@ -49,6 +57,20 @@ export function PageIndexView({ notConfigured, pages }: PageIndexViewProps) {
               </p>
             </header>
 
+            {/* 管理员新建页面按钮 */}
+            {isSudo && (
+              <div className="flex justify-end mb-4">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<Plus size={16} />}
+                  onClick={() => setShowCreateDialog(true)}
+                >
+                  新建页面
+                </Button>
+              </div>
+            )}
+
             {notConfigured ? (
               <NotConfiguredCard />
             ) : pages.length === 0 ? (
@@ -59,6 +81,13 @@ export function PageIndexView({ notConfigured, pages }: PageIndexViewProps) {
           </div>
         </main>
       </div>
+
+      {/* 新建页面弹窗 */}
+      <CreatePageDialog
+        open={showCreateDialog}
+        onClose={() => setShowCreateDialog(false)}
+        onCreated={() => router.refresh()}
+      />
     </div>
   );
 }
