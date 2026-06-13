@@ -83,8 +83,7 @@ export async function getSession(): Promise<SessionPayload | null> {
       algorithms: ['HS256'],
     });
     return payload as unknown as SessionPayload;
-	} catch (err) {
-		console.error('会话验证失败:', err);
+	} catch {
 		return null;
 	}
 }
