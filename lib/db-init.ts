@@ -8,10 +8,6 @@ import { generateUID } from '@/lib/auth';
 let initAttempted = false;
 let initResult: { created: boolean; error?: string } | null = null;
 
-function isLegacyPassword(password: string | undefined): boolean {
-  return !!(password && password.includes(':') && password.split(':').length === 2);
-}
-
 export async function ensureAdminUser(): Promise<{ created: boolean; error?: string }> {
   if (initAttempted && initResult) {
     return initResult;
@@ -34,14 +30,13 @@ export async function ensureAdminUser(): Promise<{ created: boolean; error?: str
       const userStr = await db.get(`user:uid:${uid}`);
       if (userStr) {
         const user = JSON.parse(userStr);
-        if (isLegacyPassword(user.password)) {
-          // 仅在检测到旧版明文/可逆密码时执行一次性迁移
+        // 每次启动都用环境变量密码覆盖，确保密码始终与 ADMIN_PASSWORD 同步
+        if (user.password !== adminPassword) {
           const newHash = await hashPassword(adminPassword);
           user.password = newHash;
+          user.updatedAt = new Date().toISOString();
           await db.set(`user:uid:${uid}`, JSON.stringify(user));
-          console.warn(`[数据库初始化] ✓ 迁移旧版用户密码: ${user.email ?? user.username ?? user.uid}`);
         }
-        // 用户已存在且密码已为哈希格式，跳过更新，避免每次启动覆盖密码
       }
       initResult = { created: false };
       return initResult;
