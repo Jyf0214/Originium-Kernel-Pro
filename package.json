@@ -19,7 +19,7 @@
     "db:studio": "PRISMA_HIDE_UPDATE_MESSAGE=true PRISMA_HIDE_PREVIEW_FLAG_WARNINGS=true prisma studio",
     "generate:search-index": "node scripts/generate-search-index.mjs",
     "generate:version": "node scripts/generate-version.mjs",
-    "build": "NEXT_TELEMETRY_DISABLED=1 npm run check && npm run test && npm run db:generate && npm run db:init:seed && node scripts/generate-search-index.mjs && node scripts/generate-version.mjs && next build",
+    "build": "NEXT_TELEMETRY_DISABLED=1 npm run check && npm run test && npm run db:generate && ALLOW_DB_PUSH=1 npm run db:init:seed && node scripts/generate-search-index.mjs && node scripts/generate-version.mjs && next build",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "start": "next start",
