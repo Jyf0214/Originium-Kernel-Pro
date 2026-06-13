@@ -1,35 +1,23 @@
 /**
  * /page — 自定义 HTML 页面索引(服务端入口)
  *
- * - 服务端从构建期同步下来的 `./pages/` 镜像浅层扫描(根 + 1 级子目录)
- *   (镜像由 `scripts/sync-pages.mjs` 在 `npm run build` 时生成)
+ * - 服务端从 WebDAV 扫描 pages/ 目录
  * - 列出所有 .html/.htm 文件,显示文件名、所在目录、是否私有
- * - 私有判定:`StorageFolder.public` 字段驱动(由 `/admin/storage` 设置)
- * - 私有页面在列表中带锁标,点击仍走 `/page/<path>` 路由,密码提示由原 PasswordPrompt 组件处理
+ * - 私有判定:StorageFolder.public 字段驱动(由 /admin/storage 设置)
  *
- * 重要:
- * - 此处不继承任何 layout。/page/[...path] 是全屏 iframe,加父 layout 会污染其渲染。
- * - 视图由 PageIndexView 客户端组件渲染,本文件只负责数据获取。
- * - 公开访问,无需登录(与单页面策略一致)。
- *
- * 行为对齐:
- * - 本地 `./pages/` 不存在或为空 → 展示「暂无可用页面」空状态卡
- *   (WebDAV 未配置时同步脚本已清空目录,运行时无需再区分"未配置"和"空")
- * - 本地 `./pages/` 有内容 → 正常列出 + 拼接链接
+ * 行为:
+ * - WebDAV 未配置 / 无文件 → 展示「暂无可用页面」空状态卡
+ * - WebDAV 有文件 → 正常列出 + 拼接链接
  */
 import 'server-only';
 import { getDb } from '@/lib/db';
 import { PAGES_PREFIX } from '@/lib/page-source/shared';
-import { isLocalPagesEmpty, scanLocalPagesHtml, scanEmptyDirs, readPageTitle } from './_lib/fs-page';
+import { isWebDavConfigured } from '@/lib/webdav';
+import { scanPagesHtmlDeep, fetchPageHtml } from '@/lib/page-source/webdav';
 import { PageIndexView, type PageIndexItem } from './_components/PageIndexView';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * 批量查询若干目录的 StorageFolder 私有元数据
- * - DB 未配置 → 返回空 Set,全部视为公开
- * - 任何目录查询失败 → 视为「无配置」= 公开(失败安全语义)
- */
 async function loadPrivateDirs(dirs: readonly string[]): Promise<Set<string>> {
   const prisma = getDb().prisma;
   if (!prisma) return new Set();
@@ -51,39 +39,46 @@ async function loadPrivateDirs(dirs: readonly string[]): Promise<Set<string>> {
 }
 
 export default async function PageIndex() {
-  // ./pages/ 不存在 / 为空 → 扫描是否有空文件夹
-  if (await isLocalPagesEmpty()) {
+  if (!isWebDavConfigured()) {
+    return <PageIndexView notConfigured={true} pages={[]} emptyDirs={[]} />;
+  }
+
+  let scanned: { relativePath: string }[];
+  try {
+    scanned = await scanPagesHtmlDeep();
+  } catch {
+    scanned = [];
+  }
+
+  if (scanned.length === 0) {
     return <PageIndexView notConfigured={false} pages={[]} emptyDirs={[]} />;
   }
 
-  const scanned = (await scanLocalPagesHtml()).map((entry) => ({
-    relativePath: entry.relativePath,
-    dir: entry.dir,
-    filename: entry.filename,
-  }));
+  const privateDirs = await loadPrivateDirs(
+    scanned.map(s => {
+      const parts = s.relativePath.split('/');
+      return parts.length > 1 ? parts.slice(0, -1).join('/') : PAGES_PREFIX;
+    }),
+  );
 
-  // 扫描没有 HTML 文件的子目录
-  const emptyDirs = await scanEmptyDirs();
-
-  if (scanned.length === 0 && emptyDirs.length === 0) {
-    return <PageIndexView notConfigured={false} pages={[]} emptyDirs={[]} />;
-  }
-
-  const privateDirs = await loadPrivateDirs(scanned.map(s => s.dir));
-
-  // 标题提取(每文件独立,失败时降级为文件名)
   const items: PageIndexItem[] = await Promise.all(
-    scanned.map(async ({ relativePath, dir, filename }): Promise<PageIndexItem> => {
+    scanned.map(async ({ relativePath }): Promise<PageIndexItem> => {
+      const parts = relativePath.split('/');
+      const filename = parts[parts.length - 1] ?? 'index.html';
+      const dir = parts.length > 1 ? parts.slice(0, -1).join('/') : PAGES_PREFIX;
+
       let title = filename;
       try {
-        const extracted = await readPageTitle(relativePath);
-        if (extracted) title = extracted;
+        const html = await fetchPageHtml(relativePath);
+        if (html) {
+          const match = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+          const extracted = match?.[1]?.trim();
+          if (extracted) title = extracted;
+        }
       } catch {
         /* 保持 filename */
       }
-      // 链接:去掉 pages/ 前缀,直接拼到 /page/<relative-without-prefix>
-      // 例如 'pages/about.html' → '/page/about.html'
-      //      'pages/blog/post.html' → '/page/blog/post.html'
+
       const href = `/page/${relativePath.slice(PAGES_PREFIX.length + 1)}`;
       return {
         href,
@@ -95,5 +90,5 @@ export default async function PageIndex() {
     }),
   );
 
-  return <PageIndexView notConfigured={false} pages={items} emptyDirs={emptyDirs} />;
+  return <PageIndexView notConfigured={false} pages={items} emptyDirs={[]} />;
 }

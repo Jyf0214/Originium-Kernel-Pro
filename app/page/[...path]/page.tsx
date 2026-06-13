@@ -1,27 +1,25 @@
 /**
  * 自定义 HTML 页面动态路由
  *
- * 路径格式:`/page/<...任意子路径>.html`
- * - 服务端从构建期同步下来的 `./pages/` 镜像读取对应 HTML 文件
- *   (镜像由 `scripts/sync-pages.mjs` 在 `npm run build` 时生成)
+ * 路径格式: /page/<...任意子路径>.html
+ * - 服务端从 WebDAV 读取对应 HTML 文件
  * - 渲染为带沙箱的 iframe(只允许 scripts/forms,不允许同源)
- * - 右上角浮动用户 widget(已登录展示头像,未登录展示「游客」+ 登录入口)
  *
  * 私有页面支持:
  * - 目标页所属目录若配置了访问密码,首次访问触发密码输入框
- * - 提交密码后,服务端根据 `?pwd=xxx` 重新校验,通过则正常渲染
- * - 密码错误时保留 URL 与输入框,顶部红条提示「密码错误」
+ * - 密码错误时保留 URL 与输入框,顶部红条提示
  *
  * 失败行为:
- * - 本地 `./pages/` 为空或目录不存在 → 友好提示页(引导运维运行 build 同步)
+ * - WebDAV 未配置 → 友好提示页
  * - 路径非法 / 扩展名非 .html/.htm → 404
  * - 文件不存在 / 读取失败 → 404
- * - 密码相关错误 → 渲染 PasswordPrompt,不 404(允许用户重试)
+ * - 密码相关错误 → 渲染 PasswordPrompt,不 404
  */
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { buildPageRelativePath, extractTitle } from '@/lib/page-source/shared';
-import { readPageHtml, isLocalPagesEmpty } from '../_lib/fs-page';
+import { isWebDavConfigured } from '@/lib/webdav';
+import { fetchPageHtml } from '@/lib/page-source/webdav';
 import { checkPageAccess, type PageAccessResult } from '@/lib/storage/acl';
 import { UserWidget } from '../_components/UserWidget';
 import { NotConfiguredView } from '../_components/NotConfiguredView';
@@ -34,10 +32,7 @@ interface PageProps {
 
 export const dynamic = 'force-dynamic';
 
-/** 是否属于「需要展示密码输入框」的拒绝原因 */
-function isPasswordReason(
-  reason: PageAccessResult['reason'],
-): boolean {
+function isPasswordReason(reason: PageAccessResult['reason']): boolean {
   return (
     reason === 'password-required' ||
     reason === 'wrong-password' ||
@@ -48,14 +43,10 @@ function isPasswordReason(
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { path } = await params;
   const relativePath = buildPageRelativePath(path);
-  if (!relativePath) {
+  if (!relativePath || !isWebDavConfigured()) {
     return { title: 'Custom Page' };
   }
-  // 本地镜像为空时(同步未执行 / WebDAV 未配置)跳过读取
-  if (await isLocalPagesEmpty()) {
-    return { title: 'Custom Page' };
-  }
-  const html = await readPageHtml(relativePath);
+  const html = await fetchPageHtml(relativePath);
   const title = html ? extractTitle(html) : null;
   return { title: title ?? 'Custom Page' };
 }
@@ -64,8 +55,7 @@ export default async function CustomPage({ params, searchParams }: PageProps) {
   const { path } = await params;
   const { pwd } = await searchParams;
 
-  // 本地 ./pages/ 不存在或为空 → 走未配置提示(WebDAV 未配置 / 同步未执行 都命中此分支)
-  if (await isLocalPagesEmpty()) {
+  if (!isWebDavConfigured()) {
     return <NotConfiguredView />;
   }
 
@@ -74,14 +64,11 @@ export default async function CustomPage({ params, searchParams }: PageProps) {
     notFound();
   }
 
-  // 拉取 HTML:文件存在性检查与 ACL 校验都在这一步之后
-  // 这样空密码的私有目录也能正确触发「请输入密码」而非 404
-  const html = await readPageHtml(relativePath);
+  const html = await fetchPageHtml(relativePath);
   if (!html) {
     notFound();
   }
 
-  // 归一化:空字符串视为未提供密码
   const queryPwd = typeof pwd === 'string' && pwd.length > 0 ? pwd : null;
   const access = await checkPageAccess(relativePath, queryPwd);
 
@@ -100,8 +87,6 @@ export default async function CustomPage({ params, searchParams }: PageProps) {
     );
   }
 
-  // 密码相关原因:展示输入框,允许重试
-  // 注意:跳回 URL 用原始 path(不含 pages/ 前缀),否则会拼成 /page/pages/...
   if (isPasswordReason(access.reason)) {
     return (
       <PasswordPrompt
@@ -111,6 +96,5 @@ export default async function CustomPage({ params, searchParams }: PageProps) {
     );
   }
 
-  // 其他拒绝原因(预留扩展):走 404
   notFound();
 }
