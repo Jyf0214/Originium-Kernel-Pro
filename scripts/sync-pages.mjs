@@ -328,11 +328,13 @@ async function main() {
   }
 
   // 6. 并发下载(MAX_CONCURRENCY 上限)
-  //    单个文件下载失败不阻断整体,跳过失败文件继续下载其余文件
+  //    单个文件下载失败重试 3 次(指数退避),仍失败则跳过
   let nextIndex = 0;
   let completed = 0;
   let downloadErrors = 0;
   const total = entries.length;
+  const DOWNLOAD_TIMEOUT_MS = 30_000;
+  const MAX_RETRIES = 3;
 
   const workers = Array.from({ length: Math.min(MAX_CONCURRENCY, total) }, async () => {
     while (true) {
@@ -341,22 +343,50 @@ async function main() {
       const relPath = entries[i];
       const relNoPrefix = relPath.slice(WEBDAV_PREFIX.length + 1);
       const localPath = path.join(LOCAL_DIR, relNoPrefix);
+
+      // 先 stat 检查文件是否存在且非空
       try {
-        const dir = path.dirname(localPath);
-        await fs.mkdir(dir, { recursive: true });
-        const raw = await client.getFileContents(relPath);
-        const content = normalizeWebDavContent(raw);
-        if (!content) {
-          throw new Error(`WebDAV 文件内容为空: ${relPath}`);
+        const info = await client.stat(relPath);
+        if (info.size === 0) {
+          console.warn(`${LOG_PREFIX} ⚠️ 跳过空文件: ${relPath}`);
+          downloadErrors += 1;
+          continue;
         }
-        await fs.writeFile(localPath, content, 'utf8');
-        completed += 1;
-        if (completed % 25 === 0 || completed === total) {
-          console.log(`${LOG_PREFIX} 进度: ${completed}/${total}`);
+      } catch {
+        // stat 失败不阻断,继续尝试下载
+      }
+
+      // 带重试的下载
+      let lastErr = null;
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
+          const raw = await client.getFileContents(relPath, { signal: controller.signal });
+          clearTimeout(timer);
+          const content = normalizeWebDavContent(raw);
+          if (!content) {
+            throw new Error(`WebDAV 文件内容为空: ${relPath}`);
+          }
+          const dir = path.dirname(localPath);
+          await fs.mkdir(dir, { recursive: true });
+          await fs.writeFile(localPath, content, 'utf8');
+          completed += 1;
+          lastErr = null;
+          if (completed % 25 === 0 || completed === total) {
+            console.log(`${LOG_PREFIX} 进度: ${completed}/${total}`);
+          }
+          break;
+        } catch (err) {
+          lastErr = err;
+          if (attempt < MAX_RETRIES - 1) {
+            await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+          }
         }
-      } catch (err) {
+      }
+      if (lastErr) {
         downloadErrors += 1;
-        console.warn(`${LOG_PREFIX} ⚠️ 跳过下载失败的文件: ${relPath} (${err.message})`);
+        console.warn(`${LOG_PREFIX} ⚠️ 跳过下载失败(重试${MAX_RETRIES}次): ${relPath} (${lastErr.message})`);
       }
     }
   });
