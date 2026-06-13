@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { SignJWT, jwtVerify } from 'jose';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { SESSION_EXPIRY_MS, SESSION_EXPIRY } from '@/lib/constants';
 
@@ -72,20 +72,81 @@ export async function createSession(payload: SessionPayload) {
 }
 
 /**
- * 从 Cookie 获取当前会话
+ * 哈希 API 密钥(与密码哈希分离,使用 HMAC-SHA256)
+ */
+export function hashApiKey(raw: string): string {
+  const secret = getSecret();
+  return crypto.createHmac('sha256', secret).update(raw).digest('hex');
+}
+
+/**
+ * 生成随机 API 密钥(格式: sk-xxxxxx)
+ */
+export function generateApiKey(): string {
+  const random = crypto.randomBytes(32).toString('base64url');
+  return `sk-${random}`;
+}
+
+/**
+ * 从 Authorization 头解析 Bearer token 并验证 API 密钥
+ */
+async function getSessionFromApiKey(): Promise<SessionPayload | null> {
+  try {
+    const hdrs = await headers();
+    const authHeader = hdrs.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) return null;
+
+    const token = authHeader.slice(7).trim();
+    if (!token?.startsWith('sk-')) return null;
+
+    const { PrismaClient } = await import('@prisma/client');
+    const prisma = new PrismaClient();
+    try {
+      const hashed = hashApiKey(token);
+      const row = await prisma.apiKey.findUnique({ where: { key: hashed } });
+      if (!row) return null;
+
+      // 更新最后使用时间(异步,不阻塞)
+      prisma.apiKey.update({ where: { id: row.id }, data: { lastUsed: new Date() } }).catch(() => { /* best-effort */ });
+
+      // 通过 UID 查用户信息构建 SessionPayload
+      const userRaw = await (
+        await import('@/lib/db')
+      ).getDb().get(`user:uid:${row.uid}`);
+      if (!userRaw) return null;
+      const user = JSON.parse(userRaw) as { uid: string; email: string; role: string; userGroup?: string };
+      return { uid: user.uid, email: user.email, role: user.role as SessionPayload['role'], userGroup: user.userGroup };
+    } finally {
+      await prisma.$disconnect();
+    }
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 从 Cookie / API 密钥获取当前会话
+ *
+ * 优先级:
+ * 1. Cookie JWT session（浏览器场景）
+ * 2. Authorization: Bearer sk-xxx（API 调用场景）
  */
 export async function getSession(): Promise<SessionPayload | null> {
+  // 1. 尝试 Cookie session
   const session = (await cookies()).get('session')?.value;
-  if (!session) return null;
+  if (session) {
+    try {
+      const { payload } = await jwtVerify(session, getSecretEncoder(), {
+        algorithms: ['HS256'],
+      });
+      return payload as unknown as SessionPayload;
+    } catch {
+      // Cookie 无效,继续尝试 API 密钥
+    }
+  }
 
-  try {
-    const { payload } = await jwtVerify(session, getSecretEncoder(), {
-      algorithms: ['HS256'],
-    });
-    return payload as unknown as SessionPayload;
-	} catch {
-		return null;
-	}
+  // 2. 尝试 API 密钥
+  return getSessionFromApiKey();
 }
 
 /**
