@@ -49,7 +49,7 @@ function validateParams(body: CreatePageBody): NextResponse | null {
   return null
 }
 
-/** 写入 WebDAV（唯一数据源） */
+/** 写入 WebDAV */
 async function writeToWebDav(name: string, htmlContent: string): Promise<NextResponse | null> {
   const webdavDir = `pages/${name}`
   const webdavFile = `${webdavDir}/index.html`

@@ -101,6 +101,23 @@ async function safeReaddir(dir: string): Promise<Dirent[]> {
 }
 
 /**
+ * 扫描本地 ./pages/ 中没有 HTML 文件的子目录
+ * 返回目录名列表（如 ['hello-world', 'my-project']）
+ */
+export async function scanEmptyDirs(): Promise<string[]> {
+  const out: string[] = [];
+  const rootEntries = await safeReaddir(LOCAL_PAGES_DIR);
+  for (const entry of rootEntries) {
+    if (entry.isDirectory()) {
+      const subEntries = await safeReaddir(path.join(LOCAL_PAGES_DIR, entry.name));
+      const hasHtml = subEntries.some((s) => s.isFile() && isHtmlPath(s.name));
+      if (!hasHtml) out.push(entry.name);
+    }
+  }
+  return out;
+}
+
+/**
  * 浅层递归扫描本地 `./pages/` 目录,收集根级与 1 级子目录下的所有 .html/.htm
  *
  * - 与 `lib/page-source/webdav.ts` 的 `scanPagesHtmlDeep` 保持同构

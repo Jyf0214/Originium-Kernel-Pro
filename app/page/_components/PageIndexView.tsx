@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Globe, Folder, Lock, FileCode, Plus } from 'lucide-react';
+import { Globe, Folder, Lock, FileCode, Plus, FolderOpen } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
 import Sidebar from '@/components/Sidebar/index';
@@ -28,9 +28,10 @@ export interface PageIndexItem {
 interface PageIndexViewProps {
   notConfigured: boolean;
   pages: PageIndexItem[];
+  emptyDirs: string[];
 }
 
-export function PageIndexView({ notConfigured, pages }: PageIndexViewProps) {
+export function PageIndexView({ notConfigured, pages, emptyDirs }: PageIndexViewProps) {
   const { t } = useI18n();
   const { isSudo } = useAuth();
   const router = useRouter();
@@ -73,10 +74,34 @@ export function PageIndexView({ notConfigured, pages }: PageIndexViewProps) {
 
             {notConfigured ? (
               <NotConfiguredCard />
-            ) : pages.length === 0 ? (
+            ) : pages.length === 0 && emptyDirs.length === 0 ? (
               <EmptyCard />
             ) : (
-              <PageGrid pages={pages} />
+              <>
+                {pages.length > 0 && <PageGrid pages={pages} />}
+                {emptyDirs.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-sm font-medium text-zinc-500 mb-3">空文件夹（尚未添加页面文件）</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {emptyDirs.map((dir) => (
+                        <Link
+                          key={dir}
+                          href={`/admin/storage`}
+                          className="group block rounded-2xl bg-white p-5 ring-1 ring-amber-200/60 bg-amber-50/30 hover:ring-amber-400 transition-all duration-200 no-underline"
+                        >
+                          <div className="flex items-start gap-3 mb-3">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+                              <FolderOpen size={18} aria-hidden />
+                            </div>
+                          </div>
+                          <h3 className="text-base font-semibold text-zinc-900 mb-1">{dir}</h3>
+                          <p className="text-xs text-amber-600">点击前往文件管理页上传文件</p>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </main>
