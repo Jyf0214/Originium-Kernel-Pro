@@ -293,10 +293,22 @@ async function main() {
     fail('list html recursive', err);
   }
 
-  if (entries === null || (Array.isArray(entries) && entries.length === 0)) {
-    // 容错:远端 pages/ 缺失(404)或为空,自动建仓 + exit 0
+  if (entries === null) {
+    // 容错:远端 pages/ 缺失(404),自动建仓 + exit 0
     await bootstrapRemoteAndExit(client);
     return; // 不可达(bootstrap 内部已 process.exit(0))
+  }
+
+  // 目录存在但无 HTML 文件 → 清空本地后正常退出(不触发 bootstrap)
+  if (entries.length === 0) {
+    console.log(`${LOG_PREFIX} WebDAV pages/ 目录存在但无 HTML 文件`);
+    try {
+      await fs.rm(LOCAL_DIR, { recursive: true, force: true });
+      await fs.mkdir(LOCAL_DIR, { recursive: true });
+    } catch (err) {
+      fail('reset local pages/', err);
+    }
+    return;
   }
 
   console.log(`${LOG_PREFIX} WebDAV pages/ 共发现 ${entries.length} 个 HTML 文件`);
