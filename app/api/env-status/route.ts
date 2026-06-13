@@ -156,28 +156,71 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
       ],
     },
     storage: {
-      name: '存储池 (WebDAV)',
+      name: process.env.STORAGE_TYPE?.toLowerCase() === 'backblaze'
+        ? '存储池 (Backblaze B2)'
+        : '存储池 (WebDAV)',
       nameKey: 'env.groups.storage',
       descriptionKey: 'env.groups.storage.desc',
       variables: [
         {
-          name: 'WEBDAV_URL',
-          isSet: !!process.env.WEBDAV_URL,
+          name: 'STORAGE_TYPE',
+          isSet: !!process.env.STORAGE_TYPE,
           required: false,
-          descriptionKey: 'env.vars.storage.WEBDAV_URL',
+          descriptionKey: 'env.vars.storage.STORAGE_TYPE',
         },
-        {
-          name: 'WEBDAV_USER',
-          isSet: !!process.env.WEBDAV_USER,
-          required: false,
-          descriptionKey: 'env.vars.storage.WEBDAV_USER',
-        },
-        {
-          name: 'WEBDAV_PASS',
-          isSet: !!process.env.WEBDAV_PASS,
-          required: false,
-          descriptionKey: 'env.vars.storage.WEBDAV_PASS',
-        },
+        ...(process.env.STORAGE_TYPE?.toLowerCase() === 'backblaze'
+          ? [
+              {
+                name: 'B2_KEY_ID',
+                isSet: !!process.env.B2_KEY_ID,
+                required: true,
+                descriptionKey: 'env.vars.storage.B2_KEY_ID',
+              },
+              {
+                name: 'B2_APP_KEY',
+                isSet: !!process.env.B2_APP_KEY,
+                required: true,
+                descriptionKey: 'env.vars.storage.B2_APP_KEY',
+              },
+              {
+                name: 'B2_BUCKET',
+                isSet: !!process.env.B2_BUCKET,
+                required: true,
+                descriptionKey: 'env.vars.storage.B2_BUCKET',
+              },
+              {
+                name: 'B2_DOWNLOAD_URL',
+                isSet: !!process.env.B2_DOWNLOAD_URL,
+                required: false,
+                descriptionKey: 'env.vars.storage.B2_DOWNLOAD_URL',
+              },
+              {
+                name: 'B2_ENDPOINT',
+                isSet: !!process.env.B2_ENDPOINT,
+                required: false,
+                descriptionKey: 'env.vars.storage.B2_ENDPOINT',
+              },
+            ]
+          : [
+              {
+                name: 'WEBDAV_URL',
+                isSet: !!process.env.WEBDAV_URL,
+                required: false,
+                descriptionKey: 'env.vars.storage.WEBDAV_URL',
+              },
+              {
+                name: 'WEBDAV_USER',
+                isSet: !!process.env.WEBDAV_USER,
+                required: false,
+                descriptionKey: 'env.vars.storage.WEBDAV_USER',
+              },
+              {
+                name: 'WEBDAV_PASS',
+                isSet: !!process.env.WEBDAV_PASS,
+                required: false,
+                descriptionKey: 'env.vars.storage.WEBDAV_PASS',
+              },
+            ]),
       ],
     },
     smtp: {

@@ -378,8 +378,8 @@
         "desc": "文章详情页评论区。四个变量必须同时设置，否则仅渲染占位符。"
       },
       "storage": {
-        "name": "存储池 (WebDAV)",
-        "desc": "WebDAV 远程存储后端。三个变量 (URL / USER / PASS) 必须同时设置；部分配置视为未配置。"
+        "name": "存储池",
+        "desc": "远程存储后端。当前支持 WebDAV 和 B2（Backblaze），根据 STORAGE_TYPE 选择。三个变量 (URL / USER / PASS) 必须同时设置；部分配置视为未配置。"
       },
       "smtp": {
         "name": "SMTP 邮件",
@@ -428,9 +428,9 @@
         "NEXT_PUBLIC_GISCUS_CATEGORY_ID": "giscus.app 颁发的分类 ID。需与 NEXT_PUBLIC_GISCUS_CATEGORY 同时设置。"
       },
       "storage": {
-        "WEBDAV_URL": "WebDAV 服务器根 URL（例如 https://dav.example.com/dav）。需指向配置用户可写的目录。",
-        "WEBDAV_USER": "WebDAV HTTP Basic 认证用户名。",
-        "WEBDAV_PASS": "WebDAV HTTP Basic 认证密码。"
+        "WEBDAV_URL": "WebDAV 服务器根 URL（例如 https://dav.example.com/dav）。需指向配置用户可写的目录。使用 B2 后端时无需设置。",
+        "WEBDAV_USER": "WebDAV HTTP Basic 认证用户名。使用 B2 后端时无需设置。",
+        "WEBDAV_PASS": "WebDAV HTTP Basic 认证密码。使用 B2 后端时无需设置。"
       },
       "smtp": {
         "SMTP_HOST": "SMTP 服务器主机名（例如 smtp.gmail.com、smtp.sendgrid.net）。",
@@ -690,8 +690,8 @@
   },
   "storage": {
     "title": "存储池",
-    "notConfigured": "WebDAV 未配置",
-    "notConfiguredDesc": "请在 .env.local 中设置 WEBDAV_URL、WEBDAV_USER、WEBDAV_PASS 三个环境变量,然后重启服务。",
+    "notConfigured": "存储池未配置",
+    "notConfiguredDesc": "请在 .env.local 中设置 STORAGE_TYPE 及相关环境变量（WebDAV 需 WEBDAV_URL/USER/PASS，B2 需 B2_* 系列变量），然后重启服务。",
     "folders": "文件夹",
     "files": "文件",
     "root": "根目录",
@@ -739,7 +739,7 @@
     "guest": "游客",
     "guestLoginPrompt": "登录后查看个性化内容",
     "notConfigured": "自定义页面未配置",
-    "notConfiguredDesc": "请在 .env.local 中设置 WEBDAV_URL、WEBDAV_USER、WEBDAV_PASS 后重启服务,并在 pages/ 目录下放置 HTML 文件。",
+    "notConfiguredDesc": "请在 .env.local 中设置 STORAGE_TYPE 及相关环境变量（WebDAV 需 WEBDAV_URL/USER/PASS，B2 需 B2_* 系列变量）后重启服务,并在存储后端 pages/ 目录下放置 HTML 文件。",
     "notFound": "页面不存在",
     "loadError": "页面加载失败",
     "loading": "加载中",
@@ -750,9 +750,9 @@
     "showPassword": "显示密码",
     "hidePassword": "隐藏密码",
     "indexTitle": "自定义页面",
-    "indexSubtitle": "由 WebDAV `pages/` 目录驱动。私有页面会带锁标,首次访问需要密码。",
+    "indexSubtitle": "由远程存储后端 `pages/` 目录驱动（WebDAV 或 B2）。私有页面会带锁标,首次访问需要密码。",
     "indexEmpty": "暂无可用页面",
-    "indexEmptyHint": "在 WebDAV `pages/` 目录下放置 `.html` 文件后会自动列出。",
+    "indexEmptyHint": "在存储后端（WebDAV 或 B2）`pages/` 目录下放置 `.html` 文件后会自动列出。",
     "indexFolder": "目录",
     "indexPrivateBadge": "私有",
     "indexPublicBadge": "公开"

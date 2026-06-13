@@ -106,7 +106,7 @@ export function StorageAdminShell() {
 
   const handleEntryDelete = (entry: WebDavEntry) => {
     if (!state.configured) {
-      showError('WebDAV 未配置,无法删除');
+      showError('存储后端未配置,无法删除');
       return;
     }
     if (entry.isDirectory) {
@@ -263,7 +263,7 @@ export function StorageAdminShell() {
                   icon={<FolderPlus size={14} />}
                   onClick={() => state.openDialog('mkdir')}
                   disabled={!state.configured}
-                  title={!state.configured ? 'WebDAV 未配置' : labels.newFolder}
+                  title={!state.configured ? '存储后端未配置' : labels.newFolder}
                 >
                   {labels.newFolder}
                 </Button>
@@ -273,7 +273,7 @@ export function StorageAdminShell() {
                   icon={<Upload size={14} />}
                   onClick={() => state.openDialog('upload')}
                   disabled={!state.configured}
-                  title={!state.configured ? 'WebDAV 未配置' : labels.upload}
+                  title={!state.configured ? '存储后端未配置' : labels.upload}
                 >
                   {labels.upload}
                 </Button>
