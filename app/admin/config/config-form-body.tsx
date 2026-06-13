@@ -1,7 +1,32 @@
 'use client';
 
 import React from 'react';
-import { Settings, Loader2 } from 'lucide-react';
+import {
+  Globe,
+  Shield,
+  Palette,
+  Code,
+  FileCode,
+  Navigation,
+  Heart,
+  Highlighter,
+  Copy,
+  Share2,
+  User,
+  Image,
+  TriangleAlert,
+  FileText,
+  Hash,
+  List,
+  Copyright,
+  Gift,
+  Pencil,
+  Share,
+  Pipette,
+  PanelBottom,
+  Loader2,
+  type LucideIcon,
+} from 'lucide-react';
 import ConfigSection from '@/components/ui/ConfigSection';
 import FormField from '@/components/ui/FormField';
 import ToggleField from '@/components/ui/ToggleField';
@@ -65,7 +90,7 @@ function LoadingAnimationsSection({
   const slogansText = (config.appearance.loading?.slogans ?? []).join('\n');
 
   return (
-    <ConfigSection title="加载动画" icon={Loader2} color="bg-purple-500">
+    <ConfigSection id="section-loading" title="加载动画" icon={Loader2} color="bg-purple-500">
       <div className="space-y-4">
         <LoadingAnimationConfig
           title="轻加载（页面内数据加载）"
@@ -94,15 +119,16 @@ function LoadingAnimationsSection({
 }
 
 interface SimpleHandlerSection {
+  id: string;
   title: string;
   color: string;
-  icon?: React.ReactNode;
+  icon?: LucideIcon;
   children: React.ReactNode;
 }
 
 function renderSimpleSection(s: SimpleHandlerSection, idx: number) {
   return (
-    <ConfigSection key={idx} title={s.title} color={s.color}>
+    <ConfigSection key={idx} id={s.id} title={s.title} icon={s.icon} color={s.color}>
       {s.children}
     </ConfigSection>
   );
@@ -233,34 +259,34 @@ export default function ConfigFormBody({
   const headPlaceholder = '<meta name="example" content="value">';
 
   const simpleSections: SimpleHandlerSection[] = [
-    { title: ft('config.customCSS', '自定义 CSS'), color: 'bg-orange-500', children: <FormField label="" value={config.appearance.customCSS} onChange={handleCssChange} type="textarea" rows={6} placeholder={ft('config.customCSSPlaceholder', cssPlaceholder)} /> },
-    { title: ft('config.customHead', '自定义 Head 标签'), color: 'bg-cyan-500', children: <FormField label="" value={config.appearance.customHead} onChange={handleHeadChange} type="textarea" rows={4} placeholder={ft('config.customHeadPlaceholder', headPlaceholder)} /> },
-    { title: ft('config.nav', '导航栏'), color: 'bg-indigo-500', children: <NavConfig config={config.nav} onChange={handleNavChange} /> },
-    { title: ft('config.mourn', '哀悼日'), color: 'bg-zinc-500', children: <MournConfig config={config.mourn} onChange={handleMournChange} /> },
-    { title: ft('config.highlight', '代码高亮'), color: 'bg-emerald-600', children: <CodeBlockConfig config={config.highlight} onChange={handleHighlightChange} /> },
-    { title: ft('config.copy', '复制设置'), color: 'bg-cyan-600', children: <CopyConfig config={config.copy} onChange={handleCopyChange} /> },
-    { title: ft('config.social', '社交链接'), color: 'bg-pink-500', children: <SocialConfig config={config.social} onChange={handleSocialChange} /> },
-    { title: ft('config.authorStatus', '作者卡片'), color: 'bg-rose-500', children: <AuthorStatusConfig config={config.authorStatus} onChange={handleAuthorStatusChange} /> },
-    { title: ft('config.cover', '封面设置'), color: 'bg-teal-500', children: <CoverConfig config={config.cover} onChange={handleCoverChange} /> },
-    { title: ft('config.errorImg', '错误图片'), color: 'bg-red-500', children: <ErrorImgConfig config={config.errorImg} onChange={handleErrorImgChange} /> },
-    { title: ft('config.postMeta', '文章元信息'), color: 'bg-violet-500', children: <PostMetaConfig config={config.postMeta} onChange={handlePostMetaChange} /> },
-    { title: ft('config.wordcount', '字数统计'), color: 'bg-orange-600', children: <WordCountConfig config={config.wordcount} onChange={handleWordcountChange} /> },
-    { title: ft('config.toc', '目录'), color: 'bg-lime-600', children: <TocConfig config={config.toc} onChange={handleTocChange} /> },
-    { title: ft('config.copyright', '版权信息'), color: 'bg-blue-600', children: <CopyrightConfig config={config.copyright} onChange={handleCopyrightChange} /> },
-    { title: ft('config.reward', '打赏'), color: 'bg-yellow-600', children: <RewardConfig config={config.reward} onChange={handleRewardChange} /> },
-    { title: ft('config.postEdit', '在线编辑'), color: 'bg-sky-600', children: <PostEditConfig config={config.postEdit} onChange={handlePostEditChange} /> },
-    { title: ft('config.share', '分享'), color: 'bg-green-500', children: <ShareConfig config={config.share} onChange={handleShareChange} /> },
-    { title: ft('config.mainTone', '主色调'), color: 'bg-purple-500', children: <MainToneConfig config={config.mainTone} onChange={handleMainToneChange} /> },
-    { title: ft('config.footer', '页脚'), color: 'bg-zinc-600', children: <FooterConfig config={config.footer} onChange={handleFooterChange} /> },
+    { id: 'section-custom-css', title: ft('config.customCSS', '自定义 CSS'), icon: Code, color: 'bg-orange-500', children: <FormField label="" value={config.appearance.customCSS} onChange={handleCssChange} type="textarea" rows={6} placeholder={ft('config.customCSSPlaceholder', cssPlaceholder)} /> },
+    { id: 'section-custom-head', title: ft('config.customHead', '自定义 Head 标签'), icon: FileCode, color: 'bg-cyan-500', children: <FormField label="" value={config.appearance.customHead} onChange={handleHeadChange} type="textarea" rows={4} placeholder={ft('config.customHeadPlaceholder', headPlaceholder)} /> },
+    { id: 'section-nav', title: ft('config.nav', '导航栏'), icon: Navigation, color: 'bg-indigo-500', children: <NavConfig config={config.nav} onChange={handleNavChange} /> },
+    { id: 'section-mourn', title: ft('config.mourn', '哀悼日'), icon: Heart, color: 'bg-zinc-500', children: <MournConfig config={config.mourn} onChange={handleMournChange} /> },
+    { id: 'section-highlight', title: ft('config.highlight', '代码高亮'), icon: Highlighter, color: 'bg-emerald-600', children: <CodeBlockConfig config={config.highlight} onChange={handleHighlightChange} /> },
+    { id: 'section-copy', title: ft('config.copy', '复制设置'), icon: Copy, color: 'bg-cyan-600', children: <CopyConfig config={config.copy} onChange={handleCopyChange} /> },
+    { id: 'section-social', title: ft('config.social', '社交链接'), icon: Share2, color: 'bg-pink-500', children: <SocialConfig config={config.social} onChange={handleSocialChange} /> },
+    { id: 'section-author', title: ft('config.authorStatus', '作者卡片'), icon: User, color: 'bg-rose-500', children: <AuthorStatusConfig config={config.authorStatus} onChange={handleAuthorStatusChange} /> },
+    { id: 'section-cover', title: ft('config.cover', '封面设置'), icon: Image, color: 'bg-teal-500', children: <CoverConfig config={config.cover} onChange={handleCoverChange} /> },
+    { id: 'section-error', title: ft('config.errorImg', '错误图片'), icon: TriangleAlert, color: 'bg-red-500', children: <ErrorImgConfig config={config.errorImg} onChange={handleErrorImgChange} /> },
+    { id: 'section-postmeta', title: ft('config.postMeta', '文章元信息'), icon: FileText, color: 'bg-violet-500', children: <PostMetaConfig config={config.postMeta} onChange={handlePostMetaChange} /> },
+    { id: 'section-wordcount', title: ft('config.wordcount', '字数统计'), icon: Hash, color: 'bg-orange-600', children: <WordCountConfig config={config.wordcount} onChange={handleWordcountChange} /> },
+    { id: 'section-toc', title: ft('config.toc', '目录'), icon: List, color: 'bg-lime-600', children: <TocConfig config={config.toc} onChange={handleTocChange} /> },
+    { id: 'section-copyright', title: ft('config.copyright', '版权信息'), icon: Copyright, color: 'bg-blue-600', children: <CopyrightConfig config={config.copyright} onChange={handleCopyrightChange} /> },
+    { id: 'section-reward', title: ft('config.reward', '打赏'), icon: Gift, color: 'bg-yellow-600', children: <RewardConfig config={config.reward} onChange={handleRewardChange} /> },
+    { id: 'section-postedit', title: ft('config.postEdit', '在线编辑'), icon: Pencil, color: 'bg-sky-600', children: <PostEditConfig config={config.postEdit} onChange={handlePostEditChange} /> },
+    { id: 'section-share', title: ft('config.share', '分享'), icon: Share, color: 'bg-green-500', children: <ShareConfig config={config.share} onChange={handleShareChange} /> },
+    { id: 'section-maintone', title: ft('config.mainTone', '主色调'), icon: Pipette, color: 'bg-purple-500', children: <MainToneConfig config={config.mainTone} onChange={handleMainToneChange} /> },
+    { id: 'section-footer', title: ft('config.footer', '页脚'), icon: PanelBottom, color: 'bg-zinc-600', children: <FooterConfig config={config.footer} onChange={handleFooterChange} /> },
   ];
 
   return (
     <>
-      <ConfigSection title={t('config.general')} color="bg-emerald-500">
+      <ConfigSection id="section-general" title={t('config.general')} icon={Globe} color="bg-emerald-500">
         <SiteConfigForm config={config.site} onChange={handleSiteChange} />
       </ConfigSection>
 
-      <ConfigSection title={t('config.auth')} icon={Settings} color="bg-amber-500">
+      <ConfigSection id="section-auth" title={t('config.auth')} icon={Shield} color="bg-amber-500">
         <ToggleField
           label={t('config.allowRegistration')}
           description={t('config.allowRegistrationHint')}
@@ -270,6 +296,7 @@ export default function ConfigFormBody({
       </ConfigSection>
 
       <AccessControlSection
+        id="section-access"
         title={ft('config.accessControl', '访问控制')}
         items={accessItems}
         isPublic={isAccessPublic}
@@ -278,7 +305,7 @@ export default function ConfigFormBody({
         privateLabel={ft('config.accessPrivate', '私有（默认全部）')}
       />
 
-      <ConfigSection title={t('config.background')} color="bg-blue-500">
+      <ConfigSection id="section-background" title={t('config.background')} icon={Palette} color="bg-blue-500">
         <BackgroundConfig
           config={config.appearance.background}
           onChange={handleBgChange}

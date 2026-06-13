@@ -1,16 +1,45 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Settings, Save } from 'lucide-react';
 import GitHubStatus from '@/components/ui/GitHubStatus';
 import ConfigFormBody from './config-form-body';
 import type { ConfigState } from './config-builders';
+import { cn } from '@/lib/ui';
+
+/** 侧边导航配置项 */
+const sections = [
+  { id: 'section-general', label: '基本信息' },
+  { id: 'section-auth', label: '认证' },
+  { id: 'section-access', label: '访问控制' },
+  { id: 'section-background', label: '背景' },
+  { id: 'section-custom-css', label: '自定义 CSS' },
+  { id: 'section-custom-head', label: '自定义 Head' },
+  { id: 'section-nav', label: '导航栏' },
+  { id: 'section-mourn', label: '哀悼日' },
+  { id: 'section-highlight', label: '代码高亮' },
+  { id: 'section-copy', label: '复制设置' },
+  { id: 'section-social', label: '社交链接' },
+  { id: 'section-author', label: '作者卡片' },
+  { id: 'section-cover', label: '封面设置' },
+  { id: 'section-error', label: '错误图片' },
+  { id: 'section-postmeta', label: '文章元信息' },
+  { id: 'section-wordcount', label: '字数统计' },
+  { id: 'section-toc', label: '目录' },
+  { id: 'section-copyright', label: '版权信息' },
+  { id: 'section-reward', label: '打赏' },
+  { id: 'section-postedit', label: '在线编辑' },
+  { id: 'section-share', label: '分享' },
+  { id: 'section-maintone', label: '主色调' },
+  { id: 'section-footer', label: '页脚' },
+  { id: 'section-loading', label: '加载动画' },
+];
 
 function ConfigPageHeader({ t }: { t: (key: string) => string }) {
   return (
-    <div className="flex items-center gap-3 mb-6">
-      <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center">
+    <div className="flex items-center gap-3">
+      <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center shrink-0">
         <Settings size={18} className="text-white" />
       </div>
       <div>
@@ -45,31 +74,37 @@ function RemoteFetchErrorAlert({ error }: { error: string }) {
   );
 }
 
-function SaveButton({
-  saving,
-  githubConfigured,
-  remoteFetchFailed,
-  onSave,
-}: {
-  saving: boolean;
-  githubConfigured: boolean;
-  remoteFetchFailed: boolean;
-  onSave: () => void;
-}) {
+/**
+ * 侧边锚点导航栏 — 仅 lg 以上屏幕显示，固定在左侧
+ */
+function SidebarNav({ activeId }: { activeId: string }) {
+  const handleClick = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
-    <div className="fixed bottom-8 right-8 z-50">
-      <Button
-        variant="primary"
-        rounded="full"
-        size="lg"
-        iconOnly
-        icon={<Save size={18} />}
-        onClick={onSave}
-        loading={saving}
-        disabled={!githubConfigured || remoteFetchFailed}
-        className="shadow-lg"
-      />
-    </div>
+    <nav className="hidden lg:block fixed left-6 top-1/2 -translate-y-1/2 z-40 w-40 max-h-[70vh] overflow-y-auto scrollbar-thin">
+      <div className="space-y-0.5">
+        {sections.map((sec) => (
+          <button
+            key={sec.id}
+            type="button"
+            onClick={() => handleClick(sec.id)}
+            className={cn(
+              'block w-full text-left px-3 py-1.5 rounded-lg text-xs transition-all duration-200',
+              activeId === sec.id
+                ? 'text-zinc-900 font-medium bg-zinc-200/60'
+                : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100',
+            )}
+          >
+            {sec.label}
+          </button>
+        ))}
+      </div>
+    </nav>
   );
 }
 
@@ -96,10 +131,97 @@ export default function ConfigEditor({
 }) {
   const remoteFetchFailed = !!(remoteConfigStatus === 'error' && githubConfigured);
 
+  /** 当前激活的分区 ID（用于侧边导航高亮） */
+  const [activeSection, setActiveSection] = useState<string>(sections[0]?.id ?? '');
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  /** 使用 IntersectionObserver 监听各分区进入视口 */
+  const setupObserver = useCallback(() => {
+    // 清理旧观察器
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    const visibleSections = new Map<string, number>();
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const id = entry.target.id;
+          if (entry.isIntersecting) {
+            visibleSections.set(id, entry.intersectionRatio);
+          } else {
+            visibleSections.delete(id);
+          }
+        });
+
+        // 选择可见比例最高的分区作为激活项
+        if (visibleSections.size > 0) {
+          let bestId = sections[0]?.id ?? '';
+          let bestRatio = 0;
+          visibleSections.forEach((ratio, id) => {
+            if (ratio > bestRatio) {
+              bestRatio = ratio;
+              bestId = id;
+            }
+          });
+          setActiveSection(bestId);
+        }
+      },
+      {
+        rootMargin: '-80px 0px -40% 0px',
+        threshold: [0, 0.1, 0.25, 0.5],
+      },
+    );
+
+    // 观察所有分区元素
+    sections.forEach((sec) => {
+      const el = document.getElementById(sec.id);
+      if (el) {
+        observerRef.current!.observe(el);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    // 延迟初始化，等待 DOM 渲染完成
+    const timer = setTimeout(setupObserver, 100);
+    return () => {
+      clearTimeout(timer);
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [setupObserver]);
+
   return (
     <div className="min-h-screen bg-zinc-50">
-      <div className="p-6 md:p-10 max-w-4xl mx-auto space-y-4">
-        <ConfigPageHeader t={t} />
+      {/* 侧边锚点导航 */}
+      <SidebarNav activeId={activeSection} />
+
+      {/* 主内容区：左侧留出导航空间 */}
+      <div className="p-6 lg:pl-56 max-w-4xl mx-auto space-y-4">
+        {/* 顶部工具栏：标题 + 保存按钮 */}
+        <div className="flex items-center justify-between">
+          <ConfigPageHeader t={t} />
+          <div className="flex items-center gap-3">
+            <GitHubStatus
+              configured={githubConfigured}
+              configuredText="已配置"
+              notConfiguredText="未配置"
+            />
+            <Button
+              variant="primary"
+              size="md"
+              icon={<Save size={16} />}
+              onClick={onSave}
+              loading={saving}
+              disabled={!githubConfigured || remoteFetchFailed}
+            >
+              保存配置
+            </Button>
+          </div>
+        </div>
 
         {remoteFetchFailed && (
           <RemoteFetchErrorAlert error={remoteConfigError} />
@@ -107,21 +229,8 @@ export default function ConfigEditor({
 
         <ConfigFormBody config={config} onConfigChange={onConfigChange} t={t} />
 
-        <GitHubStatus
-          configured={githubConfigured}
-          configuredText="已配置，将保存到 GitHub"
-          notConfiguredText="未配置（请设置 GITHUB_REPO 和 GITHUB_TOKEN）"
-        />
-
         {DiffModal}
       </div>
-
-      <SaveButton
-        saving={saving}
-        githubConfigured={githubConfigured}
-        remoteFetchFailed={remoteFetchFailed}
-        onSave={onSave}
-      />
     </div>
   );
 }
