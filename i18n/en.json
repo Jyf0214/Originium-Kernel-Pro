@@ -178,7 +178,9 @@
     "configPreview": "Config Preview",
     "returnDashboard": "Back to Dashboard",
     "customPages": "Custom Pages",
-    "fileManager": "File Manager"
+    "fileManager": "File Manager",
+    "switchToUserMenu": "Switch to User Menu",
+    "switchToAdminMenu": "Back to Admin Menu"
   },
   "tickets": {
     "add": "Add",

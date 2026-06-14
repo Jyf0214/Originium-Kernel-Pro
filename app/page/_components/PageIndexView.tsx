@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Globe, Folder, Lock, FileCode, Plus, FolderOpen } from 'lucide-react';
+import { Globe, Folder, Lock, FileCode, Plus, FolderOpen, RotateCw } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
 import Sidebar from '@/components/Sidebar/index';
@@ -36,6 +36,14 @@ export function PageIndexView({ notConfigured, pages, emptyDirs }: PageIndexView
   const { isSudo } = useAuth();
   const router = useRouter();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    router.refresh();
+    setTimeout(() => setRefreshing(false), 800);
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -58,9 +66,18 @@ export function PageIndexView({ notConfigured, pages, emptyDirs }: PageIndexView
               </p>
             </header>
 
-            {/* 管理员新建页面按钮 */}
+            {/* 管理员操作：刷新 + 新建页面 */}
             {isSudo && (
-              <div className="flex justify-end mb-4">
+              <div className="flex justify-end gap-2 mb-4">
+                <Button
+                  variant="default"
+                  size="sm"
+                  icon={<RotateCw size={14} className={refreshing ? 'animate-spin' : ''} />}
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                >
+                  {t('common.refresh')}
+                </Button>
                 <Button
                   variant="primary"
                   size="sm"

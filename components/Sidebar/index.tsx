@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
+import { ArrowLeftFromLine, ArrowRightToLine } from 'lucide-react';
 import SidebarHeader from './SidebarHeader';
 import SidebarUserMenu from './SidebarUserMenu';
 import SidebarGroup from './SidebarGroup';
@@ -18,6 +19,9 @@ function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
   const { t } = useI18n();
   const { isOpen, open, close } = useSidebarState();
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const [internalVariant, setInternalVariant] = useState<SidebarVariant | null>(null);
+
+  const effectiveVariant: SidebarVariant = internalVariant ?? variant;
 
   const visibleUserItems: MenuItem[] = userMenuItems.filter((item) => {
     if (!item.roles || item.roles.length === 0) return true;
@@ -25,7 +29,7 @@ function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
     return false;
   });
 
-  const items: MenuItem[] = variant === 'admin' ? adminMenuItems : visibleUserItems;
+  const items: MenuItem[] = effectiveVariant === 'admin' ? adminMenuItems : visibleUserItems;
 
   const handleLogout = async () => {
     await logout();
@@ -66,6 +70,27 @@ function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
             t={t}
           />
         ))}
+
+        {/* 视图切换按钮：在管理后台菜单中快速切换到用户面板菜单 */}
+        {effectiveVariant === 'admin' ? (
+          <button
+            type="button"
+            onClick={() => setInternalVariant('user')}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 transition-all duration-300 w-full no-underline font-medium"
+          >
+            <ArrowRightToLine size={18} className="shrink-0 text-zinc-300" />
+            <span>{t('sidebar.switchToUserMenu')}</span>
+          </button>
+        ) : variant === 'admin' ? (
+          <button
+            type="button"
+            onClick={() => setInternalVariant(null)}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-all duration-300 w-full no-underline font-medium"
+          >
+            <ArrowLeftFromLine size={18} className="shrink-0 text-amber-400" />
+            <span>{t('sidebar.switchToAdminMenu')}</span>
+          </button>
+        ) : null}
       </nav>
     </div>
   );
