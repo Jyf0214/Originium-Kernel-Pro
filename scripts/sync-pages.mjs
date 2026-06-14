@@ -356,8 +356,13 @@ async function webdavBootstrapAndExit(client) {
     }
   }
   if (allFailed) {
-    console.error(`${LOG_PREFIX} ❌ 所有必需目录创建失败,构建终止`);
-    process.exit(1);
+    console.warn(`${LOG_PREFIX} ⚠️ 必需目录创建失败,跳过同步(保留本地缓存)`);
+    try {
+      await fs.access(LOCAL_DIR);
+    } catch {
+      await fs.mkdir(LOCAL_DIR, { recursive: true });
+    }
+    return;
   }
   console.log(`${LOG_PREFIX} ℹ️ 目标目录原本缺失,已自动创建必需结构,build 继续`);
 
@@ -446,31 +451,41 @@ async function b2ResolveBucketId(authToken, apiUrl, bucketName) {
     if (found) return found.bucketId;
   }
 
-  // 回退:调用 b2_list_buckets 列出所有 bucket
-  const resp = await fetch(`${apiUrl}/b2api/v3/b2_list_buckets`, {
-    method: 'POST',
-    headers: {
-      Authorization: authToken,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({}),
-  });
+  // 鉴权响应无 bucketId 信息,尝试列出 bucket
+  // 如果 key 没有 listBuckets 权限（如仅绑定单桶的应用 key）,
+  // 跳过 list 调用直接使用 bucketName
+  try {
+    const resp = await fetch(`${apiUrl}/b2api/v3/b2_list_buckets`, {
+      method: 'POST',
+      headers: {
+        Authorization: authToken,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    });
 
-  if (!resp.ok) {
-    throw new Error(`B2 列出 bucket 失败(HTTP ${resp.status})`);
+    if (!resp.ok) {
+      console.warn(
+        `${LOG_PREFIX} 无法列出 bucket(HTTP ${resp.status},可能缺少 listBuckets 权限),使用 "${bucketName}" 继续`
+      );
+      return bucketName;
+    }
+
+    const data = await resp.json();
+    const buckets = data.buckets ?? [];
+    const found = buckets.find((b) => b.bucketName === bucketName);
+    if (!found) {
+      console.warn(
+        `${LOG_PREFIX} bucket "${bucketName}" 未在列表中找到,使用该名称继续`
+      );
+      return bucketName;
+    }
+
+    return found.bucketId;
+  } catch (err) {
+    console.warn(`${LOG_PREFIX} 列出 bucket 异常: ${err.message},使用 "${bucketName}" 继续`);
+    return bucketName;
   }
-
-  const data = await resp.json();
-  const buckets = data.buckets ?? [];
-  const found = buckets.find((b) => b.bucketName === bucketName);
-  if (!found) {
-    const names = buckets.map((b) => `"${b.bucketName}"`).join(', ');
-    throw new Error(
-      `B2 bucket "${bucketName}" 不存在,可用 bucket: [${names || '无'}]`
-    );
-  }
-
-  return found.bucketId;
 }
 
 /** 缓存 b2_authorize_account 的完整响应（用于 b2ResolveBucketId） */
@@ -755,11 +770,11 @@ async function b2ListHtmlRecursive() {
   try {
     rootData = await b2ListFiles(`${WEBDAV_PREFIX}/`);
   } catch (err) {
-    const msg = err.message || '';
+    const msg = err instanceof Error ? err.message : String(err);
     if (msg.includes('404') || msg.includes('not found')) {
       return null;
     }
-    fail('b2 list root', err);
+    throw new Error(`B2 列出根目录失败: ${msg}`);
   }
 
   // B2 可能返回 { files: [...], folders: [...] } 或 { files: { files: [...], nextFileName: ... } }
@@ -823,8 +838,13 @@ async function b2BootstrapAndExit() {
     }
   }
   if (allFailed) {
-    console.error(`${LOG_PREFIX} ❌ 所有必需目录创建失败,构建终止`);
-    process.exit(1);
+    console.warn(`${LOG_PREFIX} ⚠️ 必需目录创建失败,跳过同步(保留本地缓存)`);
+    try {
+      await fs.access(LOCAL_DIR);
+    } catch {
+      await fs.mkdir(LOCAL_DIR, { recursive: true });
+    }
+    return;
   }
   console.log(`${LOG_PREFIX} ℹ️ 目标目录原本缺失,已自动创建必需结构,build 继续`);
 
@@ -854,7 +874,8 @@ async function syncFromB2() {
     try {
       await fs.rm(LOCAL_DIR, { recursive: true, force: true });
     } catch (err) {
-      fail('rm local pages/ (b2 unconfigured path)', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`${LOG_PREFIX} ⚠️ 清空本地 ./pages/ 失败: ${msg}`);
     }
     return;
   }
