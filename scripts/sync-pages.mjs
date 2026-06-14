@@ -686,66 +686,72 @@ async function b2CreateDir(dirPath) {
   const normalized = dirPath.endsWith('/') ? dirPath : `${dirPath}/`;
   const keepFile = `${normalized}.keep`;
 
-  // 获取上传授权
-  const authResp = await fetch(`${auth.apiUrl}/b2api/v3/b2_get_upload_authorization`, {
-    method: 'POST',
-    headers: {
-      Authorization: auth.authorizationToken,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      bucketId: auth.bucketId,
-      fileNamePrefix: keepFile,
-    }),
-  });
+  /**
+   * 获取上传 URL + token，然后上传 .keep 占位文件
+   *
+   * B2 API v3 使用 b2_get_upload_url（非 b2_get_upload_authorization），
+   * 返回 uploadUrl + authorizationToken。认证失败时清除缓存重试一次。
+   */
+  async function getUploadUrlAndUpload() {
+    const urlResp = await fetch(`${auth.apiUrl}/b2api/v3/b2_get_upload_url`, {
+      method: 'POST',
+      headers: {
+        Authorization: auth.authorizationToken,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ bucketId: auth.bucketId }),
+    });
+    return urlResp;
+  }
 
-  if (authResp.status === 401) {
+  let urlResp = await getUploadUrlAndUpload();
+
+  // 401 → 清除缓存重试一次
+  if (urlResp.status === 401) {
     b2ClearAuth();
     const auth2 = await b2Authorize();
-    const authResp2 = await fetch(`${auth2.apiUrl}/b2api/v3/b2_get_upload_authorization`, {
+    // 临时覆盖 auth 为重授权后的值
+    urlResp = await fetch(`${auth2.apiUrl}/b2api/v3/b2_get_upload_url`, {
       method: 'POST',
       headers: {
         Authorization: auth2.authorizationToken,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        bucketId: auth2.bucketId,
-        fileNamePrefix: keepFile,
-      }),
+      body: JSON.stringify({ bucketId: auth2.bucketId }),
     });
-    if (!authResp2.ok) {
-      const body = await authResp2.text().catch(() => '');
-      throw new Error(`B2 get upload auth 失败(HTTP ${authResp2.status}): ${body.slice(0, 200)}`);
+    if (!urlResp.ok) {
+      const body = await urlResp.text().catch(() => '');
+      throw new Error(`B2 get upload url 失败(HTTP ${urlResp.status}): ${body.slice(0, 200)}`);
     }
-    const authData2 = await authResp2.json();
-    const uploadResp2 = await fetch(authData2.uploadUrl, {
+    const urlData = await urlResp.json();
+    const upResp = await fetch(urlData.uploadUrl, {
       method: 'POST',
       headers: {
-        Authorization: authData2.authorizationToken,
+        Authorization: urlData.authorizationToken,
         'X-Bz-File-Name': keepFile,
         'Content-Type': 'application/octet-stream',
         'X-Bz-Content-Sha1': 'do_not_verify',
       },
       body: Buffer.alloc(0),
     });
-    if (!uploadResp2.ok) {
-      const body = await uploadResp2.text().catch(() => '');
-      throw new Error(`B2 upload .keep 失败(HTTP ${uploadResp2.status}): ${body.slice(0, 200)}`);
+    if (!upResp.ok) {
+      const body = await upResp.text().catch(() => '');
+      throw new Error(`B2 upload .keep 失败(HTTP ${upResp.status}): ${body.slice(0, 200)}`);
     }
     return;
   }
 
-  if (!authResp.ok) {
-    const body = await authResp.text().catch(() => '');
-    throw new Error(`B2 get upload auth 失败(HTTP ${authResp.status}): ${body.slice(0, 200)}`);
+  if (!urlResp.ok) {
+    const body = await urlResp.text().catch(() => '');
+    throw new Error(`B2 get upload url 失败(HTTP ${urlResp.status}): ${body.slice(0, 200)}`);
   }
 
-  const authData = await authResp.json();
+  const urlData = await urlResp.json();
 
-  const uploadResp = await fetch(authData.uploadUrl, {
+  const uploadResp = await fetch(urlData.uploadUrl, {
     method: 'POST',
     headers: {
-      Authorization: authData.authorizationToken,
+      Authorization: urlData.authorizationToken,
       'X-Bz-File-Name': keepFile,
       'Content-Type': 'application/octet-stream',
       'X-Bz-Content-Sha1': 'do_not_verify',
