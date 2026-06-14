@@ -863,7 +863,16 @@ async function syncFromB2() {
   try {
     await b2Authorize();
   } catch (err) {
-    fail('b2 authorize', err);
+    // B2 鉴权失败不阻塞构建,保留本地缓存继续
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`${LOG_PREFIX} B2 鉴权失败,跳过同步(保留本地缓存): ${msg}`);
+    // 如果本地 pages/ 不存在,创建空目录确保构建不报错
+    try {
+      await fs.access(LOCAL_DIR);
+    } catch {
+      await fs.mkdir(LOCAL_DIR, { recursive: true });
+    }
+    return;
   }
 
   // 3. 列出全部 HTML 路径
@@ -871,7 +880,14 @@ async function syncFromB2() {
   try {
     entries = await b2ListHtmlRecursive();
   } catch (err) {
-    fail('b2 list html recursive', err);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`${LOG_PREFIX} B2 列出文件失败,跳过同步(保留本地缓存): ${msg}`);
+    try {
+      await fs.access(LOCAL_DIR);
+    } catch {
+      await fs.mkdir(LOCAL_DIR, { recursive: true });
+    }
+    return;
   }
 
   if (entries === null) {
