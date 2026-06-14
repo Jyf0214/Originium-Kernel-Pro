@@ -328,6 +328,7 @@ describe('B2Provider.putFileContents', () => {
     expect(uploadCall![1].headers).toMatchObject({
       Authorization: 'upload-token',
       'X-Bz-File-Name': 'pages/test.html',
+      'X-Bz-Content-Sha1': expect.any(String),
     })
   })
 

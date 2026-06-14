@@ -33,6 +33,7 @@ import type {
   ListDirectoryOptions,
   FileContent,
 } from './storage-provider'
+import { createHash } from 'node:crypto'
 
 /** B2 API 基础 URL */
 const B2_API_BASE = 'https://api.backblazeb2.com'
@@ -438,6 +439,7 @@ export class B2Provider implements StorageProvider {
 
     const uploadData = await toBuffer(data)
     const contentType = options?.headers?.['Content-Type'] ?? guessContentType(key)
+    const sha1 = createHash('sha1').update(uploadData).digest('hex')
 
     let uploadUrl: UploadUrl
     try {
@@ -456,6 +458,7 @@ export class B2Provider implements StorageProvider {
           'X-Bz-File-Name': encodeURIComponent(key).replace(/%2F/g, '/'),
           'Content-Type': contentType,
           'Content-Length': String(uploadData.length),
+          'X-Bz-Content-Sha1': sha1,
         },
         body: new Uint8Array(uploadData),
       })
