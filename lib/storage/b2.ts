@@ -402,6 +402,8 @@ export class B2Provider implements StorageProvider {
     // rclone 在 authorize 后为 rest client 设置默认 Authorization header，
     // 所有后续请求（含下载）自动携带。CDN 模式（如 Cloudflare Workers）
     // 同样依赖此 header 进行认证转发。
+    const mode = downloadUrl ? 'CDN' : '直连'
+    console.warn(`[B2] getFileContents path="${key}" mode=${mode} url="${effectiveDownloadUrl}"`)
     const resp = await fetch(effectiveDownloadUrl, {
       headers: { Authorization: auth.authorizationToken },
       signal: options?.signal,
@@ -414,7 +416,9 @@ export class B2Provider implements StorageProvider {
       throw Object.assign(new Error(`B2: 下载失败 ${resp.status} ${key}`), { status: resp.status })
     }
 
-    return Buffer.from(await resp.arrayBuffer())
+    const body = Buffer.from(await resp.arrayBuffer())
+    console.warn(`[B2] getFileContents path="${key}" mode=${mode} size=${body.length} status=${resp.status}`)
+    return body
   }
 
   /**
