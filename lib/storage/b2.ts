@@ -391,16 +391,25 @@ export class B2Provider implements StorageProvider {
       throw new Error('B2: 不能读取根路径')
     }
 
-    // 构建下载 URL
     const downloadUrl = process.env.B2_DOWNLOAD_URL
     const auth = await getAuthToken()
-    const effectiveDownloadUrl = downloadUrl
+
+    // 判断 CDN URL 是否指向本站自身
+    // B2 的 CDN URL 格式为 {download_url}/file/{bucket}/{path}，
+    // 若 download_url 指向与本站相同的域名，/file/ 路径不会匹配路由
+    // 此时应使用 B2 API 直连
+    const selfHost = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL ?? ''
+    const isSelfReferencing = !!(
+      downloadUrl && selfHost &&
+      (downloadUrl.includes(selfHost) || downloadUrl.includes('.vercel.app'))
+    )
+
+    const effectiveDownloadUrl = (downloadUrl && !isSelfReferencing)
       ? `${downloadUrl.replace(/\/+$/, '')}/file/${bucketName}/${encodeURIComponent(key).replace(/%2F/g, '/')}`
       : `${auth.apiUrl}/file/${bucketName}/${encodeURIComponent(key).replace(/%2F/g, '/')}`
 
-    // B2_DOWNLOAD_URL 已设置 → 只走 CDN（用户明确要求，不回退直连）
-    // 未设置 → 走 B2 API 直连
-    const mode = downloadUrl ? 'CDN' : '直连'
+    // B2_DOWNLOAD_URL 已设置且未自引用 → 走 CDN；否则走 B2 API 直连
+    const mode = (downloadUrl && !isSelfReferencing) ? 'CDN' : '直连'
     const url = effectiveDownloadUrl
 
     console.warn(`[B2] getFileContents path="${key}" mode=${mode} url="${url}"`)
