@@ -178,7 +178,9 @@
     "configPreview": "配置预览",
     "returnDashboard": "返回用户面板",
     "customPages": "自定义页面",
-    "fileManager": "文件管理"
+    "fileManager": "文件管理",
+    "switchToUserMenu": "切换到用户面板菜单",
+    "switchToAdminMenu": "返回管理后台菜单"
   },
   "tickets": {
     "add": "添加",
