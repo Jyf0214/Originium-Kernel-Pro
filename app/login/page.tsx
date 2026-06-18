@@ -3,9 +3,9 @@
 import React, { Suspense, useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Input, Form } from 'antd';
+import { Input, Form, message } from 'antd';
 import { Button } from '@/components/ui/Button';
-import { ChevronRight, Lock, Mail } from 'lucide-react';
+import { ChevronRight, Key, Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { ClerkAuthProvider } from '@/components/ClerkAuthProvider';
@@ -15,17 +15,17 @@ import AuthCard from '@/components/AuthCard';
 import AuthLayout from '@/components/AuthLayout';
 
 /**
- * 登录表单 — 两步流程：先输入邮箱/用户名，再输入密码
- * 底部可选 Clerk 第三方登录（仅配置了 Clerk 环境变量时显示）
+ * 登录表单 — 三种方式:账号密码 / API 密钥 / Clerk
  */
 function LoginForm() {
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<'email' | 'password'>('email');
+  const [step, setStep] = useState<'email' | 'password' | 'apikey'>('email');
   const [email, setEmail] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
   const [form] = Form.useForm();
+  const [apiKeyForm] = Form.useForm();
   const inputRef = useRef<React.ComponentRef<typeof Input>>(null);
   const { t } = useI18n();
 
@@ -48,6 +48,28 @@ function LoginForm() {
       router.push(callbackUrl);
     } catch {
       // useAuth 内部已处理错误提示
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApiKeyLogin = async (values: { key: string }) => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/apikey-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: values.key.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        message.success('登录成功');
+        router.push(callbackUrl);
+      } else {
+        message.error(data.error ?? '登录失败');
+      }
+    } catch {
+      message.error('网络请求失败');
     } finally {
       setLoading(false);
     }
@@ -76,6 +98,14 @@ function LoginForm() {
     <AuthCard
       footer={
         <div className="flex flex-col items-center gap-4 mt-4">
+          <button
+            type="button"
+            onClick={() => setStep('apikey')}
+            className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-600 transition-colors"
+          >
+            <Key size={14} />
+            {t('auth.loginWithApiKey') || '使用 API 密钥登录'}
+          </button>
           <Link href="/forgot-password">
             <span className="text-sm text-zinc-400 cursor-pointer hover:text-zinc-600">
               {t('auth.forgotPassword')}
@@ -164,9 +194,54 @@ function LoginForm() {
     </AuthCard>
   );
 
+  const renderApiKeyStep = () => (
+    <AuthCard
+      footer={
+        <div className="flex flex-col items-center gap-4 mt-4">
+          <Button
+            icon={<ChevronRight size={14} className="rotate-180" />}
+            size="lg"
+            onClick={handleBackToEmail}
+          >
+            {t('common.back')}
+          </Button>
+        </div>
+      }
+      subtitle={t('auth.apiKeyLoginSubtitle') || '输入 sk-xxx 格式的 API 密钥'}
+      title={t('auth.apiKeyLoginTitle') || 'API 密钥登录'}
+    >
+      <Form form={apiKeyForm} layout="vertical" onFinish={handleApiKeyLogin}>
+        <Form.Item
+          name="key"
+          rules={[{ required: true, message: t('auth.inputApiKey') || '请输入 API 密钥' }]}
+          style={{ marginBottom: 0 }}
+        >
+          <Input
+            placeholder="sk-..."
+            ref={inputRef}
+            size="large"
+            prefix={<Key size={16} className="mx-2 text-zinc-400" />}
+            style={inputStyle}
+            suffix={
+              <Button
+                icon={<ChevronRight size={14} />}
+                loading={loading}
+                title={t('auth.login')}
+                variant="filled"
+                onClick={() => apiKeyForm.submit()}
+              />
+            }
+          />
+        </Form.Item>
+      </Form>
+    </AuthCard>
+  );
+
   return (
     <AuthLayout>
-      {step === 'email' ? renderEmailStep() : renderPasswordStep()}
+      {step === 'email' && renderEmailStep()}
+      {step === 'password' && renderPasswordStep()}
+      {step === 'apikey' && renderApiKeyStep()}
     </AuthLayout>
   );
 }
