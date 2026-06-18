@@ -110,7 +110,8 @@ describe('HTTP/2 下载', () => {
     mocks._http2Connect.mockImplementation(makeMockSession('hello'));
     const r = await callGet(['p', 'f.html']);
     expect(r.status).toBe(200); expect(r.body).toBe('hello');
-    expect(r.headers['content-length']).toBe('100');
+    // Content-Length 应使用实际 body 长度，而非 stat.size（TOCTOU 防护）
+    expect(r.headers['content-length']).toBe(String(Buffer.from('hello').length));
   });
   it('text/html → attachment', async () => {
     mocks._stat.mockResolvedValue(makeStat({ mime: 'text/html' }));
