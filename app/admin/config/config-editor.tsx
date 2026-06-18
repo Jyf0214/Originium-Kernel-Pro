@@ -184,10 +184,20 @@ export default function ConfigEditor({
   }, []);
 
   useEffect(() => {
-    // 延迟初始化，等待 DOM 渲染完成
-    const timer = setTimeout(setupObserver, 100);
+    // 使用 requestAnimationFrame 重试等待 DOM 渲染完成，
+    // 比固定 setTimeout(100) 更可靠：表单渲染慢时也能等到元素出现
+    let rafId: number;
+    const retrySetup = () => {
+      const sectionEls = document.querySelectorAll('[id^="section-"]');
+      if (sectionEls.length === 0) {
+        rafId = requestAnimationFrame(retrySetup);
+        return;
+      }
+      setupObserver();
+    };
+    rafId = requestAnimationFrame(retrySetup);
     return () => {
-      clearTimeout(timer);
+      cancelAnimationFrame(rafId);
       if (observerRef.current) {
         observerRef.current.disconnect();
       }
