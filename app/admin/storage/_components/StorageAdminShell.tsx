@@ -25,6 +25,7 @@ import { StorageMkdirDialog } from './StorageMkdirDialog';
 import { StorageConfirmDeleteDialog } from './StorageConfirmDeleteDialog';
 import { StorageFolderSettingsPopover } from './StorageFolderSettingsPopover';
 import { StorageRenameDialog } from './StorageRenameDialog';
+import { StorageMoveDialog } from './StorageMoveDialog';
 import { StorageFilePreview } from './StorageFilePreview';
 import type { WebDavEntry } from '@/lib/storage/types';
 
@@ -118,6 +119,12 @@ export function StorageAdminShell() {
     copyUrlAction: t('storage.copyUrl'),
     openInNewWindow: t('storage.openInNewWindow'),
     download: t('storage.download'),
+    searchPlaceholder: t('storage.searchPlaceholder'),
+    noResults: t('storage.noResults'),
+    dragHereToUpload: t('storage.dragHereToUpload'),
+    moveTo: t('storage.moveTo'),
+    moveToTitle: t('storage.moveToTitle'),
+    moveToSelectFolder: t('storage.moveToSelectFolder'),
   };
 
   const handleEntryDelete = (entry: WebDavEntry) => {
@@ -186,6 +193,29 @@ export function StorageAdminShell() {
 
   // 预览相关状态
   const [previewEntry, setPreviewEntry] = useState<WebDavEntry | null>(null);
+
+  // 移动相关状态
+  const [moveTarget, setMoveTarget] = useState<WebDavEntry | null>(null);
+
+  const handleOpenMove = (entry: WebDavEntry) => {
+    setMoveTarget(entry);
+    state.openDialog('move', entry.basename);
+  };
+
+  const handleMove = async (destination: string) => {
+    if (!moveTarget) return;
+    // 构建完整源路径
+    const srcPath = state.currentPath
+      ? `${state.currentPath}/${moveTarget.filename}`
+      : moveTarget.filename;
+    const ok = await state.moveFileItem(srcPath, destination);
+    if (ok) setMoveTarget(null);
+  };
+
+  const handleMoveCancel = () => {
+    setMoveTarget(null);
+    state.closeDialog();
+  };
 
   // 重命名对话框当前名称
   const renameCurrentName = useMemo(() => {
@@ -362,6 +392,10 @@ export function StorageAdminShell() {
                 uploadLabel={labels.upload}
                 noFilesLabel={labels.noFiles}
                 noFilesHint={labels.noFilesHint}
+                searchPlaceholder={labels.searchPlaceholder}
+                noResultsLabel={labels.noResults}
+                dragHereLabel={labels.dragHereToUpload}
+                moveLabel={labels.moveTo}
                 sortField={state.sortField}
                 sortDirection={state.sortDirection}
                 onNavigate={state.navigateTo}
@@ -371,6 +405,8 @@ export function StorageAdminShell() {
                 onNewFolder={() => state.openDialog('mkdir')}
                 onUpload={() => state.openDialog('upload')}
                 onToggleSort={state.toggleSort}
+                onDropUpload={state.configured ? (files) => state.uploadFiles(files) : undefined}
+                onMove={handleOpenMove}
                 disabled={!state.configured}
               />
             </div>
@@ -432,6 +468,20 @@ export function StorageAdminShell() {
         rootLabel={labels.root}
         onCancel={handleRenameCancel}
         onRename={handleRename}
+        disabled={!state.configured}
+      />
+
+      <StorageMoveDialog
+        open={state.dialog === 'move'}
+        currentPath={moveTarget?.filename ?? ''}
+        folders={state.folders}
+        title={labels.moveToTitle}
+        selectFolderLabel={labels.moveToSelectFolder}
+        createLabel={labels.moveTo}
+        cancelLabel={labels.cancel}
+        rootLabel={labels.root}
+        onCancel={handleMoveCancel}
+        onMove={handleMove}
         disabled={!state.configured}
       />
 

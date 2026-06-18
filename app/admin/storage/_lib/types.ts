@@ -12,6 +12,7 @@ export type DialogKind =
   | 'delete-file'
   | 'delete-folder'
   | 'rename'
+  | 'move'
   | 'settings'
   | null;
 

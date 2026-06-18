@@ -25,6 +25,7 @@ import {
   fetchEntries,
   fetchFolders,
   mkdir,
+  moveFile as apiMoveFile,
   patchFolderMeta,
   renameFolder as apiRenameFolder,
   rmdir,
@@ -69,6 +70,8 @@ interface UseStorageState {
   ) => Promise<StorageFolderMeta | null>;
   /** 重命名文件夹 */
   renameFolder: (path: string, newName: string) => Promise<boolean>;
+  /** 移动文件/文件夹到目标目录 */
+  moveFileItem: (path: string, destination: string) => Promise<boolean>;
   /** 排序字段 */
   sortField: SortField;
   /** 排序方向 */
@@ -450,6 +453,42 @@ export function useStorageState(): UseStorageState {
     [configured, closeDialog]
   );
 
+  const moveFileItemCallback = useCallback(
+    async (path: string, destination: string): Promise<boolean> => {
+      if (!configured) {
+        message.error('存储后端未配置,无法移动');
+        return false;
+      }
+      try {
+        await apiMoveFile(path, destination);
+        // 移动成功后刷新当前目录
+        await loadEntries(currentPath);
+        // 如果移动的是文件夹,也刷新文件夹列表
+        if (!path.includes('.')) {
+          try {
+            const result = await fetchFolders();
+            setFolders(Array.isArray(result) ? result : []);
+          } catch { /* 忽略文件夹刷新失败 */ }
+        }
+        message.success('移动成功');
+        closeDialog();
+        return true;
+      } catch (err) {
+        if (err instanceof ApiError) {
+          if (err.isNotConfigured) {
+            setConfigured(false);
+            return false;
+          }
+          message.error(err.message);
+        } else {
+          message.error('移动失败');
+        }
+        return false;
+      }
+    },
+    [configured, currentPath, closeDialog, loadEntries]
+  );
+
   const toggleSort = useCallback((field: SortField) => {
     setSortField((prev) => {
       if (prev === field) {
@@ -482,6 +521,7 @@ export function useStorageState(): UseStorageState {
     toggleFolderPublic,
     setFolderPassword,
     renameFolder: renameFolderCallback,
+    moveFileItem: moveFileItemCallback,
     sortField,
     sortDirection,
     toggleSort,
