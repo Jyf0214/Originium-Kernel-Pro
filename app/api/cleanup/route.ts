@@ -3,6 +3,7 @@ import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { DELETION_PERIOD_DAYS } from '@/lib/constants';
 import { createApiLogger } from '@/lib/api-logger';
+import { apiHandler } from '@/lib/api-handler';
 
 const logger = createApiLogger('/api/cleanup');
 
@@ -23,61 +24,50 @@ async function isCleanupAuthorized(req: NextRequest): Promise<boolean> {
   return !!(cronSecret && expectedSecret && cronSecret === expectedSecret);
 }
 
-export async function POST(req: NextRequest) {
-  try {
-    if (!(await isCleanupAuthorized(req))) {
-      logger.warn('POST', '未授权');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    logger.info('POST', '开始清理过期文章');
-    const db = getDb();
-    const index = await db.hgetall('articles:index');
-    
-    const now = Date.now();
-    const periodMs = DELETION_PERIOD_DAYS * 24 * 60 * 60 * 1000;
-    
-    const deleted: string[] = [];
-    const errors: string[] = [];
-
-    for (const [id, data] of Object.entries(index)) {
-      try {
-        const article = JSON.parse(data);
-        
-        if (article.status === 'pending_deletion' && article.deletionRequestedAt) {
-          const requestedAt = new Date(article.deletionRequestedAt).getTime();
-          
-          // Check if deletion period has expired
-          if (now > requestedAt + periodMs) {
-            // Permanently delete
-            await db.del(`article:data:${id}`);
-            await db.hdel('articles:index', id);
-            await db.del(`file:articles/${id}.md`);
-            deleted.push(id);
-          }
-      }
-      } catch (error: unknown) {
-      errors.push(`Error processing article ${id}: ${error instanceof Error ? error.message : String(error)}`);
-      }
-    }
-
-    logger.info('POST', '清理任务完成', { deletedCount: deleted.length, errorCount: errors.length });
-    logger.info('POST', '清理完成', { deletedCount: deleted.length, errorCount: errors.length });
-    return NextResponse.json({
-      success: true,
-      message: `Cleanup completed. Deleted ${deleted.length} articles.`,
-      deleted,
-      errors,
-      timestamp: new Date().toISOString(),
-  });
-  } catch (error: unknown) {
-  logger.error('POST', '清理过期文章错误', { error: error instanceof Error ? error.message : String(error) });
-  return NextResponse.json({
-  error: 'Internal server error',
-  details: error instanceof Error ? error.message : String(error)
-    }, { status: 500 });
+export const POST = apiHandler('POST', { label: '清理过期文章' }, async (req: NextRequest) => {
+  if (!(await isCleanupAuthorized(req))) {
+    logger.warn('POST', '未授权');
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-}
+
+  logger.info('POST', '开始清理过期文章');
+  const db = getDb();
+  const index = await db.hgetall('articles:index');
+
+  const now = Date.now();
+  const periodMs = DELETION_PERIOD_DAYS * 24 * 60 * 60 * 1000;
+
+  const deleted: string[] = [];
+  const errors: string[] = [];
+
+  for (const [id, data] of Object.entries(index)) {
+    try {
+      const article = JSON.parse(data);
+
+      if (article.status === 'pending_deletion' && article.deletionRequestedAt) {
+        const requestedAt = new Date(article.deletionRequestedAt).getTime();
+
+        if (now > requestedAt + periodMs) {
+          await db.del(`article:data:${id}`);
+          await db.hdel('articles:index', id);
+          await db.del(`file:articles/${id}.md`);
+          deleted.push(id);
+        }
+      }
+    } catch (error: unknown) {
+      errors.push(`Error processing article ${id}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  logger.info('POST', '清理任务完成', { deletedCount: deleted.length, errorCount: errors.length });
+  return NextResponse.json({
+    success: true,
+    message: `Cleanup completed. Deleted ${deleted.length} articles.`,
+    deleted,
+    errors,
+    timestamp: new Date().toISOString(),
+  });
+});
 
 /**
  * Get cleanup statistics
@@ -93,24 +83,24 @@ export async function GET() {
     logger.info('GET', '获取清理统计');
     const db = getDb();
     const index = await db.hgetall('articles:index');
-    
+
     const now = Date.now();
     const periodMs = DELETION_PERIOD_DAYS * 24 * 60 * 60 * 1000;
-    
+
     let pendingDeletion = 0;
     let expiringSoon = 0; // Within 7 days
     let expired = 0;
 
     for (const [, data] of Object.entries(index)) {
       const article = JSON.parse(data);
-      
+
       if (article.status === 'pending_deletion' && article.deletionRequestedAt) {
         pendingDeletion++;
-        
+
         const requestedAt = new Date(article.deletionRequestedAt).getTime();
         const expiresAt = requestedAt + periodMs;
         const daysRemaining = (expiresAt - now) / (24 * 60 * 60 * 1000);
-        
+
         if (daysRemaining <= 0) {
           expired++;
         } else if (daysRemaining <= 7) {
@@ -125,12 +115,9 @@ export async function GET() {
       expiringSoon,
       expired,
       deletionPeriodDays: DELETION_PERIOD_DAYS,
-  });
+    });
   } catch (error: unknown) {
-  logger.error('GET', '获取清理统计错误', { error: error instanceof Error ? error.message : String(error) });
-  return NextResponse.json({
-  error: 'Internal server error',
-  details: error instanceof Error ? error.message : String(error)
-    }, { status: 500 });
+    logger.error('GET', '获取清理统计错误', { error: error instanceof Error ? error.message : String(error) });
+    return NextResponse.json({ error: '获取清理统计失败' }, { status: 500 });
   }
 }
