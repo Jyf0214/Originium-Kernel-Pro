@@ -161,7 +161,7 @@ function UserProfileContent() {
 
 export default function UserProfilePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><GlobalLoading size="large" /></div>}>
       <UserProfileContent />
     </Suspense>
   );

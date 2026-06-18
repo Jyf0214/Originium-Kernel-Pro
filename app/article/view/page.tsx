@@ -169,7 +169,7 @@ function ArticleViewContent() {
 
 export default function ArticleViewPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><GlobalLoading size="large" /></div>}>
       <ArticleViewContent />
     </Suspense>
   );
