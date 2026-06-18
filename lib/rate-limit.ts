@@ -31,11 +31,17 @@ function cleanup(now: number): void {
 /**
  * 从请求头中提取客户端真实 IP
  * 优先使用 x-forwarded-for（Vercel/反向代理场景），其次 x-real-ip，最后回退 127.0.0.1
+ *
+ * 安全说明：x-forwarded-for 和 x-real-ip 均为客户端可控请求头，在没有可信反向代理
+ * （如 Vercel Edge Network、Nginx real_ip 模块）的场景下可被伪造，导致频率限制
+ * 被绕过。在 Vercel 部署环境中，边缘网络会覆写这些头部，风险可控；若自建部署，
+ * 应在反向代理层配置 trusted upstream 并剥离客户端传入的伪造头部。
  */
 export function getClientIp(req: NextRequest): string {
   const forwarded = req.headers.get('x-forwarded-for');
   if (typeof forwarded === 'string' && forwarded.length > 0) {
     // x-forwarded-for 可能包含多个 IP，取第一个（最上游客户端）
+    // 注意：若无可信代理，客户端可伪造此头部绕过频率限制
     const firstIp = forwarded.split(',')[0];
     if (firstIp) return firstIp.trim();
   }

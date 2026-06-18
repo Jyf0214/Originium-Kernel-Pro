@@ -27,11 +27,13 @@ export const MIN_LOADING_DURATION_MS = 400;
  * @param setLoading 控制 loading 状态的 setter
  * @param action 要执行的动作（可以返回 Promise；返回 void 也可）
  * @param minMs 最小显示时长（毫秒）
+ * @param timerRef 可选：用于追踪 setTimeout ID，以便卸载时清理
  */
 export function runWithMinLoadingDuration(
   setLoading: (loading: boolean) => void,
   action: () => void | Promise<unknown>,
   minMs: number = MIN_LOADING_DURATION_MS,
+  timerRef?: React.MutableRefObject<ReturnType<typeof setTimeout> | null>,
 ): void {
   setLoading(true);
   const start = Date.now();
@@ -45,7 +47,11 @@ export function runWithMinLoadingDuration(
     if (remaining === 0) {
       setLoading(false);
     } else {
-      setTimeout(() => setLoading(false), remaining);
+      const id = setTimeout(() => {
+        if (timerRef) timerRef.current = null;
+        setLoading(false);
+      }, remaining);
+      if (timerRef) timerRef.current = id;
     }
   };
 
@@ -90,6 +96,8 @@ export function useAutoLoading(
     runWithMinLoadingDuration(
       setInternalLoading,
       () => onClick?.(e),
+      undefined,
+      timerRef,
     );
   }, [isLoading, disabled, autoLoading, isControlled, onClick]);
 
