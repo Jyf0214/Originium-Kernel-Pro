@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
-import { Home, LayoutDashboard, FileText, Settings, ShieldAlert, Globe, User } from 'lucide-react';
+import { Home, LayoutDashboard, FileText, Key, Settings, ShieldAlert, Globe, User } from 'lucide-react';
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -21,6 +21,7 @@ export function Sidebar() {
     { href: '/admin/requests', label: t('sidebar.requests'), icon: ShieldAlert, roles: ['admin', 'sudo'] },
     { href: '/admin/config', label: t('sidebar.systemConfig'), icon: Settings, roles: ['admin', 'sudo'] },
     { href: '/admin/env', label: t('sidebar.envVariables'), icon: Globe, roles: ['admin', 'sudo'] },
+    { href: '/admin/apikeys', label: t('sidebar.apiKeys') || 'API 密钥', icon: Key, roles: ['admin', 'sudo'] },
   ];
 
   if (!userRole) return null;

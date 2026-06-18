@@ -429,6 +429,7 @@ export function StorageFileGrid({
               copiedLabel={copiedLabel}
               deleteLabel={deleteLabel}
               moveLabel={moveLabel}
+              downloadLabel="下载"
               urlCopied={() => undefined}
               onDelete={onDelete}
               onMove={onMove}

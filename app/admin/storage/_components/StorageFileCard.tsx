@@ -3,11 +3,12 @@
  *
  * - 缩略图(图片用预览,其它用 lucide 图标)
  * - 文件名 + 大小
- * - 复制 URL / 移动 / 删除 按钮(悬浮显示)
+ * - 复制 URL / 下载 / 移动 / 删除 按钮(悬浮显示)
+ * - 批量选择复选框(悬浮显示)
  */
 'use client';
 
-import { Copy, FileText, Folder, FolderInput, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { Copy, Download, FileText, Folder, FolderInput, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { message, Tooltip } from 'antd';
 import type { WebDavEntry } from '@/lib/storage/types';
 import { formatBytes, formatDate } from '../_lib/format';
@@ -19,6 +20,9 @@ interface Props {
   copiedLabel: string;
   deleteLabel: string;
   moveLabel: string;
+  downloadLabel: string;
+  selected?: boolean;
+  onSelect?: (entry: WebDavEntry, checked: boolean) => void;
   urlCopied: (filename: string) => void;
   onDelete: (entry: WebDavEntry) => void;
   onMove: (entry: WebDavEntry) => void;
@@ -43,6 +47,9 @@ export function StorageFileCard({
   copiedLabel,
   deleteLabel,
   moveLabel,
+  downloadLabel,
+  selected = false,
+  onSelect,
   urlCopied,
   onDelete,
   onMove,
@@ -64,11 +71,46 @@ export function StorageFileCard({
     }
   };
 
+  const handleDownload = () => {
+    if (!publicUrl) return;
+    const a = document.createElement('a');
+    a.href = publicUrl;
+    a.download = entry.filename;
+    a.click();
+  };
+
   const showImageThumb =
     !entry.isDirectory && mimeMatchesImage(entry.mimeType);
 
   return (
     <div className="group relative bg-white border border-zinc-100 rounded-xl overflow-hidden hover:border-zinc-300 hover:shadow-md transition-all">
+      {/* 批量选择复选框(左上角) */}
+      {onSelect && !entry.isDirectory && (
+        <div className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+          <label className="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={(e) => onSelect(entry, e.target.checked)}
+              disabled={disabled}
+              className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500"
+            />
+          </label>
+        </div>
+      )}
+      {onSelect && entry.isDirectory && (
+        <div className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+          <label className="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={(e) => onSelect(entry, e.target.checked)}
+              disabled={disabled}
+              className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500"
+            />
+          </label>
+        </div>
+      )}
       {/* 缩略图 / 图标 */}
       <div className="aspect-square bg-zinc-50 flex items-center justify-center overflow-hidden">
         {showImageThumb ? (
@@ -110,6 +152,16 @@ export function StorageFileCard({
               className="w-8 h-8 rounded-lg bg-white/95 border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Copy size={14} />
+            </button>
+          </Tooltip>
+          <Tooltip title={downloadLabel}>
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={disabled}
+              className="w-8 h-8 rounded-lg bg-white/95 border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Download size={14} />
             </button>
           </Tooltip>
           <Tooltip title={moveLabel}>
