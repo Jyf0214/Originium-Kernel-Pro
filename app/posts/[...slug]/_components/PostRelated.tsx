@@ -10,7 +10,7 @@ export function PostRelated({ posts }: { posts: RelatedPost[] }) {
         {posts.map((post) => (
           <Link
             key={post.slug}
-            href={post.slug}
+            href={`/posts${post.slug}`}
             className="group p-4 rounded-xl bg-zinc-50 border border-zinc-100 hover:bg-zinc-100 transition-colors"
           >
             <h3 className="text-sm font-semibold text-zinc-700 group-hover:text-zinc-900 transition-colors line-clamp-2 mb-2">
