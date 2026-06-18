@@ -109,7 +109,7 @@ export default function ArchivesPage() {
                       {formatShortDate(post.date)}
                     </time>
                     <Link
-                      href={post.slug}
+                      href={`/posts${post.slug}`}
                       className="text-zinc-800 hover:text-zinc-600 transition-colors font-medium truncate"
                     >
                       {post.title}
