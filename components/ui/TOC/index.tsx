@@ -4,13 +4,9 @@ import { useState, useMemo } from 'react';
 import type { TOCProps, TocHeading, TocNode } from './toc-types';
 import { useTocActive } from './use-toc-active';
 import { TocItem } from './TocItem';
+import { slugify } from '@/lib/slugify';
 
 export type { TOCConfig, TOCProps, TocHeading, TocNode, TocItemProps } from './toc-types';
-
-// 将标题文本转为锚点 id（小写、空格转 -、移除非中英文字符）
-function slugify(text: string): string {
-  return text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fff-]/g, '');
-}
 
 // 将扁平的标题列表按 level 构造成嵌套树
 function buildTree(items: TocHeading[]): TocNode[] {

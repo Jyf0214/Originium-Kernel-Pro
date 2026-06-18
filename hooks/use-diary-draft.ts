@@ -51,7 +51,7 @@ export interface UseDiaryDraftOptions {
 
 export function useDiaryDraft({ id, title, content, tags, date, group, onDraftFound }: UseDiaryDraftOptions) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hasCheckedRef = useRef(false);
+  const lastCheckedIdRef = useRef<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   // 用 ref 保存最新 props，避免依赖变化导致定时器不断重置
@@ -114,8 +114,8 @@ export function useDiaryDraft({ id, title, content, tags, date, group, onDraftFo
   }, [title, content, doSave]);
 
   useEffect(() => {
-    if (hasCheckedRef.current) return;
-    hasCheckedRef.current = true;
+    if (lastCheckedIdRef.current === id) return;
+    lastCheckedIdRef.current = id;
 
     const local = loadLocalDraft(id);
     if (local && onDraftFoundRef.current) {

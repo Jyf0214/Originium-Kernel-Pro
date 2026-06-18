@@ -46,7 +46,8 @@ function log(level: LogLevel, endpoint: string, method: string, message: string,
   switch (level) {
     case 'info':
     case 'debug':
-      console.warn(`[API] ${formatted}`);
+      // eslint-disable-next-line no-console
+      console.log(`[API] ${formatted}`);
       break;
     case 'warn':
       console.warn(`[API] ${formatted}`);

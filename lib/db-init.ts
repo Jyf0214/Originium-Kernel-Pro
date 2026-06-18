@@ -2,7 +2,7 @@
  * 运行时数据库初始化
  */
 import { getDb } from '@/lib/db';
-import { hashPassword } from '@/lib/hash';
+import { hashPassword, verifyPassword } from '@/lib/hash';
 import { generateUID } from '@/lib/auth';
 
 let initAttempted = false;
@@ -31,7 +31,8 @@ export async function ensureAdminUser(): Promise<{ created: boolean; error?: str
       if (userStr) {
         const user = JSON.parse(userStr);
         // 每次启动都用环境变量密码覆盖，确保密码始终与 ADMIN_PASSWORD 同步
-        if (user.password !== adminPassword) {
+        const valid = await verifyPassword(adminPassword, user.password);
+        if (!valid) {
           const newHash = await hashPassword(adminPassword);
           user.password = newHash;
           user.updatedAt = new Date().toISOString();
