@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 interface ErrorImgConfig {
   flink: string;
@@ -19,6 +19,8 @@ function getHandler(type: 'flink' | 'postPage'): (e: React.SyntheticEvent<HTMLIm
 
 export function useErrorImg() {
   const [loaded, setLoaded] = useState(!!cachedConfig);
+  const onPostErrorRef = useRef(getHandler('postPage'));
+  const onFlinkErrorRef = useRef(getHandler('flink'));
 
   useEffect(() => {
     if (cachedConfig) { setLoaded(true); return; }
@@ -39,9 +41,17 @@ export function useErrorImg() {
     void fetchConfig();
   }, []);
 
+  const onPostError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    onPostErrorRef.current(e);
+  }, []);
+
+  const onFlinkError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    onFlinkErrorRef.current(e);
+  }, []);
+
   return {
     loaded,
-    onPostError: getHandler('postPage'),
-    onFlinkError: getHandler('flink'),
+    onPostError,
+    onFlinkError,
   };
 }

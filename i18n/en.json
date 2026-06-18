@@ -436,7 +436,12 @@
       "storage": {
         "WEBDAV_URL": "WebDAV server base URL (e.g. https://dav.example.com/dav). Must point to a directory writable by the configured user. For B2 backend, set STORAGE_TYPE=b2 and configure B2_KEY_ID, B2_APPLICATION_KEY, B2_BUCKET, B2_PREFIX instead.",
         "WEBDAV_USER": "Username for HTTP Basic auth against the WebDAV server. For B2 backend, use B2_KEY_ID instead.",
-        "WEBDAV_PASS": "Password for HTTP Basic auth against the WebDAV server. For B2 backend, use B2_APPLICATION_KEY instead."
+        "WEBDAV_PASS": "Password for HTTP Basic auth against the WebDAV server. For B2 backend, use B2_APPLICATION_KEY instead.",
+        "B2_KEY_ID": "Backblaze B2 application key ID. Required when STORAGE_TYPE=b2. Together with B2_APP_KEY and B2_BUCKET, forms the minimum B2 configuration.",
+        "B2_APP_KEY": "Backblaze B2 application key (secret). Required when STORAGE_TYPE=b2. Treat this value as confidential; do not expose it to the client.",
+        "B2_BUCKET": "Backblaze B2 bucket name. Required when STORAGE_TYPE=b2. The bucket must already exist in your B2 account.",
+        "B2_DOWNLOAD_URL": "Optional custom download endpoint for B2 files (e.g. a Cloudflare CDN URL). When set, public file links use this URL instead of the default B2 download host.",
+        "B2_ENDPOINT": "Optional custom S3-compatible API endpoint for B2. Overrides the default Backblaze endpoint; useful for third-party S3-compatible gateways."
       },
       "smtp": {
         "SMTP_HOST": "SMTP server hostname (e.g. smtp.gmail.com, smtp.sendgrid.net).",

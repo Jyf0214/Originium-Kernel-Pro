@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useState, useEffect, createContext, useContext, useCallback, useRef } from 'react';
+import { type ReactNode, useState, useEffect, createContext, useContext, useCallback, useMemo, useRef } from 'react';
 import { message } from 'antd';
 import { useI18n } from './use-i18n';
 
@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timer);
   }, [refresh]);
 
-  const login = async (email: string, pass: string) => {
+  const login = useCallback(async (email: string, pass: string) => {
     try {
       setLoading(true);
       const res = await fetch('/api/auth/login', {
@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         message.success(t('auth.loginSuccess'));
       } else {
         message.error(data.error ?? t('auth.loginFailed'));
-        throw new Error(data.error);
+        throw new Error(data.error ?? '操作失败');
       }
     } catch (err) {
       console.error('登录错误:', err);
@@ -106,9 +106,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
-  const register = async (email: string, pass: string, name: string) => {
+  const register = useCallback(async (email: string, pass: string, name: string) => {
     try {
       setLoading(true);
       const res = await fetch('/api/auth/register', {
@@ -128,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         message.success(t('auth.registerSuccess'));
       } else {
         message.error(data.error ?? t('auth.registerFailed'));
-        throw new Error(data.error);
+        throw new Error(data.error ?? '操作失败');
       }
     } catch (err) {
       console.error('注册错误:', err);
@@ -136,9 +136,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       const res = await fetch('/api/auth/logout', { method: 'POST' });
       if (!res.ok) {
@@ -150,22 +150,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('登出错误:', err);
       message.error(t('common.error') || '登出失败');
     }
-  };
+  }, [t]);
+
+  const contextValue = useMemo(() => ({
+    user,
+    loading,
+    userRole: user?.role ?? null,
+    isSudo: user?.role === 'sudo' || false,
+    login,
+    register,
+    logout,
+    refresh,
+    clerkAvailable,
+  }), [user, loading, login, register, logout, refresh, clerkAvailable]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        userRole: user?.role ?? null,
-        isSudo: user?.role === 'sudo' || false,
-        login,
-        register,
-        logout,
-        refresh,
-        clerkAvailable,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

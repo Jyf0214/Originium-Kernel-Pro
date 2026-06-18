@@ -436,7 +436,12 @@
       "storage": {
         "WEBDAV_URL": "WebDAV 服务器根 URL（例如 https://dav.example.com/dav）。需指向配置用户可写的目录。使用 B2 后端时无需设置。",
         "WEBDAV_USER": "WebDAV HTTP Basic 认证用户名。使用 B2 后端时无需设置。",
-        "WEBDAV_PASS": "WebDAV HTTP Basic 认证密码。使用 B2 后端时无需设置。"
+        "WEBDAV_PASS": "WebDAV HTTP Basic 认证密码。使用 B2 后端时无需设置。",
+        "B2_KEY_ID": "Backblaze B2 应用程序密钥 ID。STORAGE_TYPE=b2 时必填。与 B2_APP_KEY、B2_BUCKET 共同构成 B2 最小配置。",
+        "B2_APP_KEY": "Backblaze B2 应用程序密钥（Secret）。STORAGE_TYPE=b2 时必填。请勿暴露给客户端。",
+        "B2_BUCKET": "Backblaze B2 存储桶名称。STORAGE_TYPE=b2 时必填。该桶需已在 B2 账户中创建。",
+        "B2_DOWNLOAD_URL": "可选的 B2 文件自定义下载端点（如 Cloudflare CDN URL）。设置后，公开文件链接将使用此 URL 替代默认 B2 下载地址。",
+        "B2_ENDPOINT": "可选的自定义 S3 兼容 API 端点。覆盖默认 Backblaze 端点；适用于第三方 S3 兼容网关。"
       },
       "smtp": {
         "SMTP_HOST": "SMTP 服务器主机名（例如 smtp.gmail.com、smtp.sendgrid.net）。",
