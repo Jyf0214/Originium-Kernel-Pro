@@ -14,12 +14,20 @@ function ensureDraftsDir() {
 }
 
 export async function saveDraft(id: string, content: string): Promise<void> {
+  // 防止路径穿越攻击
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+    throw new Error('Invalid draft ID');
+  }
   ensureDraftsDir();
   const filePath = path.join(DRAFTS_DIR, `${id}.md`);
   await fs.promises.writeFile(filePath, content, 'utf-8');
 }
 
 export async function getDraft(id: string): Promise<string | null> {
+  // 防止路径穿越攻击
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+    throw new Error('Invalid draft ID');
+  }
   const filePath = path.join(DRAFTS_DIR, `${id}.md`);
   try {
     const content = await fs.promises.readFile(filePath, 'utf-8');
@@ -30,6 +38,10 @@ export async function getDraft(id: string): Promise<string | null> {
 }
 
 export async function deleteDraft(id: string): Promise<void> {
+  // 防止路径穿越攻击
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+    throw new Error('Invalid draft ID');
+  }
   const filePath = path.join(DRAFTS_DIR, `${id}.md`);
   try {
     await fs.promises.unlink(filePath);

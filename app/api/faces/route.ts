@@ -99,6 +99,23 @@ async function getFileFromGitHub(req: NextRequest, filePath: string): Promise<{ 
 }
 
 /**
+ * 校验姓名和分组，防止路径穿越攻击
+ * 返回 null 表示通过，否则返回错误 Response
+ */
+function validateNameAndGroup(name: string, group: string): NextResponse | null {
+  if (!name || !group) {
+    return NextResponse.json({ error: '姓名和分组为必填项' }, { status: 400 });
+  }
+  if (/[.\/\\]/.test(group)) {
+    return NextResponse.json({ error: '无效的分组名称' }, { status: 400 });
+  }
+  if (/[.\/\\]/.test(name)) {
+    return NextResponse.json({ error: '无效的姓名' }, { status: 400 });
+  }
+  return null;
+}
+
+/**
  * 创建联系人
  */
 export async function POST(req: NextRequest) {
@@ -112,9 +129,10 @@ export async function POST(req: NextRequest) {
     logger.info('POST', '创建联系人');
     const { name, email, phone, group, content } = await req.json();
 
-    if (!name || !group) {
-      logger.warn('POST', '缺少必填字段');
-      return NextResponse.json({ error: '姓名和分组为必填项' }, { status: 400 });
+    const validationError = validateNameAndGroup(name, group);
+    if (validationError) {
+      logger.warn('POST', '输入校验失败');
+      return validationError;
     }
 
     const slug = generateSlug(name);
@@ -285,6 +303,11 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: '缺少联系人路径' }, { status: 400 });
     }
 
+    // 防止路径穿越攻击：slug 必须是 /group/name 格式
+    if (!/^\/[\w-]+\/[\w-]+$/.test(slug) || /\.\./.test(slug)) {
+      return NextResponse.json({ error: '无效的联系人路径' }, { status: 400 });
+    }
+
     if (!name || !group) {
       logger.warn('PATCH', '缺少必填字段');
       return NextResponse.json({ error: '姓名和分组为必填项' }, { status: 400 });
@@ -342,6 +365,11 @@ export async function DELETE(req: NextRequest) {
     if (!slug) {
       logger.warn('DELETE', '缺少联系人路径');
       return NextResponse.json({ error: '缺少联系人路径' }, { status: 400 });
+    }
+
+    // 防止路径穿越攻击：slug 必须是 /group/name 格式
+    if (!/^\/[\w-]+\/[\w-]+$/.test(slug) || /\.\./.test(slug)) {
+      return NextResponse.json({ error: '无效的联系人路径' }, { status: 400 });
     }
 
     const filePath = `faces${slug}.md`;
