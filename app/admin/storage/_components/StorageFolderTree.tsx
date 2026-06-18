@@ -4,10 +4,12 @@
  * - 选中项高亮
  * - 公开/私有用 Tag 标记
  * - 点击 → navigateTo(folder.path)
+ * - 悬浮显示重命名按钮
  */
 'use client';
 
-import { Folder, Globe, Lock, Plus } from 'lucide-react';
+import { Folder, Globe, Lock, PenLine, Plus } from 'lucide-react';
+import { Tooltip } from 'antd';
 import type { StorageFolderMeta } from '@/lib/storage/types';
 import { Tag } from '@/components/ui/Tag';
 
@@ -17,8 +19,10 @@ interface Props {
   rootLabel: string;
   publicLabel: string;
   privateLabel: string;
+  renameLabel: string;
   onNavigate: (path: string) => void;
   onNewFolder: () => void;
+  onRename: (path: string) => void;
   disabled?: boolean;
 }
 
@@ -28,8 +32,10 @@ export function StorageFolderTree({
   rootLabel,
   publicLabel,
   privateLabel,
+  renameLabel,
   onNavigate,
   onNewFolder,
+  onRename,
   disabled = false,
 }: Props) {
   const isRootActive = currentPath === '';
@@ -75,7 +81,7 @@ export function StorageFolderTree({
             {folders.map((folder) => {
               const active = currentPath === folder.path;
               return (
-                <li key={folder.path}>
+                <li key={folder.path} className="group/folder relative">
                   <button
                     type="button"
                     onClick={() => onNavigate(folder.path)}
@@ -108,6 +114,23 @@ export function StorageFolderTree({
                       </span>
                     </Tag>
                   </button>
+                  {/* 重命名按钮(悬浮显示) */}
+                  {!disabled && (
+                    <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/folder:opacity-100 transition-opacity">
+                      <Tooltip title={renameLabel}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRename(folder.path);
+                          }}
+                          className="inline-flex items-center justify-center w-6 h-6 rounded-md text-zinc-400 hover:bg-zinc-200 hover:text-zinc-700 transition-colors"
+                        >
+                          <PenLine size={12} />
+                        </button>
+                      </Tooltip>
+                    </div>
+                  )}
                 </li>
               );
             })}

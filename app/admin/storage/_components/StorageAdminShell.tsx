@@ -24,6 +24,7 @@ import { StorageUploadDialog } from './StorageUploadDialog';
 import { StorageMkdirDialog } from './StorageMkdirDialog';
 import { StorageConfirmDeleteDialog } from './StorageConfirmDeleteDialog';
 import { StorageFolderSettingsPopover } from './StorageFolderSettingsPopover';
+import { StorageRenameDialog } from './StorageRenameDialog';
 import type { WebDavEntry } from '@/lib/storage/types';
 
 const APP_URL_FALLBACK = '';
@@ -102,6 +103,11 @@ export function StorageAdminShell() {
     setPassword: t('storage.setPassword'),
     clearPassword: t('common.delete'),
     confirmClear: t('common.confirm'),
+    rename: t('storage.rename'),
+    renameFolder: t('storage.renameFolder'),
+    renameFolderTitle: t('storage.renameFolderTitle'),
+    newNameLabel: t('storage.newNameLabel'),
+    newNamePlaceholder: t('storage.newNamePlaceholder'),
   };
 
   const handleEntryDelete = (entry: WebDavEntry) => {
@@ -148,6 +154,32 @@ export function StorageAdminShell() {
     const meta = await state.setFolderPassword(currentFolder.path, null);
     return meta !== null;
   };
+
+  // 重命名相关状态
+  const [renameTarget, setRenameTarget] = useState<string | null>(null);
+
+  const handleOpenRename = (path: string) => {
+    setRenameTarget(path);
+    state.openDialog('rename', path);
+  };
+
+  const handleRename = async (newName: string) => {
+    if (!renameTarget) return;
+    const ok = await state.renameFolder(renameTarget, newName);
+    if (ok) setRenameTarget(null);
+  };
+
+  const handleRenameCancel = () => {
+    setRenameTarget(null);
+    state.closeDialog();
+  };
+
+  // 重命名对话框当前名称
+  const renameCurrentName = useMemo(() => {
+    if (!renameTarget) return '';
+    const segments = renameTarget.split('/');
+    return segments[segments.length - 1] ?? '';
+  }, [renameTarget]);
 
   // 加载态
   if (state.loading) {
@@ -215,8 +247,10 @@ export function StorageAdminShell() {
               rootLabel={labels.root}
               publicLabel={labels.public}
               privateLabel={labels.private}
+              renameLabel={labels.rename}
               onNavigate={state.navigateTo}
               onNewFolder={() => state.openDialog('mkdir')}
+              onRename={handleOpenRename}
               disabled={!state.configured}
             />
           </ProCard>
@@ -347,6 +381,21 @@ export function StorageAdminShell() {
         deleteLabel={labels.delete}
         onCancel={state.closeDialog}
         onConfirm={handleDeleteConfirm}
+        disabled={!state.configured}
+      />
+
+      <StorageRenameDialog
+        open={state.dialog === 'rename'}
+        currentPath={state.currentPath}
+        currentName={renameCurrentName}
+        title={labels.renameFolderTitle}
+        nameLabel={labels.newNameLabel}
+        namePlaceholder={labels.newNamePlaceholder}
+        createLabel={labels.rename}
+        cancelLabel={labels.cancel}
+        rootLabel={labels.root}
+        onCancel={handleRenameCancel}
+        onRename={handleRename}
         disabled={!state.configured}
       />
     </PageContainer>

@@ -84,6 +84,13 @@ export interface StorageProvider {
   deleteDirectory(dirPath: string): Promise<void>
 
   /**
+   * 移动/重命名文件或目录
+   * @param fromPath 源相对路径
+   * @param toPath 目标相对路径
+   */
+  moveFile(fromPath: string, toPath: string): Promise<void>
+
+  /**
    * 获取文件/目录元信息
    * @param path 相对路径
    * @returns FileStat（与 webdav 客户端 stat 对齐）

@@ -77,6 +77,11 @@ export class WebDavProvider implements StorageProvider {
     await client.deleteFile(dirPath)
   }
 
+  async moveFile(fromPath: string, toPath: string): Promise<void> {
+    const client = getWebDavClient()
+    await client.moveFile(fromPath, toPath)
+  }
+
   async stat(path: string): Promise<FileStat> {
     const client = getWebDavClient()
     const result = await client.stat(path)

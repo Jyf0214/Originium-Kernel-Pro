@@ -594,6 +594,127 @@ export class B2Provider implements StorageProvider {
   }
 
   /**
+   * 移动/重命名文件或目录
+   *
+   * B2 没有原生 move 操作，实现为：读取源内容 → 写入目标 → 删除源。
+   * 目录重命名：逐文件复制到新前缀下，再逐文件删除旧前缀。
+   */
+  async moveFile(fromPath: string, toPath: string): Promise<void> {
+    const fromKey = normalizeKey(fromPath)
+    const toKey = normalizeKey(toPath)
+    if (!fromKey || !toKey) {
+      throw new Error('B2: 不能移动根路径')
+    }
+    if (fromKey === toKey) return
+
+    // 判断是单文件还是目录
+    const isSingleFile = await this.isFile(fromKey)
+    if (isSingleFile) {
+      await this.moveSingleFile(fromKey, toKey)
+      return
+    }
+
+    await this.moveDirectory(fromKey, toKey)
+  }
+
+  /**
+   * 判断路径是否为单个文件（非目录）
+   */
+  private async isFile(key: string): Promise<boolean> {
+    const auth = await getAuthToken()
+    const bucketId = await getBucketId()
+    const resp = await b2Request(
+      `${auth.apiUrl}/b2api/v3/b2_list_file_names`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bucketId, prefix: key, maxFileCount: 1 }),
+        authToken: auth.authorizationToken,
+      }
+    )
+    const data = await resp.json() as { files: B2FileInfo[] }
+    return data.files.length > 0 &&
+      data.files[0]!.fileName === key &&
+      data.files[0]!.action === 'upload'
+  }
+
+  /**
+   * 单文件重命名:下载 → 上传到新路径 → 删除旧路径
+   */
+  private async moveSingleFile(fromKey: string, toKey: string): Promise<void> {
+    const content = await this.getFileContents(fromKey)
+    const buf = toBufferSync(content)
+    await this.putFileContents(toKey, buf)
+    await this.deleteFile(fromKey)
+  }
+
+  /**
+   * 目录重命名:逐文件复制 + 递归子目录 + 清理源
+   */
+  private async moveDirectory(fromKey: string, toKey: string): Promise<void> {
+    const auth = await getAuthToken()
+    const bucketId = await getBucketId()
+    const fromPrefix = `${fromKey}/`
+
+    // 列出源目录下的文件
+    const listResp = await b2Request(
+      `${auth.apiUrl}/b2api/v3/b2_list_file_names`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bucketId,
+          prefix: fromPrefix,
+          delimiter: '/',
+          maxFileCount: 10000,
+        }),
+        authToken: auth.authorizationToken,
+      }
+    )
+    const listData = await listResp.json() as { files: B2FileInfo[] }
+    const files = (listData.files ?? []).filter(
+      (f) => f.action === 'upload' && !f.fileName.endsWith('/')
+    )
+
+    // 复制文件到新路径
+    for (const file of files) {
+      const relativeName = file.fileName.slice(fromPrefix.length)
+      if (!relativeName || relativeName.includes('/')) continue
+      const content = await this.getFileContents(file.fileName)
+      const buf = toBufferSync(content)
+      await this.putFileContents(`${toKey}/${relativeName}`, buf)
+    }
+
+    // 收集并递归处理子目录
+    const subDirs = this.collectSubDirs(listData.files ?? [], fromPrefix)
+    for (const subDir of subDirs) {
+      await this.moveFile(`${fromKey}/${subDir}`, `${toKey}/${subDir}`)
+    }
+
+    // 清理源目录下的文件
+    for (const file of files) {
+      try { await this.deleteFile(file.fileName) } catch { /* 忽略 */ }
+    }
+    try { await this.deleteFile(`${fromKey}/.keep`) } catch { /* 忽略 */ }
+  }
+
+  /**
+   * 从 B2 文件列表中提取子目录名称
+   */
+  private collectSubDirs(b2Files: B2FileInfo[], fromPrefix: string): string[] {
+    const dirs = new Set<string>()
+    for (const f of b2Files) {
+      if (f.action === 'folder' || (f.fileName.endsWith('/') && f.fileName !== fromPrefix)) {
+        const dirName = f.fileName.replace(fromPrefix, '').replace(/\/$/, '')
+        if (dirName && !dirName.includes('/')) {
+          dirs.add(dirName)
+        }
+      }
+    }
+    return [...dirs]
+  }
+
+  /**
    * 获取文件/目录元信息
    *
    * B2 使用 b2_get_file_info 获取文件信息。
@@ -728,7 +849,7 @@ export class B2Provider implements StorageProvider {
 }
 
 /**
- * FileContent → Buffer 转换
+ * FileContent → Buffer 转换(异步)
  */
 async function toBuffer(data: FileContent): Promise<Buffer> {
   if (Buffer.isBuffer(data)) return data
@@ -736,6 +857,19 @@ async function toBuffer(data: FileContent): Promise<Buffer> {
   if (data instanceof ArrayBuffer) return Buffer.from(data)
   if (data && typeof data === 'object' && 'data' in data) {
     return toBuffer(data.data)
+  }
+  return Buffer.from(String(data))
+}
+
+/**
+ * FileContent → Buffer 转换(同步,已知 FileContent 是同步返回值)
+ */
+function toBufferSync(data: FileContent): Buffer {
+  if (Buffer.isBuffer(data)) return data
+  if (typeof data === 'string') return Buffer.from(data, 'utf8')
+  if (data instanceof ArrayBuffer) return Buffer.from(data)
+  if (data && typeof data === 'object' && 'data' in data) {
+    return toBufferSync(data.data)
   }
   return Buffer.from(String(data))
 }

@@ -172,3 +172,17 @@ export function rmdir(path: string): Promise<void> {
     method: 'DELETE',
   });
 }
+
+export function renameFolder(
+  path: string,
+  newName: string
+): Promise<StorageFolderMeta> {
+  return request<StorageFolderMeta>(
+    `/api/storage/rename/${encodePathSegments(path)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newName }),
+    }
+  );
+}

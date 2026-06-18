@@ -734,7 +734,16 @@
     "setPassword": "Set Password",
     "hasPassword": "Password Set",
     "noPassword": "No Password",
-    "passwordPlaceholder": "Enter new password"
+    "passwordPlaceholder": "Enter new password",
+    "rename": "Rename",
+    "renameFolder": "Rename Folder",
+    "renameFolderTitle": "Rename Folder",
+    "newNameLabel": "New Name",
+    "newNamePlaceholder": "Enter new folder name",
+    "renameSuccess": "Folder renamed",
+    "renameFailed": "Rename failed",
+    "renameInvalidName": "Folder name cannot be empty",
+    "renameSameName": "New name is the same as current"
   },
   "page": {
     "title": "Custom Page",

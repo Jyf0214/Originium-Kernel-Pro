@@ -159,6 +159,55 @@ export async function deleteFolderMeta(path: string): Promise<void> {
   }
 }
 
+/**
+ * 重命名文件夹元数据(主键变更 + 级联更新子文件夹路径)
+ *
+ * - 数据库未配置 → 静默跳过
+ * - 事务内完成:删除旧记录 → 创建新记录 → 更新子路径
+ * - 子路径更新:所有 path 以 oldPath/ 开头的记录前缀替换为 newPath/
+ */
+export async function renameFolderMeta(oldPath: string, newPath: string): Promise<void> {
+  const prisma = getDb().prisma
+  if (!prisma) return
+  try {
+    await prisma.$transaction(async (tx) => {
+      // 查找旧记录
+      const old = await tx.storageFolder.findUnique({ where: { path: oldPath } })
+      if (!old) return
+
+      // 删除旧记录(主键不可变,需删除再创建)
+      await tx.storageFolder.delete({ where: { path: oldPath } })
+
+      // 创建新记录(保留所有元数据)
+      await tx.storageFolder.create({
+        data: {
+          path: newPath,
+          public: old.public,
+          description: old.description,
+          password: old.password,
+        },
+      })
+
+      // 级联更新子文件夹路径前缀
+      // 查找所有 path 以 oldPath/ 开头的记录
+      const children = await tx.storageFolder.findMany({
+        where: { path: { startsWith: `${oldPath}/` } },
+      })
+      for (const child of children) {
+        const childNewPath = newPath + child.path.slice(oldPath.length)
+        await tx.storageFolder.update({
+          where: { path: child.path },
+          data: { path: childNewPath },
+        })
+      }
+    })
+  } catch (err) {
+    const code = (err as { code?: string })?.code
+    if (code === 'P2025') return
+    console.error(`[storage] renameFolderMeta 失败: ${oldPath} → ${newPath}`, err)
+  }
+}
+
 /** 列出所有文件夹元数据,按路径升序;数据库未配置 → 空数组 */
 export async function listAllFolderMetas(): Promise<StorageFolderMeta[]> {
   const prisma = getDb().prisma
