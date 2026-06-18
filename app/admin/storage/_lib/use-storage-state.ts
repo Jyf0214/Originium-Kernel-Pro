@@ -171,16 +171,18 @@ export function useStorageState(): UseStorageState {
     [loadEntries]
   );
 
-  /** 初次挂载加载 */
+  /** 初次挂载加载; loadInitial 完成后拉取根目录文件列表
+   *  (hasFetched 是 ref 不触发 re-render, 必须在此显式调用) */
   useEffect(() => {
     if (!hasFetched.current) {
-      void loadInitial();
+      void loadInitial().then(() => {
+        void loadEntries(currentPath);
+      });
     }
-  }, [loadInitial]);
+  }, [loadInitial, loadEntries, currentPath]);
 
-  /** 进入后默认加载 entries(若已配置) */
+  /** 进入后默认加载 entries(currentPath 变化时触发) */
   useEffect(() => {
-    if (!hasFetched.current) return;
     void loadEntries(currentPath);
   }, [currentPath, loadEntries]);
 
