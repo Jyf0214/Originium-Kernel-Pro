@@ -11,6 +11,7 @@ export type DialogKind =
   | 'mkdir'
   | 'delete-file'
   | 'delete-folder'
+  | 'rename'
   | 'settings'
   | null;
 

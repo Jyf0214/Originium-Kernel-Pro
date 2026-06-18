@@ -26,6 +26,7 @@ import {
   fetchFolders,
   mkdir,
   patchFolderMeta,
+  renameFolder as apiRenameFolder,
   rmdir,
   uploadFile,
 } from './api-client';
@@ -66,6 +67,8 @@ interface UseStorageState {
     path: string,
     password: string | null
   ) => Promise<StorageFolderMeta | null>;
+  /** 重命名文件夹 */
+  renameFolder: (path: string, newName: string) => Promise<boolean>;
 }
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -390,6 +393,52 @@ export function useStorageState(): UseStorageState {
     [configured]
   );
 
+  const renameFolderCallback = useCallback(
+    async (path: string, newName: string): Promise<boolean> => {
+      if (!configured) {
+        message.error('存储后端未配置,无法重命名');
+        return false;
+      }
+      try {
+        const meta = await apiRenameFolder(path, newName);
+        // 更新 folders 列表
+        setFolders((prev) => {
+          // 移除旧路径
+          const filtered = prev.filter((f) => f.path !== path);
+          // 检查是否已存在(防御)
+          const idx = filtered.findIndex((f) => f.path === meta.path);
+          if (idx === -1) return [...filtered, meta];
+          const next = filtered.slice();
+          next[idx] = meta;
+          return next;
+        });
+        // 如果当前浏览路径受影响,更新路径
+        setCurrentPath((prev) => {
+          if (prev === path) return meta.path;
+          if (prev.startsWith(`${path}/`)) {
+            return meta.path + prev.slice(path.length);
+          }
+          return prev;
+        });
+        message.success('重命名成功');
+        closeDialog();
+        return true;
+      } catch (err) {
+        if (err instanceof ApiError) {
+          if (err.isNotConfigured) {
+            setConfigured(false);
+            return false;
+          }
+          message.error(err.message);
+        } else {
+          message.error('重命名失败');
+        }
+        return false;
+      }
+    },
+    [configured, closeDialog]
+  );
+
   return {
     configured,
     folders,
@@ -410,5 +459,6 @@ export function useStorageState(): UseStorageState {
     removeFolder,
     toggleFolderPublic,
     setFolderPassword,
+    renameFolder: renameFolderCallback,
   };
 }

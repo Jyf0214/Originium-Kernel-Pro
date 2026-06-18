@@ -734,7 +734,16 @@
     "setPassword": "设置密码",
     "hasPassword": "已设置密码",
     "noPassword": "无密码",
-    "passwordPlaceholder": "输入新密码"
+    "passwordPlaceholder": "输入新密码",
+    "rename": "重命名",
+    "renameFolder": "重命名文件夹",
+    "renameFolderTitle": "重命名文件夹",
+    "newNameLabel": "新名称",
+    "newNamePlaceholder": "输入新文件夹名",
+    "renameSuccess": "重命名成功",
+    "renameFailed": "重命名失败",
+    "renameInvalidName": "文件夹名不能为空",
+    "renameSameName": "新名称与当前名称相同"
   },
   "page": {
     "title": "自定义页面",
