@@ -578,18 +578,68 @@ export class B2Provider implements StorageProvider {
   /**
    * 删除目录
    *
-   * B2 没有原生目录，删除目录等同于删除 .keep 占位文件（如存在）。
-   * 注意：B2 不会阻止删除非空前缀的"目录"。
+   * B2 没有原生目录概念。删除目录需要：
+   * 1. 列出目录下所有文件（递归）
+   * 2. 逐一删除
+   * 3. 最后删除 .keep 占位文件（如存在）
    */
   async deleteDirectory(dirPath: string): Promise<void> {
     const key = normalizeKey(dirPath)
     if (!key) return
 
-    // 尝试删除 .keep 占位文件
+    const auth = await getAuthToken()
+    const bucketId = await getBucketId()
+    const dirPrefix = `${key}/`
+
+    // 列出目录下所有文件（包括子目录中的文件）
+    let startFileId: string | undefined
+    do {
+      const body: Record<string, unknown> = {
+        bucketId,
+        prefix: dirPrefix,
+        maxFileCount: 1000,
+      }
+      if (startFileId) body.startFileId = startFileId
+
+      const resp = await b2Request(
+        `${auth.apiUrl}/b2api/v3/b2_list_file_versions`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          authToken: auth.authorizationToken,
+        }
+      )
+
+      const data = await resp.json() as { files: B2FileInfo[]; nextFileId?: string }
+      for (const file of data.files ?? []) {
+        if (file.action === 'hide') continue
+        try {
+          await b2Request(
+            `${auth.apiUrl}/b2api/v3/b2_delete_file_version`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                fileId: file.fileId,
+                fileName: file.fileName,
+              }),
+              authToken: auth.authorizationToken,
+            }
+          )
+        } catch {
+          // 单个文件删除失败不阻断整体删除
+        }
+      }
+
+      startFileId = data.nextFileId
+    } while (startFileId)
+
+    // 删除 .keep 占位文件
     try {
       await this.deleteFile(`${key}/.keep`)
     } catch {
-      // .keep 不存在是正常的，忽略 404
+      // .keep 不存在是正常的，忽略
     }
   }
 

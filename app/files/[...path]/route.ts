@@ -151,7 +151,7 @@ function fileResponse(body: Buffer, stat: FileStat): NextResponse {
     status: 200,
     headers: {
       'Content-Type': stat.mime ?? 'application/octet-stream',
-      'Content-Length': String(stat.size),
+      'Content-Length': String(body.length),
       'Cache-Control': 'private, max-age=3600',
       'X-Content-Type-Options': 'nosniff',
       'Content-Disposition': stat.mime === 'text/html' ? 'attachment' : 'inline',

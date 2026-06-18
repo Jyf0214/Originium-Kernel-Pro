@@ -22,6 +22,17 @@ import {
   storageNotConfigured,
 } from '../../_helpers'
 
+/** 校验重命名名称合法性:空值、特殊字符、目录穿越 */
+function validateNewName(newName: string): NextResponse | null {
+  if (!newName) {
+    return NextResponse.json({ error: '新名称不能为空' }, { status: 400 })
+  }
+  if (newName.includes('/') || newName.includes('\\') || newName === '.' || newName === '..') {
+    return NextResponse.json({ error: '名称非法' }, { status: 400 })
+  }
+  return null
+}
+
 export const POST = catchAllHandler<{ path: string[] }>(
   'POST',
   { label: 'storage.rename', requireAdmin: true },
@@ -42,14 +53,8 @@ export const POST = catchAllHandler<{ path: string[] }>(
       return NextResponse.json({ error: '请求体格式错误' }, { status: 400 })
     }
 
-    if (!newName) {
-      return NextResponse.json({ error: '新名称不能为空' }, { status: 400 })
-    }
-
-    // 校验新名称:不能包含 / 或 \
-    if (newName.includes('/') || newName.includes('\\')) {
-      return NextResponse.json({ error: '名称不能包含斜杠' }, { status: 400 })
-    }
+    const nameError = validateNewName(newName)
+    if (nameError) return nameError
 
     // 提取父路径和旧文件夹名
     const segments = rel.split('/')
@@ -61,6 +66,8 @@ export const POST = catchAllHandler<{ path: string[] }>(
     }
 
     const newRel = parentPath ? `${parentPath}/${newName}` : newName
+
+    if (!isValidStoragePath(newRel)) return invalidPathResponse()
 
     // 检查目标是否已存在
     try {

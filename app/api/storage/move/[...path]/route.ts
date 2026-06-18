@@ -52,6 +52,8 @@ export const POST = catchAllHandler<{ path: string[] }>(
     // 构建目标相对路径: destination/srcName
     const destRel = destination ? `${destination}/${srcName}` : srcName
 
+    if (!isValidStoragePath(destRel)) return invalidPathResponse()
+
     if (srcRel === destRel) {
       return NextResponse.json({ error: '源路径和目标路径相同' }, { status: 400 })
     }
