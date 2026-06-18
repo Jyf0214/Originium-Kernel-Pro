@@ -6,25 +6,31 @@ import { getClerkAuth, isClerkConfigured } from '@/lib/clerk-dynamic';
 
 const logger = createApiLogger('/api/auth/bind-verify');
 
+/** Clerk 鉴权，返回 userId 或错误响应 */
+async function authenticateClerkUser(_req: NextRequest): Promise<{ userId: string } | NextResponse> {
+  if (!isClerkConfigured()) {
+    return NextResponse.json({ error: 'Clerk 未配置' }, { status: 400 });
+  }
+  const authFn = await getClerkAuth();
+  if (!authFn) {
+    return NextResponse.json({ error: 'Clerk 模块不可用' }, { status: 500 });
+  }
+  const { userId } = await authFn();
+  if (!userId) {
+    logger.warn('POST', '未通过 Clerk 登录');
+    return NextResponse.json({ error: '请先通过 Clerk 登录' }, { status: 401 });
+  }
+  return { userId };
+}
+
 /**
  * 验证绑定验证码并完成账户绑定
  */
 export async function POST(req: NextRequest) {
-  if (!isClerkConfigured()) {
-    return NextResponse.json({ error: 'Clerk 未配置' }, { status: 400 });
-  }
-
   try {
-    const authFn = await getClerkAuth();
-    if (!authFn) {
-      return NextResponse.json({ error: 'Clerk 模块不可用' }, { status: 500 });
-    }
-
-    const { userId } = await authFn();
-    if (!userId) {
-      logger.warn('POST', '未通过 Clerk 登录');
-      return NextResponse.json({ error: '请先通过 Clerk 登录' }, { status: 401 });
-    }
+    const clerkResult = await authenticateClerkUser(req);
+    if ('error' in clerkResult) return clerkResult;
+    const { userId } = clerkResult;
 
     const { email, code } = await req.json();
     if (!email || !code) {
