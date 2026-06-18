@@ -29,7 +29,7 @@ async function authenticateClerkUser(_req: NextRequest): Promise<{ userId: strin
 export async function POST(req: NextRequest) {
   try {
     const clerkResult = await authenticateClerkUser(req);
-    if ('error' in clerkResult) return clerkResult;
+    if (clerkResult instanceof NextResponse) return clerkResult;
     const { userId } = clerkResult;
 
     const { email, code } = await req.json();
