@@ -186,3 +186,17 @@ export function renameFolder(
     }
   );
 }
+
+export function moveFile(
+  path: string,
+  destination: string
+): Promise<{ path: string }> {
+  return request<{ path: string }>(
+    `/api/storage/move/${encodePathSegments(path)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ destination }),
+    }
+  );
+}

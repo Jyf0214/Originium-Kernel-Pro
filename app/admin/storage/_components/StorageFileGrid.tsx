@@ -5,14 +5,16 @@
  * - 单个目录/文件用 StorageFileCard 渲染
  * - 双击文件名 = 进入目录 / 复制 URL
  * - 点击文件 → 预览弹窗
+ * - 搜索过滤:按名称实时过滤
  * - 排序控件:名称/大小/日期
+ * - 拖拽上传:拖文件到网格区域上传
  * - 刷新时容器内局部加载，不替换整个页面
  * - 文件夹内顶部/底部显示快捷创建按钮
  */
 'use client';
 
-import { useMemo } from 'react';
-import { ArrowUpDown, ArrowUp, ArrowDown, FolderPlus, Inbox, RefreshCw, Upload } from 'lucide-react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Search, FolderPlus, Inbox, RefreshCw, Upload, X } from 'lucide-react';
 import { Tooltip } from 'antd';
 import type { WebDavEntry } from '@/lib/storage/types';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -35,6 +37,12 @@ interface Props {
   uploadLabel: string;
   noFilesLabel: string;
   noFilesHint: string;
+  searchPlaceholder: string;
+  noResultsLabel: string;
+  dragHereLabel: string;
+  moveLabel: string;
+  onDropUpload?: (files: File[]) => void;
+  onMove: (entry: WebDavEntry) => void;
   sortField: SortField;
   sortDirection: SortDirection;
   onNavigate: (path: string) => void;
@@ -147,6 +155,109 @@ function sortEntries(entries: WebDavEntry[], field: SortField, dir: SortDirectio
   return sorted;
 }
 
+/** 空目录状态 */
+function EmptyDirectoryView({
+  refreshing,
+  showCreateButtons,
+  newFolderLabel,
+  uploadLabel,
+  noFilesLabel,
+  noFilesHint,
+  onNewFolder,
+  onUpload,
+  disabled,
+}: {
+  refreshing: boolean;
+  showCreateButtons: boolean;
+  newFolderLabel: string;
+  uploadLabel: string;
+  noFilesLabel: string;
+  noFilesHint: string;
+  onNewFolder: () => void;
+  onUpload: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <div className="relative">
+      {refreshing && <LoadingSpinner />}
+      {showCreateButtons && (
+        <div className="mb-4 px-1">
+          <CreateActionBar newFolderLabel={newFolderLabel} uploadLabel={uploadLabel} onNewFolder={onNewFolder} onUpload={onUpload} disabled={disabled} />
+        </div>
+      )}
+      <EmptyState
+        icon={<Inbox size={48} className="text-zinc-200" />}
+        title={noFilesLabel}
+        description={noFilesHint}
+      />
+      {showCreateButtons && (
+        <div className="mt-4 px-1">
+          <CreateActionBar newFolderLabel={newFolderLabel} uploadLabel={uploadLabel} onNewFolder={onNewFolder} onUpload={onUpload} disabled={disabled} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** 搜索 + 排序 + 刷新工具栏 */
+function SortToolbar({
+  entries,
+  search,
+  onSearchChange,
+  searchPlaceholder,
+  refreshLabel,
+  sortField,
+  sortDirection,
+  onToggleSort,
+  onRefresh,
+  refreshing,
+  disabled,
+}: {
+  entries: WebDavEntry[];
+  search: string;
+  onSearchChange: (v: string) => void;
+  searchPlaceholder: string;
+  refreshLabel: string;
+  sortField: SortField;
+  sortDirection: SortDirection;
+  onToggleSort: (field: SortField) => void;
+  onRefresh: () => void;
+  refreshing: boolean;
+  disabled: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      {entries.length > 0 && (
+        <div className="relative mr-1">
+          <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder={searchPlaceholder}
+            className="w-32 h-7 pl-7 pr-6 rounded-lg border border-zinc-200 text-xs bg-white focus:border-zinc-400 focus:outline-none transition-colors"
+          />
+          {search && (
+            <button type="button" onClick={() => onSearchChange('')} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600">
+              <X size={12} />
+            </button>
+          )}
+        </div>
+      )}
+      <SortButton field="name" label="名称" currentField={sortField} currentDirection={sortDirection} onToggle={onToggleSort} />
+      <SortButton field="size" label="大小" currentField={sortField} currentDirection={sortDirection} onToggle={onToggleSort} />
+      <SortButton field="date" label="日期" currentField={sortField} currentDirection={sortDirection} onToggle={onToggleSort} />
+      <div className="w-px h-3 bg-zinc-200 mx-1" />
+      <Tooltip title={refreshLabel}>
+        <button type="button" onClick={onRefresh} disabled={disabled || refreshing} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+          <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
+          {refreshLabel}
+        </button>
+      </Tooltip>
+    </div>
+  );
+}
+
 export function StorageFileGrid({
   entries,
   loading,
@@ -161,6 +272,12 @@ export function StorageFileGrid({
   uploadLabel,
   noFilesLabel,
   noFilesHint,
+  searchPlaceholder,
+  noResultsLabel,
+  dragHereLabel,
+  moveLabel,
+  onDropUpload,
+  onMove,
   sortField,
   sortDirection,
   onNavigate,
@@ -173,10 +290,45 @@ export function StorageFileGrid({
   disabled = false,
 }: Props) {
   const showCreateButtons = !!currentPath && !loading;
-  const sortedEntries = useMemo(
-    () => sortEntries(entries, sortField, sortDirection),
-    [entries, sortField, sortDirection]
-  );
+  const [search, setSearch] = useState('');
+  const trimmedSearch = search.trim().toLowerCase();
+  const [dragging, setDragging] = useState(false);
+  const dragCounter = useRef(0);
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer.types.includes('Files')) setDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) setDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current = 0;
+    setDragging(false);
+    if (!onDropUpload || disabled) return;
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) onDropUpload(files);
+  }, [onDropUpload, disabled]);
+
+  const filteredEntries = useMemo(() => {
+    const sorted = sortEntries(entries, sortField, sortDirection);
+    if (!trimmedSearch) return sorted;
+    return sorted.filter((e) => e.filename.toLowerCase().includes(trimmedSearch));
+  }, [entries, sortField, sortDirection, trimmedSearch]);
 
   if (loading) {
     return (
@@ -187,42 +339,37 @@ export function StorageFileGrid({
   // 空且有目录路径 → 显示空状态 + 创建按钮
   if (entries.length === 0) {
     return (
-      <div className="relative">
-        {refreshing && <LoadingSpinner />}
-        {showCreateButtons && (
-          <div className="mb-4 px-1">
-            <CreateActionBar
-              newFolderLabel={newFolderLabel}
-              uploadLabel={uploadLabel}
-              onNewFolder={onNewFolder}
-              onUpload={onUpload}
-              disabled={disabled}
-            />
-          </div>
-        )}
-        <EmptyState
-          icon={<Inbox size={48} className="text-zinc-200" />}
-          title={noFilesLabel}
-          description={noFilesHint}
-        />
-        {showCreateButtons && (
-          <div className="mt-4 px-1">
-            <CreateActionBar
-              newFolderLabel={newFolderLabel}
-              uploadLabel={uploadLabel}
-              onNewFolder={onNewFolder}
-              onUpload={onUpload}
-              disabled={disabled}
-            />
-          </div>
-        )}
-      </div>
+      <EmptyDirectoryView
+        refreshing={refreshing}
+        showCreateButtons={showCreateButtons}
+        newFolderLabel={newFolderLabel}
+        uploadLabel={uploadLabel}
+        noFilesLabel={noFilesLabel}
+        noFilesHint={noFilesHint}
+        onNewFolder={onNewFolder}
+        onUpload={onUpload}
+        disabled={disabled}
+      />
     );
   }
 
   return (
-    <div className="relative">
+    <div
+      className="relative"
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       {refreshing && <LoadingSpinner />}
+
+      {/* 拖拽上传覆盖层 */}
+      {dragging && onDropUpload && (
+        <div className="absolute inset-0 bg-blue-50/90 border-2 border-dashed border-blue-300 rounded-lg z-20 flex flex-col items-center justify-center pointer-events-none">
+          <Upload size={32} className="text-blue-400 mb-2" />
+          <span className="text-sm font-medium text-blue-600">{dragHereLabel}</span>
+        </div>
+      )}
 
       {/* 顶部操作栏：创建按钮 + 排序 + 刷新 */}
       <div className="flex items-center justify-between mb-3">
@@ -237,28 +384,29 @@ export function StorageFileGrid({
         ) : (
           <div />
         )}
-        <div className="flex items-center gap-1">
-          <SortButton field="name" label="名称" currentField={sortField} currentDirection={sortDirection} onToggle={onToggleSort} />
-          <SortButton field="size" label="大小" currentField={sortField} currentDirection={sortDirection} onToggle={onToggleSort} />
-          <SortButton field="date" label="日期" currentField={sortField} currentDirection={sortDirection} onToggle={onToggleSort} />
-          <div className="w-px h-3 bg-zinc-200 mx-1" />
-          <Tooltip title={refreshLabel}>
-            <button
-              type="button"
-              onClick={onRefresh}
-              disabled={disabled || refreshing}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
-              {refreshLabel}
-            </button>
-          </Tooltip>
-        </div>
+        <SortToolbar
+          entries={entries}
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder={searchPlaceholder}
+          refreshLabel={refreshLabel}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          onToggleSort={onToggleSort}
+          onRefresh={onRefresh}
+          refreshing={refreshing}
+          disabled={disabled}
+        />
       </div>
+
+      {/* 搜索无结果 */}
+      {trimmedSearch && filteredEntries.length === 0 && (
+        <div className="py-12 text-center text-zinc-400 text-sm">{noResultsLabel}</div>
+      )}
 
       {/* 文件卡片网格 */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-        {sortedEntries.map((entry) => (
+        {filteredEntries.map((entry) => (
           <div
             key={entry.basename}
             onDoubleClick={() => {
@@ -280,8 +428,10 @@ export function StorageFileGrid({
               copyUrlLabel={copyUrlLabel}
               copiedLabel={copiedLabel}
               deleteLabel={deleteLabel}
+              moveLabel={moveLabel}
               urlCopied={() => undefined}
               onDelete={onDelete}
+              onMove={onMove}
               disabled={disabled}
             />
           </div>

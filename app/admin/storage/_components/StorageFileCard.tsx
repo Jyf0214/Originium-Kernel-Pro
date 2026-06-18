@@ -3,11 +3,11 @@
  *
  * - 缩略图(图片用预览,其它用 lucide 图标)
  * - 文件名 + 大小
- * - 复制 URL / 删除 按钮(悬浮显示)
+ * - 复制 URL / 移动 / 删除 按钮(悬浮显示)
  */
 'use client';
 
-import { Copy, FileText, Folder, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { Copy, FileText, Folder, FolderInput, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { message, Tooltip } from 'antd';
 import type { WebDavEntry } from '@/lib/storage/types';
 import { formatBytes, formatDate } from '../_lib/format';
@@ -18,8 +18,10 @@ interface Props {
   copyUrlLabel: string;
   copiedLabel: string;
   deleteLabel: string;
+  moveLabel: string;
   urlCopied: (filename: string) => void;
   onDelete: (entry: WebDavEntry) => void;
+  onMove: (entry: WebDavEntry) => void;
   disabled?: boolean;
 }
 
@@ -40,8 +42,10 @@ export function StorageFileCard({
   copyUrlLabel,
   copiedLabel,
   deleteLabel,
+  moveLabel,
   urlCopied,
   onDelete,
+  onMove,
   disabled = false,
 }: Props) {
   const Icon = getFileIcon(entry.mimeType, entry.isDirectory);
@@ -108,6 +112,16 @@ export function StorageFileCard({
               <Copy size={14} />
             </button>
           </Tooltip>
+          <Tooltip title={moveLabel}>
+            <button
+              type="button"
+              onClick={() => onMove(entry)}
+              disabled={disabled}
+              className="w-8 h-8 rounded-lg bg-white/95 border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <FolderInput size={14} />
+            </button>
+          </Tooltip>
           <Tooltip title={deleteLabel}>
             <button
               type="button"
@@ -121,7 +135,17 @@ export function StorageFileCard({
         </div>
       )}
       {entry.isDirectory && (
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Tooltip title={moveLabel}>
+            <button
+              type="button"
+              onClick={() => onMove(entry)}
+              disabled={disabled}
+              className="w-8 h-8 rounded-lg bg-white/95 border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <FolderInput size={14} />
+            </button>
+          </Tooltip>
           <Tooltip title={deleteLabel}>
             <button
               type="button"

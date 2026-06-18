@@ -757,7 +757,15 @@
     "fileSize": "Size",
     "fileType": "Type",
     "fileModified": "Modified",
-    "filePath": "Path"
+    "filePath": "Path",
+    "searchPlaceholder": "Search files…",
+    "noResults": "No matching files",
+    "dragHereToUpload": "Drag files here to upload",
+    "moveTo": "Move to",
+    "moveToTitle": "Move File",
+    "moveToSelectFolder": "Select target folder",
+    "moveSuccess": "File moved",
+    "moveFailed": "Move failed"
   },
   "page": {
     "title": "Custom Page",
