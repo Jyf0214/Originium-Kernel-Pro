@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     
     permissions:
-      contents: write      # 用于读取 Git commit 历史
+      contents: write      # 用于读取 Git commit 历史与推送
       issues: write        # 用于向 PR 发表审计报告评论
       pull-requests: write # 用于更新 PR 状态与发表评论
 
@@ -51,7 +51,7 @@ jobs:
           EOF
           chmod +x .git/hooks/pre-push
 
-      # 核心修复点 1：安全恢复并加载 Qwen 数据库及状态缓存（统一路径为 ~/.qwen）
+      # 安全隔离与恢复：恢复审计器的专属加密缓存（统一使用 ~/.qwen 路径，确保 SQLite 会话库同步持久化）
       - name: Restore Qwen Auditor Secure Cache
         id: cache-auditor
         uses: actions/cache@v4
@@ -87,7 +87,7 @@ jobs:
           }
           EOF
 
-      # 执行自愈式安全审计逻辑（已适配 --session-id / --resume 会话分流与目录统一）
+      # 执行自愈式安全审计逻辑（已适配会话 ID 冲突防护、动态分流与位置参数防挂起）
       - name: Run Qwen AI Code Vulnerability Audit
         env:
           UNLIMITED_OPENAI_API_KEY: ${{ secrets.UNLIMITED_OPENAI_API_KEY }}
@@ -160,12 +160,12 @@ jobs:
             - 绝对不要生成 'audit_report.txt'。直接结束。
           "
           
-          # 4. 执行审计（分流启动，防止 ID already in use 冲突）
+          # 4. 执行审计（分流启动，并且在 RESUME 路径下也必须显式传递 $PROMPT 参数，物理阻断 Headless 模式挂起）
           if [ "$IS_RESUME" = "true" ]; then
-            echo "Executing Security Audit in RESUME mode using --resume..."
+            echo "Executing Security Audit in RESUME mode using --resume with prompt..."
             qwen -y --experimental-lsp --max-session-turns 100 --max-tool-calls -1 --resume "$SESSION_ID" "$PROMPT"
           else
-            echo "Executing Security Audit in INITIAL mode using --session-id..."
+            echo "Executing Security Audit in INITIAL mode using --session-id with prompt..."
             qwen -y --experimental-lsp --max-session-turns 100 --max-tool-calls -1 --session-id "$SESSION_ID" "$PROMPT"
           fi
           
@@ -205,6 +205,5 @@ jobs:
             exit 1
           else
             echo "Security audit passed successfully."
-            # 可以选择在 PR 下留个成功的评论，也可以选择保持干净静默通过
             exit 0
           fi
