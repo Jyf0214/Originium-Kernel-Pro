@@ -57,8 +57,9 @@ async function writeToStorage(name: string, htmlContent: string): Promise<NextRe
     await provider.putFileContents(storageFile, Buffer.from(htmlContent, 'utf-8'), { headers: { overwrite: 'true' } })
     return null
   } catch (err) {
+    console.error('[page.create] 存储写入失败:', err)
     return NextResponse.json(
-      { error: `存储写入失败: ${err instanceof Error ? err.message : String(err)}` },
+      { error: '存储写入失败' },
       { status: 500 },
     )
   }
@@ -88,8 +89,9 @@ export const POST = apiHandler('POST', { label: 'page.create', requireSudo: true
   try {
     htmlContent = renderTemplate(body.template, { title: body.name })
   } catch (err) {
+    console.error('[page.create] 模板渲染失败:', err)
     return NextResponse.json(
-      { error: `模板渲染失败: ${err instanceof Error ? err.message : String(err)}` },
+      { error: '模板渲染失败' },
       { status: 500 },
     )
   }

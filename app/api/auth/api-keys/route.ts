@@ -34,7 +34,7 @@ export const GET = apiHandler(
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error(`[api-keys.list] uid="${session.uid}" hasPrisma=${hasPrisma} error:`, msg);
-      return NextResponse.json({ error: `查询失败: ${msg}` }, { status: 500 });
+      return NextResponse.json({ error: '查询失败' }, { status: 500 });
     }
   }
 );
@@ -74,7 +74,7 @@ export const POST = apiHandler(
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error(`[api-keys.create] uid="${session.uid}" error:`, msg);
-      return NextResponse.json({ error: `创建失败: ${msg}` }, { status: 500 });
+      return NextResponse.json({ error: '创建失败' }, { status: 500 });
     }
   }
 );
