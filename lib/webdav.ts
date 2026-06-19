@@ -54,7 +54,7 @@ export function getWebDavClient(): WebDAVClient {
       throw new Error(NOT_CONFIGURED_MESSAGE)
     }
 
-    console.warn(`[webdav] 初始化客户端 url="${url.substring(0, 30)}..." user="${user.substring(0, 10)}..."`)
+    console.warn(`[webdav] 初始化客户端 url="${url.substring(0, 30)}..." configured=true`)
     globalForWebDav.webDavClient = createClient(url, {
       username: user,
       password: pass,

@@ -30,6 +30,20 @@ export function isSmtpConfigured(): boolean {
   return !!(config.host && config.user && config.pass);
 }
 
+/** 缓存的 transporter 单例，避免每次发送邮件都重新创建连接 */
+let cachedTransporter: nodemailer.Transporter | null = null;
+
+function getTransporter() {
+  const config = getSmtpConfig();
+  cachedTransporter ??= nodemailer.createTransport({
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+    auth: { user: config.user, pass: config.pass },
+  });
+  return cachedTransporter;
+}
+
 /**
  * 发送邮件
  * @param options 邮件选项，包含收件人、主题和 HTML 内容
@@ -44,12 +58,7 @@ export async function sendMail(options: MailOptions): Promise<boolean> {
   }
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: config.host,
-      port: config.port,
-      secure: config.secure,
-      auth: { user: config.user, pass: config.pass },
-    });
+    const transporter = getTransporter();
 
     await transporter.sendMail({
       from: config.from ?? config.user,

@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { DELETION_PERIOD_DAYS } from '@/lib/constants';
@@ -21,7 +22,12 @@ async function isCleanupAuthorized(req: NextRequest): Promise<boolean> {
   }
   const cronSecret = req.headers.get('x-cron-secret');
   const expectedSecret = process.env.CRON_SECRET;
-  return !!(cronSecret && expectedSecret && cronSecret === expectedSecret);
+  if (!cronSecret || !expectedSecret) return false;
+  try {
+    return timingSafeEqual(Buffer.from(cronSecret), Buffer.from(expectedSecret));
+  } catch {
+    return false;
+  }
 }
 
 export const POST = apiHandler('POST', { label: '清理过期文章' }, async (req: NextRequest) => {
@@ -64,8 +70,8 @@ export const POST = apiHandler('POST', { label: '清理过期文章' }, async (r
   return NextResponse.json({
     success: true,
     message: `Cleanup completed. Deleted ${deleted.length} articles.`,
-    deleted,
-    errors,
+    deletedCount: deleted.length,
+    errorCount: errors.length,
     timestamp: new Date().toISOString(),
   });
 });
@@ -93,7 +99,13 @@ export async function GET() {
     let expired = 0;
 
     for (const [, data] of Object.entries(index)) {
-      const article = JSON.parse(data);
+      let article;
+      try {
+        article = JSON.parse(data);
+      } catch (error: unknown) {
+        console.error('[cleanup] 解析文章数据失败:', error);
+        continue;
+      }
 
       if (article.status === 'pending_deletion' && article.deletionRequestedAt) {
         pendingDeletion++;
