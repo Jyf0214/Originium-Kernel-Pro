@@ -48,7 +48,7 @@ export async function POST() {
     await db.set(`user:uid:${session.uid}`, JSON.stringify(user));
 
     logger.info('POST', 'TOTP 密钥已生成', { uid: session.uid });
-    void logAudit('2fa_enabled', 'auth', '双因素认证已启用', session.uid);
+    void logAudit('2fa_secret_generated', 'auth', 'TOTP 密钥已生成，等待验证确认', session.uid);
 
     return NextResponse.json({
       success: true,

@@ -242,8 +242,9 @@ export const GET = apiHandler(
       })
     } catch (err) {
       console.error('[storage.stats] 分析失败', err)
+      console.error('[storage.stats] 详细错误:', (err as Error).message)
       return NextResponse.json(
-        { error: '存储分析失败', details: (err as Error).message },
+        { error: '存储分析失败', details: '内部错误,请稍后重试' },
         { status: 500 },
       )
     }
