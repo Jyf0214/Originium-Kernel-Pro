@@ -65,14 +65,17 @@ jobs:
       # 关键步骤 3：执行自主修复及 PR 开设
       - name: Run Qwen Autonomous Goal Loop
         env:
+          # 提供 settings.json 中声明引用的 API Key 变量
+          UNLIMITED_OPENAI_API_KEY: ${{ secrets.UNLIMITED_OPENAI_API_KEY }}
+          # 供 GitHub CLI (gh) 认证使用，以运行 gh pr create 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
-          QWEN_CODE_SUPPRESS_YOLO_WARNING=1
         run: |
           # 开启无监督异常重试机制
           export QWEN_CODE_UNATTENDED_RETRY=1
+          export QWEN_CODE_SUPPRESS_YOLO_WARNING=1
           
           # 在指令中明确增加“严格限制（STRICT CONSTRAINTS）”
           qwen -p "
