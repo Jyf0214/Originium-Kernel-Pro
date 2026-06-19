@@ -124,7 +124,21 @@ jobs:
           SUCCESS=false
           TRIGGER_COMPRESSION=false
           
-          # 1. 判断并获取持久化的 Session ID
+          # 1. 物理分支感知：如果是 issue_comment，获取真实的 PR 分支并切过去
+          if [ "$EVENT_NAME" = "issue_comment" ]; then
+            # 通过 gh cli 获取 PR 的源分支名称，若获取失败（如普通 Issue 评论）则降级回默认格式
+            PR_BRANCH=$(gh pr view "$ISSUE_NUMBER" --json headRefName --jq .headRefName 2>/dev/null || echo "fix/issue-$ISSUE_NUMBER")
+            echo "Successfully detected active PR branch: $PR_BRANCH"
+            
+            # 物理拉取并切换分支，确保当前工作区拥有该分支的最新历史 commit
+            git fetch origin "$PR_BRANCH"
+            git checkout "$PR_BRANCH"
+          else
+            PR_BRANCH="fix/issue-$ISSUE_NUMBER"
+            echo "First-run or Issue trigger. Target branch initialized to: $PR_BRANCH"
+          fi
+          
+          # 2. 判断并获取持久化的 Session ID
           if [ -f ~/.qwen/current_session_id.txt ]; then
             SESSION_ID=$(cat ~/.qwen/current_session_id.txt)
             IS_RESUME=true
@@ -136,7 +150,7 @@ jobs:
             echo "Created brand new Session ID: $SESSION_ID (First-run Mode)"
           fi
           
-          # 2. 安全构建 Prompt 临时文件（通过环境重定向机制，物理防堵任何 Markdown 字符注入）
+          # 3. 安全构建 Prompt 临时文件（通过环境重定向机制，物理防堵任何 Markdown 字符注入）
           > prompt.txt
           
           if [ "$IS_RESUME" = "true" ] && [ "$EVENT_NAME" = "issue_comment" ]; then
@@ -149,9 +163,9 @@ jobs:
             echo "$USER_FEEDBACK" >> prompt.txt
             echo "" >> prompt.txt
             echo "## 执行流程：" >> prompt.txt
-            echo "1. 请直接在现有的本地分支 'fix/issue-$ISSUE_NUMBER' 上继续调整和修改。" >> prompt.txt
+            echo "1. 你当前已经处于该 PR 的源本地分支 '$PR_BRANCH'。请直接在此分支上继续调整和修改。" >> prompt.txt
             echo "2. 修改后，必须运行本地单元测试并通过验收（验收失败需继续修改）。" >> prompt.txt
-            echo "3. 提交新的 commit 并推送到 GitHub，此时远程 Pull Request 会自动更新，你不需要重复调用 'gh pr create' 创建新 PR（如果提示 PR 已存在请忽略）。" >> prompt.txt
+            echo "3. 提交新的 commit 并直接推送到 origin '$PR_BRANCH'。此时远程 Pull Request 会自动更新，你【绝对不要】重复调用 'gh pr create' 创建新 PR（如果系统检测到该命令，请直接跳过）。" >> prompt.txt
             echo "4. 任务完成后，调用 'gh issue comment' 生动地回复用户，并说明此次增量修改的内容。" >> prompt.txt
           else
             echo "/goal 解决 #$ISSUE_NUMBER 号 Issue 描述的问题。" >> prompt.txt
@@ -163,13 +177,13 @@ jobs:
             echo "1. **语义定位**：请充分利用 '--experimental-lsp' 精准定位需要修改的文件。如果遇到不懂的语法或第三方库，可运行 MCP-Fetch 联网查询。" >> prompt.txt
             echo "2. **代码修改与质量控制（核心红线）**：" >> prompt.txt
             echo "   - 修改后必须通过本地测试验收，否则不予提交。" >> prompt.txt
-            echo "   - 修改必须在隔离的分支 'fix/issue-$ISSUE_NUMBER' 上完成。" >> prompt.txt
+            echo "   - 修改必须在隔离的分支 '$PR_BRANCH' 上完成。" >> prompt.txt
             echo "3. **提交代码与开 PR**：" >> prompt.txt
             echo "   - 验收通过后，commit 修改并推送该分支。" >> prompt.txt
             echo "   - 使用系统内置的 'gh pr create' 工具创建一个 Pull Request 指向主分支。" >> prompt.txt
             echo "4. **自主生动回复（消除人机感要求）**：" >> prompt.txt
             echo "   - PR 创建成功后，使用 'gh issue comment $ISSUE_NUMBER' 回复此 Issue。" >> prompt.txt
-            echo "   - 回复语言必须生动、活泼，富有开发者温度。不要用机器官腔，多用 Emoji（如 🚀, 🤖, ✨, 🛠️）。" >> prompt.txt
+            echo "   - 回复语言必须生动、活泼，富有开发者温度。不要用机器官腔，多用 Emoji（如 🚀, 🤖, ✨, 🛠️）。" >> txt.txt
             echo "   - 包含：欢快的打招呼与自我介绍、你是怎么排查到这个 Bug 的（通俗解释排查路径 and 受影响的文件）、你的修复思路，以及附上生成的 PR 链接。" >> prompt.txt
             echo "" >> prompt.txt
             echo "## 安全限制：" >> prompt.txt
@@ -182,7 +196,7 @@ jobs:
           echo "Starting Qwen Agent Core Loop..."
           START_TIME=$(date +%s)
           
-          # 3. 首次或恢复启动分流
+          # 4. 首次或恢复启动分流（增量运行下，改用 --resume 承接会话）
           if [ "$IS_RESUME" = "true" ]; then
             echo "Executing in RESUME mode using --resume..."
             if qwen -y --experimental-lsp --max-session-turns 100 --max-tool-calls -1 --resume "$SESSION_ID" "$FINAL_PROMPT" 2>&1 | tee qwen_output.log; then
