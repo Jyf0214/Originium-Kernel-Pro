@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useConfig } from '@/hooks/use-config';
 import { useActiveHeading } from '@/hooks/use-active-heading';
 import { slugify } from '@/lib/slugify';
@@ -17,7 +17,7 @@ interface TableOfContentsProps {
   pageType?: 'post' | 'page';
 }
 
-function TocButton({ simple, onClick }: { simple?: boolean; onClick: () => void }) {
+function TocButton({ simple, onClick, expanded }: { simple?: boolean; onClick: () => void; expanded?: boolean }) {
   return (
     <button
       onClick={onClick}
@@ -27,6 +27,7 @@ function TocButton({ simple, onClick }: { simple?: boolean; onClick: () => void 
           : 'text-zinc-500 hover:text-zinc-900 hover:shadow-xl'
       }`}
       aria-label="目录"
+      aria-expanded={expanded}
     >
       <List size={simple ? 18 : 20} />
     </button>
@@ -84,6 +85,8 @@ function TocPanel({ open, items, activeId, simple, maxLevel, numberEnabled, onIt
       className={`fixed bottom-20 right-6 z-50 max-h-80 overflow-y-auto bg-white rounded-2xl shadow-xl border border-zinc-100 ${
         simple ? 'p-3 w-56' : 'p-4 w-64'
       }`}
+      role="dialog"
+      aria-label="文章目录"
     >
       <h4 className={`font-bold uppercase tracking-widest text-zinc-400 mb-3 ${
         simple ? 'text-[10px]' : 'text-xs'
@@ -148,26 +151,33 @@ export default function TableOfContents({ content, pageType = 'post' }: TableOfC
         setOpen(false);
       }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [open]);
+
+  const handleItemClick = useCallback((id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+      setOpen(false);
+    }
+  }, []);
 
   if (isDisabled || items.length === 0) return null;
 
   const maxLevel = Math.min(...items.map(i => i.level));
   const simple = cfg?.styleSimple;
 
-  const handleItemClick = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-      setOpen(false);
-    }
-  };
-
   return (
     <>
-      <TocButton simple={simple} onClick={() => setOpen(!open)} />
+      <TocButton simple={simple} onClick={() => setOpen(!open)} expanded={open} />
       <TocPanel
         open={open}
         items={items}

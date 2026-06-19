@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Copy, Check, ChevronDown, ChevronUp, WrapText } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { Tag } from '@/components/ui/Tag';
@@ -200,14 +200,26 @@ export function CodeBlock({
   const [copyError, setCopyError] = useState(false);
   const [collapsed, setCollapsed] = useState(cfg.shrink);
   const [wrap, setWrap] = useState(cfg.wordWrap);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const errorTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // 组件卸载时清理定时器，避免对已卸载组件调用 setState
+  useEffect(() => {
+    return () => {
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+      if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    };
+  }, []);
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(children).then(() => {
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+      copiedTimerRef.current = setTimeout(() => setCopied(false), 2000);
     }).catch(() => {
       setCopyError(true);
-      setTimeout(() => setCopyError(false), 2000);
+      if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+      errorTimerRef.current = setTimeout(() => setCopyError(false), 2000);
     });
   }, [children]);
 
