@@ -6,7 +6,7 @@ import { useI18n } from '@/hooks/use-i18n';
 import Link from 'next/link';
 import { GlobalLoading } from '@/components/Loading';
 import ProCard from '@/components/ui/ProCard';
-import { Settings, Eye, Activity, FileText, Users, Plus, ArrowRight } from 'lucide-react';
+import { Settings, Eye, Activity, FileText, Users, Plus, ArrowRight, BarChart3 } from 'lucide-react';
 import { PageContainer } from '@/components/ui/PageContainer';
 
 const adminSections = [
@@ -16,6 +16,7 @@ const adminSections = [
   { key: 'sidebar.tickets', icon: FileText, href: '/admin/tickets', color: 'bg-amber-500', desc: '工单管理' },
   { key: 'sidebar.writeArticle', icon: Plus, href: '/admin/tickets/new', color: 'bg-purple-500', desc: '新建工单' },
   { key: 'sidebar.userManagement', icon: Users, href: '/admin/users', color: 'bg-rose-500', desc: '用户管理' },
+  { key: 'sidebar.contentStats', icon: BarChart3, href: '/admin/stats', color: 'bg-indigo-500', desc: '内容统计' },
 ];
 
 export default function AdminPage() {
