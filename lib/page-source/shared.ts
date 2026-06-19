@@ -104,6 +104,7 @@ export function buildMetaPath(relativePath: string): string | null {
   const parts = relativePath.split('/');
   if (parts.length < 2) return null;
   const filename = parts[parts.length - 1];
+  if (!filename) return null;
   const dir = parts.slice(0, -1).join('/');
   const name = filename.replace(/\.html?$/i, '');
   if (!name) return null;
