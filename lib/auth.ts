@@ -49,7 +49,7 @@ export interface SessionPayload {
  */
 export function generateUID(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
-  const randomStr = Math.random().toString(36).substring(2, 7).toUpperCase();
+  const randomStr = crypto.randomBytes(3).toString('hex').substring(0, 5).toUpperCase();
   return `UID-${timestamp}-${randomStr}`;
 }
 
@@ -208,8 +208,9 @@ export async function getSession(): Promise<SessionPayload | null> {
 /**
  * 从 Cookie / API 密钥获取当前会话，同时返回 API 密钥 ID
  * 若通过 Cookie 认证，currentKeyId 为 null
+ * 未认证时返回 null（与 getSession() 行为一致）
  */
-export async function getSessionWithKeyId(): Promise<{ session: SessionPayload; currentKeyId: string | null }> {
+export async function getSessionWithKeyId(): Promise<{ session: SessionPayload; currentKeyId: string | null } | null> {
   // 1. 尝试 Cookie session
   const session = (await cookies()).get('session')?.value;
   if (session) {
@@ -228,24 +229,24 @@ export async function getSessionWithKeyId(): Promise<{ session: SessionPayload; 
     const hdrs = await headers();
     const authHeader = hdrs.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      return { session: { uid: '', email: '', role: 'user' }, currentKeyId: null };
+      return null;
     }
 
     const token = authHeader.slice(7).trim();
     if (!token?.startsWith('sk-')) {
-      return { session: { uid: '', email: '', role: 'user' }, currentKeyId: null };
+      return null;
     }
 
     const { getDb } = await import('@/lib/db');
     const db = getDb();
     if (!db.prisma) {
-      return { session: { uid: '', email: '', role: 'user' }, currentKeyId: null };
+      return null;
     }
 
     const hashed = hashApiKey(token);
     const row = await db.prisma.apiKey.findUnique({ where: { key: hashed } });
     if (!row) {
-      return { session: { uid: '', email: '', role: 'user' }, currentKeyId: null };
+      return null;
     }
 
     // 更新最后使用时间(异步,不阻塞)
@@ -253,7 +254,7 @@ export async function getSessionWithKeyId(): Promise<{ session: SessionPayload; 
 
     const userRaw = await db.get(`user:uid:${row.uid}`);
     if (!userRaw) {
-      return { session: { uid: '', email: '', role: 'user' }, currentKeyId: null };
+      return null;
     }
     const user = JSON.parse(userRaw) as { uid: string; email: string; role: string; userGroup?: string };
     return {
@@ -261,7 +262,7 @@ export async function getSessionWithKeyId(): Promise<{ session: SessionPayload; 
       currentKeyId: row.id,
     };
   } catch {
-    return { session: { uid: '', email: '', role: 'user' }, currentKeyId: null };
+    return null;
   }
 }
 

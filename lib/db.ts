@@ -77,6 +77,7 @@ class PrismaDriver implements IDatabase {
   public readonly prisma: PrismaClient | null = getDatabaseUrl() ? prisma : null
 
   async get(key: string): Promise<string | null> {
+    if (!this.prisma) return null
     const record = await prisma.originiumKV.findUnique({ where: { key } })
     if (!record) return null
     if (record.expiry && record.expiry < BigInt(Date.now())) {
@@ -87,6 +88,7 @@ class PrismaDriver implements IDatabase {
   }
 
   async set(key: string, value: string, ttl?: number): Promise<void> {
+    if (!this.prisma) return
     const expiry = ttl ? BigInt(Date.now() + ttl * 1000) : null
     await prisma.originiumKV.upsert({
       where: { key },
@@ -96,27 +98,33 @@ class PrismaDriver implements IDatabase {
   }
 
   async del(key: string): Promise<void> {
+    if (!this.prisma) return
 		await prisma.originiumKV.delete({ where: { key } }).catch((error) => { console.error('删除数据库记录失败:', key, error); })
   }
 
   async exists(key: string): Promise<boolean> {
+    if (!this.prisma) return false
     const record = await prisma.originiumKV.findUnique({ where: { key } })
     return !!record
   }
 
   async hget(key: string, field: string): Promise<string | null> {
+    if (!this.prisma) return null
     return this.get(`${key}:${field}`)
   }
 
   async hset(key: string, field: string, value: string): Promise<void> {
+    if (!this.prisma) return
     await this.set(`${key}:${field}`, value)
   }
 
   async hdel(key: string, field: string): Promise<void> {
+    if (!this.prisma) return
     await this.del(`${key}:${field}`)
   }
 
   async hgetall(key: string): Promise<Record<string, string>> {
+    if (!this.prisma) return {}
     const records = await prisma.originiumKV.findMany({
       where: { key: { startsWith: `${key}:` } }
     })
