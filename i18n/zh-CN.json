@@ -184,6 +184,7 @@
     "customPages": "自定义页面",
     "fileManager": "文件管理",
     "contentStats": "内容统计",
+    "auditLogs": "审计日志",
     "switchToUserMenu": "切换到用户面板菜单",
     "switchToAdminMenu": "返回管理后台菜单"
   },
