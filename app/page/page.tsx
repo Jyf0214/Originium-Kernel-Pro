@@ -17,7 +17,7 @@ import {
   getStorageProvider,
   getStorageProviderSync,
 } from '@/lib/storage/storage-provider';
-import { scanPagesHtmlDeep, fetchPageHtml } from '@/lib/page-source/webdav';
+import { scanPagesHtmlDeep, fetchPageHtml, fetchPageMeta } from '@/lib/page-source/webdav';
 import { PageIndexView, type PageIndexItem, type StorageOrphan } from './_components/PageIndexView';
 
 export const dynamic = 'force-dynamic';
@@ -154,16 +154,19 @@ export default async function PageIndex() {
       ).length;
 
       let title = filename;
-      try {
-        const html = await fetchPageHtml(relativePath);
-        if (html) {
-          const match = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-          const extracted = match?.[1]?.trim();
-          if (extracted) title = extracted;
-        }
-      } catch {
-        /* 保持 filename */
+
+      const [meta, html] = await Promise.all([fetchPageMeta(relativePath), fetchPageHtml(relativePath)]);
+      if (meta?.title) title = meta.title;
+      else if (html) {
+        const match = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+        const extracted = match?.[1]?.trim();
+        if (extracted) title = extracted;
       }
+      const description: string | undefined = meta?.description;
+      const coverImage: string | undefined = meta?.coverImage;
+      const tags: string[] | undefined = meta?.tags;
+      const createdAt: string | undefined = meta?.createdAt;
+      const updatedAt: string | undefined = meta?.updatedAt;
 
       const href = `/page/${relativePath.slice(PAGES_PREFIX.length + 1)}`;
       return {
@@ -173,6 +176,11 @@ export default async function PageIndex() {
         title,
         isPrivate: privateDirs.has(dir),
         hiddenCount: hiddenInDir,
+        description,
+        coverImage,
+        tags,
+        createdAt,
+        updatedAt,
       };
     }),
   );
