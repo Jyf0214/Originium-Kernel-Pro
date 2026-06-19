@@ -7,9 +7,9 @@ export const GET = apiHandler('GET', { label: '审计日志查询', requireAdmin
 
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1);
   const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') ?? '20', 10) || 20));
-  const action = searchParams.get('action') || undefined;
-  const operatorUid = searchParams.get('operatorUid') || undefined;
-  const resource = searchParams.get('resource') || undefined;
+  const action = searchParams.get('action') ?? undefined;
+  const operatorUid = searchParams.get('operatorUid') ?? undefined;
+  const resource = searchParams.get('resource') ?? undefined;
 
   const result = await queryAuditLogs({
     action,

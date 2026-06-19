@@ -65,13 +65,13 @@ export default function AuditPage() {
 
   useEffect(() => {
     if (!authLoading && user && isSudo) {
-      void fetchLogs(page, actionFilter || undefined, operatorFilter || undefined);
+      void fetchLogs(page, actionFilter ?? undefined, operatorFilter ?? undefined);
     }
   }, [authLoading, user, isSudo, page, fetchLogs, actionFilter, operatorFilter]);
 
   const handleSearch = () => {
     setPage(1);
-    void fetchLogs(1, actionFilter || undefined, operatorFilter || undefined);
+    void fetchLogs(1, actionFilter ?? undefined, operatorFilter ?? undefined);
   };
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / pageSize)) : 1;
@@ -169,10 +169,10 @@ export default function AuditPage() {
                             {log.action}
                           </span>
                         </td>
-                        <td className="px-5 py-3 text-zinc-600">{log.resource || '-'}</td>
-                        <td className="px-5 py-3 text-zinc-500 font-mono text-xs">{log.resourceId || '-'}</td>
+                        <td className="px-5 py-3 text-zinc-600">{log.resource ?? '-'}</td>
+                        <td className="px-5 py-3 text-zinc-500 font-mono text-xs">{log.resourceId ?? '-'}</td>
                         <td className="px-5 py-3 text-zinc-500 max-w-xs truncate" title={log.details}>
-                          {log.details || '-'}
+                          {log.details ?? '-'}
                         </td>
                       </tr>
                     ))

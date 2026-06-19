@@ -62,7 +62,7 @@ export async function getDiaryVersions(
   tags: string | null;
   createdAt: Date;
 }[]> {
-  return prismaAny.diaryVersion.findMany({
+  return await prismaAny.diaryVersion.findMany({
     where: { diaryId },
     orderBy: { createdAt: 'desc' },
     take: limit,
@@ -80,7 +80,7 @@ export async function getDiaryVersions(
  * 获取单个版本详情（含内容）
  */
 export async function getDiaryVersion(versionId: string) {
-  return prismaAny.diaryVersion.findUnique({
+  return await prismaAny.diaryVersion.findUnique({
     where: { id: versionId },
   });
 }
