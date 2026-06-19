@@ -23,6 +23,38 @@ import {
   storageNotConfigured,
 } from '../../_helpers'
 
+/** 被禁止的文件扩展名（可执行、可注入脚本、或其他高风险类型） */
+const BLOCKED_EXTENSIONS = new Set([
+  '.svg', '.svgz',
+  '.php', '.php3', '.php4', '.php5', '.phtml',
+  '.exe', '.msi', '.bat', '.cmd', '.com', '.pif',
+  '.sh', '.bash', '.zsh', '.csh', '.ksh',
+  '.ps1', '.psm1', '.psd1',
+  '.vbs', '.vbe', '.wsf', '.wsh',
+  '.scr', '.jar', '.class',
+])
+
+/** 从路径中提取文件扩展名（小写），无扩展名返回空字符串 */
+function getExtension(filePath: string): string {
+  const lastSeg = filePath.split('/').pop() ?? ''
+  const dotIdx = lastSeg.lastIndexOf('.')
+  if (dotIdx <= 0) return ''
+  return lastSeg.slice(dotIdx).toLowerCase()
+}
+
+/** 校验上传文件扩展名是否安全，被阻止时返回 400 响应，否则返回 null */
+function validateUploadExtension(relPath: string): NextResponse | null {
+  const ext = getExtension(relPath)
+  if (ext !== '' && BLOCKED_EXTENSIONS.has(ext)) {
+    console.warn(`[storage.upload] 拒绝上传: 扩展名 "${ext}" 在黑名单中 path="${relPath}"`)
+    return NextResponse.json(
+      { error: '不支持的文件类型', blocked: ext },
+      { status: 400 },
+    )
+  }
+  return null
+}
+
 export const POST = catchAllHandler<{ path: string[] }>(
   'POST',
   { label: 'storage.upload', requireAdmin: true },
@@ -32,6 +64,11 @@ export const POST = catchAllHandler<{ path: string[] }>(
     const parts = await getPathParts(context)
     const rel = resolveStoragePath(parts)
     if (!isValidStoragePath(rel) || rel === '') return invalidPathResponse()
+
+    // 禁止上传危险文件类型（可执行文件、可注入脚本的 SVG 等）
+    const blocked = validateUploadExtension(rel)
+    if (blocked) return blocked
+
     const target = buildWebDavTarget(parts)
 
     // Content-Length 快速拒绝(避免对超大请求也分配流处理管线)
