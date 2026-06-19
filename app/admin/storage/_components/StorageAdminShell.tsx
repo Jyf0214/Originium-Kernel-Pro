@@ -8,7 +8,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Database, FolderPlus, RotateCw, Upload } from 'lucide-react';
+import { BarChart3, Database, FolderPlus, RotateCw, Upload } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
 import { showError } from '@/lib/error';
 import { Button } from '@/components/ui/Button';
@@ -27,6 +27,7 @@ import { StorageFolderSettingsPopover } from './StorageFolderSettingsPopover';
 import { StorageRenameDialog } from './StorageRenameDialog';
 import { StorageMoveDialog } from './StorageMoveDialog';
 import { StorageFilePreview } from './StorageFilePreview';
+import { StorageStatsPanel } from './StorageStatsPanel';
 import type { WebDavEntry } from '@/lib/storage/types';
 
 const APP_URL_FALLBACK = '';
@@ -205,6 +206,9 @@ export function StorageAdminShell() {
   // 移动相关状态
   const [moveTarget, setMoveTarget] = useState<WebDavEntry | null>(null);
 
+  // 存储分析面板状态
+  const [statsOpen, setStatsOpen] = useState(false);
+
   const handleOpenMove = (entry: WebDavEntry) => {
     setMoveTarget(entry);
     state.openDialog('move', entry.basename);
@@ -275,15 +279,27 @@ export function StorageAdminShell() {
             </p>
           </div>
         </div>
-        <Button
-          variant="default"
-          size="sm"
-          icon={<RotateCw size={14} className={refreshing ? 'animate-spin' : ''} />}
-          onClick={handleRefresh}
-          disabled={refreshing || !state.configured}
-        >
-          {labels.refresh}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="default"
+            size="sm"
+            icon={<BarChart3 size={14} />}
+            onClick={() => setStatsOpen(true)}
+            disabled={!state.configured}
+            title={!state.configured ? '存储后端未配置' : '存储空间分析'}
+          >
+            存储分析
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            icon={<RotateCw size={14} className={refreshing ? 'animate-spin' : ''} />}
+            onClick={handleRefresh}
+            disabled={refreshing || !state.configured}
+          >
+            {labels.refresh}
+          </Button>
+        </div>
       </div>
 
       {/* 降级提示 */}
@@ -499,6 +515,11 @@ export function StorageAdminShell() {
         entry={previewEntry}
         appUrl={appUrl}
         onClose={() => setPreviewEntry(null)}
+      />
+
+      <StorageStatsPanel
+        open={statsOpen}
+        onClose={() => setStatsOpen(false)}
       />
     </PageContainer>
   );
