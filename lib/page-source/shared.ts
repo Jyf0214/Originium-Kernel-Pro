@@ -46,7 +46,7 @@ export function extractTitle(html: string): string | null {
  *
  * - 自动拼接 `pages/` 前缀
  * - 通过 `isValidPath` 拒绝目录穿越、绝对路径、控制字符
- * - 仅接受 `.html` / `.htm` 扩展名(大小写不敏感)
+ * - 不再强制要求 `.html` 扩展名——目录路径由 `resolvePageFilePath` 解析
  * - 空数组 / 任一段为空字符串 → `null`
  *
  * @param segments 来自 `params.path` 的路径段数组
@@ -63,10 +63,22 @@ export function buildPageRelativePath(segments: readonly string[]): string | nul
   if (!isValidPath(joined)) {
     return null;
   }
-  if (!isHtmlPath(joined)) {
-    return null;
-  }
   return joined;
+}
+
+/**
+ * 将相对路径解析为实际 HTML 文件路径
+ *
+ * - 已含 `.html/.htm` 扩展名 → 原样返回
+ * - 目录路径(如 `pages/hello`) → 拼接 `index.html` 返回
+ *
+ * @param relativePath 已通过 `buildPageRelativePath` 校验的路径
+ */
+export function resolvePageFilePath(relativePath: string): string {
+  if (isHtmlPath(relativePath)) {
+    return relativePath;
+  }
+  return `${relativePath}/index.html`;
 }
 
 /**

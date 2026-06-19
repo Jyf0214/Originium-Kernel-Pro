@@ -12,6 +12,7 @@ import { isStorageConfigured } from '@/lib/storage/storage-provider'
 import { verifyPassword } from '@/lib/hash'
 import { splitDirFilename } from './path'
 import type { AccessResult, StorageFolderMeta } from './types'
+import { PAGES_PREFIX, isHtmlPath } from '@/lib/page-source/shared'
 
 /**
  * 规范化路径:去除前导/尾随斜杠,空字符串代表根
@@ -176,23 +177,29 @@ export interface PageAccessResult {
 const PAGE_PASSWORD_MAX_LEN = 128
 
 /**
- * 从页面完整路径提取其所在的子文件夹路径(用于查询 `StorageFolder` 元数据)
+ * 从页面完整路径提取项目文件夹路径(用于查询 `StorageFolder` 元数据)
  *
- * 行为规则:
- * - 先调用 `splitDirFilename` 切分目录与文件名
- * - 直接返回 `dir` 段:若是文件路径,得到父目录;若是目录路径(含尾斜杠),
- *   `splitDirFilename` 会先规范化去掉尾斜杠,得到该目录的父目录
- * - 例:'pages/private/notes.html' → 'pages/private'
- * - 例:'pages/about.html'         → 'pages'
- * - 例:'private/notes.html'       → 'private'
- * - 例:'about.html'               → ''   (根级文件)
- * - 例:''                          → ''   (空路径)
- *
- * 注意:此函数只用于查询,不做合法性校验;调用方需保证 `fullPath` 已经过
- * 路由层的 `isValidStoragePath` 检查。
+ * 取 `pages/` 后的第一级目录作为权限判断依据:
+ * - `pages/hello/index.html` → `pages/hello`
+ * - `pages/hello`            → `pages/hello`
+ * - `pages/hello/deep/x.html` → `pages/hello`（只看第一级）
+ * - `pages/about.html`        → `pages`（根级文件，回退到 pages 本身）
  */
-export function getPageFolderDir(fullPath: string): string {
-  return splitDirFilename(fullPath).dir
+export function getPageProjectFolder(fullPath: string): string {
+  const normalized = fullPath.replace(/^[\\/]+|[\\/]+$/g, '')
+  const prefix = `${PAGES_PREFIX}/`
+  if (!normalized.startsWith(prefix)) {
+    return splitDirFilename(normalized).dir
+  }
+  const rest = normalized.slice(prefix.length)
+  const firstSlash = rest.indexOf('/')
+  if (firstSlash === -1) {
+    // 无子路径：含扩展名 → 根级文件(pages/secret.html → pages)
+    //             无扩展名 → 目录名(pages/hello → pages/hello)
+    return isHtmlPath(rest) ? PAGES_PREFIX : `${PAGES_PREFIX}/${rest}`
+  }
+  const firstLevel = rest.substring(0, firstSlash)
+  return `${PAGES_PREFIX}/${firstLevel}`
 }
 
 /**
@@ -222,8 +229,8 @@ export async function checkPageAccess(
   }
 
   try {
-    // 2. 查询页面所在目录的元数据
-    const dir = getPageFolderDir(fullPath)
+    // 2. 查询页面所在项目文件夹的元数据（只看 pages/ 下第一级目录）
+    const dir = getPageProjectFolder(fullPath)
     const row = await prisma.storageFolder.findUnique({ where: { path: dir } })
 
     // 3. 无记录 → 公开
