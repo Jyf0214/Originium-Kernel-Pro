@@ -184,6 +184,7 @@
     "customPages": "Custom Pages",
     "fileManager": "File Manager",
     "contentStats": "Content Stats",
+    "auditLogs": "Audit Logs",
     "switchToUserMenu": "Switch to User Menu",
     "switchToAdminMenu": "Back to Admin Menu"
   },

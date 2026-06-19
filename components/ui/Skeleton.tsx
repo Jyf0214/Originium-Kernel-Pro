@@ -1,6 +1,6 @@
 import { cn } from '@/lib/ui';
 
-interface SkeletonProps {
+export interface SkeletonProps {
   className?: string;
 }
 
