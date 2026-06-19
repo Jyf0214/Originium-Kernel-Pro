@@ -140,3 +140,8 @@ pre:hover .code-copy-btn {
 .skip-link:focus {
   transform: translateY(0);
 }
+
+/* 图片懒加载淡入过渡 */
+.lazy-image {
+  transition: opacity 0.3s ease-in-out;
+}

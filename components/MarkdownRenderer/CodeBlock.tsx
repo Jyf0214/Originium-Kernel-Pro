@@ -53,6 +53,7 @@ function CodeToolbar({
             className="text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700"
             onClick={onCopy}
             title="复制代码"
+            aria-label="复制代码"
           />
         )}
         {showWrap && cfg.wordWrap && (
@@ -64,6 +65,7 @@ function CodeToolbar({
             className={wrap ? 'text-zinc-200 bg-zinc-700' : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700'}
             onClick={onToggleWrap}
             title="自动换行"
+            aria-label="自动换行"
           />
         )}
         {exceedsLimit && (
@@ -75,6 +77,7 @@ function CodeToolbar({
             className="text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700"
             onClick={onToggleCollapse}
             title={collapsed ? '展开' : '折叠'}
+            aria-label={collapsed ? '展开代码' : '折叠代码'}
           />
         )}
       </div>
