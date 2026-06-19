@@ -14,9 +14,11 @@ export default function GlobalError({
   const [showDetail, setShowDetail] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const isDev = process.env.NODE_ENV === 'development';
+
   const copyError = async () => {
     const text = [
-      error.message,
+      isDev ? error.message : '',
       error.digest ? `Digest: ${error.digest}` : '',
     ]
       .filter(Boolean)
@@ -37,7 +39,9 @@ export default function GlobalError({
         <div className="space-y-2">
           <h1 className="text-2xl font-bold text-zinc-900">页面出现错误</h1>
           <p className="text-zinc-500">
-            {error.message || '发生了意外错误，请尝试刷新页面'}
+            {isDev
+              ? (error.message || '发生了意外错误，请尝试刷新页面')
+              : '发生了意外错误，请尝试刷新页面'}
           </p>
         </div>
         {/* 详情折叠 */}
@@ -57,7 +61,7 @@ export default function GlobalError({
             </button>
             {showDetail && (
               <pre className="mt-2 p-3 bg-zinc-100 rounded-lg text-xs text-zinc-700 overflow-auto">
-                {error.message}
+                {isDev ? error.message : ''}
                 {error.digest ? `\n\nDigest: ${error.digest}` : ''}
               </pre>
             )}

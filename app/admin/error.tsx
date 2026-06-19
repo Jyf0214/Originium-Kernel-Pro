@@ -10,7 +10,11 @@ export default function AdminError({
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center">
       <h2 className="text-xl font-semibold text-zinc-900 mb-2">页面出现错误</h2>
-      <p className="text-zinc-600 mb-4">{error.message || '管理后台发生了未知错误'}</p>
+      <p className="text-zinc-600 mb-4">
+        {process.env.NODE_ENV === 'development'
+          ? (error.message || '管理后台发生了未知错误')
+          : '管理后台发生了未知错误'}
+      </p>
       <button
         onClick={reset}
         className="px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 transition-colors"
