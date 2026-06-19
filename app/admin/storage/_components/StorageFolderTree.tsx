@@ -13,6 +13,9 @@ import { Tooltip } from 'antd';
 import type { StorageFolderMeta } from '@/lib/storage/types';
 import { Tag } from '@/components/ui/Tag';
 
+/** 系统保留目录——不显示公开/私有标签 */
+const SYSTEM_FOLDERS = new Set(['pages']);
+
 interface Props {
   folders: StorageFolderMeta[];
   currentPath: string;
@@ -108,20 +111,22 @@ export function StorageFolderTree({
                         folder.path
                       )}
                     </span>
-                    <Tag
-                      size="sm"
-                      variant={folder.public ? 'emerald' : 'light'}
-                      className="shrink-0"
-                    >
-                      <span className="inline-flex items-center gap-1">
-                        {folder.public ? (
-                          <Globe size={10} />
-                        ) : (
-                          <Lock size={10} />
-                        )}
-                        {folder.public ? publicLabel : privateLabel}
-                      </span>
-                    </Tag>
+                    {!SYSTEM_FOLDERS.has(folder.path) && (
+                      <Tag
+                        size="sm"
+                        variant={folder.public ? 'emerald' : 'light'}
+                        className="shrink-0"
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          {folder.public ? (
+                            <Globe size={10} />
+                          ) : (
+                            <Lock size={10} />
+                          )}
+                          {folder.public ? publicLabel : privateLabel}
+                        </span>
+                      </Tag>
+                    )}
                   </button>
                   {/* 重命名按钮(悬浮显示) */}
                   {!disabled && (
