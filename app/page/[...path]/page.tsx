@@ -17,7 +17,7 @@
  */
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { buildPageRelativePath, extractTitle } from '@/lib/page-source/shared';
+import { buildPageRelativePath, resolvePageFilePath, extractTitle } from '@/lib/page-source/shared';
 import { isStorageConfigured } from '@/lib/storage/storage-provider';
 import { fetchPageHtml } from '@/lib/page-source/webdav';
 import { checkPageAccess, type PageAccessResult } from '@/lib/storage/acl';
@@ -46,7 +46,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!relativePath || !isStorageConfigured()) {
     return { title: 'Custom Page' };
   }
-  const html = await fetchPageHtml(relativePath);
+  const filePath = resolvePageFilePath(relativePath);
+  const html = await fetchPageHtml(filePath);
   const title = html ? extractTitle(html) : null;
   return { title: title ?? 'Custom Page' };
 }
@@ -64,13 +65,14 @@ export default async function CustomPage({ params, searchParams }: PageProps) {
     notFound();
   }
 
-  const html = await fetchPageHtml(relativePath);
+  const filePath = resolvePageFilePath(relativePath);
+  const html = await fetchPageHtml(filePath);
   if (!html) {
     notFound();
   }
 
   const queryPwd = typeof pwd === 'string' && pwd.length > 0 ? pwd : null;
-  const access = await checkPageAccess(relativePath, queryPwd);
+  const access = await checkPageAccess(filePath, queryPwd);
 
   if (access.allowed) {
     const title = extractTitle(html) ?? 'Custom Page';

@@ -101,6 +101,21 @@ async function detectOrphans(
   return orphans;
 }
 
+/**
+ * 生成 clean URL：index.html 用目录名，其他去掉 .html 后缀
+ */
+function buildPageHref(relativePath: string): string {
+  const relPath = relativePath.slice(PAGES_PREFIX.length + 1);
+  const relParts = relPath.split('/');
+  const relFilename = relParts[relParts.length - 1];
+  if (relFilename === 'index.html' || relFilename === 'index.htm') {
+    return relParts.length > 1
+      ? `/page/${relParts.slice(0, -1).join('/')}`
+      : `/page`;
+  }
+  return `/page/${relPath.replace(/\.(html?|htm)$/i, '')}`;
+}
+
 export default async function PageIndex() {
   if (!isStorageConfigured()) {
     return <PageIndexView notConfigured={true} pages={[]} emptyDirs={[]} />;
@@ -168,7 +183,7 @@ export default async function PageIndex() {
       const createdAt: string | undefined = meta?.createdAt;
       const updatedAt: string | undefined = meta?.updatedAt;
 
-      const href = `/page/${relativePath.slice(PAGES_PREFIX.length + 1)}`;
+      const href = buildPageHref(relativePath);
       return {
         href,
         filename,
