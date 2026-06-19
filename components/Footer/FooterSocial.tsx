@@ -29,6 +29,7 @@ export function FooterSocial({ entries }: FooterSocialProps) {
             iconOnly
             rounded="full"
             title={item.name}
+            aria-label={item.name}
             onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}
           >
             <Icon className="w-4 h-4" />

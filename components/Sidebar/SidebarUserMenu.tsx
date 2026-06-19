@@ -40,6 +40,7 @@ export default function SidebarUserMenu({ user, onLogout }: SidebarUserMenuProps
           iconOnly
           icon={<LogOut size={18} />}
           title={t('auth.logout')}
+          aria-label={t('auth.logout')}
         />
       </div>
     </div>

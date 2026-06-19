@@ -30,6 +30,7 @@ export default function SidebarHeader({ showCloseButton, onClose }: SidebarHeade
           size="sm"
           iconOnly
           icon={<X size={18} />}
+          aria-label="关闭侧边栏"
         />
       )}
     </div>

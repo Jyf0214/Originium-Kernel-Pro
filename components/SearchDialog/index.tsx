@@ -35,6 +35,9 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
           className="fixed inset-0 z-50 flex items-start justify-center pt-[12vh] sm:pt-[15vh] bg-black/50 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label="搜索"
           onClick={(e) => {
             if (e.target === e.currentTarget) onClose();
           }}

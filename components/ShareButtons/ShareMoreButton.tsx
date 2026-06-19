@@ -22,6 +22,7 @@ export default function ShareMoreButton({ onClick, size = 'md' }: ShareMoreButto
       iconOnly
       onClick={onClick}
       title="更多分享方式"
+      aria-label="更多分享方式"
     >
       <MoreHorizontal size={iconSize} />
     </Button>
