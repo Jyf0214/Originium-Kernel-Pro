@@ -65,7 +65,7 @@ jobs:
           EOF
           chmod +x .git/hooks/pre-push
 
-      # 安全恢复会话缓存（通过 GitHub 加密缓存，不提供公开下载通道）
+      # 安全恢复会话缓存（统一路径为 ~/.qwen）
       - name: Restore Qwen Secure Session Cache
         id: cache-qwen
         uses: actions/cache@v4
@@ -124,7 +124,7 @@ jobs:
           SUCCESS=false
           TRIGGER_COMPRESSION=false
           
-          # 1. 物理分支感知与自动同步（解决落后于主分支问题）
+          # 1. 物理分支感知与同步（解决分支落后与冲突问题）
           if [ "$EVENT_NAME" = "issue_comment" ]; then
             PR_BRANCH=$(gh pr view "$ISSUE_NUMBER" --json headRefName --jq .headRefName 2>/dev/null || echo "fix/issue-$ISSUE_NUMBER")
             echo "Successfully detected active PR branch: $PR_BRANCH"
@@ -132,14 +132,13 @@ jobs:
             git fetch origin "$PR_BRANCH"
             git checkout "$PR_BRANCH"
             
-            # 自动同步主分支代码，防止代码落后
+            # 自动同步主分支最新代码
             git fetch origin main
             echo "Attempting to merge origin/main into $PR_BRANCH to keep it updated..."
             if git merge origin/main --no-edit; then
               echo "Successfully merged origin/main into $PR_BRANCH (No conflicts)"
             else
               echo "::warning:: Merge conflict detected. Leaving conflict markers for Qwen to resolve."
-              # 保留冲突标记，由 Qwen Code 自行修复冲突
             fi
           else
             PR_BRANCH="fix/issue-$ISSUE_NUMBER"
@@ -147,6 +146,7 @@ jobs:
           fi
           
           # 2. 判断并获取持久化的 Session ID
+          mkdir -p ~/.qwen
           if [ -f ~/.qwen/current_session_id.txt ]; then
             SESSION_ID=$(cat ~/.qwen/current_session_id.txt)
             IS_RESUME=true
@@ -158,42 +158,45 @@ jobs:
             echo "Created brand new Session ID: $SESSION_ID (First-run Mode)"
           fi
           
-          # 3. 安全构建 Prompt 临时文件（通过环境重定向机制，物理防堵任何 Markdown 字符注入）
+          # 3. 将 Issue 富文本安全写入本地工作区（避免任意 Shell 语法或 YAML 嵌套解析冲突）
+          echo "# Issue #$ISSUE_NUMBER: $ISSUE_TITLE" > issue_details.md
+          echo "" >> issue_details.md
+          echo "$ISSUE_BODY" >> issue_details.md
+          
+          # 4. 安全构建 Prompt 临时文件
           > prompt.txt
           
           if [ "$IS_RESUME" = "true" ] && [ "$EVENT_NAME" = "issue_comment" ]; then
             # 清理指派标志
             USER_FEEDBACK=$(echo "$COMMENT_BODY" | sed 's/^@qwen-code \/fix//g' | xargs)
             
-            echo "/goal 收到最新的评审/CI反馈，请在当前会话和现有分支上继续完善代码。" >> prompt.txt
+            echo "/goal 收到用户最新的评审反馈，请在当前会话和现有分支上继续完善代码。" >> prompt.txt
             echo "" >> prompt.txt
-            echo "## 最新反馈与修改要求：" >> prompt.txt
+            echo "## 用户最新的修改要求：" >> prompt.txt
             echo "$USER_FEEDBACK" >> prompt.txt
             echo "" >> prompt.txt
-            echo "## 执行流程与规范：" >> prompt.txt
+            echo "## 执行流程：" >> prompt.txt
             echo "1. 你当前已经处于该 PR 的源本地分支 '$PR_BRANCH'。请直接在此分支上继续调整和修改。" >> prompt.txt
             echo "2. **冲突解决（Conflict Resolution）**：如果在上一步的 Git 合并中，工作区文件里包含冲突标记（如 '<<<<<<< HEAD'、'======='、'>>>>>>>'），你必须优先手动编辑这些文件，清除冲突标记，并合并双方的代码逻辑。" >> prompt.txt
             echo "3. 修改或解决冲突后，必须运行本地单元测试并通过验收（验收失败需继续修改）。" >> prompt.txt
             echo "4. 提交新的 commit 并直接推送到 origin '$PR_BRANCH'。此时远程 Pull Request 会自动更新，你【绝对不要】重复调用 'gh pr create' 创建新 PR（如果系统检测到该命令，请直接跳过）。" >> prompt.txt
-            echo "5. 任务完成后，调用 'gh issue comment' 生动地回复用户，并说明此次增量修改或冲突解决的内容。" >> prompt.txt
+            echo "5. 任务完成后，调用 'gh issue comment' 生动地回复用户，并说明此次增量修改的内容。" >> prompt.txt
           else
-            echo "/goal 解决 #$ISSUE_NUMBER 号 Issue 描述的问题。" >> prompt.txt
-            echo "- 标题: $ISSUE_TITLE" >> prompt.txt
-            echo "- 详情:" >> prompt.txt
-            echo "$ISSUE_BODY" >> prompt.txt
+            # 【清单销项大 Goal 设计】：物理约束，杜绝幻觉与敷衍
+            echo "/goal 仔细阅读本地文件 'issue_details.md'，提取并完全修复里面描述的【所有】高危和中危漏洞，绝对不允许遗漏任何一个！" >> prompt.txt
             echo "" >> prompt.txt
-            echo "## 核心工作步骤：" >> prompt.txt
-            echo "1. **语义定位**：请充分利用 '--experimental-lsp' 精准定位需要修改的文件。如果遇到不懂的语法或第三方库，可运行 MCP-Fetch 联网查询。" >> prompt.txt
-            echo "2. **代码修改与质量控制（核心红线）**：" >> prompt.txt
-            echo "   - 修改后必须通过本地测试验收，否则不予提交。
-               - 修改必须在隔离的分支 'fix/issue-${{ env.ISSUE_NUMBER }}' 上完成。" >> prompt.txt
-            3. **提交代码与开 PR**：
-               - 验收通过后，commit 修改并推送该分支。
-               - 使用系统内置的 'gh pr create' 工具创建一个 Pull Request 指向主分支。
-            4. **自主生动回复（消除人机感要求）**：
-               - PR 创建成功后，使用 'gh issue comment $ISSUE_NUMBER' 回复此 Issue。
-               - 回复语言必须生动、活泼，富有开发者温度。不要用机器官腔，多用 Emoji（如 🚀, 🤖, ✨, 🛠️）。
-               - 包含：欢快的打招呼与自我介绍、你是怎么排查到这个 Bug 的（通俗解释排查路径 and 受影响的文件）、你的修复思路，以及附上生成的 PR 链接。" >> prompt.txt
+            echo "## 【执行与验收强制规范】：" >> prompt.txt
+            echo "1. **建立物理销项清单**：作为你的第一步，请在工作区新建一个 'todo_checklist.md'。将 'issue_details.md' 中提及的所有需要修复的 Bug/漏洞（如 C1, C2, H1, H2, M1 等等）完整提取出来，列成一个带有 '[ ]' 的任务清单。" >> prompt.txt
+            echo "2. **逐个修改与销项**：对于清单中的每一个任务，利用 LSP 精准分析代码，进行文件修改与本地单元测试。每修复成功并验证通过一个，就将清单中对应的 '[ ]' 改为 '[x]'。" >> prompt.txt
+            echo "3. **物理审查防线（Judge 判定终态硬红线）**：" >> prompt.txt
+            echo "   - 裁判模型（Judge）在进行 Goal Check 时，必须强制读取 'todo_checklist.md' 并且比对 'git diff' 的修改变动。" >> prompt.txt
+            echo "   - **判定已达成（Goal Met）的前提条件为：清单中列出的所有安全隐患和 Bug 已全部被物理修改，且全部被标记为 '[x]'，且单元测试全绿通过**。" >> prompt.txt
+            echo "   - 严禁“只修复其中一个或一部分就宣布结束”的敷衍行为！若存在未修复的漏洞或有未打勾项，必须判定为【未达成（Goal Not Met）】，并明确指示 Agent 接下来去修复哪一个具体的未打勾漏洞。" >> prompt.txt
+            echo "4. **提交代码与PR**：全部勾选完毕并测试通过后，commit 提交修改，推送至远程分支并开 PR。" >> prompt.txt
+            echo "5. **自主生动回复（消除人机感要求）**：" >> prompt.txt
+            echo "   - PR 创建成功后，使用 'gh issue comment $ISSUE_NUMBER' 回复此 Issue。" >> prompt.txt
+            echo "   - 回复语言必须生动、活泼，富有开发者温度。不要用机器官腔，多用 Emoji（如 🚀, 🤖, ✨, 🛠️）。" >> prompt.txt
+            echo "   - 包含：欢快的打招呼与自我介绍、你是怎么排查到这些 Bug 的（结合 todo_checklist.md 逐项通俗解释修复点）、你的修复思路，以及附上生成的 PR 链接。" >> prompt.txt
             echo "" >> prompt.txt
             echo "## 安全限制：" >> prompt.txt
             echo "- 严禁直接向主分支（main/master）提交 commit 或执行 push 操作。" >> prompt.txt
@@ -202,13 +205,16 @@ jobs:
           # 从 prompt.txt 读取内容（在双引号内通过 cat 传递，绝不发生 Shell 敏感字符重解析）
           FINAL_PROMPT="$(cat prompt.txt)"
           
+          # 弹性恢复指令，同样必须作为参数传递，确保在断点启动时不进入阻塞状态
+          RESUME_PROMPT="由于网络或上下文限制中断，请读取会话历史并继续完成所有步骤。请注意：必须对照 todo_checklist.md 继续修复未打勾的项，在本地运行并成功通过单元测试，确认无误后完成代码提交与 PR 处理。最后通过 gh issue comment 提交生动活泼的说明回复。"
+          
           echo "Starting Qwen Agent Core Loop..."
           START_TIME=$(date +%s)
           
-          # 4. 首次或恢复启动分流（增量运行下，改用 --resume 承接会话）
+          # 3. 首次或恢复启动分流（注意：两个分支都带有参数，恢复路径使用 --resume 并携带指令）
           if [ "$IS_RESUME" = "true" ]; then
-            echo "Executing in RESUME mode using --resume..."
-            if qwen -y --experimental-lsp --max-session-turns 100 --max-tool-calls -1 --resume "$SESSION_ID" "$PROMPT" 2>&1 | tee qwen_output.log; then
+            echo "Executing in RESUME mode using --resume with prompt..."
+            if qwen -y --experimental-lsp --max-session-turns 100 --max-tool-calls -1 --resume "$SESSION_ID" "$FINAL_PROMPT" 2>&1 | tee qwen_output.log; then
               SUCCESS=true
             else
               END_TIME=$(date +%s)
@@ -219,7 +225,7 @@ jobs:
               fi
             fi
           else
-            echo "Executing in INITIAL mode using --session-id..."
+            echo "Executing in INITIAL mode using --session-id with prompt..."
             if qwen -y --experimental-lsp --max-session-turns 100 --max-tool-calls -1 --session-id "$SESSION_ID" "$FINAL_PROMPT" 2>&1 | tee qwen_output.log; then
               SUCCESS=true
             else
@@ -232,7 +238,7 @@ jobs:
             fi
           fi
           
-          # 弹性自愈断点续传循环（自愈期间，因会话已被初始化，一律采用 --resume 恢复）
+          # 弹性自愈断点续传循环（在自愈尝试期间，每次也都传递 $RESUME_PROMPT 指令防止 Headless 阻塞）
           while [ "$SUCCESS" = false ] && [ "$ATTEMPT" -lt "$MAX_ATTEMPTS" ]; do
             ATTEMPT=$((ATTEMPT + 1))
             echo "=========================================="
@@ -253,9 +259,7 @@ jobs:
               fi
             fi
             
-            # 弹性恢复指令
-            RESUME_PROMPT="由于网络或上下文限制中断，请读取会话历史并继续完成所有步骤。请注意：必须在本地运行并成功通过单元测试，确认无误后完成代码提交与 PR 处理。最后通过 gh issue comment 提交生动活泼的说明回复。"
-            
+            # 弹性恢复（在位置参数中显式传递恢复提示词，物理阻断交互输入等待）
             START_TIME=$(date +%s)
             if qwen -y --experimental-lsp --max-session-turns 100 --max-tool-calls -1 --resume "$SESSION_ID" "$RESUME_PROMPT" 2>&1 | tee qwen_output.log; then
               SUCCESS=true
