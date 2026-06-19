@@ -58,9 +58,8 @@ export async function GET() {
   // 按指标名称分组
   const grouped: Record<string, number[]> = {};
   for (const entry of metricsStore) {
-    const arr = grouped[entry.name];
-    arr ??= [];
-    arr.push(entry.value);
+    grouped[entry.name] ??= [];
+    grouped[entry.name].push(entry.value);
   }
 
   // 计算分位数
@@ -87,7 +86,7 @@ export async function GET() {
     pageGrouped[p] ??= {};
     const pageMetrics = pageGrouped[p];
     pageMetrics[entry.name] ??= [];
-    pageMetrics[entry.name].push(entry.value);
+    pageMetrics[entry.name]!.push(entry.value);
   }
 
   const byPage: Record<string, Record<string, ReturnType<typeof percentiles>>> = {};
