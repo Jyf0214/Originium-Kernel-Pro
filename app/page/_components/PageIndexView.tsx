@@ -16,6 +16,7 @@ import Sidebar from '@/components/Sidebar/index';
 import TopHeader from '@/components/TopHeader';
 import { Button } from '@/components/ui/Button';
 import { CreatePageDialog } from './CreatePageDialog';
+import { EditPageMetaDialog } from './EditPageMetaDialog';
 
 export interface PageIndexItem {
   href: string;
@@ -58,6 +59,7 @@ export function PageIndexView({ notConfigured, pages, emptyDirs, orphans: _orpha
   const { isSudo } = useAuth();
   const router = useRouter();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editMetaPage, setEditMetaPage] = useState<PageIndexItem | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = () => {
@@ -68,8 +70,7 @@ export function PageIndexView({ notConfigured, pages, emptyDirs, orphans: _orpha
   };
 
   const handleEditMeta = (page: PageIndexItem) => {
-    // 跳转到对应页面进行元数据编辑
-    router.push(page.href);
+    setEditMetaPage(page);
   };
 
   return (
@@ -157,6 +158,16 @@ export function PageIndexView({ notConfigured, pages, emptyDirs, orphans: _orpha
         onClose={() => setShowCreateDialog(false)}
         onCreated={() => router.refresh()}
       />
+
+      {/* 编辑元数据弹窗 */}
+      {editMetaPage && (
+        <EditPageMetaDialog
+          open={!!editMetaPage}
+          page={{ filename: editMetaPage.filename, folder: editMetaPage.folder }}
+          onClose={() => setEditMetaPage(null)}
+          onSaved={() => router.refresh()}
+        />
+      )}
     </div>
   );
 }
