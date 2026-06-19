@@ -242,14 +242,13 @@ function formatHitsForWarn(hits: Hit[]): string {
 describe('硬编码 UI 样式审计', () => {
   const hits = gatherAllHits();
 
-  it('列出当前所有命中(默认不 fail,仅 console.warn)', () => {
-    // 即使有命中也保持 pass,只在控制台打印清单,便于开发者在本地察觉。
+  it('无硬编码样式命中(命中 = 未提取到统一组件,直接 fail)', () => {
     if (hits.length > 0) {
       console.warn(formatHitsForWarn(hits));
     } else {
       console.warn('\n[hardcoded-ui] 0 处命中 ✅\n');
     }
-    expect(hits.length).toBeGreaterThanOrEqual(0);
+    expect(hits.length).toBe(0);
   });
 
   it('STRICT 模式下命中应 fail', () => {

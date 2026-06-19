@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { GlobalLoading } from '@/components/Loading';
 import ProCard from '@/components/ui/ProCard';
 import { PageContainer } from '@/components/ui/PageContainer';
+import { Button } from '@/components/ui/Button';
 import { BarChart3, BookOpen, Users, PenLine, Type, Clock } from 'lucide-react';
 
 /* ---------- 类型 ---------- */
@@ -156,13 +157,12 @@ export default function StatsPage() {
         <ProCard padding="p-6">
           <div className="text-center">
             <div className="text-red-500 text-sm mb-3">{error}</div>
-            <button
-              type="button"
+            <Button
+              variant="primary"
               onClick={fetchStats}
-              className="px-4 py-2 text-sm font-medium text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-colors"
             >
               重试
-            </button>
+            </Button>
           </div>
         </ProCard>
       )}

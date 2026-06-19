@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { GlobalLoading } from '@/components/Loading';
 import ProCard from '@/components/ui/ProCard';
 import { PageContainer } from '@/components/ui/PageContainer';
+import { Button } from '@/components/ui/Button';
 import { ScrollText, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 
 /* ---------- 类型 ---------- */
@@ -102,15 +103,15 @@ export default function AuditPage() {
             placeholder="操作者筛选"
             className="px-3 py-1.5 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-300"
           />
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="sm"
+            icon={<Search size={14} />}
             onClick={handleSearch}
-            disabled={loading}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-50"
+            loading={loading}
           >
-            <Search size={14} />
             {loading ? '查询中...' : '查询'}
-          </button>
+          </Button>
         </div>
       </ProCard>
 
@@ -122,13 +123,12 @@ export default function AuditPage() {
         <ProCard padding="p-6">
           <div className="text-center">
             <div className="text-red-500 text-sm mb-3">{error}</div>
-            <button
-              type="button"
+            <Button
+              variant="primary"
               onClick={() => void fetchLogs(page, actionFilter ?? undefined, operatorFilter ?? undefined)}
-              className="px-4 py-2 text-sm font-medium text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-colors"
             >
               重试
-            </button>
+            </Button>
           </div>
         </ProCard>
       )}
