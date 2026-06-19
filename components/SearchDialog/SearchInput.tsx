@@ -24,10 +24,10 @@ export function SearchInput({
   inputRef,
 }: SearchInputProps) {
   return (
-    <div className="flex items-center gap-3 px-6 py-4 border-b border-zinc-100">
+    <div className="flex items-center gap-3 px-6 py-4 border-b border-zinc-100 dark:border-zinc-800">
       <Search
         size={20}
-        className="text-zinc-400 shrink-0"
+        className="text-zinc-400 dark:text-zinc-500 shrink-0"
       />
       <input
         ref={inputRef}
@@ -35,7 +35,7 @@ export function SearchInput({
         placeholder="搜索文章、日记、标签..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="flex-1 text-base sm:text-lg outline-none border-none bg-transparent text-zinc-900 placeholder:text-zinc-300 leading-relaxed"
+        className="flex-1 text-base sm:text-lg outline-none border-none bg-transparent text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-300 dark:placeholder:text-zinc-600 leading-relaxed"
       />
       {loading && (
         <Loader2

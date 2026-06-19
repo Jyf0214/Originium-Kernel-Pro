@@ -1,8 +1,22 @@
 @import "tailwindcss";
 
+/* 使用 class 控制深色模式（而非 media query） */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* 全局基础字号：由 CSS 变量控制，FontSizeProvider 从配置读取并动态设置 */
 html {
   font-size: var(--base-font-size, 15px);
+}
+
+body {
+  background-color: #ffffff;
+  color: #18181b;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark body {
+  background-color: #18181b;
+  color: #f4f4f5;
 }
 
 /* 文章主色调：使用封面提取的主色调 */

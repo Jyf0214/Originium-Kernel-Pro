@@ -69,7 +69,7 @@ export const Select = memo(
           id={inputId}
           aria-describedby={error ? `${inputId}-error` : undefined}
           className={cn(
-            'w-full border border-zinc-200 outline-none transition-colors bg-white',
+            'w-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 outline-none transition-colors',
             sizeStyles[size],
             roundedStyles[rounded],
             ringStyles[ring],

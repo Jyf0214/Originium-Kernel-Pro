@@ -22,7 +22,7 @@ function PostCardImage({ post, defaultCover }: { post: PostItem; defaultCover?: 
     );
   }
   return (
-    <div className="w-full h-full flex items-center justify-center text-zinc-100 font-black text-6xl select-none">
+    <div className="w-full h-full flex items-center justify-center text-zinc-100 dark:text-zinc-600 font-black text-6xl select-none">
       {post.title.charAt(0)}
     </div>
   );
@@ -46,12 +46,12 @@ export function PostCardCover({
     <div className={getCoverPositionClass(coverConfig?.position)}>
       <Link
         href={`/posts${post.slug}`}
-        className={`block overflow-hidden bg-zinc-50 relative ${isSide ? 'h-full' : 'aspect-video'}`}
+        className={`block overflow-hidden bg-zinc-50 dark:bg-zinc-800 relative ${isSide ? 'h-full' : 'aspect-video'}`}
       >
         <PostCardImage post={post} defaultCover={defaultCover} />
         <div className="absolute inset-0 bg-zinc-900/0 group-hover:bg-zinc-900/10 transition-colors duration-500" />
-        <div className="absolute top-6 right-6 w-12 h-12 bg-white rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500 shadow-lg">
-          <ArrowRight size={24} className="text-zinc-900" />
+        <div className="absolute top-6 right-6 w-12 h-12 bg-white dark:bg-zinc-700 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500 shadow-lg">
+          <ArrowRight size={24} className="text-zinc-900 dark:text-zinc-100" />
         </div>
       </Link>
     </div>

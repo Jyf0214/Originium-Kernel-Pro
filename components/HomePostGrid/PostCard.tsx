@@ -24,7 +24,7 @@ export function PostCard({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className={`group bg-white rounded-[2rem] border-2 border-zinc-50 overflow-hidden hover:border-zinc-900 transition-all duration-500 shadow-sm hover:shadow-2xl hover:shadow-zinc-100 ${isSide ? 'flex' : 'flex flex-col'}`}
+      className={`group bg-white dark:bg-zinc-900 rounded-[2rem] border-2 border-zinc-50 dark:border-zinc-800 overflow-hidden hover:border-zinc-900 dark:hover:border-zinc-600 transition-all duration-500 shadow-sm hover:shadow-2xl hover:shadow-zinc-100 dark:hover:shadow-zinc-900 ${isSide ? 'flex' : 'flex flex-col'}`}
     >
       <PostCardCover post={post} coverConfig={coverConfig} defaultCover={defaultCover} />
       <PostCardBody post={post} t={t} locale={locale} />

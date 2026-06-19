@@ -14,8 +14,8 @@ export const metadata: Metadata = {
 export default function RootLayout({children}: {children: React.ReactNode}) {
   const config = loadConfig();
   return (
-    <html lang={config.site.lang}>
-      <body suppressHydrationWarning>
+    <html lang={config.site.lang} suppressHydrationWarning>
+      <body>
         <CustomHead />
         <Providers>
           <AuthProvider>
