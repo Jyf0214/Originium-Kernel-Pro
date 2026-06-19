@@ -94,7 +94,7 @@ export function FooterBar({
   const year = new Date().getFullYear();
 
   return (
-    <div className="border-t border-zinc-100 bg-zinc-50">
+    <div className="border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
       <div className="max-w-5xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
         {/* 左侧：版权 + 协议 */}
         <div className="text-sm text-zinc-400 flex items-center gap-2">

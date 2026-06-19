@@ -17,8 +17,8 @@ export default function AuthorCard({ authorName, authorAvatar, authorUrl }: Auth
   if (!cfg?.enable) return null;
 
   return (
-    <div className="max-w-3xl mx-auto mt-12 pt-8 border-t border-zinc-100">
-      <div className="bg-zinc-50 rounded-2xl p-6 flex items-start gap-4">
+    <div className="max-w-3xl mx-auto mt-12 pt-8 border-t border-zinc-100 dark:border-zinc-800">
+      <div className="bg-zinc-50 dark:bg-zinc-800 rounded-2xl p-6 flex items-start gap-4">
         <a
           href={authorUrl ?? '/'}
           className="shrink-0"
@@ -28,7 +28,7 @@ export default function AuthorCard({ authorName, authorAvatar, authorUrl }: Auth
         <div className="min-w-0 flex-1">
           <a
             href={authorUrl ?? '/'}
-            className="font-black text-zinc-900 hover:text-zinc-600 transition-colors"
+            className="font-black text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
           >
             {authorName}
           </a>

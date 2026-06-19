@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/Button';
 import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
 import { useConfig } from '@/hooks/use-config';
-import { Clock, MapPin, Search } from 'lucide-react';
+import { Clock, MapPin, Search, Sun, Moon, Monitor } from 'lucide-react';
+import { useThemeMode } from '@/hooks/use-theme-mode';
 import type { NavConfig } from '@/lib/config-schema';
 
 // 搜索弹窗动态导入，避免首屏加载无关代码
@@ -34,7 +35,7 @@ function NavMenuGroupComponent({ config }: { config: NavConfig | null }) {
         <React.Fragment key={gi}>
           {group.item.map((item, ii) => (
             <Link key={`${gi}-${ii}`} href={item.link}>
-              <Button variant="ghost" size="sm" className="text-zinc-500">
+              <Button variant="ghost" size="sm" className="text-zinc-500 dark:text-zinc-400">
                 {item.icon && <img src={item.icon} alt="" className="w-4 h-4" />}
                 {item.name}
               </Button>
@@ -97,6 +98,7 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
   const { user, clerkAvailable } = useAuth();
   const { t } = useI18n();
   const { config: siteConfig } = useConfig();
+  const { mode, cycle } = useThemeMode();
   // 优先使用服务端传入的配置，无则初始化为 null（降级 fetch 填充）
   const [navConfig, setNavConfig] = useState<NavConfig | null>(navConfigProp ?? null);
   const [time, setTime] = useState('');
@@ -152,7 +154,7 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
   }, [navConfig?.clock]);
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-zinc-200/60">
+    <nav className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200/60 dark:border-zinc-700/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">
@@ -160,11 +162,21 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
               <div className="w-9 h-9 bg-gradient-to-br from-zinc-900 to-zinc-700 rounded-xl flex items-center justify-center shadow-sm">
                 <span className="text-white font-bold text-lg leading-none">O</span>
               </div>
-              <span className="font-display font-bold text-xl tracking-tight text-zinc-900">{t('sidebar.originiumKernel')}</span>
+              <span className="font-display font-bold text-xl tracking-tight text-zinc-900 dark:text-zinc-100">{t('sidebar.originiumKernel')}</span>
             </Link>
             <NavMenuGroupComponent config={navConfig} />
           </div>
           <div className="flex items-center gap-3">
+            {/* 深色模式切换按钮 */}
+            <Button
+              onClick={cycle}
+              variant="ghost"
+              size="sm"
+              iconOnly
+              icon={mode === 'light' ? <Sun size={18} /> : mode === 'dark' ? <Moon size={18} /> : <Monitor size={18} />}
+              aria-label={mode === 'light' ? '浅色模式' : mode === 'dark' ? '深色模式' : '跟随系统'}
+              title={mode === 'light' ? '浅色模式' : mode === 'dark' ? '深色模式' : '跟随系统'}
+            />
             {/* 搜索按钮 */}
             <Button
               onClick={() => setSearchOpen(true)}

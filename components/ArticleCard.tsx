@@ -50,7 +50,7 @@ function calcWordCount(text: string): { chars: number; readingTime: number } {
 
 function ArticleCover({ article, horizontal, defaultCover }: { article: Article; horizontal?: boolean; defaultCover?: string }) {
   return (
-    <Link href={`/user/${article.id}`} className={`block overflow-hidden bg-zinc-50 relative ${horizontal ? 'h-full' : 'aspect-[16/10]'}`}>
+    <Link href={`/user/${article.id}`} className={`block overflow-hidden bg-zinc-50 dark:bg-zinc-800 relative ${horizontal ? 'h-full' : 'aspect-[16/10]'}`}>
       {article.coverImage || defaultCover ? (
         <Image
           src={article.coverImage ?? defaultCover!}
@@ -60,13 +60,13 @@ function ArticleCover({ article, horizontal, defaultCover }: { article: Article;
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
       ) : (
-        <div className="w-full h-full flex items-center justify-center text-zinc-100 font-black text-6xl select-none">
+        <div className="w-full h-full flex items-center justify-center text-zinc-100 dark:text-zinc-600 font-black text-6xl select-none">
           {article.title.charAt(0)}
         </div>
       )}
       <div className="absolute inset-0 bg-zinc-900/0 group-hover:bg-zinc-900/10 transition-colors duration-500" />
-      <div className="absolute top-6 right-6 w-12 h-12 bg-white rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500 shadow-lg">
-        <ArrowUpRight size={24} className="text-zinc-900" />
+      <div className="absolute top-6 right-6 w-12 h-12 bg-white dark:bg-zinc-700 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500 shadow-lg">
+        <ArrowUpRight size={24} className="text-zinc-900 dark:text-zinc-100" />
       </div>
     </Link>
   );
@@ -139,7 +139,7 @@ function ArticleCardBody({ article, postMeta, excerpt }: { article: Article; pos
     <>
       {postMeta?.tags !== false && <TagBadges tags={article.tags} />}
       <Link href={`/user/${article.id}`} className="block group/title">
-        <h2 className="text-2xl font-black text-zinc-900 mb-4 line-clamp-2 leading-tight group-hover/title:text-zinc-600 transition-colors">
+        <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-4 line-clamp-2 leading-tight group-hover/title:text-zinc-600 dark:group-hover/title:text-zinc-300 transition-colors">
           {article.title}
         </h2>
       </Link>
@@ -154,10 +154,10 @@ function ArticleCardFooter({ article, chars, readingTime, wordcount, postMeta }:
   article: Article; chars: number; readingTime: number; wordcount?: WordCountConfig; postMeta?: PostMetaPageConfig;
 }) {
   return (
-    <div className="mt-auto pt-8 border-t border-zinc-50 flex items-center justify-between text-zinc-400">
+    <div className="mt-auto pt-8 border-t border-zinc-50 dark:border-zinc-800 flex items-center justify-between text-zinc-400">
       <div className="flex items-center gap-3">
         <Avatar name={article.authorName} avatarUrl={article.authorAvatar} size={32} />
-        <span className="text-xs font-bold text-zinc-900 uppercase tracking-tighter">{article.authorName}</span>
+        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tighter">{article.authorName}</span>
       </div>
       <div className="flex items-center gap-3 text-[10px] font-black">
         <ArticleMetaStats chars={chars} readingTime={readingTime} wordcount={wordcount} />
@@ -188,7 +188,7 @@ export function ArticleCard({ article, wordcount, postMeta, coverConfig }: Artic
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className={`group bg-white rounded-[2rem] border-2 border-zinc-50 overflow-hidden hover:border-zinc-900 transition-all duration-500 shadow-sm hover:shadow-2xl hover:shadow-zinc-100 ${isHorizontal ? 'flex' : 'flex flex-col'}`}
+      className={`group bg-white dark:bg-zinc-900 rounded-[2rem] border-2 border-zinc-50 dark:border-zinc-800 overflow-hidden hover:border-zinc-900 dark:hover:border-zinc-600 transition-all duration-500 shadow-sm hover:shadow-2xl hover:shadow-zinc-100 dark:hover:shadow-zinc-900 ${isHorizontal ? 'flex' : 'flex flex-col'}`}
     >
       <ArticleCoverSection article={article} coverConfig={coverConfig} />
       <div className="p-8 flex-1 flex flex-col">

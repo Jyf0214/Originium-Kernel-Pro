@@ -30,14 +30,14 @@ export function PostCardBody({
         ))}
       </div>
       <Link href={`/posts${post.slug}`} className="block group/title">
-        <h3 className="text-lg font-bold text-zinc-900 mb-2 line-clamp-2 leading-snug group-hover/title:text-zinc-600 transition-colors">
+        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2 leading-snug group-hover/title:text-zinc-600 dark:group-hover/title:text-zinc-300 transition-colors">
           {post.title}
         </h3>
       </Link>
       <p className="text-zinc-400 text-sm line-clamp-2 mb-3 leading-relaxed">
         {post.description ?? ''}
       </p>
-      <div className="mt-auto pt-3 border-t border-zinc-50 flex items-center justify-between text-zinc-400">
+      <div className="mt-auto pt-3 border-t border-zinc-50 dark:border-zinc-800 flex items-center justify-between text-zinc-400">
         <div className="flex items-center gap-2">
           <div className="w-5 h-5 bg-zinc-100 rounded flex items-center justify-center text-zinc-500">
             <UserIcon size={10} />

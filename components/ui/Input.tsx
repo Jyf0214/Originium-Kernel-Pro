@@ -53,11 +53,11 @@ export const Input = memo(
           id={inputId}
           aria-describedby={error ? `${inputId}-error` : undefined}
           className={cn(
-            'w-full border border-zinc-200 outline-none transition-colors',
+            'w-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 outline-none transition-colors',
             sizeStyles[size],
             roundedStyles[rounded],
             ringStyles[ring],
-            'placeholder:text-zinc-400',
+            'placeholder:text-zinc-400 dark:placeholder:text-zinc-600',
             error && 'border-red-400 focus:border-red-500 focus:ring-red-500',
             className,
           )}

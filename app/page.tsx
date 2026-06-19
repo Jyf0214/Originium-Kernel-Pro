@@ -72,7 +72,7 @@ export default async function HomePage() {
   const isMournDay = config.mourn?.enable && config.mourn.days?.includes(dateStr);
 
   return (
-    <div className={`min-h-screen flex flex-col bg-zinc-50 ${isMournDay ? 'mourn-mode' : ''}`}
+    <div className={`min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900 ${isMournDay ? 'mourn-mode' : ''}`}
       style={isMournDay ? { filter: 'grayscale(1)' } : undefined}>
       <HomePostGrid
         posts={posts}

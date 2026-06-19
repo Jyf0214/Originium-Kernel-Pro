@@ -44,7 +44,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -16 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl border border-zinc-100 overflow-hidden"
+            className="relative w-full max-w-2xl mx-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* ── 搜索输入栏 ── */}

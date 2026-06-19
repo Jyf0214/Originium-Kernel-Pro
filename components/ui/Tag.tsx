@@ -5,14 +5,14 @@ type TagVariant = 'light' | 'dark' | 'outline' | 'emerald' | 'amber' | 'danger' 
 type TagSize = 'xs' | 'sm' | 'md' | 'lg';
 
 const variantStyles: Record<TagVariant, string> = {
-  light: 'bg-zinc-100 text-zinc-600 border-zinc-200',
-  dark: 'bg-zinc-900 text-white border-zinc-800',
-  outline: 'bg-white text-zinc-500 border-zinc-200',
-  emerald: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-  amber: 'bg-amber-100 text-amber-700 border-amber-200',
-  danger: 'bg-red-100 text-red-700 border-red-200',
-  success: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-  warning: 'bg-amber-100 text-amber-700 border-amber-200',
+  light: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700',
+  dark: 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border-zinc-800 dark:border-zinc-300',
+  outline: 'bg-white dark:bg-transparent text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700',
+  emerald: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-700',
+  amber: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-700',
+  danger: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-700',
+  success: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-700',
+  warning: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-700',
 };
 
 const sizeStyles: Record<TagSize, string> = {

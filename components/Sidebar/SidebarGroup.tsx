@@ -33,14 +33,14 @@ export default function SidebarGroup({
       >
         <span
           className={`text-[10px] font-black uppercase tracking-[0.2em] ${
-            isAdminGroup ? 'text-amber-500' : 'text-zinc-300'
+            isAdminGroup ? 'text-amber-500' : 'text-zinc-300 dark:text-zinc-600'
           }`}
         >
           {getGroupLabel(group)}
         </span>
         <ChevronDown
           size={12}
-          className={`text-zinc-200 transition-transform duration-300 ${
+          className={`text-zinc-200 dark:text-zinc-700 transition-transform duration-300 ${
             isCollapsed ? '-rotate-90' : ''
           }`}
         />

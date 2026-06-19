@@ -9,13 +9,13 @@ interface SidebarHeaderProps {
 
 export default function SidebarHeader({ showCloseButton, onClose }: SidebarHeaderProps) {
   return (
-    <div className="px-5 py-6 flex items-center justify-between border-b border-zinc-50/50">
+    <div className="px-5 py-6 flex items-center justify-between border-b border-zinc-50/50 dark:border-zinc-800/50">
       <Link href="/" className="flex items-center gap-3 group no-underline">
-        <div className="w-9 h-9 bg-zinc-900 rounded-xl flex items-center justify-center shadow-lg shadow-zinc-200 group-hover:scale-105 transition-transform duration-300">
+        <div className="w-9 h-9 bg-zinc-900 dark:bg-zinc-100 rounded-xl flex items-center justify-center shadow-lg shadow-zinc-200 dark:shadow-zinc-700 group-hover:scale-105 transition-transform duration-300">
           <span className="text-white font-black text-lg tracking-tighter">OK</span>
         </div>
         <div className="flex flex-col">
-          <span className="font-bold text-sm tracking-tight text-zinc-900 leading-none mb-0.5">
+          <span className="font-bold text-sm tracking-tight text-zinc-900 dark:text-zinc-100 leading-none mb-0.5">
             Originium
           </span>
           <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none">
