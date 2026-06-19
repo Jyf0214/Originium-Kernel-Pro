@@ -133,10 +133,12 @@ export function StorageAdminShell() {
       showError('存储后端未配置,无法删除');
       return;
     }
+    // 使用 filename（当前目录内的名称）而非 basename（含父路径），
+    // 因为 handleDeleteConfirm 会拼接 currentPath 前缀
     if (entry.isDirectory) {
-      state.openDialog('delete-folder', entry.basename);
+      state.openDialog('delete-folder', entry.filename);
     } else {
-      state.openDialog('delete-file', entry.basename);
+      state.openDialog('delete-file', entry.filename);
     }
   };
 
@@ -182,8 +184,8 @@ export function StorageAdminShell() {
   };
 
   // 文件/文件夹卡片单击选中后重命名
-  const handleCardRename = (entry: { basename: string }) => {
-    handleOpenRename(entry.basename);
+  const handleCardRename = (entry: { basename: string; filename: string }) => {
+    handleOpenRename(entry.filename);
   };
 
   const handleRename = async (newName: string) => {
