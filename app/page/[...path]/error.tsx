@@ -14,9 +14,11 @@ export default function PageError({
   const [showDetail, setShowDetail] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const isDev = process.env.NODE_ENV === 'development';
+
   const copyError = async () => {
     const text = [
-      error.message,
+      isDev ? error.message : '',
       error.digest ? `Digest: ${error.digest}` : '',
     ]
       .filter(Boolean)
@@ -37,7 +39,9 @@ export default function PageError({
         <div className="space-y-2">
           <h1 className="text-xl font-bold text-zinc-900">页面加载失败</h1>
           <p className="text-sm text-zinc-500">
-            {error.message || '自定义页面加载出错，请重试'}
+            {isDev
+              ? (error.message || '自定义页面加载出错，请重试')
+              : '自定义页面加载出错，请重试'}
           </p>
         </div>
         {(error.message || error.digest) && (
@@ -56,7 +60,7 @@ export default function PageError({
             </button>
             {showDetail && (
               <pre className="mt-2 p-3 bg-zinc-100 rounded-lg text-xs text-zinc-700 overflow-auto">
-                {error.message}
+                {isDev ? error.message : ''}
                 {error.digest ? `\n\nDigest: ${error.digest}` : ''}
               </pre>
             )}
