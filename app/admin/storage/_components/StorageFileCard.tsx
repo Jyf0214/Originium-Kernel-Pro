@@ -3,12 +3,12 @@
  *
  * - 缩略图(图片用预览,其它用 lucide 图标)
  * - 文件名 + 大小
- * - 复制 URL / 下载 / 移动 / 删除 按钮(悬浮显示)
- * - 批量选择复选框(悬浮显示)
+ * - 选中时底部显示操作按钮栏(预览/重命名/移动/复制/下载/删除)
+ * - 未选中时悬浮显示操作按钮(保持原有交互)
  */
 'use client';
 
-import { Copy, Download, FileText, Folder, FolderInput, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { Eye, Copy, Download, FileText, Folder, FolderInput, Image as ImageIcon, Pencil, Trash2 } from 'lucide-react';
 import { message, Tooltip } from 'antd';
 import type { WebDavEntry } from '@/lib/storage/types';
 import { formatBytes, formatDate } from '../_lib/format';
@@ -21,8 +21,13 @@ interface Props {
   deleteLabel: string;
   moveLabel: string;
   downloadLabel: string;
+  previewLabel?: string;
+  renameLabel?: string;
   selected?: boolean;
-  onSelect?: (entry: WebDavEntry, checked: boolean) => void;
+  onSelect?: (entry: WebDavEntry) => void;
+  onFileClick?: (entry: WebDavEntry) => void;
+  onNavigate?: (path: string) => void;
+  onRename?: (entry: WebDavEntry) => void;
   urlCopied: (filename: string) => void;
   onDelete: (entry: WebDavEntry) => void;
   onMove: (entry: WebDavEntry) => void;
@@ -40,6 +45,115 @@ function getFileIcon(mime: string | null, isDirectory: boolean) {
   return FileText;
 }
 
+/** 缩略图/图标区域 */
+function CardThumbnail({
+  entry,
+  publicUrl,
+}: {
+  entry: Props['entry'];
+  publicUrl: string;
+}) {
+  const Icon = getFileIcon(entry.mimeType, entry.isDirectory);
+  const showImage = !entry.isDirectory && mimeMatchesImage(entry.mimeType);
+  return (
+    <div className="aspect-square bg-zinc-50 flex items-center justify-center overflow-hidden">
+      {showImage ? (
+        <img src={publicUrl} alt={entry.filename} className="w-full h-full object-cover" loading="lazy" />
+      ) : (
+        <Icon size={entry.isDirectory ? 48 : 40} className={entry.isDirectory ? 'text-amber-500' : 'text-zinc-300'} />
+      )}
+    </div>
+  );
+}
+
+const actionBtnClass = 'w-8 h-8 rounded-lg bg-white/95 border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+const actionBtnDangerClass = 'w-8 h-8 rounded-lg bg-white/95 border border-zinc-200 text-red-500 hover:text-red-600 hover:border-red-300 flex items-center justify-center shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+
+/** 选中状态底部操作按钮栏 */
+function SelectedActionBar({
+  entry,
+  previewLabel,
+  renameLabel,
+  moveLabel,
+  copyUrlLabel,
+  downloadLabel,
+  deleteLabel,
+  disabled,
+  onFileClick,
+  onNavigate,
+  onRename,
+  onMove,
+  onDelete,
+  onCopy,
+  onDownload,
+}: {
+  entry: Props['entry'];
+  previewLabel: string;
+  renameLabel: string;
+  moveLabel: string;
+  copyUrlLabel: string;
+  downloadLabel: string;
+  deleteLabel: string;
+  disabled: boolean;
+  onFileClick?: Props['onFileClick'];
+  onNavigate?: Props['onNavigate'];
+  onRename?: Props['onRename'];
+  onMove: Props['onMove'];
+  onDelete: Props['onDelete'];
+  onCopy: () => void;
+  onDownload: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-center gap-1 px-2 py-2 border-t border-zinc-100 bg-zinc-50/80">
+      <Tooltip title={entry.isDirectory ? '打开' : previewLabel}>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (entry.isDirectory) onNavigate?.(entry.basename);
+            else onFileClick?.(entry);
+          }}
+          disabled={disabled}
+          className={actionBtnClass}
+        >
+          <Eye size={14} />
+        </button>
+      </Tooltip>
+      {onRename && (
+        <Tooltip title={renameLabel}>
+          <button type="button" onClick={(e) => { e.stopPropagation(); onRename(entry); }} disabled={disabled} className={actionBtnClass}>
+            <Pencil size={14} />
+          </button>
+        </Tooltip>
+      )}
+      <Tooltip title={moveLabel}>
+        <button type="button" onClick={(e) => { e.stopPropagation(); onMove(entry); }} disabled={disabled} className={actionBtnClass}>
+          <FolderInput size={14} />
+        </button>
+      </Tooltip>
+      {!entry.isDirectory && (
+        <Tooltip title={copyUrlLabel}>
+          <button type="button" onClick={(e) => { e.stopPropagation(); void onCopy(); }} disabled={disabled} className={actionBtnClass}>
+            <Copy size={14} />
+          </button>
+        </Tooltip>
+      )}
+      {!entry.isDirectory && (
+        <Tooltip title={downloadLabel}>
+          <button type="button" onClick={(e) => { e.stopPropagation(); onDownload(); }} disabled={disabled} className={actionBtnClass}>
+            <Download size={14} />
+          </button>
+        </Tooltip>
+      )}
+      <Tooltip title={deleteLabel}>
+        <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(entry); }} disabled={disabled} className={actionBtnDangerClass}>
+          <Trash2 size={14} />
+        </button>
+      </Tooltip>
+    </div>
+  );
+}
+
 export function StorageFileCard({
   entry,
   appUrl,
@@ -48,14 +162,18 @@ export function StorageFileCard({
   deleteLabel,
   moveLabel,
   downloadLabel,
+  previewLabel = '预览',
+  renameLabel = '重命名',
   selected = false,
   onSelect,
+  onFileClick,
+  onNavigate,
+  onRename,
   urlCopied,
   onDelete,
   onMove,
   disabled = false,
 }: Props) {
-  const Icon = getFileIcon(entry.mimeType, entry.isDirectory);
   const publicUrl = !entry.isDirectory
     ? `${appUrl.replace(/\/$/, '')}/files/${entry.basename.replace(/^\/+/, '')}`
     : '';
@@ -79,54 +197,31 @@ export function StorageFileCard({
     a.click();
   };
 
-  const showImageThumb =
-    !entry.isDirectory && mimeMatchesImage(entry.mimeType);
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onSelect) onSelect(entry);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (entry.isDirectory) {
+      if (onNavigate) onNavigate(entry.basename);
+    } else if (onFileClick) {
+      onFileClick(entry);
+    }
+  };
 
   return (
-    <div className="group relative bg-white border border-zinc-100 rounded-xl overflow-hidden hover:border-zinc-300 hover:shadow-md transition-all">
-      {/* 批量选择复选框(左上角) */}
-      {onSelect && !entry.isDirectory && (
-        <div className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={selected}
-              onChange={(e) => onSelect(entry, e.target.checked)}
-              disabled={disabled}
-              className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500"
-            />
-          </label>
-        </div>
-      )}
-      {onSelect && entry.isDirectory && (
-        <div className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={selected}
-              onChange={(e) => onSelect(entry, e.target.checked)}
-              disabled={disabled}
-              className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500"
-            />
-          </label>
-        </div>
-      )}
-      {/* 缩略图 / 图标 */}
-      <div className="aspect-square bg-zinc-50 flex items-center justify-center overflow-hidden">
-        {showImageThumb ? (
-          <img
-            src={publicUrl}
-            alt={entry.filename}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <Icon
-            size={entry.isDirectory ? 48 : 40}
-            className={entry.isDirectory ? 'text-amber-500' : 'text-zinc-300'}
-          />
-        )}
-      </div>
+    <div
+      className={`group relative bg-white border rounded-xl overflow-hidden transition-all cursor-pointer ${
+        selected
+          ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-md'
+          : 'border-zinc-100 hover:border-zinc-300 hover:shadow-md'
+      }`}
+      onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
+    >
+      <CardThumbnail entry={entry} publicUrl={publicUrl} />
 
       {/* 元数据 */}
       <div className="px-3 py-2 border-t border-zinc-50">
@@ -141,74 +236,69 @@ export function StorageFileCard({
         </div>
       </div>
 
-      {/* 悬浮操作 */}
-      {!entry.isDirectory && (
-        <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Tooltip title={copyUrlLabel}>
-            <button
-              type="button"
-              onClick={handleCopy}
-              disabled={disabled}
-              className="w-8 h-8 rounded-lg bg-white/95 border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Copy size={14} />
-            </button>
-          </Tooltip>
-          <Tooltip title={downloadLabel}>
-            <button
-              type="button"
-              onClick={handleDownload}
-              disabled={disabled}
-              className="w-8 h-8 rounded-lg bg-white/95 border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Download size={14} />
-            </button>
-          </Tooltip>
-          <Tooltip title={moveLabel}>
-            <button
-              type="button"
-              onClick={() => onMove(entry)}
-              disabled={disabled}
-              className="w-8 h-8 rounded-lg bg-white/95 border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <FolderInput size={14} />
-            </button>
-          </Tooltip>
-          <Tooltip title={deleteLabel}>
-            <button
-              type="button"
-              onClick={() => onDelete(entry)}
-              disabled={disabled}
-              className="w-8 h-8 rounded-lg bg-white/95 border border-zinc-200 text-red-500 hover:text-red-600 hover:border-red-300 flex items-center justify-center shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Trash2 size={14} />
-            </button>
-          </Tooltip>
-        </div>
+      {/* 未选中时: 悬浮操作按钮（保持原有交互） */}
+      {!selected && (
+        <>
+          {!entry.isDirectory && (
+            <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Tooltip title={copyUrlLabel}>
+                <button type="button" onClick={(e) => { e.stopPropagation(); void handleCopy(); }} disabled={disabled} className={actionBtnClass}>
+                  <Copy size={14} />
+                </button>
+              </Tooltip>
+              <Tooltip title={downloadLabel}>
+                <button type="button" onClick={(e) => { e.stopPropagation(); handleDownload(); }} disabled={disabled} className={actionBtnClass}>
+                  <Download size={14} />
+                </button>
+              </Tooltip>
+              <Tooltip title={moveLabel}>
+                <button type="button" onClick={(e) => { e.stopPropagation(); onMove(entry); }} disabled={disabled} className={actionBtnClass}>
+                  <FolderInput size={14} />
+                </button>
+              </Tooltip>
+              <Tooltip title={deleteLabel}>
+                <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(entry); }} disabled={disabled} className={actionBtnDangerClass}>
+                  <Trash2 size={14} />
+                </button>
+              </Tooltip>
+            </div>
+          )}
+          {entry.isDirectory && (
+            <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Tooltip title={moveLabel}>
+                <button type="button" onClick={(e) => { e.stopPropagation(); onMove(entry); }} disabled={disabled} className={actionBtnClass}>
+                  <FolderInput size={14} />
+                </button>
+              </Tooltip>
+              <Tooltip title={deleteLabel}>
+                <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(entry); }} disabled={disabled} className={actionBtnDangerClass}>
+                  <Trash2 size={14} />
+                </button>
+              </Tooltip>
+            </div>
+          )}
+        </>
       )}
-      {entry.isDirectory && (
-        <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Tooltip title={moveLabel}>
-            <button
-              type="button"
-              onClick={() => onMove(entry)}
-              disabled={disabled}
-              className="w-8 h-8 rounded-lg bg-white/95 border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <FolderInput size={14} />
-            </button>
-          </Tooltip>
-          <Tooltip title={deleteLabel}>
-            <button
-              type="button"
-              onClick={() => onDelete(entry)}
-              disabled={disabled}
-              className="w-8 h-8 rounded-lg bg-white/95 border border-zinc-200 text-red-500 hover:text-red-600 hover:border-red-300 flex items-center justify-center shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Trash2 size={14} />
-            </button>
-          </Tooltip>
-        </div>
+
+      {/* 选中时: 底部操作按钮栏 */}
+      {selected && (
+        <SelectedActionBar
+          entry={entry}
+          previewLabel={previewLabel}
+          renameLabel={renameLabel}
+          moveLabel={moveLabel}
+          copyUrlLabel={copyUrlLabel}
+          downloadLabel={downloadLabel}
+          deleteLabel={deleteLabel}
+          disabled={disabled}
+          onFileClick={onFileClick}
+          onNavigate={onNavigate}
+          onRename={onRename}
+          onMove={onMove}
+          onDelete={onDelete}
+          onCopy={handleCopy}
+          onDownload={handleDownload}
+        />
       )}
     </div>
   );

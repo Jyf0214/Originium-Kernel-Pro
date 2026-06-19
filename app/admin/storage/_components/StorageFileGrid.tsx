@@ -48,6 +48,7 @@ interface Props {
   onNavigate: (path: string) => void;
   onDelete: (entry: WebDavEntry) => void;
   onFileClick: (entry: WebDavEntry) => void;
+  onRename?: (entry: WebDavEntry) => void;
   onRefresh: () => void;
   onNewFolder: () => void;
   onUpload: () => void;
@@ -283,6 +284,7 @@ export function StorageFileGrid({
   onNavigate,
   onDelete,
   onFileClick,
+  onRename,
   onRefresh,
   onNewFolder,
   onUpload,
@@ -294,6 +296,7 @@ export function StorageFileGrid({
   const trimmedSearch = search.trim().toLowerCase();
   const [dragging, setDragging] = useState(false);
   const dragCounter = useRef(0);
+  const [selectedEntry, setSelectedEntry] = useState<WebDavEntry | null>(null);
 
   const handleDragEnter = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -360,6 +363,7 @@ export function StorageFileGrid({
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
+      onClick={() => setSelectedEntry(null)}
     >
       {refreshing && <LoadingSpinner />}
 
@@ -407,35 +411,27 @@ export function StorageFileGrid({
       {/* 文件卡片网格 */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
         {filteredEntries.map((entry) => (
-          <div
+          <StorageFileCard
             key={entry.basename}
-            onDoubleClick={() => {
-              if (entry.isDirectory) {
-                const next = currentPath
-                  ? `${currentPath}/${entry.filename}`
-                  : entry.filename;
-                onNavigate(next);
-              }
-            }}
-            onClick={() => {
-              if (!entry.isDirectory) onFileClick(entry);
-            }}
-            className={entry.isDirectory ? 'cursor-pointer' : 'cursor-pointer'}
-          >
-            <StorageFileCard
-              entry={entry}
-              appUrl={appUrl}
-              copyUrlLabel={copyUrlLabel}
-              copiedLabel={copiedLabel}
-              deleteLabel={deleteLabel}
-              moveLabel={moveLabel}
-              downloadLabel="下载"
-              urlCopied={() => undefined}
-              onDelete={onDelete}
-              onMove={onMove}
-              disabled={disabled}
-            />
-          </div>
+            entry={entry}
+            appUrl={appUrl}
+            copyUrlLabel={copyUrlLabel}
+            copiedLabel={copiedLabel}
+            deleteLabel={deleteLabel}
+            moveLabel={moveLabel}
+            downloadLabel="下载"
+            previewLabel="预览"
+            renameLabel="重命名"
+            selected={selectedEntry?.basename === entry.basename}
+            onSelect={setSelectedEntry}
+            onFileClick={onFileClick}
+            onNavigate={onNavigate}
+            onRename={onRename}
+            urlCopied={() => undefined}
+            onDelete={onDelete}
+            onMove={onMove}
+            disabled={disabled}
+          />
         ))}
       </div>
 
