@@ -238,4 +238,15 @@ jobs:
             else
               END_TIME=$(date +%s)
               DURATION=$((END_TIME - START_TIME))
-              echo "::warning:: 第
+              echo "::warning:: 第 $ATTEMPT 次尝试失败。单次耗时: ${DURATION} 秒。"
+              if [ $DURATION -ge 1200 ] || grep -q -E "524|terminated|closed" qwen_output.log; then
+                TRIGGER_COMPRESSION=true
+              fi
+            fi
+          done
+          
+          # 最终成功状态判定
+          if [ "$SUCCESS" = false ]; then
+            echo "Error: Qwen Autonomous execution failed to complete and verify the task."
+            exit 1
+          fi
