@@ -145,3 +145,137 @@ pre:hover .code-copy-btn {
 .lazy-image {
   transition: opacity 0.3s ease-in-out;
 }
+
+/* === Markdown 渲染增强 === */
+
+/* 任务列表 */
+.markdown-content ul.contains-task-list {
+  list-style: none;
+  padding-left: 0;
+}
+.markdown-content li.task-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.markdown-content input[type="checkbox"] {
+  margin-top: 0.25rem;
+  accent-color: rgb(24 24 27);
+}
+
+/* 表格美化 */
+.markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.875rem;
+  display: block;
+  overflow-x: auto;
+}
+.markdown-content th {
+  background: rgb(244 244 245);
+  font-weight: 600;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid rgb(228 228 231);
+  white-space: nowrap;
+}
+.markdown-content td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgb(228 228 231);
+}
+.markdown-content tr:hover td {
+  background: rgb(250 250 250);
+}
+
+/* 引用块 */
+.markdown-content blockquote {
+  border-left: 4px solid rgb(212 212 216);
+  padding: 0.75rem 1rem;
+  margin: 1.5rem 0;
+  background: rgb(244 244 245);
+  border-radius: 0 0.5rem 0.5rem 0;
+  color: rgb(82 82 91);
+}
+.markdown-content blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* 水平分割线 */
+.markdown-content hr {
+  border: none;
+  border-top: 1px solid rgb(228 228 231);
+  margin: 2rem 0;
+}
+
+/* ===== 打印样式优化 ===== */
+@media print {
+  /* 隐藏非内容元素 */
+  nav, footer, aside,
+  .scroll-to-top,
+  .reading-progress-bar,
+  button:not(.print-visible),
+  .toc-button,
+  .share-buttons,
+  [role="dialog"] {
+    display: none !important;
+  }
+
+  /* 主内容区域 */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  /* 链接显示 URL */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+    word-break: break-all;
+  }
+
+  /* 导航和页脚链接不显示 URL */
+  nav a[href^="http"]::after,
+  footer a[href^="http"]::after {
+    content: none;
+  }
+
+  /* 图片限制最大宽度 */
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  /* 代码块不换页 */
+  pre {
+    page-break-inside: avoid;
+    border: 1px solid #ddd;
+    padding: 0.5rem;
+    font-size: 10pt;
+  }
+
+  /* 标题不孤行 */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* 段落不孤行 */
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* 表格不换页 */
+  table {
+    page-break-inside: avoid;
+  }
+
+  /* 打印页边距 */
+  @page {
+    margin: 2cm;
+  }
+}
