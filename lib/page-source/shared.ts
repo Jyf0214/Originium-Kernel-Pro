@@ -78,3 +78,52 @@ export function buildPageRelativePath(segments: readonly string[]): string | nul
 export const normalizeWebDavContent: (
   raw: string | Buffer | ArrayBuffer | { data: string | Buffer | ArrayBuffer },
 ) => string = normalizeWebDavContentImpl;
+
+/* ── 页面元数据 ── */
+
+/** 页面元数据结构，存储在 pages/{name}/meta.json */
+export interface PageMeta {
+  title?: string;
+  description?: string;
+  coverImage?: string;
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const META_FILENAME = 'meta.json';
+
+/**
+ * 根据 HTML 文件的相对路径推导 meta.json 的存储路径
+ *
+ * 约定：meta.json 放在与 HTML 同级的同名目录下
+ * - pages/mypage.html → pages/mypage/meta.json
+ * - pages/subdir/mypage.html → pages/subdir/mypage/meta.json
+ */
+export function buildMetaPath(relativePath: string): string | null {
+  const parts = relativePath.split('/');
+  if (parts.length < 2) return null;
+  const filename = parts[parts.length - 1];
+  const dir = parts.slice(0, -1).join('/');
+  const name = filename.replace(/\.html?$/i, '');
+  if (!name) return null;
+  return `${dir}/${name}/${META_FILENAME}`;
+}
+
+/**
+ * 校验并归一化 meta.json 原始数据，仅保留白名单字段
+ */
+export function validatePageMeta(raw: unknown): PageMeta | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  const result: PageMeta = {};
+  if (typeof obj.title === 'string') result.title = obj.title;
+  if (typeof obj.description === 'string') result.description = obj.description;
+  if (typeof obj.coverImage === 'string') result.coverImage = obj.coverImage;
+  if (Array.isArray(obj.tags) && obj.tags.every((t): t is string => typeof t === 'string')) {
+    result.tags = obj.tags;
+  }
+  if (typeof obj.createdAt === 'string') result.createdAt = obj.createdAt;
+  if (typeof obj.updatedAt === 'string') result.updatedAt = obj.updatedAt;
+  return result;
+}
