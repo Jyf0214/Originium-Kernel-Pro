@@ -2,7 +2,7 @@ name: "Qwen Multi-Agent Autonomous Solver"
 
 on:
   issues:
-    types: [labeled,enhancement] # 当 Issue 被贴上特定标签时触发
+    types: [labeled] # 当 Issue 被贴上特定标签时触发
   issue_comment:
     types: [created] # 当有人在 Issue 下评论指派时触发
 
@@ -118,6 +118,12 @@ jobs:
           export QWEN_CODE_UNATTENDED_RETRY=1
           export QWEN_CODE_SUPPRESS_YOLO_WARNING=1
           
+          # 【核心修复点】初始化自愈与重试控制参数（最大尝试5次）
+          MAX_ATTEMPTS=5
+          ATTEMPT=1
+          SUCCESS=false
+          TRIGGER_COMPRESSION=false
+          
           # 1. 判断并获取持久化的 Session ID
           if [ -f ~/.qwen/current_session_id.txt ]; then
             SESSION_ID=$(cat ~/.qwen/current_session_id.txt)
@@ -185,7 +191,7 @@ jobs:
             fi
           fi
           
-          # 弹性自愈断点续传循环
+          # 弹性自愈断点续传循环（这里会正常运行，因为 ATTEMPT 变量已正常声明）
           while [ "$SUCCESS" = false ] && [ "$ATTEMPT" -lt "$MAX_ATTEMPTS" ]; do
             ATTEMPT=$((ATTEMPT + 1))
             echo "=========================================="
@@ -195,7 +201,7 @@ jobs:
             
             # 判定并执行分步压缩命令
             if [ "$TRIGGER_COMPRESSION" = true ]; then
-              if [ "$ATTEMPT" = 2 ]; then
+              if [ "$ATTEMPT" -eq 2 ]; then
                 echo "【Attempt 2 自愈】分步执行快速规则压缩 /compress-fast..."
                 qwen -y --experimental-lsp --max-session-turns 100 --max-tool-calls -1 --session-id "$SESSION_ID" "/compress-fast" || echo "Warning: /compress-fast 失败"
               elif [ "$ATTEMPT" -ge 3 ]; then
