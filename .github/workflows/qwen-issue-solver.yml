@@ -2,7 +2,7 @@ name: "Qwen Multi-Agent Autonomous Solver"
 
 on:
   issues:
-    types: [labeled] # 当 Issue 被贴上特定标签时触发
+    types: [labeled,enhancement] # 当 Issue 被贴上特定标签时触发
   issue_comment:
     types: [created] # 当有人在 Issue 下评论指派时触发
 
