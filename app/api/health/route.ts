@@ -61,7 +61,8 @@ async function checkDatabase(): Promise<CheckResult> {
     return { status: 'ok', latencyMs: Date.now() - start }
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error)
-    return { status: 'error', latencyMs: Date.now() - start, message: msg }
+    console.error('[health] database check failed:', msg)
+    return { status: 'error', latencyMs: Date.now() - start, message: '数据库连接失败' }
   }
 }
 
@@ -78,7 +79,8 @@ async function checkStorage(): Promise<CheckResult> {
     return { status: 'ok', latencyMs: Date.now() - start }
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error)
-    return { status: 'error', latencyMs: Date.now() - start, message: msg }
+    console.error('[health] storage check failed:', msg)
+    return { status: 'error', latencyMs: Date.now() - start, message: '存储后端连接失败' }
   }
 }
 

@@ -3,6 +3,7 @@ import { getDb } from '@/lib/db';
 import nodemailer from 'nodemailer';
 import { createApiLogger } from '@/lib/api-logger';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { randomInt } from 'crypto';
 
 const logger = createApiLogger('/api/auth/bind-send-code');
 
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 生成 6 位验证码
-    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const code = String(randomInt(100000, 999999));
 
     // 存储验证码（5 分钟有效）
     await db.set(`bind:code:${email}`, code, 300);
@@ -80,7 +81,7 @@ export async function POST(req: NextRequest) {
       }
     } else {
       logger.error('POST', '邮件服务未配置');
-      return NextResponse.json({ error: '邮件服务未配置，无法发送验证码' }, { status: 500 });
+      return NextResponse.json({ error: '邮件服务未配置，无法发送验证码' }, { status: 503 });
     }
 
     logger.info('POST', '验证码发送成功', { email });

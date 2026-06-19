@@ -65,5 +65,8 @@ async function legacyVerifyPassword(password: string, storedHash: string): Promi
   const computed = Array.from(new Uint8Array(signature))
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');
-  return computed === storedHash;
+  const a = Buffer.from(computed, 'hex');
+  const b = Buffer.from(storedHash, 'hex');
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
 }

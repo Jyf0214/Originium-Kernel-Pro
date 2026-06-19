@@ -59,7 +59,7 @@ export async function getParam<P extends Record<string, unknown> = Record<string
 function querySummary(req: NextRequest): string {
   const keys = Array.from(req.nextUrl.searchParams.keys());
   if (keys.length === 0) return '';
-  return ` ${JSON.stringify(Object.fromEntries(keys.map(k => [k, req.nextUrl.searchParams.get(k)])))}`;
+  return ` params=${keys.join(',')}`;
 }
 
 /**

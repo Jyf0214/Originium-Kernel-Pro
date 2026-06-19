@@ -2,7 +2,7 @@
  * 运行时数据库初始化
  */
 import { getDb } from '@/lib/db';
-import { hashPassword, verifyPassword } from '@/lib/hash';
+import { hashPassword } from '@/lib/hash';
 import { generateUID } from '@/lib/auth';
 
 let initAttempted = false;
@@ -40,18 +40,7 @@ async function doInit(): Promise<{ created: boolean; error?: string }> {
   try {
     const uid = await db.get(`user:email:${adminEmail}`);
     if (uid) {
-      const userStr = await db.get(`user:uid:${uid}`);
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        // 每次启动都用环境变量密码覆盖，确保密码始终与 ADMIN_PASSWORD 同步
-        const valid = await verifyPassword(adminPassword, user.password);
-        if (!valid) {
-          const newHash = await hashPassword(adminPassword);
-          user.password = newHash;
-          user.updatedAt = new Date().toISOString();
-          await db.set(`user:uid:${uid}`, JSON.stringify(user));
-        }
-      }
+      // 管理员已存在，不覆盖密码（管理员可通过 UI/API 自行修改密码）
       initResult = { created: false };
       return initResult;
     }
