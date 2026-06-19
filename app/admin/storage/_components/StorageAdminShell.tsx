@@ -1,4 +1,4 @@
-/* eslint-disable max-lines */
+ 
 /**
  * /admin/storage 顶层 client 组件
  *
@@ -9,7 +9,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { BarChart3, Database, FolderPlus, RotateCw, Upload } from 'lucide-react';
+import { BarChart3, Database, FolderPlus, RotateCw, Search, Upload } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
 import { showError } from '@/lib/error';
 import { Button } from '@/components/ui/Button';
@@ -29,6 +29,7 @@ import { StorageRenameDialog } from './StorageRenameDialog';
 import { StorageMoveDialog } from './StorageMoveDialog';
 import { StorageFilePreview } from './StorageFilePreview';
 import { StorageStatsPanel } from './StorageStatsPanel';
+import { StorageSearchPanel } from './StorageSearchPanel';
 import type { WebDavEntry } from '@/lib/storage/types';
 
 const APP_URL_FALLBACK = '';
@@ -41,6 +42,7 @@ function getAppUrl(): string {
   return APP_URL_FALLBACK;
 }
 
+// eslint-disable-next-line complexity
 export function StorageAdminShell() {
   const { t } = useI18n();
   const state = useStorageState();
@@ -209,6 +211,25 @@ export function StorageAdminShell() {
 
   // 存储分析面板状态
   const [statsOpen, setStatsOpen] = useState(false);
+
+  // 文件内容搜索面板状态
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  const toggleSearch = () => { setSearchOpen((prev) => !prev); };
+
+  // 搜索结果点击回调：跳转到对应文件预览
+  const handleSearchResultClick = (path: string, filename: string) => {
+    const segments = path.split('/');
+    const basename = segments[segments.length - 1] ?? filename;
+    setPreviewEntry({
+      filename: basename,
+      basename,
+      isDirectory: false,
+      size: 0,
+      lastModified: '',
+      mimeType: null,
+    });
+  };
 
   const handleOpenMove = (entry: WebDavEntry) => {
     setMoveTarget(entry);
@@ -398,8 +419,25 @@ export function StorageAdminShell() {
                 >
                   {labels.upload}
                 </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  icon={<Search size={14} />}
+                  onClick={toggleSearch}
+                  disabled={!state.configured}
+                  title={!state.configured ? '存储后端未配置' : '搜索文件内容'}
+                >
+                  搜索
+                </Button>
               </div>
             </div>
+
+            {/* 文件内容搜索面板 */}
+            <StorageSearchPanel
+              open={searchOpen}
+              onClose={() => setSearchOpen(false)}
+              onResultClick={handleSearchResultClick}
+            />
 
             {/* 文件网格 */}
             <div className="p-4">
