@@ -122,28 +122,16 @@ function parseAuthorizeResponse(data: Record<string, unknown>): B2AuthResult {
 /**
  * 从 B2 apiUrl 推断 S3 endpoint
  *
- * B2 apiUrl 格式: https://apiNNN.backblazeb2.com
- * S3 endpoint: https://s3.{region}.backblazeb2.com
+ * B2 S3 兼容 API 的 endpoint 格式: https://s3.{region}.backblazeb2.com
  *
- * B2 region 与 apiUrl 的关系:
- * - us-west-000: api000.backblazeb2.com → s3.us-west-000.backblazeb2.com
- * - us-east-001 (default): api.us-east-001.backblazeb2.com
- * - eu-central-001: api.eu-central-001.backblazeb2.com
+ * 注意: B2 apiUrl 中的数字（如 api003）是负载均衡器编号，不是 region！
+ * 不能用 api003 → us-west-003 这种映射。
  *
- * 若无法推断，回退到 B2 直接 API endpoint（S3 操作仍可工作，只是不经 S3 端点）。
+ * 安全策略: 回退到 https://s3.backblazeb2.com（B2 默认 S3 端点）。
+ * 若 B2_S3_ENDPOINT 环境变量已配置，则优先使用。
  */
-function inferS3Endpoint(apiUrl: string): string {
-  // api.backblazeb2.com → 默认区域
-  const match = apiUrl.match(/https:\/\/api(\d+)\.backblazeb2\.com/)
-  if (match) {
-    const regionNum = match[1]!
-    // 数字编号 → us-west-000 等；无编号 → us-east-001
-    const region = regionNum ? `us-west-${regionNum}` : 'us-east-001'
-    return `https://s3.${region}.backblazeb2.com`
-  }
-  // 无法推断，回退到 apiUrl 本身（S3 操作可能仍可用）
-  console.warn(`[B2] 无法从 apiUrl="${apiUrl}" 推断 S3 endpoint，回退到 apiUrl`)
-  return apiUrl
+function inferS3Endpoint(_apiUrl: string): string {
+  return 'https://s3.backblazeb2.com'
 }
 
 /**
