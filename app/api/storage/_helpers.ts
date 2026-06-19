@@ -253,12 +253,12 @@ export function storageErrorResponse(err: unknown, op: string): NextResponse {
   }
   if (e?.status && e.status >= 500) {
     return NextResponse.json(
-      { error: `${op} 失败`, details: e.message ?? '存储上游错误' },
+      { error: `${op} 失败`, details: '存储上游错误' },
       { status: 502 }
     )
   }
   return NextResponse.json(
-    { error: `${op} 失败`, details: e?.message ?? String(err) },
+    { error: `${op} 失败` },
     { status: 500 }
   )
 }

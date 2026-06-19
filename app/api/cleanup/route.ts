@@ -55,7 +55,8 @@ export const POST = apiHandler('POST', { label: '清理过期文章' }, async (r
         }
       }
     } catch (error: unknown) {
-      errors.push(`Error processing article ${id}: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(`[cleanup] 处理文章 ${id} 失败:`, error);
+      errors.push('处理失败');
     }
   }
 
