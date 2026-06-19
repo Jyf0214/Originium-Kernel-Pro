@@ -89,7 +89,7 @@ model StorageFolder {
   path        String   @id          // 文件夹相对路径,如 "covers" 或 "covers/2024"(无前导斜杠,无尾斜杠,顶层为空字符串表示根)
   public      Boolean  @default(false) @map("is_public")
   description String?
-  password    String?                // 私有页面访问密码(明文),null = 未设密码(私有但失败安全)
+  password    String?                // 私有页面访问密码(scrypt 哈希存储),null = 未设密码(私有但失败安全)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -115,7 +115,7 @@ model ShareLink {
   id        Int      @id @default(autoincrement())
   token     String   @unique          // 随机 token(crypto.randomUUID)
   path      String                    // 文件/文件夹路径
-  password  String?                   // 可选密码(明文,与项目现有风格一致)
+  password  String?                   // 可选密码(scrypt 哈希存储)
   expiresAt DateTime                  // 过期时间
   createdAt DateTime @default(now()) @map("created_at")
 
