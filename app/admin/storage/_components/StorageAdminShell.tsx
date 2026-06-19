@@ -181,6 +181,11 @@ export function StorageAdminShell() {
     state.openDialog('rename', path);
   };
 
+  // 文件/文件夹卡片单击选中后重命名
+  const handleCardRename = (entry: { basename: string }) => {
+    handleOpenRename(entry.basename);
+  };
+
   const handleRename = async (newName: string) => {
     if (!renameTarget) return;
     const ok = await state.renameFolder(renameTarget, newName);
@@ -402,6 +407,7 @@ export function StorageAdminShell() {
                 onNavigate={state.navigateTo}
                 onDelete={handleEntryDelete}
                 onFileClick={setPreviewEntry}
+                onRename={handleCardRename}
                 onRefresh={handleRefresh}
                 onNewFolder={() => state.openDialog('mkdir')}
                 onUpload={() => state.openDialog('upload')}
