@@ -52,7 +52,7 @@ export async function saveDiaryVersion(
 /**
  * 获取指定日记的版本历史列表（按时间倒序）
  */
-export async function getDiaryVersions(
+export function getDiaryVersions(
   diaryId: string,
   limit = 20,
 ): Promise<{
@@ -62,7 +62,7 @@ export async function getDiaryVersions(
   tags: string | null;
   createdAt: Date;
 }[]> {
-  return await prismaAny.diaryVersion.findMany({
+  return prismaAny.diaryVersion.findMany({
     where: { diaryId },
     orderBy: { createdAt: 'desc' },
     take: limit,
@@ -79,8 +79,8 @@ export async function getDiaryVersions(
 /**
  * 获取单个版本详情（含内容）
  */
-export async function getDiaryVersion(versionId: string) {
-  return await prismaAny.diaryVersion.findUnique({
+export function getDiaryVersion(versionId: string) {
+  return prismaAny.diaryVersion.findUnique({
     where: { id: versionId },
   });
 }
