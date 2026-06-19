@@ -8,10 +8,17 @@ on:
 
 jobs:
   solve-issue:
-    # 触发条件：Issue 贴了 'auto-fix' 标签，或评论开头为 '@qwen-code /fix'
+    # 安全防护门禁（仅允许合作者及系统级 Bot 触发）
     if: |
-      github.event.label.name == 'auto-fix' || 
-      (github.event.comment && startsWith(github.event.comment.body, '@qwen-code /fix'))
+      (github.event_name == 'issues' && github.event.label.name == 'auto-fix') || 
+      (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '@qwen-code /fix') && 
+        (
+          github.event.comment.author_association == 'OWNER' || 
+          github.event.comment.author_association == 'MEMBER' || 
+          github.event.comment.author_association == 'COLLABORATOR' ||
+          github.event.comment.user.login == 'github-actions[bot]'
+        )
+      )
     
     runs-on: ubuntu-latest
     
@@ -58,13 +65,12 @@ jobs:
           EOF
           chmod +x .git/hooks/pre-push
 
-      # 核心升级：安全恢复会话缓存（通过 GitHub 加密缓存，不提供公开下载通道）
+      # 安全恢复会话缓存（通过 GitHub 加密缓存，不提供公开下载通道）
       - name: Restore Qwen Secure Session Cache
         id: cache-qwen
         uses: actions/cache@v4
         with:
           path: ~/.qwen
-          # 使用 Issue 编号作为隔离的主键，确保每个 Issue 的会话完全独立且能安全持久化
           key: qwen-session-issue-${{ github.event.issue.number }}-${{ github.run_id }}
           restore-keys: |
             qwen-session-issue-${{ github.event.issue.number }}-
@@ -189,7 +195,7 @@ jobs:
             
             # 判定并执行分步压缩命令
             if [ "$TRIGGER_COMPRESSION" = true ]; then
-              if [ "$ATTEMPT" -eq 2 ]; then
+              if [ "$ATTEMPT" = 2 ]; then
                 echo "【Attempt 2 自愈】分步执行快速规则压缩 /compress-fast..."
                 qwen -y --experimental-lsp --max-session-turns 100 --max-tool-calls -1 --session-id "$SESSION_ID" "/compress-fast" || echo "Warning: /compress-fast 失败"
               elif [ "$ATTEMPT" -ge 3 ]; then
