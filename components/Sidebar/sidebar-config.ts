@@ -15,6 +15,7 @@ import {
   Shield,
   BarChart3,
   ScrollText,
+  Gauge,
 } from 'lucide-react';
 import type { MenuItem } from './types';
 
@@ -42,6 +43,7 @@ export const adminMenuItems: MenuItem[] = [
   { key: 'sidebar.writeArticle', icon: FileText, href: '/admin/tickets/new', group: 'admin' },
   { key: 'sidebar.fileManager', icon: Folder, href: '/admin/storage', group: 'admin' },
   { key: 'sidebar.contentStats', icon: BarChart3, href: '/admin/stats', group: 'admin' },
+  { key: 'sidebar.webVitals', icon: Gauge, href: '/admin/web-vitals', group: 'admin' },
   { key: 'sidebar.auditLogs', icon: ScrollText, href: '/admin/audit', group: 'admin' },
 ];
 
