@@ -124,7 +124,7 @@ export default function AuditPage() {
             <div className="text-red-500 text-sm mb-3">{error}</div>
             <button
               type="button"
-              onClick={() => void fetchLogs(page, actionFilter || undefined, operatorFilter || undefined)}
+              onClick={() => void fetchLogs(page, actionFilter ?? undefined, operatorFilter ?? undefined)}
               className="px-4 py-2 text-sm font-medium text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-colors"
             >
               重试
