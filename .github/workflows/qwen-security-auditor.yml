@@ -32,12 +32,31 @@ jobs:
       - name: Install Qwen Code CLI Globally
         run: npm install -g @qwen-code/qwen-code@latest
 
-      # 物理防线：安全恢复审计器的专属加密缓存
+      # 物理防线：注入本地 Git 钩子，绝对禁止直推主分支
+      - name: Enforce Local Branch Protection (Git Hook Security)
+        run: |
+          mkdir -p .git/hooks
+          cat << 'EOF' > .git/hooks/pre-push
+          #!/bin/sh
+          while read local_ref local_sha remote_ref remote_sha
+          do
+            if [ "$remote_ref" = "refs/heads/main" ] || [ "$remote_ref" = "refs/heads/master" ]; then
+              echo "========================================================="
+              echo " [SECURITY ERROR] Direct push to main/master is PROHIBITED!"
+              echo "========================================================="
+              exit 1
+            fi
+          done
+          exit 0
+          EOF
+          chmod +x .git/hooks/pre-push
+
+      # 核心修复点 1：安全恢复并加载 Qwen 数据库及状态缓存（统一路径为 ~/.qwen）
       - name: Restore Qwen Auditor Secure Cache
         id: cache-auditor
         uses: actions/cache@v4
         with:
-          path: ~/.qwen-audit
+          path: ~/.qwen
           key: qwen-audit-issue-${{ github.event.pull_request.number }}-${{ github.run_id }}
           restore-keys: |
             qwen-audit-issue-${{ github.event.pull_request.number }}-
@@ -68,7 +87,7 @@ jobs:
           }
           EOF
 
-      # 执行自愈式安全审计逻辑（已适配 --session-id / --resume 会话分流）
+      # 执行自愈式安全审计逻辑（已适配 --session-id / --resume 会话分流与目录统一）
       - name: Run Qwen AI Code Vulnerability Audit
         env:
           UNLIMITED_OPENAI_API_KEY: ${{ secrets.UNLIMITED_OPENAI_API_KEY }}
@@ -80,17 +99,17 @@ jobs:
           export QWEN_CODE_UNATTENDED_RETRY=1
           export QWEN_CODE_SUPPRESS_YOLO_WARNING=1
           
-          # 确保在写入任何持久化文件之前，先创建 ~/.qwen-audit 目录
-          mkdir -p ~/.qwen-audit
+          # 确保全局目录 ~/.qwen 存在
+          mkdir -p ~/.qwen
           
-          # 1. 恢复或创建 Auditor 的持久化 Session ID，并标记分流状态
-          if [ -f ~/.qwen-audit/current_session_id.txt ]; then
-            SESSION_ID=$(cat ~/.qwen-audit/current_session_id.txt)
+          # 1. 恢复或创建 Auditor 的持久化 Session ID，并标记分流状态（存储于统一的 ~/.qwen 下）
+          if [ -f ~/.qwen/current_session_id.txt ]; then
+            SESSION_ID=$(cat ~/.qwen/current_session_id.txt)
             IS_RESUME=true
             echo "Successfully loaded persistent Session ID: $SESSION_ID (Incremental Audit Mode)"
           else
             SESSION_ID=$(cat /proc/sys/kernel/random/uuid)
-            echo "$SESSION_ID" > ~/.qwen-audit/current_session_id.txt
+            echo "$SESSION_ID" > ~/.qwen/current_session_id.txt
             IS_RESUME=false
             echo "Created brand new Session ID: $SESSION_ID (First-run Audit Mode)"
           fi
@@ -99,8 +118,8 @@ jobs:
           LAST_COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an')
           echo "Last commit author detected: $LAST_COMMIT_AUTHOR"
           
-          if [ -f ~/.qwen-audit/audit_count.txt ]; then
-            CYCLE_COUNT=$(cat ~/.qwen-audit/audit_count.txt)
+          if [ -f ~/.qwen/audit_count.txt ]; then
+            CYCLE_COUNT=$(cat ~/.qwen/audit_count.txt)
           else
             CYCLE_COUNT=0
           fi
@@ -114,7 +133,7 @@ jobs:
             CYCLE_COUNT=0
             echo "Resetting AI Cycle Count to 0 (Human commit detected)."
           fi
-          echo "$CYCLE_COUNT" > ~/.qwen-audit/audit_count.txt
+          echo "$CYCLE_COUNT" > ~/.qwen/audit_count.txt
           
           # 获取主分支最新数据以支持差异对比
           git fetch origin ${{ github.event.pull_request.base.ref }}
@@ -135,7 +154,7 @@ jobs:
           ## 漏洞判定与输出：
           - 若发现新增的高风险安全缺陷：
             - 请直接将详细的审计报告写入当前工作区的文件 'audit_report.txt' 中。
-            - 审计报告必须写得专业、清晰，指出代码漏洞的具体行、成因、潜在危害以及具体的修复指导方案。
+            - 审计报告必须 write 得专业、清晰，指出代码漏洞的具体行、成因、潜在危害以及具体的修复指导方案。
             - 生成文件后即可结束。
           - 若经过严格复查，确认此 PR 未引入任何高安全风险（或仅有微小的非安全风格问题）：
             - 绝对不要生成 'audit_report.txt'。直接结束。
