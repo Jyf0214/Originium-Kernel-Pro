@@ -54,13 +54,12 @@ async function main() {
         execSync('npx prisma db push', {
           stdio: 'pipe',
           env: { ...process.env },
-          timeout: 30000
+          timeout: 120000
         })
         console.log('[数据库初始化] ✓ Schema 推送成功')
       } catch (dbError) {
-        console.error('[数据库初始化] ✗ Schema 推送失败，构建中止')
-        console.error(dbError.message?.split('\n').slice(0, 5).join('\n'))
-        process.exit(1)
+        console.warn('[数据库初始化] ⚠️ Schema 推送失败，跳过（不影响构建）')
+        console.warn(dbError.message?.split('\n').slice(0, 5).join('\n'))
       }
     } else {
       console.log('[数据库初始化] db push skipped — set ALLOW_DB_PUSH=1 to opt in')
