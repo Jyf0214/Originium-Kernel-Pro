@@ -163,7 +163,7 @@ export default function AuditPage() {
                         <td className="px-5 py-3 text-zinc-600 whitespace-nowrap">
                           {log.createdAt ? new Date(log.createdAt).toLocaleString('zh-CN') : '-'}
                         </td>
-                        <td className="px-5 py-3 text-zinc-700 font-medium">{log.operatorUid || '-'}</td>
+                        <td className="px-5 py-3 text-zinc-700 font-medium">{log.operatorUid ?? '-'}</td>
                         <td className="px-5 py-3">
                           <span className="inline-block px-2 py-0.5 text-xs font-medium bg-zinc-100 text-zinc-600 rounded-md">
                             {log.action}

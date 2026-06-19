@@ -148,16 +148,12 @@ export function StorageAdminShell() {
 
   const handleDeleteConfirm = async () => {
     if (!state.pendingTarget) return;
+    const full = state.currentPath
+      ? `${state.currentPath}/${state.pendingTarget}`
+      : state.pendingTarget;
     if (state.dialog === 'delete-file') {
-      const full = state.currentPath
-        ? `${state.currentPath}/${state.pendingTarget}`
-        : state.pendingTarget;
       await state.removeFile(full);
     } else if (state.dialog === 'delete-folder') {
-      // pendingTarget 为目录完整 basename 路径(顶层)
-      const full = state.currentPath
-        ? `${state.currentPath}/${state.pendingTarget}`
-        : state.pendingTarget;
       await state.removeFolder(full);
     }
   };
