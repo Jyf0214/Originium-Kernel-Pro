@@ -11,13 +11,20 @@ import { Button } from '@/components/ui/Button';
 import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
 import { useConfig } from '@/hooks/use-config';
-import { Clock, MapPin, Search, Sun, Moon, Monitor } from 'lucide-react';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
+import { Clock, MapPin, Search, Sun, Moon, Monitor, Keyboard } from 'lucide-react';
 import { useThemeMode } from '@/hooks/use-theme-mode';
 import type { NavConfig } from '@/lib/config-schema';
 
 // 搜索弹窗动态导入，避免首屏加载无关代码
 const SearchDialog = dynamic(
   () => import('@/components/SearchDialog').then((m) => ({ default: m.SearchDialog })),
+  { ssr: false },
+);
+
+// 快捷键帮助弹窗动态导入
+const KeyboardShortcutsHelp = dynamic(
+  () => import('@/components/ui/KeyboardShortcutsHelp').then((m) => ({ default: m.KeyboardShortcutsHelp })),
   { ssr: false },
 );
 
@@ -104,8 +111,19 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
   const [time, setTime] = useState('');
   const allowRegistration = siteConfig?.auth?.allowRegistration !== false;
   const [searchOpen, setSearchOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
-  // 键盘快捷键：Ctrl+K / Cmd+K 打开搜索
+  // 全局快捷键注册
+  useKeyboardShortcuts({
+    '/': () => setSearchOpen(true),
+    'Shift+?': () => setShortcutsOpen(true),
+    Escape: () => {
+      if (shortcutsOpen) setShortcutsOpen(false);
+      else if (searchOpen) setSearchOpen(false);
+    },
+  });
+
+  // Ctrl+K / Cmd+K 打开搜索
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
       e.preventDefault();
@@ -185,6 +203,17 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
               iconOnly
               icon={<Search size={18} />}
               aria-label="搜索"
+              title="搜索 (/)"
+            />
+            {/* 快捷键帮助按钮 */}
+            <Button
+              onClick={() => setShortcutsOpen(true)}
+              variant="ghost"
+              size="sm"
+              iconOnly
+              icon={<Keyboard size={18} />}
+              aria-label="快捷键帮助"
+              title="快捷键 (?)"
             />
             <NavClock travelling={navConfig?.travelling} clock={navConfig?.clock} time={time} />
             <NavAuthSection user={user} allowRegistration={allowRegistration} clerkAvailable={clerkAvailable} t={t} />
@@ -194,6 +223,10 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
       <SearchDialog
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
+      />
+      <KeyboardShortcutsHelp
+        open={shortcutsOpen}
+        onClose={() => setShortcutsOpen(false)}
       />
     </nav>
   );

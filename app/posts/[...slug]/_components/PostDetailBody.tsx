@@ -12,6 +12,7 @@ import { PostBreadcrumb, type Crumb } from './PostBreadcrumb';
 import { PostHeader } from './PostHeader';
 import { PostRelated } from './PostRelated';
 import { PostAdjacent } from './PostAdjacent';
+import { PostNavigationShortcuts } from '@/components/PostNavigationShortcuts';
 import type { RelatedPost } from '../_lib/related-posts';
 import type { FrontendConfig } from '@/hooks/use-config';
 import { buildCopyrightConfig, buildShareConfig } from '../_lib/post-page-config';
@@ -48,6 +49,10 @@ export function PostDetailBody({
     <>
       <ReadingProgressBar />
       <ScrollToTop />
+      <PostNavigationShortcuts
+        prevSlug={adjacentPosts.prev?.slug ?? null}
+        nextSlug={adjacentPosts.next?.slug ?? null}
+      />
       <div className="flex-1 min-w-0 max-w-3xl">
       <PostBreadcrumb slug={fullPath} crumbs={breadcrumbs} t={tPosts} />
 
