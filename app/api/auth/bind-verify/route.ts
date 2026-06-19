@@ -1,10 +1,21 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 import { getDb } from '@/lib/db';
 import { createSession } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
 import { getClerkAuth, isClerkConfigured } from '@/lib/clerk-dynamic';
 
 const logger = createApiLogger('/api/auth/bind-verify');
+
+/** 时序安全的验证码比较 */
+function verifyCode(stored: string | null, input: string | undefined): boolean {
+  if (!stored || stored.length !== input?.length) return false;
+  try {
+    return timingSafeEqual(Buffer.from(stored), Buffer.from(input));
+  } catch {
+    return false;
+  }
+}
 
 /** Clerk 鉴权，返回 userId 或错误响应 */
 async function authenticateClerkUser(_req: NextRequest): Promise<{ userId: string } | NextResponse> {
@@ -40,9 +51,9 @@ export async function POST(req: NextRequest) {
 
     const db = getDb();
 
-    // 验证验证码
+    // 验证验证码（使用时序安全比较防止时序攻击）
     const storedCode = await db.get(`bind:code:${email}`);
-    if (!storedCode || storedCode !== code) {
+    if (!verifyCode(storedCode, code)) {
       logger.warn('POST', '验证码错误或已过期', { email });
       return NextResponse.json({ error: '验证码错误或已过期' }, { status: 400 });
     }

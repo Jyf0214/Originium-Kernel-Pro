@@ -52,7 +52,17 @@ function applyBackgroundStyles(url: string | undefined): void {
     document.body.style.backgroundAttachment = '';
     return;
   }
-  document.body.style.backgroundImage = `url(${url})`;
+  // 验证 URL 格式，防止 CSS 注入
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:' && !url.startsWith('/')) {
+      return;
+    }
+  } catch {
+    // 非法 URL，跳过设置
+    return;
+  }
+  document.body.style.backgroundImage = `url("${url.replace(/"/g, '\\"')}")`;
   document.body.style.backgroundSize = 'cover';
   document.body.style.backgroundPosition = 'center';
   document.body.style.backgroundAttachment = 'fixed';
