@@ -50,7 +50,7 @@ export default function QRCodeDialog({ open, url, title, onClose }: QRCodeDialog
       onCancel={onClose}
       footer={null}
       centered
-      width={420}
+      width="min(420px, 90vw)"
       className="qr-code-dialog"
       title={
         <span className="flex items-center gap-2 text-base">

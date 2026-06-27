@@ -47,10 +47,14 @@ async function listAllUsers(
   if (!userListStr) return [];
 
   const userIds = JSON.parse(userListStr) as string[];
-  const allUsers: Record<string, unknown>[] = [];
 
-  for (const userId of userIds) {
-    const userStr = await db.get(`user:uid:${userId}`);
+  // 并行查询所有用户，消除 N+1 串行瓶颈
+  const userResults = await Promise.all(
+    userIds.map((uid) => db.get(`user:uid:${uid}`)),
+  );
+
+  const allUsers: Record<string, unknown>[] = [];
+  for (const userStr of userResults) {
     if (!userStr) continue;
 
     const user = JSON.parse(userStr);

@@ -3,7 +3,6 @@ import { requireAdmin } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { generateTotpSecret, generateTotpUri } from '@/lib/totp';
 import { createApiLogger } from '@/lib/api-logger';
-import { logAudit } from '@/lib/audit';
 
 const logger = createApiLogger('/api/auth/2fa/setup');
 
@@ -48,11 +47,9 @@ export async function POST() {
     await db.set(`user:uid:${session.uid}`, JSON.stringify(user));
 
     logger.info('POST', 'TOTP 密钥已生成', { uid: session.uid });
-    void logAudit('2fa_enabled', 'auth', '双因素认证已启用', session.uid);
 
     return NextResponse.json({
       success: true,
-      secret,
       otpauthUri,
     });
   } catch (error) {

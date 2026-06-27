@@ -47,33 +47,35 @@ export const GET = apiHandler('GET', { label: '获取日记列表', requireAdmin
 
   const where = { AND: ands };
 
-  const diaries = await prisma.diary.findMany({
-    where,
-    orderBy: [
-      { pinned: 'desc' },
-      { date: 'desc' },
-    ],
-    select: {
-      id: true,
-      title: true,
-      tags: true,
-      group: true,
-      references: true,
-      date: true,
-      pinned: true,
-      status: true,
-      scheduledAt: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
-
-  // 收集所有已有的分组名
-  const allGroups = await prisma.diary.findMany({
-    select: { group: true },
-    distinct: ['group'],
-    where: { group: { not: null } },
-  });
+  // 日记列表与分组查询互相独立，并行执行以减少总耗时
+  const [diaries, allGroups] = await Promise.all([
+    prisma.diary.findMany({
+      where,
+      orderBy: [
+        { pinned: 'desc' },
+        { date: 'desc' },
+      ],
+      take: 200,
+      select: {
+        id: true,
+        title: true,
+        tags: true,
+        group: true,
+        references: true,
+        date: true,
+        pinned: true,
+        status: true,
+        scheduledAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    }),
+    prisma.diary.findMany({
+      select: { group: true },
+      distinct: ['group'],
+      where: { group: { not: null } },
+    }),
+  ]);
 
   return NextResponse.json({ diaries, groups: allGroups.map((g) => g.group).filter(Boolean) });
 });

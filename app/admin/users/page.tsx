@@ -121,18 +121,19 @@ export default function UsersPage() {
       <h1 className="text-2xl font-bold text-zinc-900 mb-6">{t('admin.users')}</h1>
 
       <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
-        {/* 表头 */}
-        <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-zinc-50 border-b border-zinc-100 text-xs font-bold text-zinc-500 uppercase tracking-wider">
-          <div className="col-span-3">{t('common.user')}</div>
-          <div className="col-span-4">{t('admin.email')}</div>
-          <div className="col-span-3">{t('admin.role')}</div>
-          <div className="col-span-2 text-right">{t('admin.actions')}</div>
-        </div>
+        <div className="overflow-x-auto">
+          {/* 表头 */}
+          <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-zinc-50 border-b border-zinc-100 text-xs font-bold text-zinc-500 uppercase tracking-wider min-w-[640px]">
+            <div className="col-span-3">{t('common.user')}</div>
+            <div className="col-span-4">{t('admin.email')}</div>
+            <div className="col-span-3">{t('admin.role')}</div>
+            <div className="col-span-2 text-right">{t('admin.actions')}</div>
+          </div>
 
         {users.length > 0 ? (
           <div className="divide-y divide-zinc-50">
             {users.map((u) => (
-              <div key={String(u.uid ?? u.id)} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-zinc-50/50 transition-colors">
+              <div key={String(u.uid ?? u.id)} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-zinc-50/50 transition-colors min-w-[640px]">
                 {/* 用户 */}
                 <div className="col-span-3 flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 bg-zinc-100 rounded-full flex items-center justify-center shrink-0">
@@ -193,6 +194,7 @@ export default function UsersPage() {
             <span className="text-zinc-400">{t('admin.noUsers')}</span>
           </div>
         )}
+        </div>
       </div>
     </PageContainer>
   );

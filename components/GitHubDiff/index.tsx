@@ -68,7 +68,7 @@ export function GitHubDiffModal({
       title={null}
       open={open}
       onCancel={onCancel}
-      width={800}
+      width="min(800px, 92vw)"
       footer={null}
       centered
       destroyOnClose

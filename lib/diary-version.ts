@@ -7,9 +7,6 @@ import { prisma } from '@/lib/db';
 /** 最大历史版本数（防止无限增长） */
 const MAX_VERSIONS = 50;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prismaAny = prisma as any;
-
 /**
  * 保存日记版本快照（加密前调用）
  * 自动清理超出上限的旧版本
@@ -22,7 +19,7 @@ export async function saveDiaryVersion(
 ): Promise<void> {
   const tagsJson = tags ? JSON.stringify(tags) : null;
 
-  await prismaAny.diaryVersion.create({
+  await prisma.diaryVersion.create({
     data: {
       diaryId,
       content,
@@ -32,18 +29,18 @@ export async function saveDiaryVersion(
   });
 
   // 清理超出上限的旧版本（保留最新的 MAX_VERSIONS 条）
-  const count: number = await prismaAny.diaryVersion.count({ where: { diaryId } });
+  const count = await prisma.diaryVersion.count({ where: { diaryId } });
   if (count > MAX_VERSIONS) {
     const excess = count - MAX_VERSIONS;
-    const oldVersions: { id: string }[] = await prismaAny.diaryVersion.findMany({
+    const oldVersions = await prisma.diaryVersion.findMany({
       where: { diaryId },
       orderBy: { createdAt: 'asc' },
       take: excess,
       select: { id: true },
     });
     if (oldVersions.length > 0) {
-      await prismaAny.diaryVersion.deleteMany({
-        where: { id: { in: oldVersions.map((v: { id: string }) => v.id) } },
+      await prisma.diaryVersion.deleteMany({
+        where: { id: { in: oldVersions.map((v) => v.id) } },
       });
     }
   }
@@ -55,14 +52,8 @@ export async function saveDiaryVersion(
 export function getDiaryVersions(
   diaryId: string,
   limit = 20,
-): Promise<{
-  id: string;
-  diaryId: string;
-  title: string | null;
-  tags: string | null;
-  createdAt: Date;
-}[]> {
-  return prismaAny.diaryVersion.findMany({
+) {
+  return prisma.diaryVersion.findMany({
     where: { diaryId },
     orderBy: { createdAt: 'desc' },
     take: limit,
@@ -80,7 +71,7 @@ export function getDiaryVersions(
  * 获取单个版本详情（含内容）
  */
 export function getDiaryVersion(versionId: string) {
-  return prismaAny.diaryVersion.findUnique({
+  return prisma.diaryVersion.findUnique({
     where: { id: versionId },
   });
 }

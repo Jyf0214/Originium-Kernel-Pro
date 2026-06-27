@@ -340,7 +340,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, config: mergedConfig });
   } catch (error: unknown) {
     logger.error('POST', '更新配置失败', { error: error instanceof Error ? error.message : '未知错误' });
-    return NextResponse.json({ error: error instanceof Error ? error.message : '保存失败' }, { status: 500 });
+    return NextResponse.json({ error: '保存失败' }, { status: 500 });
   }
 }
 

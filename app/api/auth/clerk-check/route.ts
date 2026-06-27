@@ -40,11 +40,14 @@ export async function GET() {
       const userStr = await db.get(`user:uid:${boundUid}`);
       if (userStr) {
         const user = JSON.parse(userStr);
+        // 运行时验证 role 值，防止无效角色传递到 session
+        const validRoles = ['user', 'admin', 'sudo'] as const;
+        const safeRole = validRoles.includes(user.role as typeof validRoles[number]) ? user.role as typeof validRoles[number] : 'user';
         // 创建 JWT session
         await createSession({
           uid: user.uid,
           email: user.email,
-          role: user.role as 'user' | 'admin' | 'sudo',
+          role: safeRole,
           userGroup: user.userGroup,
         });
         logger.info('GET', 'Clerk 绑定成功，已创建 session', { userId, uid: boundUid });

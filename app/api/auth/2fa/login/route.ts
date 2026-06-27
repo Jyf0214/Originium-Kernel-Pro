@@ -26,16 +26,16 @@ interface KvUser {
 async function resolveTempToken(
   bodyToken: string | undefined,
   cookieToken: string | undefined,
-): Promise<{ payload: { uid: string } } | { error: NextResponse }> {
+): Promise<{ ok: true; payload: { uid: string } } | { ok: false; error: NextResponse }> {
   const tempToken = bodyToken ?? cookieToken;
   if (!tempToken) {
-    return { error: NextResponse.json({ error: '临时令牌缺失，请重新登录' }, { status: 401 }) };
+    return { ok: false, error: NextResponse.json({ error: '临时令牌缺失，请重新登录' }, { status: 401 }) };
   }
   const payload = await verifyTempToken(tempToken);
   if (!payload) {
-    return { error: NextResponse.json({ error: '临时令牌无效或已过期，请重新登录' }, { status: 401 }) };
+    return { ok: false, error: NextResponse.json({ error: '临时令牌无效或已过期，请重新登录' }, { status: 401 }) };
   }
-  return { payload };
+  return { ok: true, payload };
 }
 
 /**
@@ -43,18 +43,18 @@ async function resolveTempToken(
  */
 async function loadUserFor2FA(
   uid: string,
-): Promise<{ user: KvUser } | { error: NextResponse }> {
+): Promise<{ ok: true; user: KvUser } | { ok: false; error: NextResponse }> {
   const db = getDb();
   const userStr = await db.get(`user:uid:${uid}`);
   if (!userStr) {
     logger.warn('POST', '用户数据不存在', { uid });
-    return { error: NextResponse.json({ error: '用户不存在' }, { status: 404 }) };
+    return { ok: false, error: NextResponse.json({ error: '用户不存在' }, { status: 404 }) };
   }
   const user = JSON.parse(userStr) as KvUser;
   if (!user.twoFactorEnabled || !user.twoFactorSecret) {
-    return { error: NextResponse.json({ error: '该账户未启用双因素认证' }, { status: 400 }) };
+    return { ok: false, error: NextResponse.json({ error: '该账户未启用双因素认证' }, { status: 400 }) };
   }
-  return { user };
+  return { ok: true, user };
 }
 
 /**
@@ -87,11 +87,11 @@ export async function POST(req: NextRequest) {
 
     // 解析临时令牌
     const tokenResult = await resolveTempToken(bodyTempToken, req.cookies.get('temp_2fa')?.value);
-    if ('error' in tokenResult) return tokenResult.error;
+    if (!tokenResult.ok) return tokenResult.error;
 
     // 加载用户并校验 2FA 状态
     const userResult = await loadUserFor2FA(tokenResult.payload.uid);
-    if ('error' in userResult) return userResult.error;
+    if (!userResult.ok) return userResult.error;
     const { user } = userResult;
 
     // 验证 TOTP 码
