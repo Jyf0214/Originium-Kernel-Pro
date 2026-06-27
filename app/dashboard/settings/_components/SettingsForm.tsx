@@ -31,6 +31,7 @@ export function SettingsForm({ form, loading, onSubmit }: SettingsFormProps) {
       onFinish={onSubmit}
       initialValues={{ avatarUrl: '', username: '', displayName: '' }}
       requiredMark={false}
+      className="w-full max-w-md mx-auto"
     >
       <SettingsFormField
         name="avatarUrl"

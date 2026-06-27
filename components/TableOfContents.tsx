@@ -83,7 +83,7 @@ function TocPanel({ open, items, activeId, simple, maxLevel, numberEnabled, isSh
   return (
     <div
       ref={panelRef}
-      className={`fixed right-6 z-50 max-h-80 overflow-y-auto bg-white rounded-2xl shadow-xl border border-zinc-100 ${
+      className={`fixed right-6 z-50 max-h-80 overflow-y-auto bg-white rounded-2xl shadow-xl border border-zinc-100 max-w-[calc(100vw-3rem)] ${
         isShortScreen ? 'top-20' : 'bottom-20'
       } ${simple ? 'p-3 w-56' : 'p-4 w-64'}`}
       role="dialog"

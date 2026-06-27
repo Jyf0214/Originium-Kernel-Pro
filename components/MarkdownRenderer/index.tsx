@@ -77,7 +77,7 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap }: MarkdownRe
   imagesRef.current = [];
 
   return (
-    <div className="markdown-content prose prose-zinc max-w-none
+    <div className="markdown-content prose prose-zinc max-w-none overflow-hidden
       prose-headings:tracking-tight prose-headings:text-zinc-900
       prose-h1:text-4xl prose-h1:font-black prose-h1:mb-8 prose-h1:mt-16
       prose-h2:text-2xl prose-h2:font-bold prose-h2:mb-6 prose-h2:mt-14 prose-h2:pb-3 prose-h2:border-b prose-h2:border-zinc-100
@@ -87,7 +87,7 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap }: MarkdownRe
       prose-strong:text-zinc-900 prose-strong:font-bold
       prose-blockquote:border-zinc-900 prose-blockquote:bg-zinc-50 prose-blockquote:rounded-r-2xl prose-blockquote:py-1 prose-blockquote:not-italic prose-blockquote:text-zinc-600
       prose-li:text-zinc-600 prose-li:text-[15px]
-      prose-img:rounded-2xl prose-img:border prose-img:border-zinc-100
+      prose-img:max-w-full prose-img:h-auto prose-img:rounded-2xl prose-img:border prose-img:border-zinc-100
       prose-hr:border-zinc-100 prose-hr:my-12
     ">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ ...components, img: imgComponent as never }}>

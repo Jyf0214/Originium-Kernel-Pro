@@ -56,7 +56,7 @@ export function createHeading(level: 1 | 2 | 3 | 4 | 5 | 6) {
 
     return React.createElement(
       'div',
-      { className: 'group relative' },
+      { className: 'group relative overflow-hidden' },
       React.createElement(tag, { id, ...props }, children),
       React.createElement(
         'button',

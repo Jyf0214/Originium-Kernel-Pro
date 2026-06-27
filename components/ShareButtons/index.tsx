@@ -165,12 +165,12 @@ export default function ShareButtons({
 
   return (
     <>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm font-medium text-zinc-400 mr-1 flex items-center gap-1.5">
           <Share2 size={14} />
           分享
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {visiblePlatforms.map((p) => (
             <ShareButtonItem
               key={p.id}

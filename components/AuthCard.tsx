@@ -14,7 +14,7 @@ export interface AuthCardProps {
  */
 export const AuthCard = memo<AuthCardProps>(({ children, title, subtitle, footer }) => {
   return (
-    <div style={{ width: '100%', maxWidth: 480 }}>
+    <div className="w-full max-w-md mx-auto">
       {/* 标题区域 */}
       <div style={{ marginBottom: 56 }}>
         {title && (

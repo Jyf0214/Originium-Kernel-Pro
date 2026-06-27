@@ -49,7 +49,7 @@ export function RecentArticlesList({
   const router = useRouter();
 
   return (
-    <div className="divide-y divide-zinc-50">
+    <div className="divide-y divide-zinc-50 overflow-x-auto">
       {articles.map((article) => (
         <div
           key={article.id}

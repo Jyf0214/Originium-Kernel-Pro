@@ -1,6 +1,7 @@
 import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { getSession } from '@/lib/auth';
 import { PostListClient } from '../PostListClient';
+import Footer from '@/components/Footer';
 import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 
@@ -58,6 +59,7 @@ export default async function PrivatePostsPage() {
         <p className="text-zinc-400 text-lg mb-12">仅登录用户可见的私人帖子</p>
         <PostListClient posts={posts} groups={groups} />
       </main>
+      <Footer />
     </div>
   );
 }

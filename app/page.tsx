@@ -2,6 +2,7 @@ import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { loadConfig, hasDatabase, canAccess } from '@/lib/config';
 import { estimateReadingTime } from '@/lib/reading-time';
 import { HomePostGrid } from '@/components/HomePostGrid';
+import Footer from '@/components/Footer';
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 
@@ -84,6 +85,7 @@ export default async function HomePage() {
         defaultCover={config.cover?.defaultCover?.[0]}
         coverConfig={config.cover}
       />
+      <Footer />
     </div>
   );
 }

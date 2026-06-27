@@ -1,6 +1,7 @@
 import { getContentFiles, getContentIndexes } from '@/lib/content';
 import Link from 'next/link';
 import { ArrowLeft, Hash } from 'lucide-react';
+import Footer from '@/components/Footer';
 import type { Metadata } from 'next';
 import { Tag } from '@/components/ui/Tag';
 
@@ -74,7 +75,7 @@ export default async function TagPage({ params }: PageProps) {
 
         {/* 帖子网格 */}
         {taggedPosts.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {taggedPosts.map((post) => (
               <article
                 key={post.slug}
@@ -154,6 +155,7 @@ export default async function TagPage({ params }: PageProps) {
           </Link>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

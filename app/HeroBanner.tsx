@@ -34,7 +34,7 @@ export function HeroBanner({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.15, duration: 0.5 }}
-      className="relative rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700 overflow-hidden"
+      className="relative rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700 overflow-hidden max-w-full"
     >
       {/* 装饰性模糊光晕 */}
       <div className="absolute -top-12 -right-12 w-48 h-48 bg-white/5 rounded-full blur-3xl" />

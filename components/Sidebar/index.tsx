@@ -98,7 +98,7 @@ function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
   return (
     <>
       <MobileToggle isOpen={isOpen} onClick={isOpen ? close : open} />
-      <div className="hidden md:flex w-[280px] min-h-screen z-[100] bg-white dark:bg-zinc-900 flex-col">
+      <div className="hidden md:flex w-[280px] max-h-screen overflow-y-auto z-[100] bg-white dark:bg-zinc-900 flex-col">
         {renderContent(false)}
       </div>
       {isOpen && (
@@ -110,7 +110,7 @@ function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
       )}
       <div
         id="primary-sidebar"
-        className="md:hidden fixed top-0 h-screen w-[300px] z-[999] bg-white dark:bg-zinc-900 shadow-[20px_0_60px_-15px_rgba(0,0,0,0.3)] transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1)"
+        className="md:hidden fixed top-0 h-screen w-[300px] overflow-y-auto z-[999] bg-white dark:bg-zinc-900 shadow-[20px_0_60px_-15px_rgba(0,0,0,0.3)] transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1)"
         style={{ left: 0, transform: isOpen ? 'translateX(0)' : 'translateX(-100%)' }}
       >
         {renderContent(true)}

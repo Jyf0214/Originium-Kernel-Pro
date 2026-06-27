@@ -2,6 +2,7 @@ import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { Tag } from '@/components/ui/Tag';
 import Link from 'next/link';
+import Footer from '@/components/Footer';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -110,7 +111,7 @@ export default function ArchivesPage() {
                     </time>
                     <Link
                       href={`/posts${post.slug}`}
-                      className="text-zinc-800 hover:text-zinc-600 transition-colors font-medium truncate"
+                      className="text-zinc-800 hover:text-zinc-600 transition-colors font-medium truncate min-w-0"
                     >
                       {post.title}
                     </Link>
@@ -136,6 +137,7 @@ export default function ArchivesPage() {
           )}
         </div>
       </PageContainer>
+      <Footer />
     </div>
   );
 }

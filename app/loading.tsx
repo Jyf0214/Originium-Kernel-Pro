@@ -5,8 +5,8 @@ import { PostCardSkeleton } from '@/components/HomePostGrid/PostCardSkeleton';
  */
 export default function Loading() {
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
-      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12 md:py-20">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-900">
+      <main className="max-w-7xl mx-auto w-full px-6 py-12 md:py-20">
         {/* Hero 区域占位 */}
         <div className="mb-12 text-center">
           <div className="h-10 w-64 mx-auto bg-zinc-200 dark:bg-zinc-700 rounded animate-pulse mb-4" />

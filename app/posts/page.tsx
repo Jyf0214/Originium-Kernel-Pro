@@ -1,6 +1,7 @@
 import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { loadConfig } from '@/lib/config';
 import { PostListClient } from './PostListClient';
+import Footer from '@/components/Footer';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -56,6 +57,7 @@ export default function PostsPage() {
         <p className="text-zinc-400 text-lg mb-12">{config.site.description}</p>
         <PostListClient posts={posts} groups={groups} coverConfig={config.cover} />
       </main>
+      <Footer />
     </div>
   );
 }

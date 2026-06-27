@@ -32,6 +32,7 @@ export default function FormField({
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
+          className="w-full"
         />
       )}
       {type === 'select' && options && (

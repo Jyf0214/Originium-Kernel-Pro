@@ -18,7 +18,7 @@ export function StorageBreadcrumb({ currentPath, onNavigate, rootLabel }: Props)
   return (
     <nav
       aria-label="breadcrumb"
-      className="flex items-center gap-1 text-sm text-zinc-500 flex-wrap"
+      className="flex items-center gap-1 text-sm text-zinc-500 overflow-x-auto whitespace-nowrap"
     >
       <button
         type="button"

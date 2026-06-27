@@ -145,7 +145,7 @@ function UserProfileContent() {
               <p className="font-medium">No articles published yet</p>
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-2 max-w-full overflow-hidden">
               {articles.map((article) => (
                 <ArticleCard key={article.id} article={article} wordcount={siteConfig?.wordcount} postMeta={siteConfig?.postMeta?.page} coverConfig={siteConfig?.cover} />
               ))}

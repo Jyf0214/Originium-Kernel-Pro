@@ -7,6 +7,7 @@ import { BookOpen, Github, Shield, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { FeedbackForm } from '@/components/FeedbackForm';
+import Footer from '@/components/Footer';
 
 const features = [
   {
@@ -150,6 +151,7 @@ export default function AboutPage() {
           </div>
         </section>
       </PageContainer>
+      <Footer />
     </div>
   );
 }

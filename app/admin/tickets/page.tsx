@@ -188,6 +188,7 @@ const handleDelete = async (id: string) => {
 
       {/* 模板列表 */}
       <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
+        <div className="overflow-x-auto">
         {templates.length > 0 ? (
           <div className="divide-y divide-zinc-50">
             {templates.map((template) => (
@@ -226,6 +227,7 @@ const handleDelete = async (id: string) => {
             </Button>
           </div>
         )}
+        </div>
       </div>
 
       {/* 创建/编辑弹窗 */}
