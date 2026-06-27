@@ -124,6 +124,16 @@ export async function PUT(req: NextRequest) {
     await db.set(`user:uid:${uid}`, JSON.stringify(user));
     await db.del(`reset:${token}`);
 
+    // 密码重置后吊销所有 API 密钥，防止泄漏的密钥继续有效
+    if (db.prisma) {
+      try {
+        await db.prisma.apiKey.deleteMany({ where: { uid } });
+        logger.info('PUT', '密码重置后已吊销 API 密钥', { uid });
+      } catch {
+        logger.warn('PUT', '吊销 API 密钥失败（非致命）', { uid });
+      }
+    }
+
     logger.info('PUT', '密码重置成功', { uid });
     return NextResponse.json({ success: true, message: '密码重置成功' }, { status: 201 });
   } catch (error: unknown) {

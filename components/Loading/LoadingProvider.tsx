@@ -1,6 +1,6 @@
 'use client';
 
-import React, { type ReactNode, createContext, useContext } from 'react';
+import React, { type ReactNode, createContext, useContext, useMemo } from 'react';
 
 interface LoadingConfig {
   page?: {
@@ -21,8 +21,9 @@ interface LoadingContextType {
 const LoadingContext = createContext<LoadingContextType>({});
 
 export function LoadingProvider({ children, loadingConfig }: { children: ReactNode; loadingConfig?: LoadingConfig }) {
+  const value = useMemo(() => ({ loadingConfig }), [loadingConfig]);
   return (
-    <LoadingContext.Provider value={{ loadingConfig }}>
+    <LoadingContext.Provider value={value}>
       {children}
     </LoadingContext.Provider>
   );

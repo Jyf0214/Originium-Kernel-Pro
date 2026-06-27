@@ -15,6 +15,11 @@ interface LightboxProps {
 export function Lightbox({ images, initialIndex, onClose, isOpen = true }: LightboxProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
+  // initialIndex 外部变化时同步内部状态
+  useEffect(() => {
+    setCurrentIndex(initialIndex);
+  }, [initialIndex]);
+
   const total = images.length;
   const visible = isOpen && images.length > 0;
 

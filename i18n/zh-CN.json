@@ -443,7 +443,7 @@
         "B2_APP_KEY": "Backblaze B2 应用程序密钥（Secret）。STORAGE_TYPE=b2 时必填。请勿暴露给客户端。",
         "B2_BUCKET": "Backblaze B2 存储桶名称。STORAGE_TYPE=b2 时必填。该桶需已在 B2 账户中创建。",
         "B2_DOWNLOAD_URL": "可选的 B2 文件自定义下载端点（如 Cloudflare CDN URL）。设置后，公开文件链接将使用此 URL 替代默认 B2 下载地址。",
-        "B2_ENDPOINT": "可选的自定义 S3 兼容 API 端点。覆盖默认 Backblaze 端点；适用于第三方 S3 兼容网关。"
+        "B2_S3_ENDPOINT": "可选的自定义 S3 兼容 API 端点。覆盖默认 Backblaze 端点；适用于第三方 S3 兼容网关。"
       },
       "smtp": {
         "SMTP_HOST": "SMTP 服务器主机名（例如 smtp.gmail.com、smtp.sendgrid.net）。",
@@ -546,7 +546,10 @@
     "toc": "目录",
     "copyright": "版权信息",
     "reward": "打赏",
-    "postEdit": "在线编辑"
+    "postEdit": "在线编辑",
+    "mainTone": "主色调",
+    "share": "分享",
+    "footer": "页脚"
   },
   "editor": {
     "slugPlaceholder": "文章别名（URL 友好）",

@@ -151,11 +151,12 @@ export default function ShareModal({
       if (e.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', handleEsc);
-    // 禁止背景滚动
+    // 禁止背景滚动（保存并恢复先前值，避免破坏其他组件的滚动锁定）
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', handleEsc);
-      document.body.style.overflow = '';
+      document.body.style.overflow = prevOverflow;
     };
   }, [open, onClose]);
 
