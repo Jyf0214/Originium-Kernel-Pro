@@ -36,7 +36,7 @@ export const POST = apiHandler('POST', { label: '创建工单', requireAuth: tru
   const fileName = `tickets${slug}.md`;
 
   const frontMatter: Record<string, unknown> = {
-    title: title ?? template.title ?? 'Untitled',
+    title: title?.trim() || template.title || 'Untitled',
     author: session.email,
     date: new Date().toISOString(),
     labels: template.labels,

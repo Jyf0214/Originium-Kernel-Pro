@@ -5,7 +5,7 @@ import { PostDetailSkeleton } from './_components/PostDetailSkeleton';
  */
 export default function Loading() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#fafafa]">
+    <div className="min-h-screen flex flex-col bg-zinc-50">
       <main className="flex-1 max-w-6xl mx-auto w-full px-6 pt-8 pb-16">
         <div className="lg:flex lg:gap-12">
           <PostDetailSkeleton />

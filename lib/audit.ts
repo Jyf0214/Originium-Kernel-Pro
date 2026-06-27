@@ -12,10 +12,12 @@ export async function logAudit(
   userId: string,
   _extra?: Record<string, unknown>,
 ): Promise<void> {
+  if (!prisma || !('auditLog' in prisma)) {
+    console.warn('[audit] prisma.auditLog 不可用，跳过审计日志写入');
+    return;
+  }
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const prismaAny = prisma as any;
-    await prismaAny.auditLog.create({
+    await prisma.auditLog.create({
       data: {
         action,
         target,
@@ -43,17 +45,19 @@ export async function queryAuditLogs(options: {
   if (target) where.target = target;
   if (userId) where.userId = userId;
 
+  if (!prisma || !('auditLog' in prisma)) {
+    console.warn('[audit] prisma.auditLog 不可用，返回空结果');
+    return { items: [], total: 0 };
+  }
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const prismaAny = prisma as any;
     const [items, total] = await Promise.all([
-      prismaAny.auditLog.findMany({
+      prisma.auditLog.findMany({
         where,
         orderBy: { createdAt: 'desc' },
         take: limit,
         skip: offset,
       }),
-      prismaAny.auditLog.count({ where }),
+      prisma.auditLog.count({ where }),
     ]);
     return { items, total };
   } catch {

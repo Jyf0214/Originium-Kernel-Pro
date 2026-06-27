@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { PostItem } from './types';
 import { PAGE_SIZE } from './home-constants';
 
@@ -27,30 +27,41 @@ export function useHomeFilter(posts: PostItem[]): UseHomeFilterResult {
     setCurrentPage(1);
   }, [searchTerm, selectedTag, selectedCategory]);
 
-  const allTags = Array.from(new Set(posts.flatMap((p) => p.tags || []))).sort();
+  const allTags = useMemo(
+    () => Array.from(new Set(posts.flatMap((p) => p.tags || []))).sort(),
+    [posts],
+  );
 
-  const filteredPosts = posts
-    .filter((p) => {
-      if (selectedCategory && !p.tags?.some((tag) => tag === selectedCategory)) return false;
-      if (selectedTag && !p.tags?.includes(selectedTag)) return false;
-      if (!searchTerm) return true;
-      const q = searchTerm.toLowerCase();
-      return (
-        p.title.toLowerCase().includes(q) ||
-        (p.description?.toLowerCase().includes(q) ?? false) ||
-        (p.tags?.some((tag) => tag.toLowerCase().includes(q)) ?? false)
-      );
-    })
-    .sort((a, b) => {
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
-      return new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime();
-    });
+  const filteredPosts = useMemo(
+    () =>
+      posts
+        .filter((p) => {
+          if (selectedCategory && !p.tags?.some((tag) => tag === selectedCategory)) return false;
+          if (selectedTag && !p.tags?.includes(selectedTag)) return false;
+          if (!searchTerm) return true;
+          const q = searchTerm.toLowerCase();
+          return (
+            p.title.toLowerCase().includes(q) ||
+            (p.description?.toLowerCase().includes(q) ?? false) ||
+            (p.tags?.some((tag) => tag.toLowerCase().includes(q)) ?? false)
+          );
+        })
+        .sort((a, b) => {
+          if (a.pinned && !b.pinned) return -1;
+          if (!a.pinned && b.pinned) return 1;
+          return new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime();
+        }),
+    [posts, searchTerm, selectedTag, selectedCategory],
+  );
 
-  const totalPages = Math.ceil(filteredPosts.length / PAGE_SIZE);
-  const paginatedPosts = filteredPosts.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
+  const totalPages = useMemo(
+    () => Math.ceil(filteredPosts.length / PAGE_SIZE),
+    [filteredPosts],
+  );
+
+  const paginatedPosts = useMemo(
+    () => filteredPosts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filteredPosts, currentPage],
   );
 
   return {

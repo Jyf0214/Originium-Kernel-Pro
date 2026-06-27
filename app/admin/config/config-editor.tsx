@@ -178,7 +178,7 @@ export default function ConfigEditor({
     sections.forEach((sec) => {
       const el = document.getElementById(sec.id);
       if (el) {
-        observerRef.current!.observe(el);
+        observerRef.current?.observe(el);
       }
     });
   }, []);

@@ -30,14 +30,24 @@ function ResetPasswordForm() {
     inputRef.current?.focus();
   }, [token, router, t]);
 
+  const validatePassword = (pw: string): string[] => {
+    const reasons: string[] = [];
+    if (pw.length < 8) reasons.push(t('validation.passwordTooShort'));
+    if (!/[A-Z]/.test(pw)) reasons.push(t('validation.passwordNeedUppercase'));
+    if (!/[a-z]/.test(pw)) reasons.push(t('validation.passwordNeedLowercase'));
+    if (!/[0-9]/.test(pw)) reasons.push(t('validation.passwordNeedDigit'));
+    return reasons;
+  };
+
   const handleSubmit = async (values: { password: string; confirmPassword: string }) => {
     if (loading || !token) return;
     if (values.password !== values.confirmPassword) {
       showError(t('validation.passwordMismatch'));
       return;
     }
-    if (values.password.length < 6) {
-      showError(t('validation.passwordTooShort'));
+    const reasons = validatePassword(values.password);
+    if (reasons.length > 0) {
+      showError(reasons.join('; '));
       return;
     }
     setLoading(true);
@@ -117,7 +127,7 @@ function ResetPasswordForm() {
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <Form.Item name="password" style={{ marginBottom: 16 }} rules={[
             { required: true, message: t('validation.required') },
-            { min: 6, message: t('validation.passwordTooShort') },
+            { min: 8, message: t('validation.passwordTooShort') },
           ]}>
             <Input.Password placeholder={t('auth.newPassword')} ref={inputRef} size="large" prefix={<Lock size={16} className="mx-2 text-zinc-400" />} style={inputStyle} />
           </Form.Item>

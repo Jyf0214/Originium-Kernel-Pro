@@ -10,10 +10,22 @@ interface MermaidBlockProps {
 /** 用于生成唯一 DOM id，避免多图表冲突 */
 let mermaidIdCounter = 0;
 
+/** mermaid 动态导入的最小类型声明，避免 import() 类型注解 */
+interface MermaidLike {
+  initialize(config: Record<string, unknown>): void;
+  render(id: string, definition: string, container?: HTMLElement): Promise<{ svg: string }>;
+}
+
+/** 模块级缓存：mermaid 实例只 dynamic import 一次 */
+let mermaidInstance: MermaidLike | null = null;
+/** 标记 mermaid.initialize() 是否已执行过，避免重复初始化 */
+let mermaidInitialized = false;
+
 /**
  * Mermaid 图表渲染组件
  *
- * - 动态导入 mermaid（仅客户端）
+ * - 动态导入 mermaid（仅客户端，模块级缓存，只 import 一次）
+ * - mermaid.initialize() 也只调用一次
  * - useEffect 中 chartRef 赋值前显示 loading，完成后隐藏
  * - 渲染失败时显示错误信息
  * - 容器 overflow-x-auto + max-width: 100%，SVG 自适应宽度
@@ -29,13 +41,19 @@ export function MermaidBlock({ code }: MermaidBlockProps) {
 
     async function render() {
       try {
-        const mermaid = (await import('mermaid')).default;
-        // 初始化配置：关闭 security 限制以支持更多图表语法
-        mermaid.initialize({
-          startOnLoad: false,
-          securityLevel: 'loose',
-          theme: 'default',
-        });
+        // 模块级缓存：只 dynamic import 一次
+        mermaidInstance ??= (await import('mermaid')).default;
+        const mermaid = mermaidInstance;
+
+        // 初始化配置：只执行一次
+        if (!mermaidInitialized) {
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: 'default',
+          });
+          mermaidInitialized = true;
+        }
 
         if (cancelled || !containerRef.current) return;
 

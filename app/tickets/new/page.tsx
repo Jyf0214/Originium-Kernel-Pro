@@ -73,6 +73,10 @@ export default function NewTicketPage() {
 
   const handleSubmit = async () => {
     if (!selectedTemplate) return;
+    if (!title.trim()) {
+      showError(t('validation.required'));
+      return;
+    }
     const missingFields = selectedTemplate.fields
       .filter(f => f.required && !formData[f.name])
       .map(f => f.label);
