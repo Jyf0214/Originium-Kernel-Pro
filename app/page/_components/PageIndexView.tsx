@@ -6,7 +6,7 @@
  * 与 app/page/page.tsx(服务端)配对:服务端只负责读取 WebDAV/DB,
  * 把结果以 props 传入本组件,由本组件负责 i18n 渲染与交互。
  */
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Globe, Folder, Lock, FileCode, Plus, FolderOpen, RotateCw } from 'lucide-react';
@@ -61,12 +61,20 @@ export function PageIndexView({ notConfigured, pages, emptyDirs, orphans: _orpha
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editMetaPage, setEditMetaPage] = useState<PageIndexItem | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+    };
+  }, []);
 
   const handleRefresh = () => {
     if (refreshing) return;
     setRefreshing(true);
     router.refresh();
-    setTimeout(() => setRefreshing(false), 800);
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+    refreshTimerRef.current = setTimeout(() => setRefreshing(false), 800);
   };
 
   const handleEditMeta = (page: PageIndexItem) => {
