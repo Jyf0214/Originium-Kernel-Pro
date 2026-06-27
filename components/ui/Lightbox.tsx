@@ -65,7 +65,10 @@ export function Lightbox({ images, initialIndex, onClose, isOpen = true }: Light
           <button
             type="button"
             className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
             aria-label="关闭灯箱"
           >
             <X className="w-6 h-6" />

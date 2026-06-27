@@ -49,12 +49,18 @@ export async function GET() {
       status: 'published',
     }));
 
-  // 草稿：从数据库读取
-  const drafts = await getDraftsFromDb();
-  for (const draft of drafts) {
-    if (draft.status === 'draft' && !draft.content) {
-      const fileContent = await getDraft(draft.id);
-      draft.content = fileContent ?? '';
+  // 草稿：仅已登录用户可查看，非 sudo/admin 只能看到自己的草稿
+  let drafts: Awaited<ReturnType<typeof getDraftsFromDb>> = [];
+  if (isAuthenticated) {
+    const allDrafts = await getDraftsFromDb();
+    drafts = session?.role === 'sudo' || session?.role === 'admin'
+      ? allDrafts
+      : allDrafts.filter((d) => d.authorId === session?.uid);
+    for (const draft of drafts) {
+      if (draft.status === 'draft' && !draft.content) {
+        const fileContent = await getDraft(draft.id);
+        draft.content = fileContent ?? '';
+      }
     }
   }
 

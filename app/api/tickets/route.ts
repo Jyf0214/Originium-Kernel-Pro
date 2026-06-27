@@ -51,7 +51,7 @@ export const POST = apiHandler('POST', { label: '创建工单', requireAuth: tru
     return NextResponse.json({ error: 'GitHub 配置缺失' }, { status: 500 });
   }
 
-  const postRes = await fetch('/api/github', {
+  const postRes = await fetch(`${req.nextUrl.origin}/api/github`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -76,7 +76,7 @@ export const POST = apiHandler('POST', { label: '创建工单', requireAuth: tru
  * - Admin/Sudo 可见全部
  * - 普通用户只能看自己的
  */
-export const GET = apiHandler('GET', { label: '获取工单列表', requireAuth: true }, async (_req) => {
+export const GET = apiHandler('GET', { label: '获取工单列表', requireAuth: true }, async (req) => {
   const session = (await getSession())!;
   logger.info('GET', '获取工单列表');
   const env = getEnvConfig();
@@ -86,7 +86,7 @@ export const GET = apiHandler('GET', { label: '获取工单列表', requireAuth:
   }
 
   // 列出 tickets/ 目录下的文件
-  const listRes = await fetch(`/api/github?path=tickets`);
+  const listRes = await fetch(`${req.nextUrl.origin}/api/github?path=tickets`);
   if (!listRes.ok) {
     if (listRes.status === 404) return NextResponse.json([]);
     throw new Error('Failed to list tickets from GitHub');
@@ -101,7 +101,7 @@ export const GET = apiHandler('GET', { label: '获取工单列表', requireAuth:
   const tickets = await Promise.all(
     data.map(async (file: { path: string; name: string }) => {
       try {
-        const contentRes = await fetch(`/api/github?path=${file.path}`);
+        const contentRes = await fetch(`${req.nextUrl.origin}/api/github?path=${encodeURIComponent(file.path)}`);
         if (!contentRes.ok) return null;
         const { frontMatter } = await contentRes.json();
 

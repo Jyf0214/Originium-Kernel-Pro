@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import { useEffect, useState, use } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter, notFound } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, Clock, AlertCircle, Save } from 'lucide-react';
@@ -108,24 +108,6 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
   if (!slug || slug === '/') {
     notFound();
   }
-
-  const _fetchTicket = React.useCallback(async () => {
-    try {
-      const res = await fetch(`/api/tickets/${slug}`, { headers: { 'Content-Type': 'application/json' } });
-      if (res.ok) {
-        const data = await res.json();
-        setTicket(data);
-        setNewStatus(data.status ?? 'open');
-      } else {
-        showError(t('tickets.detailLoadFailed'));
-      }
-    } catch (error) {
-		console.error('Failed to fetch ticket:', error);
-		showError(t('tickets.detailLoadFailed'));
-    } finally {
-      setLoading(false);
-    }
-  }, [slug, t]);
 
   useEffect(() => {
     if (authLoading) return;
