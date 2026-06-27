@@ -91,11 +91,15 @@ export async function POST(req: NextRequest) {
     // 删除验证码
     await db.del(`bind:code:${email}`);
 
+    // 运行时验证 role 值，防止无效角色传递到 session
+    const validRoles = ['user', 'admin', 'sudo'] as const;
+    const safeRole = validRoles.includes(user.role as typeof validRoles[number]) ? user.role as typeof validRoles[number] : 'user';
+
     // 创建 JWT session
     await createSession({
       uid: user.uid,
       email: user.email,
-      role: user.role as 'user' | 'admin' | 'sudo',
+      role: safeRole,
       userGroup: user.userGroup,
     });
 

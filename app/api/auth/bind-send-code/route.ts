@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { getDb } from '@/lib/db';
 import nodemailer from 'nodemailer';
 import { createApiLogger } from '@/lib/api-logger';
 import { checkRateLimit } from '@/lib/rate-limit';
-import { randomInt } from 'crypto';
 
 const logger = createApiLogger('/api/auth/bind-send-code');
 
@@ -34,13 +34,15 @@ export async function POST(req: NextRequest) {
 
     // 检查邮箱是否存在
     const uid = await db.get(`user:email:${email}`);
+
     if (!uid) {
       logger.warn('POST', '邮箱未注册', { email });
-      return NextResponse.json({ error: '该邮箱未注册 Originium Kernel 账户' }, { status: 404 });
+      // 返回通用消息，防止邮箱枚举
+      return NextResponse.json({ success: true, message: '如果该邮箱已注册，验证码已发送' });
     }
 
-    // 生成 6 位验证码
-    const code = String(randomInt(100000, 999999));
+    // 生成 6 位验证码（密码学安全随机数）
+    const code = String(crypto.randomInt(100000, 999999));
 
     // 存储验证码（5 分钟有效）
     await db.set(`bind:code:${email}`, code, 300);
@@ -81,11 +83,11 @@ export async function POST(req: NextRequest) {
       }
     } else {
       logger.error('POST', '邮件服务未配置');
-      return NextResponse.json({ error: '邮件服务未配置，无法发送验证码' }, { status: 503 });
+      return NextResponse.json({ error: '邮件服务未配置，无法发送验证码' }, { status: 500 });
     }
 
     logger.info('POST', '验证码发送成功', { email });
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: '验证码已发送' });
   } catch (error) {
     logger.error('POST', '发送验证码失败', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: '发送失败' }, { status: 500 });

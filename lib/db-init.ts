@@ -40,7 +40,6 @@ async function doInit(): Promise<{ created: boolean; error?: string }> {
   try {
     const uid = await db.get(`user:email:${adminEmail}`);
     if (uid) {
-      // 管理员已存在，不覆盖密码（管理员可通过 UI/API 自行修改密码）
       initResult = { created: false };
       return initResult;
     }

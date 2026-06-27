@@ -57,7 +57,7 @@ export async function GET(
       content: body,
     });
   } catch (error) {
-    logger.error('GET', '获取工单失败', { error: (error as Error).message });
+    logger.error('GET', '获取工单失败', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: '获取工单失败' }, { status: 500 });
   }
 }
@@ -125,7 +125,7 @@ export async function PATCH(
     logger.info('PATCH', '工单状态更新成功', { slug, status });
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error('PATCH', '更新工单失败', { error: (error as Error).message });
+    logger.error('PATCH', '更新工单失败', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: '更新失败' }, { status: 500 });
   }
 }

@@ -16,6 +16,7 @@
  * - 密码相关错误 → 渲染 PasswordPrompt,不 404
  */
 import type { Metadata } from 'next';
+import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { buildPageRelativePath, resolvePageFilePath, extractTitle } from '@/lib/page-source/shared';
 import { isStorageConfigured } from '@/lib/storage/storage-provider';
@@ -24,6 +25,9 @@ import { checkPageAccess, type PageAccessResult } from '@/lib/storage/acl';
 import { UserWidget } from '../_components/UserWidget';
 import { NotConfiguredView } from '../_components/NotConfiguredView';
 import { PasswordPrompt } from '../_components/PasswordPrompt';
+
+// 用 React cache 包装，确保 generateMetadata 和组件体共享同一次 WebDAV 请求
+const cachedFetchPageHtml = cache(fetchPageHtml);
 
 interface PageProps {
   params: Promise<{ path: string[] }>;
@@ -47,7 +51,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: 'Custom Page' };
   }
   const filePath = resolvePageFilePath(relativePath);
-  const html = await fetchPageHtml(filePath);
+  const html = await cachedFetchPageHtml(filePath);
   const title = html ? extractTitle(html) : null;
   return { title: title ?? 'Custom Page' };
 }
@@ -66,7 +70,7 @@ export default async function CustomPage({ params, searchParams }: PageProps) {
   }
 
   const filePath = resolvePageFilePath(relativePath);
-  const html = await fetchPageHtml(filePath);
+  const html = await cachedFetchPageHtml(filePath);
   if (!html) {
     notFound();
   }

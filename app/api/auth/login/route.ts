@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { createSession, createTempToken } from '@/lib/auth';
+import { createSession, createTempToken, type SessionPayload } from '@/lib/auth';
 import { getUserAvatarAsync } from '@/lib/config';
 import { verifyPassword, hashPassword } from '@/lib/hash';
 import { ensureAdminUser } from '@/lib/db-init';
@@ -138,10 +138,13 @@ export async function POST(req: NextRequest) {
 
     const avatar = await getUserAvatarAsync(user.uid, user.role === 'admin' || user.role === 'sudo');
 
+    const validRoles = ['user', 'admin', 'sudo'] as const;
+    const role = validRoles.includes(user.role as 'user' | 'admin' | 'sudo') ? user.role as SessionPayload['role'] : 'user';
+
     await createSession({
       uid: user.uid,
       email: user.email,
-      role: user.role as 'user' | 'admin' | 'sudo',
+      role,
       userGroup: user.userGroup,
     });
 

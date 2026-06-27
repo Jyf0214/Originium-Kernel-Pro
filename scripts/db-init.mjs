@@ -192,8 +192,6 @@ async function main() {
       console.log(`[数据库初始化] ✓ 已创建 ${createdCount} 个新管理员`);
     }
 
-    await prisma.$disconnect()
-
     try {
       const syncFlag = await prisma.originiumKV.findUnique({
         where: { key: 'github:sync:success' }
@@ -207,6 +205,8 @@ async function main() {
     } catch (err) {
       console.log('[数据库初始化] ⚠️ 删除同步标志失败:', err.message?.split('\n')[0])
     }
+
+    await prisma.$disconnect()
 
     console.log('[数据库初始化] ✓ 全部完成')
   } catch (error) {

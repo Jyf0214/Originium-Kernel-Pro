@@ -71,7 +71,7 @@ export async function GET() {
     logger.info('GET', '获取文章列表成功', { count: all.length });
     return NextResponse.json(all);
   } catch (error) {
-    logger.error('GET', '获取文章列表失败', { error: (error as Error).message });
+    logger.error('GET', '获取文章列表失败', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: '获取文章列表失败' }, { status: 500 });
   }
 }
