@@ -209,6 +209,7 @@ const handleDelete = async (id: string) => {
                     title={t('tickets.deleteConfirm')}
                     onConfirm={() => handleDelete(template.id)}
                     okButtonProps={{ danger: true, loading: deleting === template.id }}
+                    placement="topRight"
                   >
                     <Button size="sm" variant="danger" rounded="sm" icon={deleting === template.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />} disabled={deleting === template.id} autoLoading={false}>{t('tickets.delete')}</Button>
                   </Popconfirm>

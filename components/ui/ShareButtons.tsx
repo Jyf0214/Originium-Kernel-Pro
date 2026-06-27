@@ -167,9 +167,11 @@ export default function ShareButtons({ title, url, config, locale: _locale }: Sh
                 {platform.name}
               </button>
 
-              {/* 微信提示浮层 */}
+              {/* 微信提示浮层——向下展开，避免短屏幕裁剪 */}
               {wechatHintOpen && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-20">
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-20">
+                  {/* 小三角箭头——指向上方 */}
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[6px] border-transparent border-b-zinc-900" />
                   <div className="bg-zinc-900 text-white text-sm rounded-xl px-4 py-3 shadow-lg whitespace-nowrap">
                     <p className="mb-2">复制链接到微信分享</p>
                     <button
@@ -185,8 +187,6 @@ export default function ShareButtons({ title, url, config, locale: _locale }: Sh
                       {wechatFailed ? '复制失败' : wechatCopied ? '已复制' : '复制链接'}
                     </button>
                   </div>
-                  {/* 小三角箭头 */}
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-zinc-900" />
                 </div>
               )}
             </div>

@@ -153,6 +153,7 @@ export default function UsersPage() {
                       onChange={setEditRole}
                       size="small"
                       className="w-28"
+                      getPopupContainer={(node) => node?.parentNode || document.body}
                       options={[
                         { label: t('admin.user'), value: 'user' },
                         { label: t('admin.admin'), value: 'admin' },
@@ -180,6 +181,7 @@ export default function UsersPage() {
                         title={t('admin.deleteConfirm')}
                         onConfirm={() => handleDelete(String(u.uid))}
                         okButtonProps={{ danger: true, loading: operating === u.uid }}
+                        placement="topRight"
                       >
                         <Button variant="danger" size="sm" icon={operating === u.uid ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />} disabled={operating === u.uid} title={t('common.delete')} autoLoading={false} />
                       </Popconfirm>

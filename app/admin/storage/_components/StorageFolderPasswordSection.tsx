@@ -128,6 +128,7 @@ export function StorageFolderPasswordSection({
             cancelButtonProps={{ disabled: disabled || submitting }}
             onConfirm={() => void handleClear()}
             disabled={disabled || submitting}
+            placement="bottomLeft"
           >
             <Button variant="danger" size="sm" disabled={disabled || submitting}>
               {clearPasswordLabel}

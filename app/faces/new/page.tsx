@@ -172,6 +172,7 @@ export default function NewFacePage() {
                 className="rounded-lg text-sm border-zinc-200 hover:border-zinc-300 focus:border-zinc-900"
                 style={{ minHeight: 40 }}
                 tokenSeparators={[',']}
+                placement="bottomLeft"
               />
             </Form.Item>
 

@@ -52,6 +52,7 @@ export default function LoadingAnimationConfig({
             onChange={v => onChange({ ...config, type: v })}
             options={loadingTypeOptions}
             style={{ width: '100%' }}
+            placement="bottomLeft"
           />
         </div>
         <div>
@@ -70,6 +71,7 @@ export default function LoadingAnimationConfig({
               onChange={v => onChange({ ...config, position: v })}
               options={positionOptions}
               style={{ width: '100%' }}
+              placement="bottomLeft"
             />
           </div>
         )}

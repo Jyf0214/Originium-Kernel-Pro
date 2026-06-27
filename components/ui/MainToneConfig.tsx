@@ -35,6 +35,7 @@ export default function MainToneConfig({ config, onChange }: MainToneConfigProps
           options={modeOptions}
           style={{ width: '100%' }}
           className="!rounded-lg"
+          placement="bottomLeft"
         />
         <p className="text-xs text-zinc-400 mt-1">
           CDN 模式为图片 URL + imageAve 参数获取主色调，API 模式为请求 API 获取主色调，Both 模式会先请求 CDN 参数，无法获取时将请求 API

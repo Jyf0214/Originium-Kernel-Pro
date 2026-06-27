@@ -66,6 +66,7 @@ export default function CoverConfig({ config, onChange }: CoverConfigProps) {
           options={positionOptions}
           style={{ width: '100%' }}
           className="!rounded-lg"
+          placement="bottomLeft"
         />
       </div>
 

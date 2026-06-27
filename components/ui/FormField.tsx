@@ -40,6 +40,7 @@ export default function FormField({
           onChange={onChange}
           options={options}
           style={{ width: '100%' }}
+          placement="bottomLeft"
         />
       )}
       {type === 'text' && (
