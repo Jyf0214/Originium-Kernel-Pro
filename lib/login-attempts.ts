@@ -24,6 +24,14 @@ function normalizeEmail(email: string): string {
 }
 
 /**
+ * 脱敏邮箱：user@example.com → u***@example.com
+ */
+function maskEmail(email: string): string {
+  const [local, domain] = email.split('@');
+  return local ? `${local[0]}***@${domain}` : '***';
+}
+
+/**
  * 清理已过期的锁定记录（惰性清理，每次访问时触发）
  */
 function cleanupIfNeeded(key: string, record: AttemptRecord): void {
@@ -52,7 +60,7 @@ export function recordLoginFailure(email: string): void {
   if (record.count >= LOCK_THRESHOLD) {
     record.lockedUntil = Date.now() + LOCK_DURATION_MS;
     console.warn(
-      `[安全告警] 登录失败次数达到阈值：email=${key}，失败次数=${record.count}，已锁定 ${LOCK_DURATION_MS / 60000} 分钟`,
+      `[安全告警] 登录失败次数达到阈值：email=${maskEmail(key)}，失败次数=${record.count}，已锁定 ${LOCK_DURATION_MS / 60000} 分钟`,
     );
   }
 

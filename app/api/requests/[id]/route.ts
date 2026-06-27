@@ -51,25 +51,26 @@ export async function PATCH(
       );
     }
 
-    if (action === 'approve') {
-      const postPath = join(process.cwd(), 'posts', `${requestRecord.postSlug}.md`);
-      try {
-        await unlink(postPath);
-      } catch (error) {
-        logger.error('PATCH', '删除文章失败', { error: error instanceof Error ? error.message : String(error) });
-        return NextResponse.json(
-          { error: '删除文章失败' },
-          { status: 500 }
-        );
-      }
-    }
-
+    // 先更新 DB 状态，再删除文件——避免文件删除后 DB 失败导致数据丢失
     await prisma.request.update({
       where: { id },
       data: {
         status: action === 'approve' ? 'approved' : 'rejected'
       }
     });
+
+    if (action === 'approve') {
+      const postPath = join(process.cwd(), 'posts', `${requestRecord.postSlug}.md`);
+      try {
+        await unlink(postPath);
+      } catch (error) {
+        // 文件残留比数据丢失安全，仅记录警告不回滚
+        logger.warn('PATCH', '删除文章文件失败（DB 已更新，文件残留）', {
+          postSlug: requestRecord.postSlug,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
 
     logger.info('PATCH', '申请处理成功', { id, action });
     return NextResponse.json({ success: true });
