@@ -93,13 +93,12 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap }: MarkdownRe
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ ...components, img: imgComponent as never }}>
         {processedContent}
       </ReactMarkdown>
-      {lightbox.open && (
-        <Lightbox
-          images={lightbox.images}
-          initialIndex={lightbox.index}
-          onClose={() => setLightbox((s) => ({ ...s, open: false }))}
-        />
-      )}
+      <Lightbox
+        images={lightbox.images}
+        initialIndex={lightbox.index}
+        isOpen={lightbox.open}
+        onClose={() => setLightbox((s) => ({ ...s, open: false }))}
+      />
     </div>
   );
 }

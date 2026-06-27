@@ -6,6 +6,7 @@ import { useI18n } from '@/hooks/use-i18n';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 import { PageContainer } from '@/components/ui/PageContainer';
+import { PageHeader } from '@/components/ui/PageHeader';
 import Footer from '@/components/Footer';
 
 export default function FacesPage() {
@@ -50,12 +51,10 @@ export default function FacesPage() {
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
       <PageContainer maxWidth="4xl">
-        <div className="flex flex-col gap-3 mb-8">
-          <h1 className="text-2xl font-bold text-zinc-900">
-            {t('nav.faces')}
-          </h1>
-          <p className="text-sm text-zinc-400">{t('home.facesDesc', { count: data.faces?.length || 0 })}</p>
-        </div>
+        <PageHeader
+          title={t('nav.faces')}
+          description={t('home.facesDesc', { count: data.faces?.length || 0 })}
+        />
         <FacesListClient faces={data.faces || []} groups={data.groups || []} />
       </PageContainer>
       <Footer />

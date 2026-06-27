@@ -40,7 +40,7 @@ export function StatCard({ card }: { card: StatCardData }) {
           </div>
         )}
       </div>
-      <div className="text-3xl font-black text-zinc-900 mb-1">{card.value}</div>
+      <div className="text-3xl font-black text-zinc-900 mb-1 truncate">{card.value}</div>
       <div className="text-xs text-zinc-400 font-medium mb-3">{card.title}</div>
       {card.progress && (
         <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">

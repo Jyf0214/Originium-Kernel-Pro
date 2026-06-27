@@ -105,10 +105,10 @@ export default function NewTicketPage() {
   if (!user) return null;
 
   return (
-    <PageContainer maxWidth="3xl">
-      <div className="flex items-center gap-3 mb-8">
+    <PageContainer maxWidth="3xl" padding="compact">
+      <div className="flex flex-wrap items-center gap-3 mb-8">
         <Button size="sm" autoLoading={false} icon={<ArrowLeft size={14} />} onClick={() => router.back()} rounded="sm" />
-        <h1 className="text-2xl font-bold text-zinc-900">{selectedTemplate ? t('tickets.fillTicket') : t('tickets.selectTemplate')}</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-zinc-900">{selectedTemplate ? t('tickets.fillTicket') : t('tickets.selectTemplate')}</h1>
       </div>
 
       {!selectedTemplate ? (
@@ -135,10 +135,10 @@ export default function NewTicketPage() {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-zinc-100 p-6">
+        <div className="bg-white rounded-2xl border border-zinc-100 p-4 sm:p-6">
           <div className="mb-5">
             <label className="block text-sm font-medium mb-2">{t('tickets.title')} *</label>
-            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder={t('tickets.placeholderTitle')} className="rounded-xl" />
+            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder={t('tickets.placeholderTitle')} className="rounded-xl w-full" />
           </div>
           {selectedTemplate.fields.map(field => (
             <div key={field.name} className="mb-5">
@@ -146,7 +146,7 @@ export default function NewTicketPage() {
                 {field.label} {field.required && <span className="text-red-500">*</span>}
               </label>
               {field.type === 'input' && (
-                <Input value={formData[field.name] ?? ''} onChange={e => setFormData({ ...formData, [field.name]: e.target.value })} placeholder={`${t('common.input')}${field.label}`} className="rounded-xl" />
+                <Input value={formData[field.name] ?? ''} onChange={e => setFormData({ ...formData, [field.name]: e.target.value })} placeholder={`${t('common.input')}${field.label}`} className="rounded-xl w-full" />
               )}
               {field.type === 'textarea' && (
                 <Textarea
@@ -155,12 +155,14 @@ export default function NewTicketPage() {
                   placeholder={`${t('common.input')}${field.label}`}
                   minH="min-h-[100px]"
                   rounded="md"
+                  className="w-full"
                 />
               )}
               {field.type === 'dropdown' && (
                 <Select
                   value={formData[field.name] ?? ''}
                   onChange={e => setFormData({ ...formData, [field.name]: e.target.value })}
+                  className="w-full"
                 >
                   <option value="">{t('common.select')}</option>
                   {field.options?.map((opt: string) => (
@@ -170,9 +172,11 @@ export default function NewTicketPage() {
               )}
             </div>
           ))}
-          <div className="flex justify-end gap-3">
-            <Button autoLoading={false} onClick={() => setSelectedTemplate(null)}>{t('common.back')}</Button>
-            <Button variant="primary" onClick={handleSubmit} loading={submitting}>
+          <div className="flex items-center justify-between pt-4 border-t border-zinc-100">
+            <Button autoLoading={false} icon={<ArrowLeft size={16} />} onClick={() => setSelectedTemplate(null)}>
+              {t('common.back')}
+            </Button>
+            <Button variant="primary" size="md" onClick={handleSubmit} loading={submitting}>
               {t('tickets.submit')}
             </Button>
           </div>

@@ -12,6 +12,7 @@ import { generateMarkdown, type FrontMatter } from '@/lib/markdown';
 import { showError } from '@/lib/error';
 import { GlobalLoading } from '@/components/Loading';
 import { PageContainer } from '@/components/ui/PageContainer';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 const { TextArea } = Input;
 
@@ -129,12 +130,12 @@ export default function NewFacePage() {
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
       <PageContainer maxWidth="4xl">
-        <div className="flex flex-col gap-3 mb-8">
-          <h1 className="text-2xl font-bold text-zinc-900">
-            {t('faces.newFace')}
-          </h1>
-          <p className="text-sm text-zinc-400">{t('faces.newFaceDesc')}</p>
-        </div>
+        <PageHeader
+          title={t('faces.newFace')}
+          description={t('faces.newFaceDesc')}
+          backHref="/faces"
+          backLabel={t('faces.backToFaces')}
+        />
 
         <div className="bg-white rounded-2xl border border-zinc-100 p-6">
           <Form

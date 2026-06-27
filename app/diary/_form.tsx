@@ -129,7 +129,7 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
       <div className="border-b border-zinc-100 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-2">
           <Button onClick={() => router.push('/diary')} variant="ghost" size="sm" autoLoading={false} icon={<ArrowLeft size={16}/>}>返回</Button>
           <Button onClick={handleSave} loading={saving} variant="primary" size="md">保存</Button>
         </div>
@@ -137,12 +137,12 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
 
       <PageContainer maxWidth="4xl" padding="compact">
         <div className="space-y-4 sm:space-y-6">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <input
               type="date"
               value={diaryDate}
               onChange={(e) => setDiaryDate(e.target.value)}
-              className="flex-1 text-base sm:text-lg text-zinc-600 bg-transparent border border-zinc-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 transition-all"
+              className="flex-1 min-w-0 text-base sm:text-lg text-zinc-600 bg-transparent border border-zinc-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 transition-all"
             />
             <div className="flex items-center gap-1.5 shrink-0 text-xs text-zinc-400">
               {saveStatus === 'saving' && (

@@ -18,8 +18,8 @@ export function UserCard({
   return (
     <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden mb-4">
       <div className="p-6">
-        <div className="flex items-center gap-5">
-          <div className="relative">
+        <div className="flex items-center gap-3">
+          <div className="relative shrink-0">
             <Avatar
               size={72}
               src={avatarUrl ?? undefined}
@@ -30,11 +30,11 @@ export function UserCard({
               <Check size={12} className="text-white" strokeWidth={3} />
             </div>
           </div>
-          <div>
-            <div className="text-lg font-bold text-zinc-900 mb-0.5">
+          <div className="min-w-0">
+            <div className="text-lg font-bold text-zinc-900 mb-0.5 truncate">
               {displayName}
             </div>
-            <div className="text-sm text-zinc-400">{email}</div>
+            <div className="text-sm text-zinc-400 truncate">{email}</div>
           </div>
         </div>
       </div>

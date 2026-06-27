@@ -58,7 +58,7 @@ export function StorageConfirmDeleteDialog({
           </p>
         </div>
       </div>
-      <div className="flex justify-end gap-2 mt-5">
+      <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-5">
         <Button variant="ghost" size="sm" onClick={onCancel} disabled={disabled} autoLoading={false}>
           {cancelLabel}
         </Button>

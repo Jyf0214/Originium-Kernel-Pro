@@ -190,10 +190,10 @@ pre:hover .code-copy-btn {
 
 /* 引用块 */
 .markdown-content blockquote {
-  border-left: 4px solid rgb(212 212 216);
+  border-left: 4px solid rgb(24 24 27);
   padding: 0.75rem 1rem;
   margin: 1.5rem 0;
-  background: rgb(244 244 245);
+  background: rgb(249 250 251);
   border-radius: 0 0.5rem 0.5rem 0;
   color: rgb(82 82 91);
 }

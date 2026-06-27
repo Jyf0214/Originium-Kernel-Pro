@@ -173,14 +173,14 @@ if (res.ok) {
   if (fetching) return <GlobalLoading size="large" />;
 
   return (
-    <div className="max-w-5xl mx-auto p-6 md:p-10 min-h-screen flex flex-col">
+    <div className="max-w-5xl mx-auto p-6 md:p-10 min-h-screen flex flex-col overflow-hidden">
       {/* 顶部操作栏 */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
         <Link href="/dashboard/articles" className="flex items-center gap-2 text-zinc-500 hover:text-zinc-900 transition-colors shrink-0">
           <ArrowLeft size={20} />
           <span className="hidden sm:inline">{t('editor.back')}</span>
         </Link>
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <Button
             onClick={handleSaveDraft}
             disabled={loading}
@@ -304,7 +304,7 @@ if (res.ok) {
           placeholder={t('editor.contentPlaceholder')}
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="flex-1 w-full bg-zinc-50 border border-zinc-200 rounded-2xl p-6 text-zinc-800 font-mono text-sm resize-none outline-none focus:border-zinc-400 transition-colors min-h-[500px]"
+          className="flex-1 w-full bg-zinc-50 border border-zinc-200 rounded-2xl p-6 text-zinc-800 font-mono text-sm resize-none outline-none focus:border-zinc-400 transition-colors min-h-[300px] max-h-[70vh]"
         />
       </div>
     </div>

@@ -170,7 +170,7 @@ export default function StatsPage() {
       {data && (
         <>
           {/* 数据卡片 */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
             <StatCard icon={BookOpen} label="文章数" value={data.counts.posts} color="bg-blue-500" />
             <StatCard icon={PenLine} label="日记数" value={data.counts.diary} color="bg-emerald-500" />
             <StatCard icon={Users} label="Faces 数" value={data.counts.faces} color="bg-amber-500" />
