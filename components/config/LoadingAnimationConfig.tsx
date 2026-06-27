@@ -95,6 +95,7 @@ export function LoadingAnimationConfig({
               onChange={onPageTypeChange}
               options={loadingTypeOptions}
               style={{ width: '100%' }}
+              placement="bottomLeft"
             />
           </div>
 
@@ -120,6 +121,7 @@ export function LoadingAnimationConfig({
               onChange={onPagePositionChange}
               options={positionOptions}
               style={{ width: '100%' }}
+              placement="bottomLeft"
             />
           </div>
         </div>
@@ -141,6 +143,7 @@ export function LoadingAnimationConfig({
               onChange={onNavigationTypeChange}
               options={loadingTypeOptions}
               style={{ width: '100%' }}
+              placement="bottomLeft"
             />
           </div>
 

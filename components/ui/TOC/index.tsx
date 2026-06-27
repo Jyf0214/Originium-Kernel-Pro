@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { TOCProps, TocHeading, TocNode } from './toc-types';
 import { useTocActive } from './use-toc-active';
 import { TocItem } from './TocItem';
@@ -45,6 +45,16 @@ function buildTree(items: TocHeading[]): TocNode[] {
  */
 export function TOC({ content, config, locale }: TOCProps) {
   const [mobileOpen, setMobileOpen] = useState(config?.expand ?? false);
+  const [isShortScreen, setIsShortScreen] = useState(false);
+
+  useEffect(() => {
+    const checkHeight = () => {
+      setIsShortScreen(window.innerHeight < 500);
+    };
+    checkHeight();
+    window.addEventListener('resize', checkHeight);
+    return () => window.removeEventListener('resize', checkHeight);
+  }, []);
 
   const headings = useMemo<TocHeading[]>(() => {
     const regex = /^(#{1,6})\s+(.+)$/gm;
@@ -115,7 +125,9 @@ export function TOC({ content, config, locale }: TOCProps) {
               <line x1="3" y1="18" x2="3.01" y2="18" />
             </svg>
           </summary>
-          <div className="absolute bottom-16 right-0 w-64 max-h-80 overflow-y-auto bg-white rounded-2xl shadow-xl border border-zinc-100 p-4">
+          <div className={`absolute right-0 w-64 max-h-80 overflow-y-auto bg-white rounded-2xl shadow-xl border border-zinc-100 p-4 ${
+            isShortScreen ? 'top-full' : 'bottom-16'
+          }`}>
             <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-3">
               {label}
             </h4>

@@ -75,6 +75,7 @@ export function SiteConfigForm({ config, onChange }: SiteConfigFormProps) {
           onChange={(value) => updateField('lang', value)}
           options={languageOptions}
           style={{ width: '100%' }}
+          placement="bottomLeft"
         />
       </div>
     </div>

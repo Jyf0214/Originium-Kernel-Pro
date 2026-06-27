@@ -73,18 +73,19 @@ interface TocPanelProps {
   simple?: boolean;
   maxLevel: number;
   numberEnabled?: boolean;
+  isShortScreen: boolean;
   onItemClick: (id: string) => void;
   panelRef: React.RefObject<HTMLDivElement | null>;
 }
 
-function TocPanel({ open, items, activeId, simple, maxLevel, numberEnabled, onItemClick, panelRef }: TocPanelProps) {
+function TocPanel({ open, items, activeId, simple, maxLevel, numberEnabled, isShortScreen, onItemClick, panelRef }: TocPanelProps) {
   if (!open) return null;
   return (
     <div
       ref={panelRef}
-      className={`fixed bottom-20 right-6 z-50 max-h-80 overflow-y-auto bg-white rounded-2xl shadow-xl border border-zinc-100 ${
-        simple ? 'p-3 w-56' : 'p-4 w-64'
-      }`}
+      className={`fixed right-6 z-50 max-h-80 overflow-y-auto bg-white rounded-2xl shadow-xl border border-zinc-100 ${
+        isShortScreen ? 'top-20' : 'bottom-20'
+      } ${simple ? 'p-3 w-56' : 'p-4 w-64'}`}
       role="dialog"
       aria-label="文章目录"
     >
@@ -114,7 +115,17 @@ export default function TableOfContents({ content, pageType = 'post' }: TableOfC
   const cfg = config?.toc;
   const [open, setOpen] = useState(cfg?.expand ?? false);
   const [items, setItems] = useState<TocItem[]>([]);
+  const [isShortScreen, setIsShortScreen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const checkHeight = () => {
+      setIsShortScreen(window.innerHeight < 500);
+    };
+    checkHeight();
+    window.addEventListener('resize', checkHeight);
+    return () => window.removeEventListener('resize', checkHeight);
+  }, []);
 
   const isDisabled = pageType === 'post'
     ? cfg?.post === false
@@ -185,6 +196,7 @@ export default function TableOfContents({ content, pageType = 'post' }: TableOfC
         simple={simple}
         maxLevel={maxLevel}
         numberEnabled={cfg?.number}
+        isShortScreen={isShortScreen}
         onItemClick={handleItemClick}
         panelRef={panelRef}
       />

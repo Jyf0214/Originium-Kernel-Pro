@@ -238,6 +238,7 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
                 okText={t('common.confirm')}
                 cancelText={t('common.cancel')}
                 okButtonProps={{ danger: true }}
+                placement="topRight"
               >
                 <Button
                   variant="danger"

@@ -331,6 +331,7 @@ export default function LoadingPreviewPage() {
               options={positionOptions}
               style={{ width: 200 }}
               size="large"
+              placement="bottomLeft"
             />
             <div className="text-sm text-zinc-400">
               配置: <code className="bg-zinc-100 px-2 py-1 rounded ml-1">appearance.loading.position = &quot;{loadingPosition}&quot;</code>

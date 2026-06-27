@@ -36,6 +36,7 @@ export default function CodeBlockConfig({ config, onChange }: CodeBlockConfigPro
           options={themeOptions}
           style={{ width: '100%' }}
           className="!rounded-lg"
+          placement="bottomLeft"
         />
       </div>
 

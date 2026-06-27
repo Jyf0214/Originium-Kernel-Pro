@@ -251,7 +251,7 @@ function SortToolbar({
       <SortButton field="size" label="大小" currentField={sortField} currentDirection={sortDirection} onToggle={onToggleSort} />
       <SortButton field="date" label="日期" currentField={sortField} currentDirection={sortDirection} onToggle={onToggleSort} />
       <div className="w-px h-3 bg-zinc-200 mx-1" />
-      <Tooltip title={refreshLabel}>
+      <Tooltip title={refreshLabel} placement="bottom">
         <button type="button" onClick={onRefresh} disabled={disabled || refreshing} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
           <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
           {refreshLabel}

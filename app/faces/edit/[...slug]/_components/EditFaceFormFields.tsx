@@ -66,6 +66,7 @@ export function PhoneGroupFields({
         <Select
           placeholder={t('faces.groupName')}
           className="h-10 rounded-lg text-sm"
+          placement="bottomLeft"
           options={groups.map((group) => ({
             value: group.groupName,
             label: group.title || group.groupName,

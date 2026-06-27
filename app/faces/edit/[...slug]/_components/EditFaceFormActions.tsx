@@ -41,6 +41,7 @@ export function EditFaceFormActions({
           okText={t('common.confirm')}
           cancelText={t('common.cancel')}
           okButtonProps={{ danger: true }}
+          placement="topRight"
         >
           <Button
             variant="danger"

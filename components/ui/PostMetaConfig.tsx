@@ -65,6 +65,7 @@ function MetaItemEditor({
             options={dateTypeOptions}
             style={{ width: '100%' }}
             className="!rounded-lg"
+            placement="bottomLeft"
           />
         </div>
         <div>
@@ -76,6 +77,7 @@ function MetaItemEditor({
             options={prefix === '首页' ? dateFormatOptions : postDateFormatOptions}
             style={{ width: '100%' }}
             className="!rounded-lg"
+            placement="bottomLeft"
           />
         </div>
       </div>

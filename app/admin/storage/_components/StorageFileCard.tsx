@@ -105,7 +105,7 @@ function SelectedActionBar({
 }) {
   return (
     <div className="flex items-center justify-center gap-1 px-2 py-2 border-t border-zinc-100 bg-zinc-50/80">
-      <Tooltip title={entry.isDirectory ? '打开' : previewLabel}>
+      <Tooltip title={entry.isDirectory ? '打开' : previewLabel} placement="top">
         <button
           type="button"
           onClick={(e) => {
@@ -120,32 +120,32 @@ function SelectedActionBar({
         </button>
       </Tooltip>
       {onRename && (
-        <Tooltip title={renameLabel}>
+        <Tooltip title={renameLabel} placement="top">
           <button type="button" onClick={(e) => { e.stopPropagation(); onRename(entry); }} disabled={disabled} className={actionBtnClass}>
             <Pencil size={14} />
           </button>
         </Tooltip>
       )}
-      <Tooltip title={moveLabel}>
+      <Tooltip title={moveLabel} placement="top">
         <button type="button" onClick={(e) => { e.stopPropagation(); onMove(entry); }} disabled={disabled} className={actionBtnClass}>
           <FolderInput size={14} />
         </button>
       </Tooltip>
       {!entry.isDirectory && (
-        <Tooltip title={copyUrlLabel}>
+        <Tooltip title={copyUrlLabel} placement="top">
           <button type="button" onClick={(e) => { e.stopPropagation(); void onCopy(); }} disabled={disabled} className={actionBtnClass}>
             <Copy size={14} />
           </button>
         </Tooltip>
       )}
       {!entry.isDirectory && (
-        <Tooltip title={downloadLabel}>
+        <Tooltip title={downloadLabel} placement="top">
           <button type="button" onClick={(e) => { e.stopPropagation(); onDownload(); }} disabled={disabled} className={actionBtnClass}>
             <Download size={14} />
           </button>
         </Tooltip>
       )}
-      <Tooltip title={deleteLabel}>
+      <Tooltip title={deleteLabel} placement="top">
         <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(entry); }} disabled={disabled} className={actionBtnDangerClass}>
           <Trash2 size={14} />
         </button>
@@ -241,22 +241,22 @@ export function StorageFileCard({
         <>
           {!entry.isDirectory && (
             <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Tooltip title={copyUrlLabel}>
+              <Tooltip title={copyUrlLabel} placement="top">
                 <button type="button" onClick={(e) => { e.stopPropagation(); void handleCopy(); }} disabled={disabled} className={actionBtnClass}>
                   <Copy size={14} />
                 </button>
               </Tooltip>
-              <Tooltip title={downloadLabel}>
+              <Tooltip title={downloadLabel} placement="top">
                 <button type="button" onClick={(e) => { e.stopPropagation(); handleDownload(); }} disabled={disabled} className={actionBtnClass}>
                   <Download size={14} />
                 </button>
               </Tooltip>
-              <Tooltip title={moveLabel}>
+              <Tooltip title={moveLabel} placement="top">
                 <button type="button" onClick={(e) => { e.stopPropagation(); onMove(entry); }} disabled={disabled} className={actionBtnClass}>
                   <FolderInput size={14} />
                 </button>
               </Tooltip>
-              <Tooltip title={deleteLabel}>
+              <Tooltip title={deleteLabel} placement="top">
                 <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(entry); }} disabled={disabled} className={actionBtnDangerClass}>
                   <Trash2 size={14} />
                 </button>
@@ -265,12 +265,12 @@ export function StorageFileCard({
           )}
           {entry.isDirectory && (
             <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Tooltip title={moveLabel}>
+              <Tooltip title={moveLabel} placement="top">
                 <button type="button" onClick={(e) => { e.stopPropagation(); onMove(entry); }} disabled={disabled} className={actionBtnClass}>
                   <FolderInput size={14} />
                 </button>
               </Tooltip>
-              <Tooltip title={deleteLabel}>
+              <Tooltip title={deleteLabel} placement="top">
                 <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(entry); }} disabled={disabled} className={actionBtnDangerClass}>
                   <Trash2 size={14} />
                 </button>

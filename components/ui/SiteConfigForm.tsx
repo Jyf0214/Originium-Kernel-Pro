@@ -56,6 +56,7 @@ export default function SiteConfigForm({ config, onChange }: SiteConfigFormProps
             { value: 'ja-JP', label: '日本語' },
           ]}
           style={{ width: '100%' }}
+          placement="bottomLeft"
         />
       </div>
     </div>
