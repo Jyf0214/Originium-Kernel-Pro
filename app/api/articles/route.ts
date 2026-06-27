@@ -181,6 +181,10 @@ export const POST = apiHandler('POST', { label: '创建文章', requireAuth: tru
     updatedAt: now,
   };
 
+  if (slug && (slug.includes('..') || slug.includes('/') || slug.startsWith('.'))) {
+    return NextResponse.json({ error: 'slug 包含非法路径字符' }, { status: 400 });
+  }
+
   if (status === 'published') {
     return handlePublishedPost(req, articleMeta, content, { coverImage, description, slug, now });
   }

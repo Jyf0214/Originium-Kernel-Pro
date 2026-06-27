@@ -67,12 +67,12 @@ export function FeedbackForm() {
   // 提交成功
   if (status === 'success') {
     return (
-      <div className="bg-white rounded-2xl border border-zinc-100 p-6 sm:p-8 text-center">
-        <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle size={24} className="text-green-600" />
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 sm:p-8 text-center">
+        <div className="w-12 h-12 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <CheckCircle size={24} className="text-green-600 dark:text-green-400" />
         </div>
-        <h3 className="text-lg font-bold text-zinc-900 mb-2">感谢你的反馈</h3>
-        <p className="text-sm text-zinc-500 mb-4">
+        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">感谢你的反馈</h3>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
           你的反馈已成功提交，我们会认真查看每一条建议。
         </p>
         <Button variant="default" size="sm" onClick={resetForm} autoLoading={false}>
@@ -83,9 +83,9 @@ export function FeedbackForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-zinc-100 p-5 sm:p-6">
-      <h3 className="text-lg font-bold text-zinc-900 mb-1">提交反馈</h3>
-      <p className="text-sm text-zinc-500 mb-5">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-5 sm:p-6">
+      <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1">提交反馈</h3>
+      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-5">
         遇到问题、有功能建议或想分享想法？请在这里告诉我们。
       </p>
 
@@ -123,7 +123,7 @@ export function FeedbackForm() {
         />
 
         {status === 'error' && errorMessage && (
-          <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 text-red-700 text-sm">
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 text-sm">
             <AlertCircle size={16} className="mt-0.5 shrink-0" />
             <span>{errorMessage}</span>
           </div>

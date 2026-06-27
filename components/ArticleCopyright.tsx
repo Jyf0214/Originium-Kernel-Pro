@@ -16,13 +16,13 @@ export default function ArticleCopyright({ authorName, authorUrl }: ArticleCopyr
   const decodedName = cfg.decode ? decodeURIComponent(authorName) : authorName;
 
   return (
-    <div className="max-w-3xl mx-auto mt-12 pt-8 border-t border-zinc-100">
-      <div className="bg-zinc-50 rounded-2xl p-6 space-y-3 text-sm text-zinc-500">
+    <div className="max-w-3xl mx-auto mt-12 pt-8 border-t border-zinc-100 dark:border-zinc-700">
+      <div className="bg-zinc-50 dark:bg-zinc-800 rounded-2xl p-6 space-y-3 text-sm text-zinc-500 dark:text-zinc-400">
         <div className="flex items-center gap-3">
           {cfg.authorImgFront && (
             <img src={cfg.authorImgFront} alt="" className={`w-8 h-8 ${cfg.avatarSinks ? 'rounded-full' : 'rounded-xl'} object-cover`} />
           )}
-          <span className="font-bold text-zinc-700">本文作者</span>
+          <span className="font-bold text-zinc-700 dark:text-zinc-200">本文作者</span>
           {cfg.authorImgBack && (
             <img src={cfg.authorImgBack} alt="" className={`w-8 h-8 ${cfg.avatarSinks ? 'rounded-full' : 'rounded-xl'} object-cover`} />
           )}
@@ -34,7 +34,7 @@ export default function ArticleCopyright({ authorName, authorUrl }: ArticleCopyr
               href={cfg.authorHref ?? cfg.authorLink ?? authorUrl ?? '/'}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-zinc-700 font-medium hover:text-zinc-900 underline underline-offset-2 decoration-zinc-300"
+              className="text-zinc-700 dark:text-zinc-200 font-medium hover:text-zinc-900 underline underline-offset-2 decoration-zinc-300"
             >
               {decodedName}
             </a>
@@ -53,7 +53,7 @@ export default function ArticleCopyright({ authorName, authorUrl }: ArticleCopyr
                   href={cfg.licenseUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-zinc-700 hover:text-zinc-900 underline underline-offset-2 decoration-zinc-300"
+                  className="text-zinc-700 dark:text-zinc-200 hover:text-zinc-900 underline underline-offset-2 decoration-zinc-300"
                 >
                   {cfg.license}
                 </a>

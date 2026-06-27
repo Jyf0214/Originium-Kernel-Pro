@@ -202,8 +202,13 @@ async function b2FileResponse(provider: StorageProvider, stat: FileStat, relativ
 
 /** WebDAV 后端下载:优先本地缓存,回退远程下载 */
 async function webdavFileResponse(stat: FileStat, relativePath: string): Promise<NextResponse> {
-  const webdavBase = process.env.WEBDAV_URL!.replace(/\/+$/, '')
-  const auth = `Basic ${Buffer.from(`${process.env.WEBDAV_USER}:${process.env.WEBDAV_PASS}`).toString('base64')}`
+  const webdavUrl = process.env.WEBDAV_URL
+  if (!webdavUrl) {
+    console.error('[files] WEBDAV_URL 未配置')
+    return NextResponse.json({ error: 'WebDAV 后端未配置', code: 'NOT_CONFIGURED' }, { status: 503 })
+  }
+  const webdavBase = webdavUrl.replace(/\/+$/, '')
+  const auth = `Basic ${Buffer.from(`${process.env.WEBDAV_USER ?? ''}:${process.env.WEBDAV_PASS ?? ''}`).toString('base64')}`
 
   // 优先:构建时同步到本地 ./pages/ 的文件(sync-pages.mjs 产出)
   const localBuf = await readLocalPagesFile(relativePath)

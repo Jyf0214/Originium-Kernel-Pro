@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { showError } from '@/lib/error';
@@ -50,12 +50,31 @@ export function useDiaryState(): UseDiaryStateResult {
   const [endDate, setEndDate] = useState('');
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
 
+  // 搜索文本防抖：300ms 后才触发实际查询
+  const [debouncedSearchText, setDebouncedSearchText] = useState('');
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (debounceTimerRef.current !== null) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearchText(searchText);
+      debounceTimerRef.current = null;
+    }, 300);
+    return () => {
+      if (debounceTimerRef.current !== null) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchText]);
+
   const isAuthorized = !authLoading && !!user && isSudo;
 
   const fetchDiaries = useCallback(async () => {
     try {
       const params = new URLSearchParams();
-      if (searchText.trim()) params.set('search', searchText.trim());
+      if (debouncedSearchText.trim()) params.set('search', debouncedSearchText.trim());
       if (startDate) params.set('startDate', startDate);
       if (endDate) params.set('endDate', endDate);
       if (activeGroup) params.set('group', activeGroup);
@@ -70,7 +89,7 @@ export function useDiaryState(): UseDiaryStateResult {
     } finally {
       setLoading(false);
     }
-  }, [searchText, startDate, endDate, activeGroup]);
+  }, [debouncedSearchText, startDate, endDate, activeGroup]);
 
   useEffect(() => {
     if (authLoading) return;
