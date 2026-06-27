@@ -11,8 +11,8 @@
  *   - 未配置顶层文件夹(无 DB 记录) → 私有
  *   - isFolderPublic 抛错 → 失败安全 (private)
  * - checkPageAccess:
- *   - DB 未配置 → public
- *   - 记录不存在 → public
+ *   - DB 未配置 → db-not-configured(失败安全,拒绝)
+ *   - 记录不存在 → db-not-configured(失败安全,拒绝)
  *   - public=true → public
  *   - public=false, password=null → password-required
  *   - public=false, password=正确 → public
@@ -207,11 +207,11 @@ describe('checkAccess', () => {
 });
 
 describe('checkPageAccess', () => {
-  it('DB 未配置 → 视为 public', async () => {
+  it('DB 未配置 → 拒绝访问(db-not-configured)', async () => {
     mocks.getDb.mockImplementation(() => makeDbUnconfigured());
     const { checkPageAccess } = await import('@/lib/storage/acl');
     const result = await checkPageAccess('pages/secret.html', null);
-    expect(result).toEqual({ allowed: true, reason: 'public' });
+    expect(result).toEqual({ allowed: false, reason: 'db-not-configured' });
   });
 
   it('DB 抛错 → 返回 db-error (失败安全)', async () => {
@@ -221,11 +221,11 @@ describe('checkPageAccess', () => {
     expect(result).toEqual({ allowed: false, reason: 'db-error' });
   });
 
-  it('目录无记录 → public', async () => {
+  it('目录无记录 → 拒绝访问(db-not-configured)', async () => {
     // 默认 mock 返回 null
     const { checkPageAccess } = await import('@/lib/storage/acl');
     const result = await checkPageAccess('pages/unknown.html', null);
-    expect(result).toEqual({ allowed: true, reason: 'public' });
+    expect(result).toEqual({ allowed: false, reason: 'db-not-configured' });
   });
 
   it('目录 public=true → public', async () => {

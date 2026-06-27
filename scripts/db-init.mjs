@@ -42,8 +42,8 @@ async function main() {
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL_NON_POOLING;
   
-  if (process.env.SKIP_DB_INIT === 'true') {
-    console.log('[数据库初始化] SKIP_DB_INIT=true，跳过初始化');
+  if (process.env.SKIP_DB_INIT === 'true' || process.env.SKIP_DB_INIT === '1') {
+    console.log(`[数据库初始化] SKIP_DB_INIT=${process.env.SKIP_DB_INIT}，跳过初始化`);
     return;
   }
 
@@ -57,8 +57,9 @@ async function main() {
     }
     process.env.DATABASE_URL = finalUrl
 
-    // 安全护栏：db push 默认跳过，仅在显式 ALLOW_DB_PUSH=1 且未被 SKIP_DB_INIT=1 时执行
-    if (process.env.SKIP_DB_INIT !== '1' && process.env.ALLOW_DB_PUSH === '1') {
+    // 安全护栏：db push 默认跳过，仅在显式 ALLOW_DB_PUSH=1 且未被 SKIP_DB_INIT 时执行
+    const skipDbPush = process.env.SKIP_DB_INIT === '1' || process.env.SKIP_DB_INIT === 'true';
+    if (!skipDbPush && process.env.ALLOW_DB_PUSH === '1') {
       console.log('[数据库初始化] 开始 Schema 推送...')
 
       try {
@@ -214,6 +215,7 @@ async function main() {
   }
 }
 
-main().catch(() => {
-  console.log('[数据库初始化] ⚠️ 错误跳过')
-})
+main().catch((err) => {
+  console.error('[数据库初始化] ✗ 致命错误:', err);
+  process.exit(1);
+});

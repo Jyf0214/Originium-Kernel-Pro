@@ -25,6 +25,11 @@ export function LazyImage({
   const [isInView, setIsInView] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // src 变化时重置加载状态，确保新图片有骨架屏过渡
+  useEffect(() => {
+    setStatus('idle');
+  }, [src]);
+
   const handleIntersection = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       for (const entry of entries) {

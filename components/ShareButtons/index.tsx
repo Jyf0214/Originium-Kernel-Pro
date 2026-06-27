@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { AnimatePresence } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Link2, Share2, Check } from 'lucide-react';
 import ShareModal from '../ShareModal';
 import { Button } from '@/components/ui/Button';
@@ -25,10 +25,17 @@ function Toast({ message, visible }: { message: string; visible: boolean }) {
   return (
     <AnimatePresence>
       {visible && (
-        <Button variant="primary" autoLoading={false} className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] shadow-2xl">
-          <Check size={16} className="text-green-400 shrink-0" />
-          {message}
-        </Button>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]"
+        >
+          <Button variant="primary" autoLoading={false} className="shadow-2xl">
+            <Check size={16} className="text-green-400 shrink-0" />
+            {message}
+          </Button>
+        </motion.div>
       )}
     </AnimatePresence>
   );

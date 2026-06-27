@@ -170,7 +170,7 @@ export async function checkAccess(
 /** 自定义 Page 访问决策结果 */
 export interface PageAccessResult {
   allowed: boolean
-  reason: 'public' | 'password-required' | 'wrong-password' | 'db-error'
+  reason: 'public' | 'password-required' | 'wrong-password' | 'db-error' | 'db-not-configured'
 }
 
 /** 私有页面密码最大长度(防滥用,128 字符足够) */
@@ -206,9 +206,9 @@ export function getPageProjectFolder(fullPath: string): string {
  * 自定义 Page 专用 ACL 检查
  *
  * 决策树(按顺序匹配,首个命中即返回):
- * 1. DB 未配置(`getDb().prisma` 为 null) → 视为「无记录」→ `{ allowed: true, reason: 'public' }`
+ * 1. DB 未配置(`getDb().prisma` 为 null) → 拒绝访问 → `{ allowed: false, reason: 'db-not-configured' }`
  * 2. DB 调用异常 → `{ allowed: false, reason: 'db-error' }`(失败安全)
- * 3. 记录不存在 → `{ allowed: true, reason: 'public' }`(无配置 = 公开)
+ * 3. 记录不存在 → 拒绝访问 → `{ allowed: false, reason: 'db-not-configured' }`
  * 4. 记录存在,`public=true` → `{ allowed: true, reason: 'public' }`
  * 5. 记录存在,`public=false`,`password=null` → `{ allowed: false, reason: 'password-required' }`
  * 6. 记录存在,`public=false`,`password` 已设:
@@ -222,10 +222,10 @@ export async function checkPageAccess(
   fullPath: string,
   queryPwd: string | null
 ): Promise<PageAccessResult> {
-  // 1. 数据库未配置 → 视为「无记录」,允许公开访问
+  // 1. 数据库未配置 → 拒绝访问(失败安全)
   const prisma = getDb().prisma
   if (!prisma) {
-    return { allowed: true, reason: 'public' }
+    return { allowed: false, reason: 'db-not-configured' }
   }
 
   try {
@@ -233,9 +233,9 @@ export async function checkPageAccess(
     const dir = getPageProjectFolder(fullPath)
     const row = await prisma.storageFolder.findUnique({ where: { path: dir } })
 
-    // 3. 无记录 → 公开
+    // 3. 无记录 → 拒绝访问(失败安全,无配置 = 未知权限状态)
     if (!row) {
-      return { allowed: true, reason: 'public' }
+      return { allowed: false, reason: 'db-not-configured' }
     }
 
     // 4. 标记为公开 → 直接放行
