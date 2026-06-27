@@ -15,7 +15,6 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
   return (
     <AntdConfigProvider
       locale={zhCN}
-      getPopupContainer={(node) => (node?.parentNode as HTMLElement) || document.body}
       theme={{
         algorithm: theme.defaultAlgorithm,
         token: {
