@@ -62,10 +62,14 @@ export default function DiaryDraftsPage() {
   };
 
   const handleContinue = (d: DraftItem) => {
-    localStorage.setItem(
-      `diary:draft:${d.id}`,
-      JSON.stringify({ title: d.title, content: d.content, tags: d.tags, savedAt: d.savedAt }),
-    );
+    try {
+      localStorage.setItem(
+        `diary:draft:${d.id}`,
+        JSON.stringify({ title: d.title, content: d.content, tags: d.tags, savedAt: d.savedAt }),
+      );
+    } catch {
+      // localStorage 写入失败，仍允许跳转
+    }
     router.push(`/diary/new?draft=${encodeURIComponent(d.id)}`);
   };
 

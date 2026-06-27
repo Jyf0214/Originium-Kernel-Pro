@@ -43,8 +43,15 @@ export function useThemeMode() {
 
   // 初始化：读取 localStorage + 监听系统偏好
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
-    const initial: ThemeMode = saved && ['light', 'dark', 'system'].includes(saved) ? saved : 'system';
+    let initial: ThemeMode = 'system';
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
+      if (saved && ['light', 'dark', 'system'].includes(saved)) {
+        initial = saved;
+      }
+    } catch {
+      // localStorage 不可用，使用默认值
+    }
     setModeState(initial);
 
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -64,7 +71,11 @@ export function useThemeMode() {
 
   const setMode = useCallback((next: ThemeMode) => {
     setModeState(next);
-    localStorage.setItem(STORAGE_KEY, next);
+    try {
+      localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      // localStorage 写入失败，静默忽略
+    }
   }, []);
 
   const cycle = useCallback(() => {

@@ -23,9 +23,13 @@ export default function GlobalError({
     ]
       .filter(Boolean)
       .join('\n');
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // 剪贴板写入失败，静默忽略
+    }
   };
 
   return (

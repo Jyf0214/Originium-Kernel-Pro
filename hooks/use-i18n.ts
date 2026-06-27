@@ -17,9 +17,13 @@ const translations: Record<Locale, I18nKeys> = {
 
 function getInitialLocale(): Locale {
   if (typeof window !== 'undefined') {
-    const savedLocale = localStorage.getItem('locale') as Locale;
-    if (savedLocale && translations[savedLocale]) {
-      return savedLocale;
+    try {
+      const savedLocale = localStorage.getItem('locale') as Locale;
+      if (savedLocale && translations[savedLocale]) {
+        return savedLocale;
+      }
+    } catch {
+      // localStorage 不可用，忽略
     }
     // 从浏览器检测语言
     const browserLocale = navigator.language;
@@ -42,7 +46,11 @@ export function useI18n() {
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('locale', newLocale);
+      try {
+        localStorage.setItem('locale', newLocale);
+      } catch {
+        // localStorage 写入失败，静默忽略
+      }
       // 可选：更新 html lang 属性
       document.documentElement.lang = newLocale;
     }

@@ -72,9 +72,13 @@ export function ApiKeyCard() {
   };
 
   const handleCopy = async (key: string) => {
-    await navigator.clipboard.writeText(key);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(key);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError('复制到剪贴板失败');
+    }
   };
 
   const handleDelete = async (id: string) => {
