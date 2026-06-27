@@ -173,6 +173,7 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
   }, [navConfig?.clock]);
 
   return (
+    <>
     <nav aria-label="主导航" className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200/60 dark:border-zinc-700/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
@@ -226,14 +227,15 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
           </div>
         </div>
       </div>
-      <SearchDialog
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-      />
-      <KeyboardShortcutsHelp
-        open={shortcutsOpen}
-        onClose={() => setShortcutsOpen(false)}
-      />
     </nav>
+    <SearchDialog
+      open={searchOpen}
+      onClose={() => setSearchOpen(false)}
+    />
+    <KeyboardShortcutsHelp
+      open={shortcutsOpen}
+      onClose={() => setShortcutsOpen(false)}
+    />
+    </>
   );
 }
