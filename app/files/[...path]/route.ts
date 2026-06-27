@@ -238,35 +238,43 @@ function debugInfoResponse(
   })
 }
 
+/** 验证路径、检查权限、获取文件 stat，返回错误响应或 { provider, stat, session } */
+async function validateAndStat(
+  req: NextRequest,
+  segments: string[],
+): Promise<
+  | { ok: false; response: NextResponse }
+  | { ok: true; provider: StorageProvider; stat: FileStat; session: Awaited<ReturnType<typeof getSession>>; relativePath: string }
+> {
+  const relativePath = joinPath(...segments)
+  if (!relativePath || !isValidPath(relativePath)) {
+    return { ok: false, response: NextResponse.json({ error: '路径非法' }, { status: 400 }) }
+  }
+  if (!isStorageConfigured()) {
+    return { ok: false, response: NextResponse.json({ error: '存储后端未配置', code: 'NOT_CONFIGURED' }, { status: 503 }) }
+  }
+  const rateLimitResponse = checkDownloadRateLimit(req)
+  if (rateLimitResponse) return { ok: false, response: rateLimitResponse }
+  const session = await getSession()
+  const access = await checkAccess(relativePath, !!session)
+  if (!access.allowed) return { ok: false, response: accessDenied('reason' in access ? access.reason : undefined) }
+  const provider = await getStorageProvider()
+  const stat = unwrapStat(await provider.stat(relativePath))
+  if (stat.type === 'directory') return { ok: false, response: NextResponse.json({ error: '资源不存在' }, { status: 404 }) }
+  return { ok: true, provider, stat, session, relativePath }
+}
+
 export async function GET(_req: NextRequest, { params }: { params: Promise<RouteParams> }) {
   let relativePath = ''
   try {
     const { path: segments } = await params
     relativePath = joinPath(...segments)
-    if (!relativePath || !isValidPath(relativePath)) {
-      return NextResponse.json({ error: '路径非法' }, { status: 400 })
-    }
-    if (!isStorageConfigured()) {
-      return NextResponse.json({ error: '存储后端未配置', code: 'NOT_CONFIGURED' }, { status: 503 })
-    }
-    // 文件下载频率限制:防止暴力枚举路径和带宽滥用
-    const rateLimitResponse = checkDownloadRateLimit(_req)
-    if (rateLimitResponse) return rateLimitResponse
-    const session = await getSession()
-    const access = await checkAccess(relativePath, !!session)
-    if (!access.allowed) return accessDenied('reason' in access ? access.reason : undefined)
-    const provider = await getStorageProvider()
-    let stat: FileStat
-    try {
-      stat = unwrapStat(await provider.stat(relativePath))
-    } catch (statErr) {
-      console.error(`[files] stat 失败 path="${relativePath}" error="${statErr}"`)
-      throw statErr
-    }
-    if (stat.type === 'directory') return NextResponse.json({ error: '资源不存在' }, { status: 404 })
+    const validated = await validateAndStat(_req, segments)
+    if (!validated.ok) return validated.response
+    const { provider, stat, session, relativePath: relPath } = validated
+    relativePath = relPath
     const debugResp = debugInfoResponse(_req, session, relativePath, stat, provider.backend)
     if (debugResp) return debugResp
-    // B2 后端: 通过 provider.getFileContents 直接下载，跳过 WebDAV 特定逻辑
     if (provider.backend === 'backblaze') {
       return b2FileResponse(provider, stat, relativePath)
     }
@@ -274,7 +282,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<Route
   } catch (err) {
     const msg = err instanceof Error ? err.message : JSON.stringify(err)
     console.error(`[files] 未捕获异常 path="${relativePath || '?'}" error="${msg}"`)
-    // 不向客户端暴露内部错误详情(存储路径、后端类型、连接信息等)
     return NextResponse.json({ error: '文件下载失败' }, { status: 500 })
   }
 }
