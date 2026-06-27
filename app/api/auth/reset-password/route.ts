@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     const uid = await db.get(`user:email:${email}`);
 
     if (!uid) {
-      logger.warn('POST', '邮箱未注册', { email });
+      logger.warn('POST', '邮箱未注册', { email: email.includes('@') ? `${email[0]}***@${email.split('@')[1]}` : '***' });
       return NextResponse.json({ success: true, message: '如果邮箱存在，重置链接已发送' }, { status: 201 });
     }
 
