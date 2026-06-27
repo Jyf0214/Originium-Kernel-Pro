@@ -119,7 +119,7 @@ export function DiaryPageClient() {
             }
           />
         ) : (
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-3 sm:space-y-4 overflow-hidden">
             {s.diaries.map((d) => (
               <DiaryCard
                 key={d.id}

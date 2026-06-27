@@ -222,23 +222,23 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
         <h1 className="text-2xl font-bold text-zinc-900">{t('tickets.details')}</h1>
       </div>
 
-      <div className="bg-white rounded-2xl border border-zinc-100 p-6">
+      <div className="bg-white rounded-2xl border border-zinc-100 p-4 sm:p-6 overflow-hidden">
         {/* 标题和状态 */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            {getStatusIcon(ticket.status)}
-            <span className="text-xl font-semibold text-zinc-900">{ticket.title}</span>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+            <span className="shrink-0">{getStatusIcon(ticket.status)}</span>
+            <span className="text-xl font-semibold text-zinc-900 truncate">{ticket.title}</span>
           </div>
           <TicketStatusBadge status={ticket.status} t={t} />
         </div>
 
         {/* 元信息 */}
-        <div className="mb-5 p-4 bg-zinc-50 rounded-xl">
-          <p className="text-xs text-zinc-400">
+        <div className="mb-5 p-4 bg-zinc-50 rounded-xl overflow-hidden">
+          <p className="text-xs text-zinc-400 truncate">
             {t('tickets.author')}: {ticket.author} · {t('common.createdAt') ?? t('tickets.date')}: {new Date(ticket.date).toLocaleString(locale)} · {t('tickets.template')}: {ticket.template}
           </p>
           {ticket.labels.length > 0 && (
-            <div className="mt-2 flex gap-1">
+            <div className="mt-2 flex flex-wrap gap-1 overflow-hidden">
               {ticket.labels.map(label => (
                 <span key={label} className="inline-block px-2 py-0.5 bg-blue-50 text-blue-500 rounded text-xs">{label}</span>
               ))}
@@ -247,7 +247,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
         </div>
 
         {/* 工单内容 */}
-        <div className="p-4 bg-zinc-50 rounded-xl min-h-[200px] whitespace-pre-wrap leading-relaxed text-sm text-zinc-700">
+        <div className="p-4 bg-zinc-50 rounded-xl min-h-[200px] whitespace-pre-wrap leading-relaxed text-sm text-zinc-700 overflow-hidden">
           {ticket.content}
         </div>
 

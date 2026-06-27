@@ -180,7 +180,7 @@ export function ApiKeyCard() {
             const isDeleting = deletingId === k.id;
             const isConfirming = confirmDeleteId === k.id;
             return (
-              <div key={k.id} className="flex items-center justify-between p-3 bg-zinc-50 rounded-lg border border-zinc-100">
+              <div key={k.id} className="flex items-center justify-between p-3 bg-zinc-50 rounded-lg border border-zinc-100 overflow-hidden">
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-zinc-900 truncate">{k.name}</p>
                   <p className="text-xs text-zinc-400">
@@ -198,6 +198,7 @@ export function ApiKeyCard() {
                         loading={isDeleting}
                         onClick={() => void handleDelete(k.id)}
                         disabled={isDeleting}
+                        className="whitespace-nowrap"
                       >
                         {isDeleting ? <Loader2 size={12} className="animate-spin" /> : '确认'}
                       </Button>
@@ -207,6 +208,7 @@ export function ApiKeyCard() {
                         autoLoading={false}
                         onClick={() => setConfirmDeleteId(null)}
                         disabled={isDeleting}
+                        className="whitespace-nowrap"
                       >
                         取消
                       </Button>

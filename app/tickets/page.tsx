@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 import { useI18n } from '@/hooks/use-i18n';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 interface Ticket {
   slug: string;
@@ -89,19 +90,19 @@ export default function TicketsPage() {
   }
 
   return (
-    <div className="p-6 md:p-10 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900">{t('tickets.list')}</h1>
-          <p className="text-sm text-zinc-400 mt-1">{t('tickets.viewAndManage')}</p>
-        </div>
-        <Button variant="primary" autoLoading={false} onClick={() => router.push('/tickets/new')} rounded="md">
-          {t('tickets.createTicket')}
-        </Button>
-      </div>
+    <div className="p-4 sm:p-6 md:p-10 max-w-4xl mx-auto">
+      <PageHeader
+        title={t('tickets.list')}
+        description={t('tickets.viewAndManage')}
+        actions={
+          <Button variant="primary" autoLoading={false} onClick={() => router.push('/tickets/new')} rounded="md">
+            {t('tickets.createTicket')}
+          </Button>
+        }
+      />
 
       {/* 状态筛选 */}
-      <div className="mb-4 flex gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         {['all', 'open', 'in-progress', 'closed'].map(status => (
           <Button key={status} size="sm" variant={statusFilter === status ? 'primary' : 'default'} onClick={() => setStatusFilter(status)} autoLoading={false} rounded="sm">
             {getStatusText(status)}
@@ -117,26 +118,26 @@ export default function TicketsPage() {
               <div
                 key={ticket.slug}
                 onClick={() => router.push(`/tickets${ticket.slug}`)}
-                className="px-6 py-4 cursor-pointer hover:bg-zinc-50/50 transition-colors"
+                className="px-4 sm:px-6 py-4 cursor-pointer hover:bg-zinc-50/50 transition-colors overflow-hidden"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0 overflow-hidden">
                     <div className="flex items-center gap-2 mb-1">
-                      {getStatusIcon(ticket.status)}
-                      <span className="font-medium text-sm text-zinc-900">{ticket.title}</span>
+                      <span className="shrink-0">{getStatusIcon(ticket.status)}</span>
+                      <span className="font-medium text-sm text-zinc-900 truncate">{ticket.title}</span>
                     </div>
-                    <p className="text-xs text-zinc-400">
+                    <p className="text-xs text-zinc-400 truncate">
                       {ticket.template} · {ticket.author} · {new Date(ticket.date).toLocaleDateString(locale)}
                     </p>
                     {ticket.labels.length > 0 && (
-                      <div className="mt-2 flex gap-1">
+                      <div className="mt-2 flex flex-wrap gap-1">
                         {ticket.labels.map(label => (
                           <Tag key={label} className="text-xs">{label}</Tag>
                         ))}
                       </div>
                     )}
                   </div>
-                  <span className="text-xs text-zinc-400 ml-4">{getStatusText(ticket.status)}</span>
+                  <span className="text-xs text-zinc-400 shrink-0 whitespace-nowrap">{getStatusText(ticket.status)}</span>
                 </div>
               </div>
             ))}

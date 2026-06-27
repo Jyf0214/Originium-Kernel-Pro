@@ -103,7 +103,7 @@ export function StorageFilePreview({ open, entry, appUrl, onClose }: Props) {
           <img
             src={publicUrl}
             alt={entry.filename}
-            className="max-w-full max-h-[60vh] object-contain"
+            className="max-w-full max-h-[50vh] object-contain"
           />
         </div>
       )}

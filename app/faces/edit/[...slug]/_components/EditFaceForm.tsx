@@ -40,6 +40,7 @@ export function EditFaceForm({
         layout="vertical"
         onFinish={onSubmit}
         className="space-y-6"
+        requiredMark={false}
       >
         <NameEmailFields t={t} />
         <PhoneGroupFields groups={groups} t={t} />

@@ -3,12 +3,13 @@
 import React from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Trash2, Loader2, FileText, Calendar } from 'lucide-react';
+import { Trash2, Loader2, FileText, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { showError } from '@/lib/error';
 import { GlobalLoading } from '@/components/Loading';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 interface DraftItem {
   id: string;
@@ -73,13 +74,10 @@ export default function DiaryDraftsPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
-      <div className="border-b border-zinc-100 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-          <Button onClick={() => router.push('/diary')} variant="ghost" size="sm" autoLoading={false} icon={<ArrowLeft size={16}/>}>返回</Button>
-          <h1 className="text-base sm:text-lg font-bold text-zinc-900">草稿箱</h1>
-          <div className="w-16 sm:w-20" />
-        </div>
-      </div>
+      <PageHeader
+        title="草稿箱"
+        backHref="/diary"
+      />
 
       <PageContainer maxWidth="4xl" padding="compact">
         {loading ? (
