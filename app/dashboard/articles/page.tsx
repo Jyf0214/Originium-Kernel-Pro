@@ -153,7 +153,7 @@ export default function ArticlesPage() {
       {/* 文章列表 */}
       <ProCard padding="p-0">
         {filteredArticles.length > 0 ? (
-          <div className="divide-y divide-zinc-50">
+          <div className="divide-y divide-zinc-50 overflow-x-auto">
             {filteredArticles.map((article) => (
               <div key={article.id} className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-zinc-50/50 transition-colors">
                 {/* 左侧：标题 + 状态 */}

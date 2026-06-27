@@ -13,6 +13,7 @@ import { buildTocConfig, computeWordStats } from './_lib/post-page-config';
 import { PostDetailBody } from './_components/PostDetailBody';
 import { PostSidebar } from './_components/PostSidebar';
 import type { Crumb } from './_components/PostBreadcrumb';
+import Footer from '@/components/Footer';
 
 interface PageProps {
   params: Promise<{ slug: string[] }>;
@@ -63,6 +64,7 @@ export default async function PostDetailPage({ params }: PageProps) {
           />
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

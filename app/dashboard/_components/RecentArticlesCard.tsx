@@ -25,7 +25,7 @@ export function RecentArticlesCard({
       title={t('dashboard.recentArticles')}
       extra={
         <Link href="/dashboard/articles">
-          <Button size="sm" icon={<ArrowRight size={14} />} rounded="md">
+          <Button size="sm" icon={<ArrowRight size={14} />} rounded="md" className="whitespace-nowrap">
             {t('dashboard.viewAll')}
           </Button>
         </Link>

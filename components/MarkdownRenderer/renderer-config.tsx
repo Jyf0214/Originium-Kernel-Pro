@@ -31,6 +31,14 @@ export function buildComponents(
       // 直接透传子元素，避免与 CodeBlock 内部 div 产生多余嵌套
       return <>{children}</>;
     },
+    table({ children }: { children: ReactNode }) {
+      // 表格外层包裹 overflow-x-auto，防止移动端横向溢出
+      return (
+        <div className="overflow-x-auto my-6 rounded-xl border border-zinc-100">
+          <table>{children}</table>
+        </div>
+      );
+    },
     code({ inline, className, children, ...props }: CodeProps) {
       const lang = extractLanguage(className);
 

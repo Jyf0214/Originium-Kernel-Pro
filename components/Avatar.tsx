@@ -25,7 +25,7 @@ export function Avatar({ name, avatarUrl, size = 32, fallbackImg }: AvatarProps)
   if (avatarUrl && !imgError) {
     return (
       <div
-        className="flex items-center justify-center rounded-xl bg-zinc-100 overflow-hidden shrink-0"
+        className="flex items-center justify-center rounded-xl bg-zinc-100 overflow-hidden shrink-0 max-w-full"
         style={{ width: size, height: size }}
       >
         <Image
@@ -45,7 +45,7 @@ export function Avatar({ name, avatarUrl, size = 32, fallbackImg }: AvatarProps)
   if (showFallback) {
     return (
       <div
-        className="flex items-center justify-center rounded-xl bg-zinc-100 overflow-hidden shrink-0"
+        className="flex items-center justify-center rounded-xl bg-zinc-100 overflow-hidden shrink-0 max-w-full"
         style={{ width: size, height: size }}
       >
         <Image
@@ -64,7 +64,7 @@ export function Avatar({ name, avatarUrl, size = 32, fallbackImg }: AvatarProps)
 
   return (
     <div
-      className="flex items-center justify-center rounded-xl bg-zinc-900 text-white font-bold shrink-0"
+      className="flex items-center justify-center rounded-xl bg-zinc-900 text-white font-bold shrink-0 max-w-full"
       style={{ width: size, height: size }}
     >
       <span style={{ fontSize: size * 0.4 }}>{initials}</span>

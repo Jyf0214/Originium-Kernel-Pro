@@ -40,14 +40,14 @@ export function TopHeader() {
 
   return (
     <header className="h-16 bg-white border-b border-zinc-100 flex items-center px-4 md:px-6 sticky top-0 z-50">
-      <nav className="flex items-center gap-1.5 text-sm text-zinc-400">
-        <span className="hover:text-zinc-600 transition-colors">{t('dashboard.title') || '控制台'}</span>
+      <nav className="flex items-center gap-1.5 text-sm text-zinc-400 min-w-0 overflow-hidden">
+        <span className="hover:text-zinc-600 transition-colors shrink-0">{t('dashboard.title') || '控制台'}</span>
         {breadcrumb && (
           <>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-300 shrink-0">
               <polyline points="9 18 15 12 9 6" />
             </svg>
-            <span className={`font-medium ${isAdminPage ? 'text-amber-600' : 'text-zinc-700'}`}>
+            <span className={`font-medium truncate ${isAdminPage ? 'text-amber-600' : 'text-zinc-700'}`}>
               {breadcrumb}
             </span>
           </>

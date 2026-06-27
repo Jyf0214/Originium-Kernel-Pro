@@ -97,9 +97,9 @@ export function FooterBar({
     <div className="border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
       <div className="max-w-5xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
         {/* 左侧：版权 + 协议 */}
-        <div className="text-sm text-zinc-400 flex items-center gap-2">
+        <div className="text-sm text-zinc-400 flex items-center gap-2 min-w-0 overflow-hidden">
           {owner.enable && (
-            <span>
+            <span className="whitespace-nowrap overflow-hidden text-ellipsis">
               &copy; {owner.since}&mdash;{year} {author}
             </span>
           )}
@@ -107,7 +107,7 @@ export function FooterBar({
             href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-zinc-900 transition-colors duration-300 text-xs"
+            className="hover:text-zinc-900 transition-colors duration-300 text-xs shrink-0"
             title="CC BY-NC-SA 4.0"
           >
             CC BY-NC-SA 4.0
@@ -115,7 +115,7 @@ export function FooterBar({
         </div>
 
         {/* 右侧：打字机 + 自定义文字 */}
-        <div className="text-sm text-zinc-400 flex items-center gap-4">
+        <div className="text-sm text-zinc-400 flex items-center gap-4 min-w-0 overflow-hidden">
           {typedText && typedText.length > 0 && (
             <TypedText prefix={typedTextPrefix} texts={typedText} />
           )}

@@ -51,7 +51,9 @@ export default function LanguageSwitcher() {
           className="bg-white border border-zinc-200 rounded-lg shadow-lg overflow-hidden z-[1000] min-w-[150px] fixed"
           style={{
             top: wrapperRef.current ? wrapperRef.current.getBoundingClientRect().bottom + 4 : 68,
-            left: wrapperRef.current ? wrapperRef.current.getBoundingClientRect().left : 0,
+            left: wrapperRef.current
+              ? Math.min(wrapperRef.current.getBoundingClientRect().left, window.innerWidth - 170)
+              : 0,
           }}
         >
           {locales.map(l => (

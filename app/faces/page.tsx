@@ -6,6 +6,7 @@ import { useI18n } from '@/hooks/use-i18n';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 import { PageContainer } from '@/components/ui/PageContainer';
+import Footer from '@/components/Footer';
 
 export default function FacesPage() {
   const [data, setData] = React.useState<{faces: FaceItem[], groups: GroupItem[]}>({faces: [], groups: []});
@@ -57,6 +58,7 @@ export default function FacesPage() {
         </div>
         <FacesListClient faces={data.faces || []} groups={data.groups || []} />
       </PageContainer>
+      <Footer />
     </div>
   );
 }

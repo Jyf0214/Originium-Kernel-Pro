@@ -117,7 +117,7 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
       </div>
 
       {/* 联系人卡片列表 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-full overflow-hidden">
         <AnimatePresence mode="popLayout">
           {filteredFaces.map((face) => (
             <motion.div
@@ -135,7 +135,7 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
                   <UserCircle size={40} className="text-zinc-300 group-hover:text-zinc-500 transition-colors duration-300" />
                 </div>
                 {/* 姓名 */}
-                <h3 className="text-lg font-bold text-zinc-900 text-center mb-2 group-hover:text-zinc-600 transition-colors duration-300">
+                <h3 className="text-lg font-bold text-zinc-900 text-center mb-2 group-hover:text-zinc-600 transition-colors duration-300 overflow-hidden text-ellipsis whitespace-nowrap">
                   {face.title}
                 </h3>
                 {/* 描述 */}

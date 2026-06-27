@@ -57,7 +57,10 @@ export default function ForgotPasswordPage() {
       <AuthLayout>
         <AuthCard
           footer={
-            <div className="flex items-center justify-center gap-2 py-6">
+            <div className="flex flex-col items-center gap-4 py-6">
+              <Button size="lg" block autoLoading={false} onClick={() => { setEmailSent(false); form.resetFields(); inputRef.current?.focus(); }}>
+                {t('auth.resendEmail')}
+              </Button>
               <Link href="/login">
                 <Button icon={<ArrowLeft size={14} />} size="lg" autoLoading={false}>
                   {t('auth.backToLogin')}
@@ -75,9 +78,6 @@ export default function ForgotPasswordPage() {
               <span className="text-sm text-zinc-400">{sentEmail}</span>
             </div>
           </div>
-          <Button size="lg" block className="mt-6" autoLoading={false} onClick={() => { setEmailSent(false); form.resetFields(); inputRef.current?.focus(); }}>
-            {t('auth.resendEmail')}
-          </Button>
         </AuthCard>
       </AuthLayout>
     );
@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
     <AuthLayout>
       <AuthCard
         footer={
-          <div className="flex items-center justify-center gap-2 py-6">
+          <div className="flex flex-col items-center gap-4 py-6">
             <Link href="/login">
               <Button icon={<ArrowLeft size={14} />} size="lg" autoLoading={false}>
                 {t('auth.backToLogin')}

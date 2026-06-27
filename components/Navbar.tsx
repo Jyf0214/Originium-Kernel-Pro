@@ -174,17 +174,17 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
     <>
     <nav aria-label="主导航" className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200/60 dark:border-zinc-700/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-3">
+        <div className="flex justify-between h-16 items-center overflow-hidden">
+          <div className="flex items-center min-w-0">
+            <Link href="/" className="flex items-center gap-3 shrink-0">
               <div className="w-9 h-9 bg-gradient-to-br from-zinc-900 to-zinc-700 rounded-xl flex items-center justify-center shadow-sm">
                 <span className="text-white font-bold text-lg leading-none">O</span>
               </div>
-              <span className="font-display font-bold text-xl tracking-tight text-zinc-900 dark:text-zinc-100">{t('sidebar.originiumKernel')}</span>
+              <span className="font-display font-bold text-xl tracking-tight text-zinc-900 dark:text-zinc-100 hidden sm:inline">{t('sidebar.originiumKernel')}</span>
             </Link>
             <NavMenuGroupComponent config={navConfig} />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             {/* 深色模式切换按钮 */}
             <Button
               onClick={cycle}
