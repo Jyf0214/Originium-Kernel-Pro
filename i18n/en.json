@@ -443,7 +443,7 @@
         "B2_APP_KEY": "Backblaze B2 application key (secret). Required when STORAGE_TYPE=b2. Treat this value as confidential; do not expose it to the client.",
         "B2_BUCKET": "Backblaze B2 bucket name. Required when STORAGE_TYPE=b2. The bucket must already exist in your B2 account.",
         "B2_DOWNLOAD_URL": "Optional custom download endpoint for B2 files (e.g. a Cloudflare CDN URL). When set, public file links use this URL instead of the default B2 download host.",
-        "B2_ENDPOINT": "Optional custom S3-compatible API endpoint for B2. Overrides the default Backblaze endpoint; useful for third-party S3-compatible gateways."
+        "B2_S3_ENDPOINT": "Optional custom S3-compatible API endpoint for B2. Overrides the default Backblaze endpoint; useful for third-party S3-compatible gateways."
       },
       "smtp": {
         "SMTP_HOST": "SMTP server hostname (e.g. smtp.gmail.com, smtp.sendgrid.net).",
@@ -546,7 +546,10 @@
     "toc": "Table of Contents",
     "copyright": "Copyright",
     "reward": "Reward",
-    "postEdit": "Post Edit"
+    "postEdit": "Post Edit",
+    "mainTone": "Main Theme",
+    "share": "Share",
+    "footer": "Footer"
   },
   "editor": {
     "slugPlaceholder": "Article slug (URL-friendly)",

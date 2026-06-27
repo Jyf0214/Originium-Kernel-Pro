@@ -24,7 +24,13 @@ export const GET = apiHandler('GET', { label: '读取回收站', requireAuth: tr
   const allArticles: Record<string, unknown>[] = [];
 
   for (const [id, data] of Object.entries(index)) {
-    const article = JSON.parse(data);
+    let article: Record<string, unknown>;
+    try {
+      article = JSON.parse(data);
+    } catch {
+      logger.warn('GET', '跳过无法解析的文章记录', { id });
+      continue;
+    }
     if (session.role === 'sudo' || session.role === 'admin') {
       allArticles.push({ id, ...article });
       if (article.status === 'pending_deletion') {

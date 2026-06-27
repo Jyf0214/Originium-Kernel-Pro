@@ -90,7 +90,7 @@ export function apiHandler<
     let statusCode = 500;
 
     try {
-      // 权限验证
+      // 权限验证：auth/admin 检查（提前返回 401/403）
       if (options.requireAuth || options.requireAdmin) {
         const session = await getSession();
         if (!session) {
@@ -104,6 +104,7 @@ export function apiHandler<
           return NextResponse.json({ error: '无权限访问' }, { status: 403 });
         }
       }
+      // sudo 检查独立于 auth/admin，无论是否设置了 requireAuth/requireAdmin 都必须执行
       if (options.requireSudo) {
         const result = await requireSudo();
         if (result instanceof NextResponse) {

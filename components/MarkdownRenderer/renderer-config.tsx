@@ -47,6 +47,8 @@ function UnhighlightedCodeBlock({
       setCopied(true);
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      /* 剪贴板写入失败时静默忽略 */
     });
   }, [codeText]);
 

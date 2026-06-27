@@ -195,10 +195,10 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
                 descriptionKey: 'env.vars.storage.B2_DOWNLOAD_URL',
               },
               {
-                name: 'B2_ENDPOINT',
-                isSet: !!process.env.B2_ENDPOINT,
+                name: 'B2_S3_ENDPOINT',
+                isSet: !!process.env.B2_S3_ENDPOINT,
                 required: false,
-                descriptionKey: 'env.vars.storage.B2_ENDPOINT',
+                descriptionKey: 'env.vars.storage.B2_S3_ENDPOINT',
               },
             ]
           : [
