@@ -50,4 +50,11 @@ bun.lockb
 # 构建期同步产物(由 npm run sync:pages 生成)
 /pages/
 *.md
+
+# 保留项目说明文件
 !README.md
+!**/README.md
+
+# 保留 .qwen/agents 下所有 Markdown
+!.qwen/agents/
+!.qwen/agents/**/*.md
