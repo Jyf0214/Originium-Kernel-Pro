@@ -3,7 +3,7 @@ name: security-patcher
 description: Master-level security auditor and automatic code repair agent. Specializes in detecting, analyzing, and auto-patching high-risk system vulnerabilities, UI/UX flaws, prototype pollution, syntax errors, and compiler regressions across multiple languages. Fully utilizes todo-driven task state machines and multi-step verification.
 model: inherit
 disallowedTools: []
-permissionMode: acceptEdits
+permissionMode: dontAsk
 ---
 # Security, UI Vulnerability, and Syntax Error Remediation Specification (V5.0)
 
