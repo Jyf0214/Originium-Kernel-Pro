@@ -29,14 +29,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '请输入有效的邮箱地址' }, { status: 400 });
     }
 
-    logger.info('POST', '发送绑定验证码', { email });
+    const maskEmail = (e: string) => e.includes('@') ? `${e[0]}***@${e.split('@')[1]}` : '***';
+    logger.info('POST', '发送绑定验证码', { email: maskEmail(email) });
     const db = getDb();
 
     // 检查邮箱是否存在
     const uid = await db.get(`user:email:${email}`);
 
     if (!uid) {
-      logger.warn('POST', '邮箱未注册', { email });
+      logger.warn('POST', '邮箱未注册', { email: maskEmail(email) });
       // 返回通用消息，防止邮箱枚举
       return NextResponse.json({ success: true, message: '如果该邮箱已注册，验证码已发送' });
     }
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '邮件服务未配置，无法发送验证码' }, { status: 500 });
     }
 
-    logger.info('POST', '验证码发送成功', { email });
+    logger.info('POST', '验证码发送成功', { email: maskEmail(email) });
     return NextResponse.json({ success: true, message: '验证码已发送' });
   } catch (error) {
     logger.error('POST', '发送验证码失败', { error: error instanceof Error ? error.message : String(error) });

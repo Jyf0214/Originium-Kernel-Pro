@@ -80,6 +80,11 @@ function loadConfigFromYaml(): AppConfig {
 /** 缓存已加载的配置 */
 let cachedConfig: AppConfig | null = null;
 
+/** 清除配置缓存，使下次 loadConfig() 重新从 config.yaml 加载 */
+export function clearConfigCache(): void {
+  cachedConfig = null;
+}
+
 /**
  * 同步加载配置（从 config.yaml）
  */

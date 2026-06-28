@@ -100,6 +100,14 @@ function validateAndSanitizeInput(body: Record<string, unknown>): {
 } {
   const { avatar, username, name } = body;
 
+  // avatar 和 name 必须是字符串
+  if (avatar !== undefined && typeof avatar !== 'string') {
+    return { avatar, username, name, sanitized: { value: null }, error: 'avatar 必须是字符串' };
+  }
+  if (name !== undefined && typeof name !== 'string') {
+    return { avatar, username, name, sanitized: { value: null }, error: 'name 必须是字符串' };
+  }
+
   if (areAllUndefined(avatar, username, name)) {
     return { avatar, username, name, sanitized: { value: null }, error: '没有要更新的字段' };
   }

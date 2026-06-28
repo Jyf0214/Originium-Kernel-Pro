@@ -367,6 +367,8 @@ export async function POST(req: NextRequest) {
     void logAudit('config_update', 'config', '站点配置已更新', session.uid);
     // 配置已更新，清除缓存使下次 GET 重新拉取
     configCache = null;
+    const { clearConfigCache } = await import('@/lib/config');
+    clearConfigCache();
     return NextResponse.json({ success: true, config: mergedConfig });
   } catch (error: unknown) {
     logger.error('POST', '更新配置失败', { error: error instanceof Error ? error.message : '未知错误' });

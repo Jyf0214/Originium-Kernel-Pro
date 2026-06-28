@@ -46,7 +46,7 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap }: MarkdownRe
   // 每次渲染时重置，img 组件按顺序 push 构建完整数组
   const imagesRef = useRef<string[]>([]);
 
-  const components = buildComponents(cfg, highlighter);
+  const components = useMemo(() => buildComponents(cfg, highlighter), [cfg, highlighter]);
 
   // 预处理 wiki-link：[[标题]] → [标题](url)
   const processedContent = useMemo(

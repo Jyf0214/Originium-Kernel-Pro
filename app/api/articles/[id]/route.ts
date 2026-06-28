@@ -34,23 +34,28 @@ async function handlePublishedArticleResponse(
   if (!(meta.status === 'published' && meta.slug)) {
     return null;
   }
-  const ghResponse = await fetch(
-    `${req.nextUrl.origin}/api/github?path=posts${String(meta.slug)}.md`,
-  );
-  if (!ghResponse.ok) {
+  try {
+    const ghResponse = await fetch(
+      `${req.nextUrl.origin}/api/github?path=posts${String(meta.slug)}.md`,
+    );
+    if (!ghResponse.ok) {
+      return null;
+    }
+    const { frontMatter, body } = await ghResponse.json();
+    return NextResponse.json({
+      ...meta,
+      title: frontMatter.title ?? meta.title,
+      content: body ?? '',
+      author: frontMatter.author ?? meta.authorName,
+      tags: frontMatter.tags ?? meta.tags ?? [],
+      cover: frontMatter.cover ?? meta.coverImage,
+      description: frontMatter.description ?? meta.description,
+      date: frontMatter.date ?? meta.createdAt,
+    });
+  } catch {
+    // 网络异常时降级返回元数据，不阻断文章展示
     return null;
   }
-  const { frontMatter, body } = await ghResponse.json();
-  return NextResponse.json({
-    ...meta,
-    title: frontMatter.title ?? meta.title,
-    content: body ?? '',
-    author: frontMatter.author ?? meta.authorName,
-    tags: frontMatter.tags ?? meta.tags ?? [],
-    cover: frontMatter.cover ?? meta.coverImage,
-    description: frontMatter.description ?? meta.description,
-    date: frontMatter.date ?? meta.createdAt,
-  });
 }
 
 async function handleFileSystemLookup(

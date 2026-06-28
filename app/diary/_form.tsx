@@ -63,11 +63,16 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
   });
 
   // 保存成功后同步快照，防止 beforeunload 误报
+  // 用 ref 记录实际发送的值，而非当前状态（防竞态：保存期间用户继续输入）
+  const lastSentRef = React.useRef({ title, content, tags, group: diaryGroup, date: diaryDate });
+  React.useEffect(() => {
+    lastSentRef.current = { title, content, tags, group: diaryGroup, date: diaryDate };
+  }, [title, content, tags, diaryGroup, diaryDate]);
   React.useEffect(() => {
     if (saveStatus === 'saved') {
-      setLastSavedSnapshot({ title, content, tags, group: diaryGroup, date: diaryDate });
+      setLastSavedSnapshot(lastSentRef.current);
     }
-  }, [saveStatus, title, content, tags, diaryGroup, diaryDate]);
+  }, [saveStatus]);
 
   // 表单有未保存变更时阻止意外离开
   React.useEffect(() => {

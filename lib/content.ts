@@ -231,6 +231,12 @@ export function getContentIndexes(section: 'posts' | 'faces' | 'diary'): Content
 export function getContentFile(section: 'posts' | 'faces' | 'diary', slug: string): ContentFile | null {
   const rootDir = CONTENT_DIR[section];
   const filePath = path.join(rootDir, slug.slice(1) + '.md');
+  // 路径穿越防护：确保解析后的路径在允许的目录内
+  const resolved = path.resolve(filePath);
+  const allowedDir = path.resolve(rootDir);
+  if (!resolved.startsWith(allowedDir + path.sep) && resolved !== allowedDir + '.md') {
+    return null;
+  }
 
   if (!fs.existsSync(filePath)) return null;
   return parseMarkdownFile(filePath, slug);

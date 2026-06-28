@@ -30,6 +30,7 @@ async function doInit(): Promise<{ created: boolean; error?: string }> {
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!adminEmail || !adminPassword) {
+    initAttempted = true;
     initResult = { created: false };
     return initResult;
   }
@@ -39,6 +40,7 @@ async function doInit(): Promise<{ created: boolean; error?: string }> {
   try {
     const uid = await db.get(`user:email:${adminEmail}`);
     if (uid) {
+      initAttempted = true;
       initResult = { created: false };
       return initResult;
     }

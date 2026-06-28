@@ -81,7 +81,8 @@ export const GET = apiHandler('GET', { label: '获取日记列表', requireAdmin
 });
 
 export const POST = apiHandler('POST', { label: '创建日记', requireAdmin: true, requireDb: true }, async (req) => {
-  const { title, content, tags, date, group, references, scheduledAt } = await req.json();
+  const { title, content, tags, date, group, references: rawRefs, scheduledAt } = await req.json();
+  const references = Array.isArray(rawRefs) ? rawRefs : [];
   if (!title || !content) {
     return NextResponse.json({ error: '标题和内容不能为空' }, { status: 400 });
   }
@@ -97,7 +98,7 @@ export const POST = apiHandler('POST', { label: '创建日记', requireAdmin: tr
       content: encrypted,
       tags: tags ?? [],
       group: group ?? '默认',
-      references: references ?? [],
+      references,
       date: date ? new Date(date) : undefined,
       status: isScheduled ? 'draft' : 'published',
       scheduledAt: isScheduled ? new Date(scheduledAt) : null,

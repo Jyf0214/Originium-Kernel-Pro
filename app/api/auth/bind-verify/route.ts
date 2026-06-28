@@ -23,6 +23,27 @@ async function authenticateClerkUser(_req: NextRequest): Promise<{ userId: strin
   return { userId };
 }
 
+const MASK_EMAIL = (e: string) => e.includes('@') ? `${e[0]}***@${e.split('@')[1]}` : '***';
+
+async function checkRateLimit(db: ReturnType<typeof getDb>, email: string): Promise<NextResponse | null> {
+  const key = `bind:attempts:${email}`;
+  const raw = await db.get(key);
+  const count = raw ? parseInt(raw, 10) : 0;
+  if (count >= 5) return NextResponse.json({ error: '验证码尝试次数过多，请重新获取' }, { status: 429 });
+  await db.set(key, String(count + 1), 5 * 60);
+  return null;
+}
+
+async function verifyCode(db: ReturnType<typeof getDb>, email: string, code: string): Promise<NextResponse | null> {
+  const storedCode = await db.get(`bind:code:${email}`);
+  if (!storedCode || storedCode !== code) {
+    return NextResponse.json({ error: '验证码错误或已过期' }, { status: 400 });
+  }
+  await db.del(`bind:code:${email}`);
+  await db.del(`bind:attempts:${email}`);
+  return null;
+}
+
 /**
  * 验证绑定验证码并完成账户绑定
  */
@@ -40,17 +61,16 @@ export async function POST(req: NextRequest) {
 
     const db = getDb();
 
-    // 验证验证码
-    const storedCode = await db.get(`bind:code:${email}`);
-    if (!storedCode || storedCode !== code) {
-      logger.warn('POST', '验证码错误或已过期', { email });
-      return NextResponse.json({ error: '验证码错误或已过期' }, { status: 400 });
-    }
+    const rateLimitErr = await checkRateLimit(db, email);
+    if (rateLimitErr) { logger.warn('POST', '验证码尝试次数过多', { email: MASK_EMAIL(email) }); return rateLimitErr; }
+
+    const codeErr = await verifyCode(db, email, code);
+    if (codeErr) { logger.warn('POST', '验证码错误或已过期'); return codeErr; }
 
     // 查找用户
     const uid = await db.get(`user:email:${email}`);
     if (!uid) {
-      logger.warn('POST', '用户不存在', { email });
+      logger.warn('POST', '用户不存在', { email: MASK_EMAIL(email) });
       return NextResponse.json({ error: '用户不存在' }, { status: 404 });
     }
 

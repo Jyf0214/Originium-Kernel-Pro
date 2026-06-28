@@ -46,8 +46,13 @@ export const GET = apiHandler('GET', { label: '读取回收站', requireAuth: tr
   const periodMs = DELETION_PERIOD_DAYS * 24 * 60 * 60 * 1000;
 
   const enrichedPending = pendingDeletion.map(article => {
-    const requestedAt = new Date(article.deletionRequestedAt as string).getTime();
-    const expiresAt = requestedAt + periodMs;
+    const requestedAtMs = article.deletionRequestedAt
+      ? new Date(article.deletionRequestedAt as string).getTime()
+      : NaN;
+    if (Number.isNaN(requestedAtMs)) {
+      return { ...article, daysRemaining: 0, expiresAt: new Date().toISOString(), canRestore: false };
+    }
+    const expiresAt = requestedAtMs + periodMs;
     const daysRemaining = Math.max(0, Math.ceil((expiresAt - now) / (24 * 60 * 60 * 1000)));
     const canRestore = daysRemaining > 0;
 
