@@ -7,7 +7,7 @@ import { saveDiaryVersion } from '@/lib/diary-version';
 
 const logger = createApiLogger('/api/diary/[id]');
 
-export const GET = apiHandler('GET', { label: '获取日记', requireAdmin: true }, async (req, context) => {
+export const GET = apiHandler('GET', { label: '获取日记', requireAdmin: true, requireDb: true }, async (req, context) => {
   const id = await getParam(context, 'id');
   const diary = await prisma.diary.findUnique({ where: { id } });
   if (!diary) {
@@ -19,7 +19,7 @@ export const GET = apiHandler('GET', { label: '获取日记', requireAdmin: true
   return NextResponse.json({ diary: { ...diary, content: decrypted, scheduledAt: diary.scheduledAt?.toISOString() ?? null } });
 });
 
-export const PUT = apiHandler('PUT', { label: '更新日记', requireAdmin: true }, async (req, context) => {
+export const PUT = apiHandler('PUT', { label: '更新日记', requireAdmin: true, requireDb: true }, async (req, context) => {
   const id = await getParam(context, 'id');
   const { title, content, tags, date, group, references, scheduledAt } = await req.json();
   if (!title || !content) {
@@ -57,7 +57,7 @@ export const PUT = apiHandler('PUT', { label: '更新日记', requireAdmin: true
   return NextResponse.json({ diary });
 });
 
-export const PATCH = apiHandler('PATCH', { label: '切换置顶状态', requireAdmin: true }, async (req, context) => {
+export const PATCH = apiHandler('PATCH', { label: '切换置顶状态', requireAdmin: true, requireDb: true }, async (req, context) => {
   const id = await getParam(context, 'id');
   const existing = await prisma.diary.findUnique({ where: { id } });
   if (!existing) {
@@ -74,7 +74,7 @@ export const PATCH = apiHandler('PATCH', { label: '切换置顶状态', requireA
   return NextResponse.json({ diary });
 });
 
-export const DELETE = apiHandler('DELETE', { label: '删除日记', requireAdmin: true }, async (req, context) => {
+export const DELETE = apiHandler('DELETE', { label: '删除日记', requireAdmin: true, requireDb: true }, async (req, context) => {
   const id = await getParam(context, 'id');
   const existing = await prisma.diary.findUnique({ where: { id } });
   if (!existing) {
