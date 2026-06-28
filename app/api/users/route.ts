@@ -29,7 +29,8 @@ async function getUserByUidSearch(
   const userStr = await db.get(`user:uid:${uid}`);
   if (!userStr) return null;
 
-  const user = JSON.parse(userStr);
+  let user: Record<string, unknown>;
+  try { user = JSON.parse(userStr); } catch { return null; }
   return {
     uid: user.uid,
     name: user.name,
@@ -56,8 +57,8 @@ async function listAllUsers(
   const allUsers: Record<string, unknown>[] = [];
   for (const userStr of userResults) {
     if (!userStr) continue;
-
-    const user = JSON.parse(userStr);
+    let user: Record<string, unknown>;
+    try { user = JSON.parse(userStr); } catch { continue; }
     allUsers.push({
       uid: user.uid,
       name: user.name,

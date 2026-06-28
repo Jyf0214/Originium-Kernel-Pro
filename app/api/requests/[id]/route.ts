@@ -2,10 +2,26 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
 import { unlink } from 'fs/promises';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import { createApiLogger } from '@/lib/api-logger';
 
 const logger = createApiLogger('/api/requests/[id]');
+
+async function tryDeletePostFile(postSlug: unknown, log: ReturnType<typeof createApiLogger>) {
+  if (typeof postSlug !== 'string' || !postSlug || postSlug.includes('..') || postSlug.startsWith('/') || postSlug.includes('\\')) return;
+  const postPath = join(process.cwd(), 'posts', `${postSlug}.md`);
+  const resolvedPath = resolve(postPath);
+  const allowedDir = resolve(process.cwd(), 'posts');
+  if (!resolvedPath.startsWith(allowedDir + '/')) return;
+  try {
+    await unlink(postPath);
+  } catch (error) {
+    log.warn('PATCH', '删除文章文件失败（DB 已更新，文件残留）', {
+      postSlug,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
 
 export async function PATCH(
   request: NextRequest,
@@ -60,16 +76,7 @@ export async function PATCH(
     });
 
     if (action === 'approve') {
-      const postPath = join(process.cwd(), 'posts', `${requestRecord.postSlug}.md`);
-      try {
-        await unlink(postPath);
-      } catch (error) {
-        // 文件残留比数据丢失安全，仅记录警告不回滚
-        logger.warn('PATCH', '删除文章文件失败（DB 已更新，文件残留）', {
-          postSlug: requestRecord.postSlug,
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
+      await tryDeletePostFile(requestRecord.postSlug, logger);
     }
 
     logger.info('PATCH', '申请处理成功', { id, action });

@@ -175,7 +175,8 @@ async function handlePublishedPost(
 
 export const POST = apiHandler('POST', { label: '创建文章', requireAuth: true }, async (req) => {
   const session = (await getSession())!;
-  const { title, content, tags, coverImage, status, slug, description } = await req.json();
+  const { title, content, tags: rawTags, coverImage, status, slug, description } = await req.json();
+  const tags = Array.isArray(rawTags) ? rawTags.filter((t: unknown): t is string => typeof t === 'string') : [];
   logger.info('POST', '创建文章', { title, status });
   const id = `draft-${Date.now().toString(36)}`;
   const now = new Date().toISOString();

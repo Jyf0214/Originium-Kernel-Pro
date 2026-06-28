@@ -45,6 +45,13 @@ function cleanupIfNeeded(key: string, record: AttemptRecord): void {
  */
 export function recordLoginFailure(email: string): void {
   const key = normalizeEmail(email);
+  // 阈值清理：超过 500 条时清除过期记录，防止无界增长
+  if (attempts.size > 500) {
+    const now = Date.now();
+    for (const [k, v] of attempts) {
+      if (v.lockedUntil && now > v.lockedUntil) attempts.delete(k);
+    }
+  }
   let record = attempts.get(key);
 
   // 如果已有锁定且未过期，不再增加计数

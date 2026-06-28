@@ -4,7 +4,7 @@
  */
 
 // 危险 HTML 标签列表（含自闭合标签）
-const DANGEROUS_TAGS = /<\s*\/?\s*(script|iframe|object|embed|applet|form|input|button|textarea|select)\b[^>]*>[\s\S]*?<\s*\/\s*(script|iframe|object|embed|applet|form|input|button|textarea|select)\s*>|<\s*(script|iframe|object|embed|applet|form|input|button|textarea|select)\b[^>]*\/?>/gi;
+const DANGEROUS_TAGS = /<\s*\/?\s*(script|iframe|object|embed|applet|form|input|button|textarea|select|base)\b[^>]*>[\s\S]*?<\s*\/\s*(script|iframe|object|embed|applet|form|input|button|textarea|select|base)\s*>|<\s*(script|iframe|object|embed|applet|form|input|button|textarea|select|base)\b[^>]*\/?>/gi;
 
 // 事件处理器属性（on*）
 const EVENT_HANDLER_ATTRS = /\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
