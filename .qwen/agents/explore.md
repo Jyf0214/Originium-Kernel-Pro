@@ -1,5 +1,5 @@
 ---
-name: explore
+name: explore-pro
 description: Fast agent specialized for exploring codebases. Use this when you need to quickly find files by patterns.
 model: inherit
 tools:
