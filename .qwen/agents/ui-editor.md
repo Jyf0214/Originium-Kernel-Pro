@@ -9,7 +9,6 @@ tools:
   - grep_search
   - glob
   - list_directory
-disallowedTools:
   - run_shell_command
 permissionMode: default
 ---
