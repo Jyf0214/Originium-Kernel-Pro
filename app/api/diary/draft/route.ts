@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiHandler } from '@/lib/api-handler';
 
-export const GET = apiHandler('GET', { label: '获取草稿', requireAdmin: true }, async (req) => {
+export const GET = apiHandler('GET', { label: '获取草稿', requireAdmin: true, requireDb: true }, async (req) => {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
 
@@ -51,7 +51,7 @@ export const GET = apiHandler('GET', { label: '获取草稿', requireAdmin: true
   return NextResponse.json({ drafts });
 });
 
-export const POST = apiHandler('POST', { label: '保存草稿', requireAdmin: true }, async (req) => {
+export const POST = apiHandler('POST', { label: '保存草稿', requireAdmin: true, requireDb: true }, async (req) => {
   const { id, title, content, tags } = await req.json();
   const draftId = id ?? 'new';
 
@@ -71,7 +71,7 @@ export const POST = apiHandler('POST', { label: '保存草稿', requireAdmin: tr
   return NextResponse.json({ success: true });
 });
 
-export const DELETE = apiHandler('DELETE', { label: '删除草稿', requireAdmin: true }, async (req) => {
+export const DELETE = apiHandler('DELETE', { label: '删除草稿', requireAdmin: true, requireDb: true }, async (req) => {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id') ?? 'new';
 

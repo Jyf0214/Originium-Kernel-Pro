@@ -7,6 +7,11 @@ import { prisma } from '@/lib/db';
 /** 最大历史版本数（防止无限增长） */
 const MAX_VERSIONS = 50;
 
+function requireDb() {
+  if (!prisma || !('diaryVersion' in prisma)) return null;
+  return prisma;
+}
+
 /**
  * 保存日记版本快照（加密前调用）
  * 自动清理超出上限的旧版本
@@ -17,9 +22,12 @@ export async function saveDiaryVersion(
   title?: string,
   tags?: string[],
 ): Promise<void> {
+  const db = requireDb();
+  if (!db) return;
+
   const tagsJson = tags ? JSON.stringify(tags) : null;
 
-  await prisma.diaryVersion.create({
+  await db.diaryVersion.create({
     data: {
       diaryId,
       content,
@@ -29,17 +37,17 @@ export async function saveDiaryVersion(
   });
 
   // 清理超出上限的旧版本（保留最新的 MAX_VERSIONS 条）
-  const count = await prisma.diaryVersion.count({ where: { diaryId } });
+  const count = await db.diaryVersion.count({ where: { diaryId } });
   if (count > MAX_VERSIONS) {
     const excess = count - MAX_VERSIONS;
-    const oldVersions = await prisma.diaryVersion.findMany({
+    const oldVersions = await db.diaryVersion.findMany({
       where: { diaryId },
       orderBy: { createdAt: 'asc' },
       take: excess,
       select: { id: true },
     });
     if (oldVersions.length > 0) {
-      await prisma.diaryVersion.deleteMany({
+      await db.diaryVersion.deleteMany({
         where: { id: { in: oldVersions.map((v) => v.id) } },
       });
     }
@@ -53,7 +61,9 @@ export function getDiaryVersions(
   diaryId: string,
   limit = 20,
 ) {
-  return prisma.diaryVersion.findMany({
+  const db = requireDb();
+  if (!db) return Promise.resolve([]);
+  return db.diaryVersion.findMany({
     where: { diaryId },
     orderBy: { createdAt: 'desc' },
     take: limit,
@@ -71,7 +81,9 @@ export function getDiaryVersions(
  * 获取单个版本详情（含内容）
  */
 export function getDiaryVersion(versionId: string) {
-  return prisma.diaryVersion.findUnique({
+  const db = requireDb();
+  if (!db) return Promise.resolve(null);
+  return db.diaryVersion.findUnique({
     where: { id: versionId },
   });
 }

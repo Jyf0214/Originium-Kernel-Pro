@@ -17,7 +17,7 @@ function scheduledFilter() {
   };
 }
 
-export const GET = apiHandler('GET', { label: '获取日记列表', requireAdmin: true }, async (req) => {
+export const GET = apiHandler('GET', { label: '获取日记列表', requireAdmin: true, requireDb: true }, async (req) => {
   const { searchParams } = new URL(req.url);
   const search = searchParams.get('search')?.trim();
   const startDate = searchParams.get('startDate')?.trim();
@@ -80,7 +80,7 @@ export const GET = apiHandler('GET', { label: '获取日记列表', requireAdmin
   return NextResponse.json({ diaries, groups: allGroups.map((g) => g.group).filter(Boolean) });
 });
 
-export const POST = apiHandler('POST', { label: '创建日记', requireAdmin: true }, async (req) => {
+export const POST = apiHandler('POST', { label: '创建日记', requireAdmin: true, requireDb: true }, async (req) => {
   const { title, content, tags, date, group, references, scheduledAt } = await req.json();
   if (!title || !content) {
     return NextResponse.json({ error: '标题和内容不能为空' }, { status: 400 });

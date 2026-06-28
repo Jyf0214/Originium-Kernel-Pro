@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 import { apiHandler, getParam } from '@/lib/api-handler';
 import { getDiaryVersion } from '@/lib/diary-version';
 
-export const GET = apiHandler('GET', { label: '获取日记版本详情', requireAdmin: true }, async (_req, context) => {
+export const GET = apiHandler('GET', { label: '获取日记版本详情', requireAdmin: true, requireDb: true }, async (_req, context) => {
   const versionId = await getParam(context, 'versionId');
 
   const version = await getDiaryVersion(versionId);

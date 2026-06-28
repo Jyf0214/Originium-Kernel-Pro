@@ -7,7 +7,7 @@ import { decryptContentBatch } from '@/lib/diary-crypto';
 const BATCH_SIZE = 100;
 const MAX_ENTRIES = 10000;
 
-export const GET = apiHandler('GET', { label: '导出日记', requireAdmin: true }, async () => {
+export const GET = apiHandler('GET', { label: '导出日记', requireAdmin: true, requireDb: true }, async () => {
   // 预检：日记总数超限则拒绝导出，避免内存耗尽
   const totalCount = await prisma.diary.count();
   if (totalCount > MAX_ENTRIES) {

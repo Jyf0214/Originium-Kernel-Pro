@@ -38,6 +38,8 @@ export interface ApiHandlerOptions {
   requireAuth?: boolean;
   requireAdmin?: boolean;
   requireSudo?: boolean;
+  /** 是否要求数据库可用，不可用时返回 503 */
+  requireDb?: boolean;
 }
 
 interface ApiCtx<P extends Record<string, unknown>> { params: Promise<P> }
@@ -60,6 +62,48 @@ function querySummary(req: NextRequest): string {
   const keys = Array.from(req.nextUrl.searchParams.keys());
   if (keys.length === 0) return '';
   return ` params=${keys.join(',')}`;
+}
+
+async function checkAuth(
+  options: ApiHandlerOptions,
+  method: string,
+  pathname: string,
+  req: NextRequest,
+): Promise<NextResponse | null> {
+  if (options.requireAuth || options.requireAdmin) {
+    const session = await getSession();
+    if (!session) {
+      console.warn(`[API] ${method} ${pathname}${querySummary(req)} → 401 未登录`);
+      return NextResponse.json({ error: '未登录' }, { status: 401 });
+    }
+    if (options.requireAdmin && session.role !== 'admin' && session.role !== 'sudo') {
+      console.warn(`[API] ${method} ${pathname}${querySummary(req)} → 403 用户 ${session.uid} 无管理员权限`);
+      return NextResponse.json({ error: '无权限访问' }, { status: 403 });
+    }
+  }
+  if (options.requireSudo) {
+    const result = await requireSudo();
+    if (result instanceof NextResponse) {
+      console.warn(`[API] ${method} ${pathname}${querySummary(req)} → ${result.status} sudo 验证失败`);
+      return result;
+    }
+  }
+  return null;
+}
+
+async function checkDb(
+  options: ApiHandlerOptions,
+  method: string,
+  pathname: string,
+): Promise<NextResponse | null> {
+  if (!options.requireDb) return null;
+  const { getDb } = await import('@/lib/db');
+  const db = getDb();
+  if (!db.prisma) {
+    console.warn(`[API] ${method} ${pathname} → 503 数据库未配置`);
+    return NextResponse.json({ error: '数据库未配置' }, { status: 503 });
+  }
+  return null;
 }
 
 /**
@@ -90,29 +134,11 @@ export function apiHandler<
     let statusCode = 500;
 
     try {
-      // 权限验证：auth/admin 检查（提前返回 401/403）
-      if (options.requireAuth || options.requireAdmin) {
-        const session = await getSession();
-        if (!session) {
-          statusCode = 401;
-          console.warn(`[API] ${method} ${pathname}${querySummary(req)} → 401 未登录`);
-          return NextResponse.json({ error: '未登录' }, { status: 401 });
-        }
-        if (options.requireAdmin && session.role !== 'admin' && session.role !== 'sudo') {
-          statusCode = 403;
-          console.warn(`[API] ${method} ${pathname}${querySummary(req)} → 403 用户 ${session.uid} 无管理员权限`);
-          return NextResponse.json({ error: '无权限访问' }, { status: 403 });
-        }
-      }
-      // sudo 检查独立于 auth/admin，无论是否设置了 requireAuth/requireAdmin 都必须执行
-      if (options.requireSudo) {
-        const result = await requireSudo();
-        if (result instanceof NextResponse) {
-          statusCode = result.status;
-          console.warn(`[API] ${method} ${pathname}${querySummary(req)} → ${result.status} sudo 验证失败`);
-          return result;
-        }
-      }
+      const authErr = await checkAuth(options, method, pathname, req);
+      if (authErr) { statusCode = authErr.status; return authErr; }
+
+      const dbErr = await checkDb(options, method, pathname);
+      if (dbErr) { statusCode = dbErr.status; return dbErr; }
 
       const response = await handler(req, ctx);
       statusCode = response.status;

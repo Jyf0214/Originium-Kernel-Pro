@@ -8,7 +8,7 @@ import { prisma } from '@/lib/db';
 import { apiHandler, getParam } from '@/lib/api-handler';
 import { getDiaryVersions } from '@/lib/diary-version';
 
-export const GET = apiHandler('GET', { label: '获取日记版本历史', requireAdmin: true }, async (_req, context) => {
+export const GET = apiHandler('GET', { label: '获取日记版本历史', requireAdmin: true, requireDb: true }, async (_req, context) => {
   const diaryId = await getParam(context, 'id');
 
   // 验证日记存在
