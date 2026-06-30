@@ -1,3 +1,11 @@
+/** 文章翻译版本信息 */
+export interface TranslationEntry {
+  /** 目标语言代码（如 'en', 'zh-CN'） */
+  lang: string;
+  /** 翻译版本的路径（如 /posts/en/english-article） */
+  slug: string;
+}
+
 /** 内容文件的元数据 */
 export interface ContentMeta {
   title: string;
@@ -6,8 +14,12 @@ export interface ContentMeta {
   tags?: string[];
   cover?: string;
   description?: string;
+  /** 文章语言（默认 'zh-CN'） */
+  lang?: string;
+  /** 翻译版本映射：语言代码 → 路径 */
+  translations?: Record<string, string>;
   // 允许动态属性（用于扩展字段）
-  [key: string]: string | number | boolean | string[] | undefined;
+  [key: string]: string | number | boolean | string[] | Record<string, string> | undefined;
 }
 
 /** 解析后的内容文件 */

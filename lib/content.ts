@@ -57,6 +57,12 @@ function parseMarkdownFile(filePath: string, slug: string): ContentFile {
       cover: data.cover,
       description: data.description,
       ...data,
+      // 多语言字段：lang（默认 'zh-CN'）和 translations（语言→路径映射）
+      // 放在 ...data 之后，确保类型安全和默认值正确
+      lang: typeof data.lang === 'string' ? data.lang : 'zh-CN',
+      translations: data.translations && typeof data.translations === 'object'
+        ? data.translations as Record<string, string>
+        : undefined,
     },
     content,
     raw,

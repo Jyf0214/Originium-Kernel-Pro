@@ -16,6 +16,7 @@ import { PostHeader } from './PostHeader';
 import { PostRelated } from './PostRelated';
 import { PostAdjacent } from './PostAdjacent';
 import { PostNavigationShortcuts } from '@/components/PostNavigationShortcuts';
+import { TranslationSwitcher } from '@/components/TranslationSwitcher';
 import type { RelatedPost } from '../_lib/related-posts';
 import type { FrontendConfig } from '@/hooks/use-config';
 import type { WikiLinkMap } from '@/components/MarkdownRenderer/types';
@@ -39,6 +40,7 @@ export function PostDetailBody({
   wikiLinkMap,
   backlinks,
   outgoingRefs,
+  translations,
 }: {
   file: { content: string; meta: Record<string, unknown> };
   fullPath: string;
@@ -54,6 +56,7 @@ export function PostDetailBody({
   wikiLinkMap?: WikiLinkMap;
   backlinks?: BacklinkInfo[];
   outgoingRefs?: RegistryEntry[];
+  translations?: Record<string, string>;
 }) {
   const [qrOpen, setQrOpen] = useState(false);
   const { t } = useI18n();
@@ -77,6 +80,15 @@ export function PostDetailBody({
           author={file.meta.author}
           date={file.meta.date}
         />
+
+        {/* 多语言版本切换 */}
+        {translations && Object.keys(translations).length > 0 && (
+          <TranslationSwitcher
+            slug={fullPath}
+            initialTranslations={translations}
+            className="mb-6"
+          />
+        )}
 
         <div className="h-px bg-gradient-to-r from-transparent via-zinc-200 to-transparent mb-12" />
 

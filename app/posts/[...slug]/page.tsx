@@ -107,6 +107,10 @@ function buildViewModel(
     wikiLinkMap,
     backlinks,
     outgoingRefs,
+    // 多语言翻译映射（从 frontmatter translations 字段读取）
+    translations: (meta.translations && typeof meta.translations === 'object')
+      ? meta.translations as Record<string, string>
+      : undefined,
   };
 }
 
