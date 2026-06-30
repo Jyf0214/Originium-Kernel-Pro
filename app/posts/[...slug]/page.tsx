@@ -19,8 +19,11 @@ interface PageProps {
   params: Promise<{ slug: string[] }>;
 }
 
+// 私有文章需要运行时读取 session，必须动态渲染（不能 ISR 预渲染）
+export const dynamic = 'force-dynamic';
+
 // 公开文章使用 ISR（增量静态再生），每 600 秒（10 分钟）重新验证一次
-// 私有文章不在 generateStaticParams 中，运行时由 getSession() → cookies() 触发动态渲染
+// 私有文章由 dynamic = 'force-dynamic' 保证运行时渲染
 export const revalidate = 600;
 
 export function generateStaticParams() {
@@ -71,14 +74,7 @@ export default async function PostDetailPage({ params }: PageProps) {
 
 async function enforceAccess(fullPath: string): Promise<void> {
   if (!isPrivateSlug(fullPath)) return;
-  // getSession() 内部调用 cookies()，在 ISR/静态生成上下文中可能抛出 DYNAMIC_SERVER_USAGE，
-  // 需要 try-catch 保护：失败时视为未认证，重定向到登录页
-  let session = null;
-  try {
-    session = await getSession();
-  } catch {
-    // cookies() 不可用（如静态生成阶段），视为未登录
-  }
+  const session = await getSession();
   if (!session) {
     redirect(`/login?callbackUrl=/posts${fullPath}`);
   }
