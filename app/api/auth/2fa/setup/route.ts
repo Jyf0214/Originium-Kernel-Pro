@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { generateTotpSecret, generateTotpUri } from '@/lib/totp';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { createApiLogger } from '@/lib/api-logger';
 
 const logger = createApiLogger('/api/auth/2fa/setup');
@@ -11,12 +12,17 @@ const logger = createApiLogger('/api/auth/2fa/setup');
  * 生成 TOTP 密钥和 otpauth URI，用于前端展示 QR 码
  * 如果用户已启用 2FA，返回错误
  */
-export async function POST() {
+export async function POST(req: NextRequest) {
   try {
     const session = await requireAdmin();
     // requireAdmin 返回 NextResponse 时表示未认证
     if (session instanceof NextResponse) {
       return session;
+    }
+
+    const rl = checkRateLimit(req, '2fa-setup', 3, 5 * 60 * 1000);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: '操作过于频繁，请稍后重试' }, { status: 429 });
     }
 
     const db = getDb();

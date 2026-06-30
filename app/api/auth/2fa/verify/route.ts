@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { verifyTotp } from '@/lib/totp';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { createApiLogger } from '@/lib/api-logger';
 
 const logger = createApiLogger('/api/auth/2fa/verify');
@@ -16,6 +17,11 @@ export async function POST(req: NextRequest) {
     const session = await requireAdmin();
     if (session instanceof NextResponse) {
       return session;
+    }
+
+    const rl = checkRateLimit(req, '2fa-verify', 5, 5 * 60 * 1000);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: `验证尝试过于频繁，请在 ${Math.ceil(rl.retryAfterMs / 1000)} 秒后重试` }, { status: 429 });
     }
 
     const { token } = await req.json();
