@@ -131,9 +131,9 @@ export async function POST(req: NextRequest) {
     await upgradePasswordHashIfNeeded(user, password, db);
 
     if (user.twoFactorEnabled) {
-      const tempToken = await createTempToken(user.uid);
+      await createTempToken(user.uid);
       logger.info('POST', '密码验证通过，需要 2FA 验证', { uid: user.uid });
-      return NextResponse.json({ requires2FA: true, tempToken });
+      return NextResponse.json({ requires2FA: true });
     }
 
     const avatar = await getUserAvatarAsync(user.uid, user.role === 'admin' || user.role === 'sudo');

@@ -74,12 +74,9 @@ export async function POST(req: NextRequest) {
 
   // 检查是否启用了 2FA — API 密钥登录不得绕过双因素认证
   if (user.twoFactorEnabled) {
-    const tempToken = await createTempToken(user.uid);
-    logger.info('POST', '密码验证通过，需要 2FA 验证', { uid: user.uid });
-    return NextResponse.json({
-      requires2FA: true,
-      tempToken,
-    });
+    await createTempToken(user.uid);
+    logger.info('POST', 'API 密钥登录需要 2FA 验证', { uid: user.uid });
+    return NextResponse.json({ requires2FA: true });
   }
 
   // 运行时验证 role 值，防止无效角色传递到 session

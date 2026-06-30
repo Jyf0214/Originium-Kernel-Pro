@@ -30,7 +30,7 @@ function TwoFactorForm() {
   const [form] = Form.useForm();
   const inputRef = useRef<React.ComponentRef<typeof Input>>(null);
 
-  const callbackUrl = sanitizeCallbackUrl(searchParams?.get('callbackUrl'));
+  const callbackUrl = sanitizeCallbackUrl(searchParams?.get('callbackUrl') ?? null);
 
   useEffect(() => {
     inputRef.current?.focus();

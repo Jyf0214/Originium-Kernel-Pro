@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
 
     if (!user.twoFactorSecret) {
       return NextResponse.json(
-        { error: '请先调用 /api/auth/2fa/setup 生成密钥' },
+        { error: '请先设置双因素认证' },
         { status: 400 },
       );
     }

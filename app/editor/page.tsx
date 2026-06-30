@@ -78,6 +78,16 @@ function EditorContent() {
     void checkGithubConfig();
   }, [articleId, t]);
 
+  /** 生成并校验文章 slug */
+  function buildSlug(): string | null {
+    const postSlug = slug || `/${user?.name ?? 'anonymous'}/${title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\u4e00-\u9fa5-]/g, '')}`;
+    if (!/^\/[\w\u4e00-\u9fa5-]+(\/[\w\u4e00-\u9fa5-]+)*$/.test(postSlug)) {
+      showError('文章路径格式无效，仅允许字母、数字、中文、连字符和斜杠');
+      return null;
+    }
+    return postSlug;
+  }
+
   /**
    * 保存草稿到数据库
    */
@@ -131,8 +141,8 @@ function EditorContent() {
 
     setPublishing(true);
     try {
-      // 生成 slug：用户自定义 或 基于 author/title
-      const postSlug = slug || `/${user.name || 'anonymous'}/${title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\u4e00-\u9fa5-]/g, '')}`;
+      const postSlug = buildSlug();
+      if (!postSlug) { setPublishing(false); return; }
 
       const articleData = {
         title,
@@ -191,7 +201,7 @@ function EditorContent() {
             icon={<Save size={18} />}
             className="hidden sm:inline-flex"
           >
-            {savingDraft ? '' : t('editor.saveDraft')}
+            {t('editor.saveDraft')}
           </Button>
           <Button
             onClick={handleSaveDraft}
@@ -214,7 +224,7 @@ function EditorContent() {
                 icon={<Send size={18} />}
                 className="hidden sm:inline-flex"
               >
-                {publishing ? '' : t('editor.publish')}
+                {t('editor.publish')}
               </Button>
               <Button
                 onClick={handlePublish}
