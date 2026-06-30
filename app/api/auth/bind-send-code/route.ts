@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     if (!uid) {
       logger.warn('POST', '邮箱未注册', { email: maskEmail(email) });
       // 返回通用消息，防止邮箱枚举
-      return NextResponse.json({ success: true, message: '如果该邮箱已注册，验证码已发送' });
+      return NextResponse.json({ success: true, message: '验证码已发送' });
     }
 
     // 生成 6 位验证码（密码学安全随机数）

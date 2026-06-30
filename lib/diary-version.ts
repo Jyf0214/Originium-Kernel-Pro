@@ -1,8 +1,9 @@
 /**
  * 日记版本历史服务
- * 保存每次编辑前的内容快照（加密前的明文），支持版本列表查询和单版本详情
+ * 保存每次编辑前的内容快照（加密存储），支持版本列表查询和单版本详情
  */
 import { prisma } from '@/lib/db';
+import { encryptContent, decryptContent } from '@/lib/diary-crypto';
 
 /** 最大历史版本数（防止无限增长） */
 const MAX_VERSIONS = 50;
@@ -30,7 +31,7 @@ export async function saveDiaryVersion(
   await db.diaryVersion.create({
     data: {
       diaryId,
-      content,
+      content: await encryptContent(content),
       title: title ?? null,
       tags: tagsJson,
     },
@@ -78,12 +79,14 @@ export function getDiaryVersions(
 }
 
 /**
- * 获取单个版本详情（含内容）
+ * 获取单个版本详情（含内容，自动解密）
  */
-export function getDiaryVersion(versionId: string) {
+export async function getDiaryVersion(versionId: string) {
   const db = requireDb();
-  if (!db) return Promise.resolve(null);
-  return db.diaryVersion.findUnique({
+  if (!db) return null;
+  const record = await db.diaryVersion.findUnique({
     where: { id: versionId },
   });
+  if (!record) return null;
+  return { ...record, content: await decryptContent(record.content) };
 }
