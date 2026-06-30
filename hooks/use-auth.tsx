@@ -102,11 +102,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const data = await res.json();
 
-      // 2FA 需求：密码正确但需要 TOTP 验证
-      if (data.requires2FA && data.tempToken) {
+      // 2FA 需求：密码正确但需要 TOTP 验证（tempToken 通过 httpOnly cookie 携带）
+      if (data.requires2FA) {
         message.info('需要双因素认证验证');
         // 返回特殊标记让调用方跳转到 2FA 页面
-        throw new TwoFactorRequiredError(data.tempToken);
+        throw new TwoFactorRequiredError('');
       }
 
       if (res.ok && data.success) {

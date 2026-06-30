@@ -67,6 +67,8 @@ export function isValidPath(path: string): boolean {
   if (path.startsWith('/') || path.startsWith('\\')) return false
   // 控制字符检查
   if (/[\x00-\x1f]/.test(path)) return false
+  // 拒绝反斜杠——Linux/WebDAV 标准分隔符是 /
+  if (path.includes('\\')) return false
   const segments = path.split('/')
   for (const seg of segments) {
     if (seg === '..' || seg === '.') return false

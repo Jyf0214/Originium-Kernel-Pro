@@ -43,7 +43,8 @@ async function handlePublishedArticleResponse(
     }
     const { frontMatter, body } = await ghResponse.json();
     return NextResponse.json({
-      ...meta,
+      id: meta.id,
+      slug: meta.slug,
       title: frontMatter.title ?? meta.title,
       content: body ?? '',
       author: frontMatter.author ?? meta.authorName,
@@ -51,6 +52,7 @@ async function handlePublishedArticleResponse(
       cover: frontMatter.cover ?? meta.coverImage,
       description: frontMatter.description ?? meta.description,
       date: frontMatter.date ?? meta.createdAt,
+      status: 'published',
     });
   } catch {
     // 网络异常时降级返回元数据，不阻断文章展示
@@ -111,7 +113,9 @@ export const GET = apiHandler('GET', { label: '获取文章详情' }, async (req
     if (publishedResponse) {
       return publishedResponse;
     }
-    return NextResponse.json(meta);
+    // 剔除内部字段（authorId、content）后返回
+    const { authorId: _authorId, content: _content, ...safeMeta } = meta;
+    return NextResponse.json(safeMeta);
   }
 
   const session = await getSession();

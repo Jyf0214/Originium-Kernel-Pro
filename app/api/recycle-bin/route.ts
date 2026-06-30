@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth';
 import { DELETION_PERIOD_DAYS } from '@/lib/constants';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
+import { deleteDraft } from '@/lib/draft-storage';
 
 const logger = createApiLogger('/api/recycle-bin');
 
@@ -165,12 +166,31 @@ export const DELETE = apiHandler('DELETE', { label: '永久删除文章', requir
     return NextResponse.json({ error: 'Cannot delete this article' }, { status: 400 });
   }
 
-  // Permanently delete
+  // Permanently delete — 清理 GitHub 文件、数据库记录、草稿文件
+  if (article.status === 'published' && article.slug && typeof article.slug === 'string') {
+    try {
+      const origin = req.nextUrl.origin;
+      const ghRes = await fetch(`${origin}/api/github`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete',
+          path: `posts${article.slug}.md`,
+          message: `cleanup: permanently delete "${String(article.title ?? id)}"`,
+        }),
+      });
+      if (!ghRes.ok && ghRes.status !== 404) {
+        logger.warn('DELETE', 'GitHub 文件删除失败', { id, slug: article.slug });
+      }
+    } catch {
+      logger.warn('DELETE', 'GitHub 文件删除异常', { id });
+    }
+  }
   await db.del(`article:data:${id}`);
   await db.hdel('articles:index', id);
   await db.hdel('articles:drafts', id);
   await db.hdel('articles:published', id);
-  await db.del(`file:articles/${id}.md`);
+  try { await deleteDraft(id); } catch { /* 草稿清理失败不影响删除 */ }
 
   logger.info('DELETE', '永久删除成功', { id });
   return NextResponse.json({ success: true, message: 'Permanently deleted' });
