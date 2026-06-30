@@ -7,10 +7,19 @@ import type { SidebarUser } from './types';
 interface SidebarUserMenuProps {
   user?: SidebarUser;
   onLogout: () => void;
+  collapsed?: boolean;
 }
 
-export default function SidebarUserMenu({ user, onLogout }: SidebarUserMenuProps) {
+export default function SidebarUserMenu({ user, onLogout, collapsed }: SidebarUserMenuProps) {
   const { t } = useI18n();
+
+  if (collapsed) {
+    return (
+      <div className="p-3 flex justify-center border-b border-zinc-100">
+        <Avatar name={user?.name ?? 'U'} avatarUrl={user?.avatar} size={36} />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-4 bg-zinc-50/50 border-b border-zinc-100">

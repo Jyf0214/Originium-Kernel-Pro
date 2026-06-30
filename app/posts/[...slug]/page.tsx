@@ -54,7 +54,7 @@ export default async function PostDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
-      <main className="flex-1 max-w-6xl mx-auto w-full px-6 pt-8 pb-16">
+      <main className="flex-1 max-w-6xl 2xl:max-w-7xl mx-auto w-full px-6 pt-8 pb-16">
         <div className="lg:flex lg:gap-12">
           <PostDetailBody {...viewModel} />
           <PostSidebar

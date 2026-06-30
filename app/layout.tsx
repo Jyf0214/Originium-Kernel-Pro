@@ -1,4 +1,4 @@
-import type {Metadata} from 'next';
+import type {Metadata, Viewport} from 'next';
 import './globals.css';
 import { AuthProvider } from '../hooks/use-auth';
 import { CustomHead } from '../components/CustomHead';
@@ -14,12 +14,15 @@ export const metadata: Metadata = {
   title: 'Originium Kernel',
   description: '现代内容发布平台',
   manifest: '/manifest.json',
-  themeColor: '#1a1a1a',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'Originium',
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#1a1a1a',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {

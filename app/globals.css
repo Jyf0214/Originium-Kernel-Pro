@@ -208,6 +208,29 @@ pre:hover .code-copy-btn {
   margin: 2rem 0;
 }
 
+/* === 自定义滚动条（Webkit + Firefox） === */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(212 212 216) transparent;
+}
+.custom-scrollbar:hover {
+  scrollbar-color: rgb(161 161 170) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgb(212 212 216);
+  border-radius: 9999px;
+}
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: rgb(161 161 170);
+}
+
 /* ===== 打印样式优化 ===== */
 @media print {
   /* 隐藏非内容元素 */
