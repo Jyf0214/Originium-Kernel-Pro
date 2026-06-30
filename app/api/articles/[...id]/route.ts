@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { Octokit } from 'octokit';
 import { getDb } from '@/lib/db';
+import { getEnvConfig } from '@/lib/env';
 import { getSession } from '@/lib/auth';
 import { loadConfig, canAccess, hasDatabase, type AppConfig } from '@/lib/config';
 import { getDraft, saveDraft, deleteDraft } from '@/lib/draft-storage';
@@ -250,24 +252,40 @@ export const PATCH = apiHandler('PATCH', { label: '更新文章', requireAuth: t
   return handleDraftSave(body, meta, id, db);
 });
 
-async function deleteFromGithub(origin: string, slug: string, title: string): Promise<{ ok: boolean; error?: string }> {
+/** 直接通过 Octokit 删除 GitHub 文件，避免内部 HTTP 调用丢失 cookies 导致认证失败 */
+async function deleteFromGithub(slug: string, title: string): Promise<{ ok: boolean; error?: string }> {
   try {
-    const res = await fetch(`${origin}/api/github`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'delete',
-        path: `posts${slug}.md`,
-        message: `delete: remove post "${title}"`,
-      }),
+    const env = getEnvConfig();
+    if (!env.githubRepo || !env.githubToken) {
+      return { ok: true, error: 'GitHub 未配置' };
+    }
+    const [owner = '', repo = ''] = env.githubRepo.split('/');
+    const octokit = new Octokit({ auth: env.githubToken });
+    const filePath = `posts${slug}.md`;
+
+    // 先获取文件 SHA（删除必须提供 SHA）
+    let sha: string | undefined;
+    try {
+      const { data } = await octokit.rest.repos.getContent({ owner, repo, path: filePath });
+      if ('sha' in data) sha = data.sha;
+    } catch (e: unknown) {
+      const err = e as { status?: number };
+      if (err.status === 404) return { ok: true }; // 文件不存在视为删除成功
+      throw e;
+    }
+
+    if (!sha) return { ok: true };
+
+    await octokit.rest.repos.deleteFile({
+      owner,
+      repo,
+      path: filePath,
+      message: `delete: remove post "${title}"`,
+      sha,
     });
-    if (res.ok) return { ok: true };
-    const body = await res.json().catch(() => ({ error: '未知错误' }));
-    if (res.status === 404) return { ok: true };
-    if (res.status === 500 && body.error === 'GitHub 配置缺失') return { ok: true, error: 'GitHub 未配置' };
-    return { ok: false, error: body.error || `GitHub 删除失败 (${res.status})` };
+    return { ok: true };
   } catch {
-    return { ok: false, error: 'GitHub 请求异常' };
+    return { ok: false, error: 'GitHub 删除请求异常' };
   }
 }
 
@@ -275,11 +293,10 @@ async function deleteFromGithub(origin: string, slug: string, title: string): Pr
 async function adminPermanentDelete(
   id: string,
   meta: Record<string, unknown>,
-  origin: string,
 ): Promise<NextResponse> {
   const db = getDb();
   if (meta.status === 'published' && meta.slug) {
-    const gh = await deleteFromGithub(origin, String(meta.slug), String(meta.title ?? ''));
+    const gh = await deleteFromGithub(String(meta.slug), String(meta.title ?? ''));
     if (!gh.ok && gh.error !== 'GitHub 未配置') {
       return NextResponse.json({ error: gh.error }, { status: 502 });
     }
@@ -313,7 +330,7 @@ export const DELETE = apiHandler('DELETE', { label: '删除文章', requireAuth:
       return NextResponse.json({ error: '文章不存在' }, { status: 404 });
     }
 
-    const gh = await deleteFromGithub(req.nextUrl.origin, slug, file.meta.title);
+    const gh = await deleteFromGithub(slug, file.meta.title);
     if (!gh.ok) return NextResponse.json({ error: gh.error }, { status: 502 });
 
     return NextResponse.json({ success: true, message: '已删除' });
@@ -329,7 +346,7 @@ export const DELETE = apiHandler('DELETE', { label: '删除文章', requireAuth:
 
   // 管理员直接永久删除
   if (session.role === 'admin' || session.role === 'sudo') {
-    return adminPermanentDelete(id, meta, req.nextUrl.origin);
+    return adminPermanentDelete(id, meta);
   }
 
   // 普通用户：进入删除队列
