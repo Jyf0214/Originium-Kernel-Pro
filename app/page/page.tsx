@@ -101,6 +101,23 @@ async function detectOrphans(
   return orphans;
 }
 
+/** 解析页面标题：私有页面返回 ***，否则优先 meta.title，再提取 <title> 标签 */
+function resolvePageTitle(
+  filename: string,
+  isPrivate: boolean,
+  meta: { title?: string } | null,
+  html: string | null,
+): string {
+  if (isPrivate) return '***';
+  if (meta?.title) return meta.title;
+  if (html) {
+    const match = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+    const extracted = match?.[1]?.trim();
+    if (extracted) return extracted;
+  }
+  return filename;
+}
+
 /**
  * 生成 clean URL：index.html 用目录名，其他去掉 .html 后缀
  */
@@ -168,18 +185,12 @@ export default async function PageIndex() {
         (dir === PAGES_PREFIX && o.relativePath.startsWith(PAGES_PREFIX + '/') && !o.relativePath.slice(PAGES_PREFIX.length + 1).includes('/'))
       ).length;
 
-      let title = filename;
-
       const [meta, html] = await Promise.all([fetchPageMeta(relativePath), fetchPageHtml(relativePath)]);
-      if (meta?.title) title = meta.title;
-      else if (html) {
-        const match = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-        const extracted = match?.[1]?.trim();
-        if (extracted) title = extracted;
-      }
-      const description: string | undefined = meta?.description;
-      const coverImage: string | undefined = meta?.coverImage;
-      const tags: string[] | undefined = meta?.tags;
+      const isPrivate = privateDirs.has(dir);
+      const title = resolvePageTitle(filename, isPrivate, meta, html);
+      const description: string | undefined = isPrivate ? undefined : meta?.description;
+      const coverImage: string | undefined = isPrivate ? undefined : meta?.coverImage;
+      const tags: string[] | undefined = isPrivate ? undefined : meta?.tags;
       const createdAt: string | undefined = meta?.createdAt;
       const updatedAt: string | undefined = meta?.updatedAt;
 
@@ -189,7 +200,7 @@ export default async function PageIndex() {
         filename,
         folder: dir.slice(PAGES_PREFIX.length + 1),
         title,
-        isPrivate: privateDirs.has(dir),
+        isPrivate,
         hiddenCount: hiddenInDir,
         description,
         coverImage,
