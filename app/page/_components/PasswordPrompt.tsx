@@ -27,11 +27,13 @@ export function PasswordPrompt({
   const router = useRouter();
   const [value, setValue] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = value.trim();
     if (!trimmed) return;
+    setSubmitting(true);
     router.push(`/page/${path}?pwd=${encodeURIComponent(trimmed)}`);
   };
 
@@ -79,7 +81,7 @@ export function PasswordPrompt({
             </button>
           </div>
 
-          <Button type="submit" variant="primary" size="lg" block disabled={!value.trim()} autoLoading={false}>
+          <Button type="submit" variant="primary" size="lg" block disabled={!value.trim() || submitting} loading={submitting}>
             {t('page.passwordSubmit')}
           </Button>
         </form>

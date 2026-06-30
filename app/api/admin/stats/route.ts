@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiHandler } from '@/lib/api-handler';
 import { getContentFiles } from '@/lib/content';
+import { getDb } from '@/lib/db';
 
 /** 清除 Markdown 标记，统计有效字符数 */
 function countChars(text: string): number {
@@ -25,14 +26,23 @@ function extractCategory(slug: string): string {
   return parts.length > 1 ? (parts[0] ?? '未分类') : '根目录';
 }
 
-export const GET = apiHandler('GET', { label: '内容统计', requireAdmin: true }, () => {
+export const GET = apiHandler('GET', { label: '内容统计', requireAdmin: true }, async () => {
   const posts = getContentFiles('posts');
-  const diary = getContentFiles('diary');
   const faces = getContentFiles('faces');
+
+  // 日记存储在 Prisma 数据库中，不在本地文件
+  const db = getDb();
+  let diaryCount = 0;
+  try {
+    const prisma = db.prisma;
+    if (prisma) {
+      diaryCount = await prisma.diary.count();
+    }
+  } catch { diaryCount = 0; }
 
   // --- 标签分布 ---
   const tagCount = new Map<string, number>();
-  for (const file of [...posts, ...diary, ...faces]) {
+  for (const file of [...posts, ...faces]) {
     const tags = file.meta.tags;
     if (Array.isArray(tags)) {
       for (const tag of tags) {
@@ -59,7 +69,7 @@ export const GET = apiHandler('GET', { label: '内容统计', requireAdmin: true
 
   // --- 字数统计 ---
   let totalWordCount = 0;
-  for (const file of [...posts, ...diary, ...faces]) {
+  for (const file of [...posts, ...faces]) {
     totalWordCount += countChars(file.content);
   }
   const avgPostWordCount = posts.length > 0
@@ -86,9 +96,9 @@ export const GET = apiHandler('GET', { label: '内容统计', requireAdmin: true
   return NextResponse.json({
     counts: {
       posts: posts.length,
-      diary: diary.length,
+      diary: diaryCount,
       faces: faces.length,
-      total: posts.length + diary.length + faces.length,
+      total: posts.length + diaryCount + faces.length,
     },
     topTags,
     categories,

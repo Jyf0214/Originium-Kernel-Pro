@@ -114,7 +114,7 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
       const result = await onSave(title.trim(), content.trim(), tagsArr, diaryDate, diaryGroup);
       if (result !== null) {
         setLastSavedSnapshot({ title: title.trim(), content: content.trim(), tags: tagsArr.join(', '), group: diaryGroup, date: diaryDate });
-        clearDraft();
+        void clearDraft();
         router.push('/diary');
       }
     } catch {

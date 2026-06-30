@@ -380,7 +380,7 @@ export async function POST(req: NextRequest) {
       if (!ghRes.ok) {
         const ghErr = await ghRes.json().catch(() => ({}));
         logger.error('POST', '配置写入 GitHub 失败', { error: ghErr.error });
-        return NextResponse.json({ error: '配置保存到远程仓库失败: ' + (ghErr.error ?? '') }, { status: 500 });
+        return NextResponse.json({ error: '配置保存到远程仓库失败' }, { status: 500 });
       }
     }
 
