@@ -130,7 +130,10 @@ class PrismaDriver implements IDatabase {
       where: { key: { startsWith: `${key}:` } }
     })
     const result: Record<string, string> = {}
+    const now = BigInt(Date.now())
     for (const record of records) {
+      // 过滤已过期的 key，与 get() 保持一致
+      if (record.expiry && record.expiry < now) continue
       if (record.value) {
         const field = record.key.substring(key.length + 1)
         result[field] = record.value

@@ -15,14 +15,13 @@ async function findArticleUser(
   username: string,
 ): Promise<Record<string, unknown> | null> {
   const userStr = await db.get(`user:username:${username}`);
-  if (userStr) {
-    return JSON.parse(userStr) as Record<string, unknown>;
-  }
-  const directUser = await db.get(`user:uid:${username}`);
-  if (!directUser) {
+  const raw = userStr ?? await db.get(`user:uid:${username}`);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as Record<string, unknown>;
+  } catch {
     return null;
   }
-  return JSON.parse(directUser) as Record<string, unknown>;
 }
 
 function getUserAvatar(config: AppConfig, user: Record<string, unknown>): string | null {

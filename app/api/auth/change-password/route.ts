@@ -82,7 +82,11 @@ export const POST = apiHandler(
       logger.warn('POST', '用户不存在', { uid: session.uid });
       return NextResponse.json({ error: '用户不存在' }, { status: 404 });
     }
-    const user = JSON.parse(userStr) as { password: string };
+    const user = JSON.parse(userStr) as Record<string, unknown>;
+    if (typeof user.password !== 'string') {
+      logger.warn('POST', '用户密码数据异常', { uid: session.uid });
+      return NextResponse.json({ error: '用户密码数据异常，请联系管理员' }, { status: 500 });
+    }
 
     if (!(await verifyPassword(currentPassword, user.password))) {
       logger.warn('POST', '当前密码错误', { uid: session.uid });

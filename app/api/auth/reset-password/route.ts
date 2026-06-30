@@ -104,7 +104,15 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: '无效或过期的重置链接' }, { status: 400 });
     }
 
-    const { uid, expiresAt } = JSON.parse(resetData);
+    let resetPayload: { uid: string; expiresAt: number };
+    try {
+      resetPayload = JSON.parse(resetData);
+    } catch {
+      logger.warn('PUT', '重置数据损坏', { token });
+      await db.del(`reset:${token}`);
+      return NextResponse.json({ error: '重置链接数据损坏，请重新申请' }, { status: 400 });
+    }
+    const { uid, expiresAt } = resetPayload;
 
     if (Date.now() > expiresAt) {
       await db.del(`reset:${token}`);

@@ -163,12 +163,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await fetch('/api/auth/logout', { method: 'POST' });
       if (!res.ok) {
         console.warn('登出请求失败:', res.status);
+        message.error('登出请求失败，服务端会话可能未销毁');
+      } else {
+        message.info(t('common.info'));
       }
       setUser(null);
-      message.info(t('common.info'));
     } catch (err) {
       console.error('登出错误:', err);
       message.error(t('common.error') || '登出失败');
+      setUser(null);
     }
   }, [t]);
 

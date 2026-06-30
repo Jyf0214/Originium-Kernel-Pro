@@ -310,7 +310,9 @@ export async function getSessionWithKeyId(): Promise<{ session: SessionPayload; 
  * 删除当前会话
  */
 export async function deleteSession() {
-  (await cookies()).delete('session');
+  const cookieStore = await cookies();
+  cookieStore.delete('session');
+  cookieStore.delete('temp_2fa');
 }
 
 /**

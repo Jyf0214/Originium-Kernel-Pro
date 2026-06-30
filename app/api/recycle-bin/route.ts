@@ -89,7 +89,13 @@ export const POST = apiHandler('POST', { label: '恢复文章', requireAdmin: tr
     return NextResponse.json({ error: 'Article not found' }, { status: 404 });
   }
 
-  const article = JSON.parse(articleStr);
+  let article: Record<string, unknown>;
+  try {
+    article = JSON.parse(articleStr);
+  } catch {
+    logger.warn('POST', '文章数据解析失败', { id });
+    return NextResponse.json({ error: '文章数据损坏，无法恢复' }, { status: 500 });
+  }
   if (article.status !== 'pending_deletion') {
     logger.warn('POST', '文章不在回收站中', { id, status: article.status });
     return NextResponse.json({ error: 'Article is not in recycle bin' }, { status: 400 });
@@ -97,7 +103,7 @@ export const POST = apiHandler('POST', { label: '恢复文章', requireAdmin: tr
 
   // Check if still within restoration period
   const now = Date.now();
-  const requestedAt = new Date(article.deletionRequestedAt).getTime();
+  const requestedAt = new Date(String(article.deletionRequestedAt)).getTime();
   const periodMs = DELETION_PERIOD_DAYS * 24 * 60 * 60 * 1000;
 
   if (now > requestedAt + periodMs) {
@@ -141,7 +147,13 @@ export const DELETE = apiHandler('DELETE', { label: '永久删除文章', requir
     return NextResponse.json({ error: 'Article not found' }, { status: 404 });
   }
 
-  const article = JSON.parse(articleStr);
+  let article: Record<string, unknown>;
+  try {
+    article = JSON.parse(articleStr);
+  } catch {
+    logger.warn('DELETE', '文章数据解析失败', { id });
+    return NextResponse.json({ error: '文章数据损坏' }, { status: 500 });
+  }
 
   // Only delete if in pending_deletion status or user is sudo
   if (article.status !== 'pending_deletion' && session.role !== 'sudo') {

@@ -261,6 +261,27 @@ async function deleteFromGithub(origin: string, slug: string, title: string): Pr
   }
 }
 
+/** 管理员永久删除文章：清理 GitHub 文件 + 数据库记录 + 草稿文件 */
+async function adminPermanentDelete(
+  id: string,
+  meta: Record<string, unknown>,
+  origin: string,
+): Promise<NextResponse> {
+  const db = getDb();
+  if (meta.status === 'published' && meta.slug) {
+    const gh = await deleteFromGithub(origin, String(meta.slug), String(meta.title ?? ''));
+    if (!gh.ok && gh.error !== 'GitHub 未配置') {
+      return NextResponse.json({ error: gh.error }, { status: 502 });
+    }
+  }
+  await db.del(`article:data:${id}`);
+  await db.hdel('articles:drafts', id);
+  await db.hdel('articles:published', id);
+  await db.hdel('articles:index', id);
+  try { await deleteDraft(id); } catch { /* 文件清理失败不影响删除流程 */ }
+  return NextResponse.json({ success: true, message: '已永久删除' });
+}
+
 export const DELETE = apiHandler('DELETE', { label: '删除文章', requireAuth: true }, async (req, context) => {
   const id = await getParam(context, 'id');
   const session = (await getSession())!;
@@ -288,32 +309,17 @@ export const DELETE = apiHandler('DELETE', { label: '删除文章', requireAuth:
     return NextResponse.json({ success: true, message: '已删除' });
   }
 
-  const meta = JSON.parse(metaStr);
+  let meta: Record<string, unknown>;
+  try {
+    meta = JSON.parse(metaStr);
+  } catch {
+    logger.warn('DELETE', '文章数据解析失败', { id });
+    return NextResponse.json({ error: '文章数据损坏' }, { status: 500 });
+  }
 
   // 管理员直接永久删除
   if (session.role === 'admin' || session.role === 'sudo') {
-    // 删除 GitHub 文件
-    if (meta.status === 'published' && meta.slug) {
-      const gh = await deleteFromGithub(req.nextUrl.origin, meta.slug, meta.title);
-      if (!gh.ok && gh.error !== 'GitHub 未配置') {
-        return NextResponse.json({ error: gh.error }, { status: 502 });
-      }
-    }
-
-    // 删除数据库记录
-    await db.del(`article:data:${id}`);
-    await db.hdel('articles:drafts', id);
-    await db.hdel('articles:published', id);
-    await db.hdel('articles:index', id);
-
-    // 清理草稿文件
-    try {
-      await deleteDraft(id);
-    } catch {
-      // 文件清理失败不影响删除流程
-    }
-
-    return NextResponse.json({ success: true, message: '已永久删除' });
+    return adminPermanentDelete(id, meta, req.nextUrl.origin);
   }
 
   // 普通用户：进入删除队列

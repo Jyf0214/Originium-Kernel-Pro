@@ -234,7 +234,13 @@ function mergePostMeta(
 ): AppConfig['postMeta'] | undefined {
   if (!overridePostMeta) return base;
   const def: AppConfig['postMeta'] = { page: { dateType: 'created', dateFormat: 'simple', categories: true, tags: true, label: false }, post: { dateType: 'both', dateFormat: 'date', categories: true, tags: true, label: true, unread: false } };
-  return { ...def, ...base, ...overridePostMeta };
+  const baseFull = { ...def, ...base };
+  return {
+    ...baseFull,
+    ...overridePostMeta,
+    page: { ...baseFull.page, ...overridePostMeta.page },
+    post: { ...baseFull.post, ...overridePostMeta.post },
+  };
 }
 
 function mergeWordCount(
