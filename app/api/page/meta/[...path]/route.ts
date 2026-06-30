@@ -11,6 +11,7 @@ import { apiHandler } from '@/lib/api-handler'
 import { buildPageRelativePath, type PageMeta } from '@/lib/page-source/shared'
 import { isStorageConfigured } from '@/lib/storage/storage-provider'
 import { fetchPageMeta, putPageMeta, deletePageMeta } from '@/lib/page-source/webdav'
+import { checkPageAccess } from '@/lib/storage/acl'
 
 /** 从请求参数提取相对路径 */
 async function resolveRelativePath(ctx: { params: Promise<Record<string, unknown>> } | undefined): Promise<string | null> {
@@ -46,12 +47,18 @@ function parseMetaBody(body: unknown): { meta: PageMeta } | { error: string } {
   return { meta };
 }
 
-export const GET = apiHandler<{ path: string[] }>('GET', { label: 'page-meta.get' }, async (_req, ctx) => {
+export const GET = apiHandler<{ path: string[] }>('GET', { label: 'page-meta.get' }, async (req, ctx) => {
   if (!isStorageConfigured()) {
     return NextResponse.json({ error: '存储后端未配置', code: 'NOT_CONFIGURED' }, { status: 503 });
   }
   const relativePath = await resolveRelativePath(ctx);
   if (!relativePath) return NextResponse.json({ error: '路径无效' }, { status: 400 });
+  // ACL 检查：私有页面元数据不得对未授权用户泄露
+  const pwd = req.nextUrl.searchParams.get('pwd');
+  const access = await checkPageAccess(relativePath, pwd);
+  if (!access.allowed) {
+    return NextResponse.json({ error: '无权访问该页面' }, { status: 403 });
+  }
   const meta = await fetchPageMeta(relativePath);
   return NextResponse.json({ meta: meta ?? null });
 })

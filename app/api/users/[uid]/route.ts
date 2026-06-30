@@ -19,7 +19,12 @@ export const GET = apiHandler('GET', { label: '获取用户信息', requireAdmin
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
 
-  const user = JSON.parse(userStr);
+  let user: Record<string, unknown>;
+  try {
+    user = JSON.parse(userStr);
+  } catch {
+    return NextResponse.json({ error: '用户数据损坏' }, { status: 500 });
+  }
   const config = loadConfig();
   const avatar = config.users?.[uid]?.avatar ?? config.auth?.admin?.avatar ?? null;
 
@@ -47,7 +52,12 @@ export const PATCH = apiHandler('PATCH', { label: '更新用户信息', requireA
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
 
-  const user = JSON.parse(userStr);
+  let user: Record<string, unknown>;
+  try {
+    user = JSON.parse(userStr);
+  } catch {
+    return NextResponse.json({ error: '用户数据损坏' }, { status: 500 });
+  }
   const body = await req.json();
   const { role, userGroup } = body;
 

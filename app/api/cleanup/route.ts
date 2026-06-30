@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { getEnvConfig } from '@/lib/env';
 import { DELETION_PERIOD_DAYS } from '@/lib/constants';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
@@ -30,6 +31,46 @@ async function isCleanupAuthorized(req: NextRequest): Promise<boolean> {
   }
 }
 
+/** 尝试删除 GitHub 上的文章文件 */
+async function tryDeleteGithubFile(slug: string, title: string, id: string): Promise<void> {
+  const env = getEnvConfig();
+  if (!env.githubRepo || !env.githubToken) return;
+  const [owner = '', repo = ''] = env.githubRepo.split('/');
+  const { Octokit } = await import('octokit');
+  const octokit = new Octokit({ auth: env.githubToken });
+  const filePath = `posts${slug}.md`;
+  const resp = await octokit.rest.repos.getContent({ owner, repo, path: filePath });
+  if ('sha' in resp.data) {
+    await octokit.rest.repos.deleteFile({
+      owner, repo, path: filePath,
+      message: `cleanup: delete expired article "${title || id}"`,
+      sha: resp.data.sha,
+    });
+  }
+}
+
+/** 判断文章是否已过期并执行清理 */
+async function cleanupExpiredArticle(
+  id: string,
+  data: string,
+  db: ReturnType<typeof getDb>,
+  now: number,
+  periodMs: number,
+): Promise<boolean> {
+  const article = JSON.parse(data);
+  if (article.status !== 'pending_deletion' || !article.deletionRequestedAt) return false;
+  const requestedAt = new Date(article.deletionRequestedAt).getTime();
+  if (now <= requestedAt + periodMs) return false;
+
+  if (article.slug && typeof article.slug === 'string') {
+    await tryDeleteGithubFile(article.slug, article.title ?? '', id);
+  }
+  await db.del(`article:data:${id}`);
+  await db.hdel('articles:index', id);
+  await db.del(`file:articles/${id}.md`);
+  return true;
+}
+
 export const POST = apiHandler('POST', { label: '清理过期文章' }, async (req: NextRequest) => {
   if (!(await isCleanupAuthorized(req))) {
     logger.warn('POST', '未授权');
@@ -48,18 +89,8 @@ export const POST = apiHandler('POST', { label: '清理过期文章' }, async (r
 
   for (const [id, data] of Object.entries(index)) {
     try {
-      const article = JSON.parse(data);
-
-      if (article.status === 'pending_deletion' && article.deletionRequestedAt) {
-        const requestedAt = new Date(article.deletionRequestedAt).getTime();
-
-        if (now > requestedAt + periodMs) {
-          await db.del(`article:data:${id}`);
-          await db.hdel('articles:index', id);
-          await db.del(`file:articles/${id}.md`);
-          deleted.push(id);
-        }
-      }
+      const deleted_art = await cleanupExpiredArticle(id, data, db, now, periodMs);
+      if (deleted_art) deleted.push(id);
     } catch (error: unknown) {
       console.error(`[cleanup] 处理文章 ${id} 失败:`, error);
       errors.push('处理失败');

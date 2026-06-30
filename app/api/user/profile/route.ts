@@ -16,7 +16,12 @@ export const GET = apiHandler('GET', { label: '获取用户资料', requireAuth:
     return NextResponse.json({ error: '用户不存在' }, { status: 404 });
   }
 
-  const user = JSON.parse(userStr);
+  let user: Record<string, unknown>;
+  try {
+    user = JSON.parse(userStr);
+  } catch {
+    return NextResponse.json({ error: '用户数据损坏' }, { status: 500 });
+  }
   const configAvatar = await getUserAvatarAsync(session.uid, session.role === 'admin' || session.role === 'sudo');
 
   logger.info('GET', '获取用户资料成功', { uid: session.uid });
@@ -171,9 +176,14 @@ export const PUT = apiHandler('PUT', { label: '更新用户资料', requireAuth:
     return NextResponse.json({ error: '用户不存在' }, { status: 404 });
   }
 
-  const user = JSON.parse(userStr);
+  let user: Record<string, unknown>;
+  try {
+    user = JSON.parse(userStr);
+  } catch {
+    return NextResponse.json({ error: '用户数据损坏' }, { status: 500 });
+  }
 
-  const conflict = await checkUsernameConflict(db, validation.sanitized.value, user.username);
+  const conflict = await checkUsernameConflict(db, validation.sanitized.value, user.username as string | undefined);
   if (conflict) {
     logger.warn('PUT', '用户名已被使用', { username: validation.username });
     return NextResponse.json({ error: conflict }, { status: 409 });

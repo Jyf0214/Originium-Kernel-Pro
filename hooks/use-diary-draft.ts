@@ -166,9 +166,11 @@ export function useDiaryDraft({ id, title, content, tags, date, group, onDraftFo
     return () => { controller.abort(); };
   }, [id]);
 
-  function clearDraft() {
-    removeLocalDraft(id);
-    fetch(`/api/diary/draft?id=${encodeURIComponent(id)}`, { method: 'DELETE' }).catch((err) => console.warn('草稿删除异常:', err));
+  async function clearDraft() {
+    try {
+      const res = await fetch(`/api/diary/draft?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (res.ok) removeLocalDraft(id);
+    } catch { /* 服务端失败时保留本地草稿 */ }
   }
 
   return { clearDraft, saveStatus, lastSavedAt };

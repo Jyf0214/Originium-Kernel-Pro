@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     logger.error('POST', '同步失败', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : '同步失败' },
+      { error: '同步失败' },
       { status: 500 }
     );
   }

@@ -111,18 +111,22 @@ export const POST = apiHandler('POST', { label: '恢复文章', requireAdmin: tr
     return NextResponse.json({ error: 'Restoration period expired' }, { status: 400 });
   }
 
-  // Restore article
+  // Restore article — 保持原始状态（有 slug 表示曾发布）
+  const wasPublished = typeof article.slug === 'string' && article.slug.length > 0;
   const restored = {
     ...article,
-    status: 'draft',
+    status: wasPublished ? 'published' : 'draft',
     deletionRequestedAt: undefined,
     updatedAt: new Date().toISOString(),
   };
 
   await db.set(`article:data:${id}`, JSON.stringify(restored));
   await db.hset('articles:index', id, JSON.stringify(restored));
-  // 恢复后写入草稿索引，确保文章列表可见
-  await db.hset('articles:drafts', id, JSON.stringify(restored));
+  if (wasPublished) {
+    await db.hset('articles:published', id, JSON.stringify(restored));
+  } else {
+    await db.hset('articles:drafts', id, JSON.stringify(restored));
+  }
 
   logger.info('POST', '文章恢复成功', { id });
   return NextResponse.json({ success: true, message: 'Article restored' });

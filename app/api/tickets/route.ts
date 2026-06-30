@@ -65,10 +65,10 @@ export const POST = apiHandler('POST', { label: '创建工单', requireAuth: tru
   if (!postRes.ok) {
     throw new Error('Failed to create ticket on GitHub');
   }
-  const result = await postRes.json();
+  await postRes.json();
 
   logger.info('POST', '工单创建成功', { slug });
-  return NextResponse.json({ success: true, slug, result });
+  return NextResponse.json({ success: true, slug });
 });
 
 /**

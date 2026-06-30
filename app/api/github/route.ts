@@ -62,13 +62,13 @@ async function executeDeleteAction(
     logger.warn('POST', '文件不存在，无法删除', { path });
     return NextResponse.json({ error: '文件不存在' }, { status: 404 });
   }
-  const result = await octokit.rest.repos.deleteFile({
+  await octokit.rest.repos.deleteFile({
     owner, repo, path,
     message: options.message ?? `delete: ${path}`,
     sha: options.sha,
   });
   logger.info('POST', '文件删除成功', { path });
-  return NextResponse.json({ success: true, data: result.data });
+  return NextResponse.json({ success: true });
 }
 
 export const POST = apiHandler('POST', { label: 'GitHub 操作', requireAdmin: true }, async (req) => {
@@ -106,7 +106,7 @@ export const POST = apiHandler('POST', { label: 'GitHub 操作', requireAdmin: t
   });
 
   logger.info('POST', '文件操作成功', { action, path });
-  return NextResponse.json({ success: true, data: result.data });
+  return NextResponse.json({ success: true, sha: result.data.content?.sha });
 });
 
 export const GET = apiHandler('GET', { label: '读取 GitHub 文件', requireAdmin: true }, async (req) => {

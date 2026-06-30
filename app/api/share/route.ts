@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 /**
  * Share Event Tracking API
@@ -30,6 +31,13 @@ export async function POST(request: NextRequest) {
         { error: '缺少必要参数: url, platform' },
         { status: 400 },
       );
+    }
+
+    // 频率限制：每 IP 每分钟 30 次
+    const ip = getClientIp(request);
+    const { allowed } = rateLimit(`share:${ip}`, 30, 60 * 1000);
+    if (!allowed) {
+      return NextResponse.json({ error: '请求过于频繁' }, { status: 429 });
     }
 
     // 记录分享事件到服务器日志

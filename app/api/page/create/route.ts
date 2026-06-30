@@ -11,6 +11,7 @@
  */
 import { NextResponse } from 'next/server'
 import { apiHandler } from '@/lib/api-handler'
+import { getDb } from '@/lib/db'
 import { isStorageConfigured, getStorageProvider } from '@/lib/storage/storage-provider'
 import { renderTemplate, type TemplateType } from '@/lib/page-templates'
 
@@ -98,6 +99,21 @@ export const POST = apiHandler('POST', { label: 'page.create', requireSudo: true
 
   const storageError = await writeToStorage(body.name, htmlContent)
   if (storageError) return storageError
+
+  // 持久化文件夹可见性设置到数据库
+  const targetDir = `pages/${body.name}`
+  const prisma = getDb().prisma;
+  if (prisma) {
+    try {
+      await prisma.storageFolder.upsert({
+        where: { path: targetDir },
+        update: { public: body.isPublic ?? true },
+        create: { path: targetDir, public: body.isPublic ?? true },
+      });
+    } catch (err) {
+      console.error('[page/create] 创建文件夹元数据失败:', err);
+    }
+  }
 
   return NextResponse.json({
     ok: true,

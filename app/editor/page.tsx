@@ -25,7 +25,8 @@ function EditorContent() {
   const [coverImage, setCoverImage] = useState('');
   const [description, setDescription] = useState('');
   const [slug, setSlug] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [fetching, setFetching] = useState(!!articleId);
   const [githubConfigured, setGithubConfigured] = useState(false);
 
@@ -84,7 +85,7 @@ function EditorContent() {
     if (!user) { message.warning(t('editor.pleaseLogin')); return; }
     if (!title.trim() || !content.trim()) { message.warning(t('editor.titleContentRequired')); return; }
 
-    setLoading(true);
+    setSavingDraft(true);
     try {
       const articleData = {
         title,
@@ -106,7 +107,7 @@ function EditorContent() {
         body: JSON.stringify(articleData),
       });
 
-if (res.ok) {
+      if (res.ok) {
         message.success(articleId ? t('editor.updateSuccess') : t('editor.saveSuccess'));
         router.push('/dashboard/articles');
       } else {
@@ -117,7 +118,7 @@ if (res.ok) {
       console.error(t('editor.saveFailed'), error);
       showError(t('editor.saveFailed'));
     } finally {
-      setLoading(false);
+      setSavingDraft(false);
     }
   };
 
@@ -128,7 +129,7 @@ if (res.ok) {
     if (!user) { message.warning(t('editor.pleaseLogin')); return; }
     if (!title.trim() || !content.trim()) { message.warning(t('editor.titleContentRequired')); return; }
 
-    setLoading(true);
+    setPublishing(true);
     try {
       // 生成 slug：用户自定义 或 基于 author/title
       const postSlug = slug || `/${user.name || 'anonymous'}/${title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\u4e00-\u9fa5-]/g, '')}`;
@@ -166,7 +167,7 @@ if (res.ok) {
       console.error(t('editor.saveFailed'), error);
       showError(`${t('editor.saveFailed')}: ${error instanceof Error ? error.message : ''}`);
     } finally {
-      setLoading(false);
+      setPublishing(false);
     }
   };
 
@@ -183,19 +184,19 @@ if (res.ok) {
         <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <Button
             onClick={handleSaveDraft}
-            disabled={loading}
-            loading={loading}
+            disabled={savingDraft || publishing}
+            loading={savingDraft}
             variant="default"
             size="md"
             icon={<Save size={18} />}
             className="hidden sm:inline-flex"
           >
-            {loading ? '' : t('editor.saveDraft')}
+            {savingDraft ? '' : t('editor.saveDraft')}
           </Button>
           <Button
             onClick={handleSaveDraft}
-            disabled={loading}
-            loading={loading}
+            disabled={savingDraft || publishing}
+            loading={savingDraft}
             variant="default"
             size="md"
             icon={<Save size={18} />}
@@ -206,19 +207,19 @@ if (res.ok) {
             <>
               <Button
                 onClick={handlePublish}
-                disabled={loading}
-                loading={loading}
+                disabled={savingDraft || publishing}
+                loading={publishing}
                 variant="primary"
                 size="md"
                 icon={<Send size={18} />}
                 className="hidden sm:inline-flex"
               >
-                {loading ? '' : t('editor.publish')}
+                {publishing ? '' : t('editor.publish')}
               </Button>
               <Button
                 onClick={handlePublish}
-                disabled={loading}
-                loading={loading}
+                disabled={savingDraft || publishing}
+                loading={publishing}
                 variant="primary"
                 size="md"
                 icon={<Send size={18} />}

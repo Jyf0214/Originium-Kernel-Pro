@@ -191,8 +191,8 @@ export default async function PageIndex() {
       const description: string | undefined = isPrivate ? undefined : meta?.description;
       const coverImage: string | undefined = isPrivate ? undefined : meta?.coverImage;
       const tags: string[] | undefined = isPrivate ? undefined : meta?.tags;
-      const createdAt: string | undefined = meta?.createdAt;
-      const updatedAt: string | undefined = meta?.updatedAt;
+      const createdAt: string | undefined = isPrivate ? undefined : meta?.createdAt;
+      const updatedAt: string | undefined = isPrivate ? undefined : meta?.updatedAt;
 
       const href = buildPageHref(relativePath);
       return {
