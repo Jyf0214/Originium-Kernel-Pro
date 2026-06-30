@@ -1,10 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { Octokit } from 'octokit';
 import { getDb } from '@/lib/db';
-import { getEnvConfig } from '@/lib/env';
 import { getSession } from '@/lib/auth';
 import { loadConfig, canAccess, hasDatabase, type AppConfig } from '@/lib/config';
-import { getDraft, saveDraft, deleteDraft } from '@/lib/draft-storage';
+import { getDraft, saveDraft } from '@/lib/draft-storage';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler, getParam } from '@/lib/api-handler';
 
@@ -252,61 +250,22 @@ export const PATCH = apiHandler('PATCH', { label: '更新文章', requireAuth: t
   return handleDraftSave(body, meta, id, db);
 });
 
-/** 直接通过 Octokit 删除 GitHub 文件，避免内部 HTTP 调用丢失 cookies 导致认证失败 */
-async function deleteFromGithub(slug: string, title: string): Promise<{ ok: boolean; error?: string }> {
-  try {
-    const env = getEnvConfig();
-    if (!env.githubRepo || !env.githubToken) {
-      return { ok: true, error: 'GitHub 未配置' };
-    }
-    const [owner = '', repo = ''] = env.githubRepo.split('/');
-    const octokit = new Octokit({ auth: env.githubToken });
-    const filePath = `posts${slug}.md`;
-
-    // 先获取文件 SHA（删除必须提供 SHA）
-    let sha: string | undefined;
-    try {
-      const { data } = await octokit.rest.repos.getContent({ owner, repo, path: filePath });
-      if ('sha' in data) sha = data.sha;
-    } catch (e: unknown) {
-      const err = e as { status?: number };
-      if (err.status === 404) return { ok: true }; // 文件不存在视为删除成功
-      throw e;
-    }
-
-    if (!sha) return { ok: true };
-
-    await octokit.rest.repos.deleteFile({
-      owner,
-      repo,
-      path: filePath,
-      message: `delete: remove post "${title}"`,
-      sha,
-    });
-    return { ok: true };
-  } catch {
-    return { ok: false, error: 'GitHub 删除请求异常' };
-  }
-}
-
-/** 管理员永久删除文章：清理 GitHub 文件 + 数据库记录 + 草稿文件 */
-async function adminPermanentDelete(
+/** 将文章移入回收站（统一入口） */
+async function moveToRecycleBin(
   id: string,
   meta: Record<string, unknown>,
+  db: ReturnType<typeof getDb>,
 ): Promise<NextResponse> {
-  const db = getDb();
-  if (meta.status === 'published' && meta.slug) {
-    const gh = await deleteFromGithub(String(meta.slug), String(meta.title ?? ''));
-    if (!gh.ok && gh.error !== 'GitHub 未配置') {
-      return NextResponse.json({ error: gh.error }, { status: 502 });
-    }
-  }
-  await db.del(`article:data:${id}`);
+  const deletionInfo = {
+    ...meta,
+    status: 'pending_deletion',
+    deletionRequestedAt: new Date().toISOString(),
+  };
+  await db.set(`article:data:${id}`, JSON.stringify(deletionInfo));
   await db.hdel('articles:drafts', id);
   await db.hdel('articles:published', id);
-  await db.hdel('articles:index', id);
-  try { await deleteDraft(id); } catch { /* 文件清理失败不影响删除流程 */ }
-  return NextResponse.json({ success: true, message: '已永久删除' });
+  await db.hset('articles:index', id, JSON.stringify(deletionInfo));
+  return NextResponse.json({ success: true, message: '已移入回收站' });
 }
 
 export const DELETE = apiHandler('DELETE', { label: '删除文章', requireAuth: true }, async (req, context) => {
@@ -316,9 +275,8 @@ export const DELETE = apiHandler('DELETE', { label: '删除文章', requireAuth:
   const db = getDb();
   const metaStr = await db.get(`article:data:${id}`);
 
-  // 数据库无记录 → 文件系统发布的文章 → 从 GitHub 删除
+  // 数据库无记录 → 文件系统发布的文章，构造元数据后移入回收站
   if (!metaStr) {
-    // 文件系统文章仅管理员可删除，防止普通用户越权
     if (session.role !== 'admin' && session.role !== 'sudo') {
       return NextResponse.json({ error: '无权限删除此文章' }, { status: 403 });
     }
@@ -330,10 +288,18 @@ export const DELETE = apiHandler('DELETE', { label: '删除文章', requireAuth:
       return NextResponse.json({ error: '文章不存在' }, { status: 404 });
     }
 
-    const gh = await deleteFromGithub(slug, file.meta.title);
-    if (!gh.ok) return NextResponse.json({ error: gh.error }, { status: 502 });
-
-    return NextResponse.json({ success: true, message: '已删除' });
+    // 为文件系统文章构造元数据，写入数据库后移入回收站
+    const meta: Record<string, unknown> = {
+      id,
+      slug,
+      title: file.meta.title,
+      authorId: session.uid,
+      authorName: (file.meta.author) ?? session.email,
+      status: 'published',
+      tags: file.meta.tags ?? [],
+      createdAt: file.meta.date ?? new Date().toISOString(),
+    };
+    return moveToRecycleBin(id, meta, db);
   }
 
   let meta: Record<string, unknown>;
@@ -344,27 +310,11 @@ export const DELETE = apiHandler('DELETE', { label: '删除文章', requireAuth:
     return NextResponse.json({ error: '文章数据损坏' }, { status: 500 });
   }
 
-  // 管理员直接永久删除
-  if (session.role === 'admin' || session.role === 'sudo') {
-    return adminPermanentDelete(id, meta);
-  }
-
-  // 普通用户：进入删除队列
-  if (meta.authorId !== session.uid) {
+  // 所有角色统一移入回收站
+  if (meta.authorId !== session.uid && session.role !== 'admin' && session.role !== 'sudo') {
     logger.warn('DELETE', '无权限', { id, authorId: meta.authorId, uid: session.uid });
     return NextResponse.json({ error: '无权限' }, { status: 403 });
   }
 
-  const deletionInfo = {
-    ...meta,
-    status: 'pending_deletion',
-    deletionRequestedAt: new Date().toISOString(),
-  };
-  await db.set(`article:data:${id}`, JSON.stringify(deletionInfo));
-  // 写入 articles:index 供回收站和清理任务读取
-  await db.hdel('articles:drafts', id);
-  await db.hdel('articles:published', id);
-  await db.hset('articles:index', id, JSON.stringify(deletionInfo));
-
-  return NextResponse.json({ success: true, message: '已提交删除申请，30天后自动删除' });
+  return moveToRecycleBin(id, meta, db);
 });
