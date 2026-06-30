@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { message } from 'antd';
 import { showError } from '@/lib/error';
 import { GlobalLoading } from '@/components/Loading';
-import { X, Clock, FileText, Trash2, Loader2 } from 'lucide-react';
+import { X, Clock, FileText, Check, Loader2 } from 'lucide-react';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 
@@ -161,12 +161,12 @@ export default function RequestsPage() {
                     {req.status === 'pending' && (
                       <div className="flex items-center justify-end gap-2">
                         <Button
-                          variant="danger"
+                          variant="primary"
                           size="sm"
                           onClick={() => handleApprove(req)}
                           disabled={operating === req.id}
                         >
-                          {operating === req.id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                          {operating === req.id ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
                         </Button>
                         <Button
                           variant="danger"

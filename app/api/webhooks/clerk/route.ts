@@ -99,7 +99,18 @@ async function handleUserUpdated(
   const clerkId = data.id;
   const email = data.email_addresses?.[0]?.email_address;
   if (email) {
+    // 清理旧邮箱映射（邮箱变更时）
+    const existingClerkId = await db.get(`clerk:email:${email}`);
+    if (existingClerkId && existingClerkId !== clerkId) {
+      await db.del(`clerk:email:${email}`);
+    }
+    // 查找并删除此 clerkId 的旧邮箱映射
+    const oldEmail = await db.get(`clerk:id:${clerkId}`);
+    if (oldEmail && oldEmail !== email) {
+      await db.del(`clerk:email:${oldEmail}`);
+    }
     await db.set(`clerk:email:${email}`, clerkId);
+    await db.set(`clerk:id:${clerkId}`, email);
     logger.info('POST', '更新 Clerk 邮箱映射', { clerkId, email });
   }
 }
@@ -113,6 +124,12 @@ async function handleUserDeleted(
   if (boundUid) {
     await db.del(`clerk:user:${clerkId}`);
     await db.del(`user:clerk:${boundUid}`);
+    // 清理邮箱映射
+    const oldEmail = await db.get(`clerk:id:${clerkId}`);
+    if (oldEmail) {
+      await db.del(`clerk:email:${oldEmail}`);
+      await db.del(`clerk:id:${clerkId}`);
+    }
     logger.info('POST', '清理 Clerk 绑定关系', { clerkId, boundUid });
     try {
       const { prisma } = await import('@/lib/db');

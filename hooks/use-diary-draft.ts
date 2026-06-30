@@ -68,10 +68,9 @@ export function useDiaryDraft({ id, title, content, tags, date, group, onDraftFo
     onDraftFoundRef.current = onDraftFound;
   }, [onDraftFound]);
 
-  // 组件卸载时取消进行中的请求
+  // 组件卸载时取消进行中的请求（仅取消 load，不取消 save 以避免草稿丢失）
   useEffect(() => {
     return () => {
-      saveAbortRef.current?.abort();
       loadAbortRef.current?.abort();
     };
   }, []);

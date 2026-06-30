@@ -66,6 +66,11 @@ export const PATCH = apiHandler('PATCH', { label: '更新用户信息', requireA
         logger.warn('PATCH', '权限不足：admin 不能将用户提升为 admin 或 sudo', { uid, requestedRole: role });
         return NextResponse.json({ error: '仅超级管理员可以设置管理员或超级管理员角色' }, { status: 403 });
       }
+      // 防止 admin 降级 sudo 用户
+      if (user.role === 'sudo') {
+        logger.warn('PATCH', '权限不足：admin 不能降级超级管理员', { uid });
+        return NextResponse.json({ error: '仅超级管理员可以修改超级管理员角色' }, { status: 403 });
+      }
     }
 
     user.role = role;
