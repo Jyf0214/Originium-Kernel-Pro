@@ -8,8 +8,10 @@ import { ArrowLeftFromLine, ArrowRightToLine } from 'lucide-react';
 import SidebarHeader from './SidebarHeader';
 import SidebarUserMenu from './SidebarUserMenu';
 import SidebarGroup from './SidebarGroup';
+import SidebarCollapseButton from './SidebarCollapseButton';
 import MobileToggle from './MobileToggle';
 import { useSidebarState } from './use-sidebar-state';
+import { useSidebarCollapsed } from './use-sidebar-collapsed';
 import { userMenuItems, adminMenuItems } from './sidebar-config';
 import type { SidebarVariant, MenuItem } from './types';
 
@@ -18,6 +20,7 @@ function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
   const pathname = usePathname();
   const { t } = useI18n();
   const { isOpen, open, close } = useSidebarState();
+  const { collapsed, toggle: toggleCollapsed, hydrated } = useSidebarCollapsed();
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const [internalVariant, setInternalVariant] = useState<SidebarVariant | null>(null);
 
@@ -53,10 +56,10 @@ function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
     setCollapsedGroups((prev) => ({ ...prev, [group]: !prev[group] }));
   };
 
-  const renderContent = (showCloseButton: boolean) => (
+  const renderContent = (showCloseButton: boolean, desktopCollapsed = false) => (
     <div className="flex flex-col h-full bg-white dark:bg-zinc-900 border-r border-zinc-100 dark:border-zinc-800">
-      <SidebarHeader showCloseButton={showCloseButton} onClose={close} />
-      <SidebarUserMenu user={user ?? undefined} onLogout={handleLogout} />
+      <SidebarHeader showCloseButton={showCloseButton} onClose={close} collapsed={desktopCollapsed} />
+      <SidebarUserMenu user={user ?? undefined} onLogout={handleLogout} collapsed={desktopCollapsed} />
       <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-7 custom-scrollbar">
         {Object.entries(grouped).map(([group, groupItems]) => (
           <SidebarGroup
@@ -68,6 +71,7 @@ function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
             isActive={isActive}
             onItemClick={close}
             t={t}
+            collapsed={desktopCollapsed}
           />
         ))}
 
@@ -77,20 +81,27 @@ function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
             type="button"
             onClick={() => setInternalVariant('user')}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all duration-300 w-full no-underline font-medium"
+            title={desktopCollapsed ? t('sidebar.switchToUserMenu') : undefined}
           >
             <ArrowRightToLine size={18} className="shrink-0 text-zinc-300" />
-            <span>{t('sidebar.switchToUserMenu')}</span>
+            {!desktopCollapsed && <span>{t('sidebar.switchToUserMenu')}</span>}
           </button>
         ) : variant === 'admin' ? (
           <button
             type="button"
             onClick={() => setInternalVariant(null)}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-all duration-300 w-full no-underline font-medium"
+            title={desktopCollapsed ? t('sidebar.switchToAdminMenu') : undefined}
           >
             <ArrowLeftFromLine size={18} className="shrink-0 text-amber-400" />
-            <span>{t('sidebar.switchToAdminMenu')}</span>
+            {!desktopCollapsed && <span>{t('sidebar.switchToAdminMenu')}</span>}
           </button>
         ) : null}
+
+        {/* 桌面端折叠按钮 */}
+        {!showCloseButton && (
+          <SidebarCollapseButton collapsed={collapsed} onToggle={toggleCollapsed} />
+        )}
       </nav>
     </div>
   );
@@ -98,8 +109,13 @@ function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
   return (
     <>
       <MobileToggle isOpen={isOpen} onClick={isOpen ? close : open} />
-      <div className="hidden md:flex w-[280px] max-h-screen overflow-y-auto z-[100] bg-white dark:bg-zinc-900 flex-col">
-        {renderContent(false)}
+      {/* 桌面端侧栏：折叠/展开宽度切换 + 宽度过渡动画 */}
+      <div
+        className={`hidden md:flex max-h-screen overflow-y-auto z-[100] bg-white dark:bg-zinc-900 flex-col transition-[width] duration-200 ease-in-out ${
+          hydrated && collapsed ? 'w-[68px]' : 'w-[280px]'
+        }`}
+      >
+        {renderContent(false, hydrated && collapsed)}
       </div>
       {isOpen && (
         <div
