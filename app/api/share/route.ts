@@ -40,11 +40,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '请求过于频繁' }, { status: 429 });
     }
 
-    // 记录分享事件到服务器日志
+    // 记录分享事件到服务器日志（URL 截断 + 控制字符清理防止日志注入）
     const timestamp = new Date().toISOString();
+    const safeUrl = (body.url ?? '').replace(/[\x00-\x1f\x7f]/g, '').slice(0, 2000);
     const logEntry = {
       timestamp,
-      url: body.url,
+      url: safeUrl,
       title: body.title ?? '(无标题)',
       platform: body.platform,
       referer: request.headers.get('referer') ?? '',

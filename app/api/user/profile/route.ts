@@ -41,6 +41,15 @@ export const GET = apiHandler('GET', { label: '获取用户资料', requireAuth:
   });
 });
 
+/** 验证头像 URL：仅允许 http(s)、data:image/、相对路径，最大 2000 字符 */
+function sanitizeAvatarUrl(url: unknown): string | undefined {
+  if (typeof url !== 'string' || url.trim().length === 0) return undefined;
+  const trimmed = url.trim();
+  if (trimmed.length > 2000) return undefined;
+  if (/^(https?:\/\/|data:image\/|\/)/.test(trimmed)) return trimmed;
+  return undefined;
+}
+
 /**
  * 检查所有指定字段是否均为 undefined
  */
@@ -149,7 +158,7 @@ async function updateUserInDb(options: {
   name: unknown;
   uid: string;
 }): Promise<void> {
-  if (options.avatar !== undefined) options.user.avatar = options.avatar;
+  if (options.avatar !== undefined) options.user.avatar = sanitizeAvatarUrl(options.avatar);
   if (options.sanitized.value !== null) options.user.username = options.sanitized.value;
   if (options.name !== undefined) options.user.name = options.name;
 
