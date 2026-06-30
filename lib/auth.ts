@@ -226,7 +226,8 @@ export async function getSession(): Promise<SessionPayload | null> {
       });
       const typed = payload as unknown as SessionPayload;
       // 会话版本校验：密码修改后旧 JWT 自动失效
-      if (typed.sv !== undefined && await isSessionRevoked(typed.uid, typed.sv)) {
+      const effectiveSv = typed.sv ?? 0;
+      if (await isSessionRevoked(typed.uid, effectiveSv)) {
         return null;
       }
       return typed;
@@ -253,7 +254,8 @@ export async function getSessionWithKeyId(): Promise<{ session: SessionPayload; 
         algorithms: ['HS256'],
       });
       const typed = payload as unknown as SessionPayload;
-      if (typed.sv !== undefined && await isSessionRevoked(typed.uid, typed.sv)) {
+      const effectiveSv = typed.sv ?? 0;
+      if (await isSessionRevoked(typed.uid, effectiveSv)) {
         return null;
       }
       return { session: typed, currentKeyId: null };

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiHandler } from '@/lib/api-handler';
+import { encryptContent, decryptContent } from '@/lib/diary-crypto';
 
 export const GET = apiHandler('GET', { label: '获取草稿', requireAdmin: true, requireDb: true }, async (req) => {
   const { searchParams } = new URL(req.url);
@@ -16,7 +17,9 @@ export const GET = apiHandler('GET', { label: '获取草稿', requireAdmin: true
     }
 
     try {
-      return NextResponse.json({ draft: JSON.parse(record.value) });
+      const data = JSON.parse(record.value);
+      const decrypted = data.content ? await decryptContent(data.content) : '';
+      return NextResponse.json({ draft: { ...data, content: decrypted } });
     } catch {
       return NextResponse.json({ draft: null, error: '草稿数据损坏' });
     }
@@ -27,13 +30,14 @@ export const GET = apiHandler('GET', { label: '获取草稿', requireAdmin: true
     orderBy: { createdAt: 'desc' },
   });
 
-  const drafts = all.map((r) => {
+  const drafts = await Promise.all(all.map(async (r) => {
     try {
       const data = JSON.parse(r.value ?? '{}');
+      const decrypted = data.content ? await decryptContent(data.content) : '';
       return {
         id: r.key.replace('diary:draft:', ''),
         title: data.title ?? '',
-        content: data.content ?? '',
+        content: decrypted,
         tags: data.tags ?? [],
         savedAt: data.savedAt ?? r.createdAt.toISOString(),
       };
@@ -46,7 +50,7 @@ export const GET = apiHandler('GET', { label: '获取草稿', requireAdmin: true
         savedAt: r.createdAt.toISOString(),
       };
     }
-  });
+  }));
 
   return NextResponse.json({ drafts });
 });
@@ -57,7 +61,7 @@ export const POST = apiHandler('POST', { label: '保存草稿', requireAdmin: tr
 
   const draftData = JSON.stringify({
     title: title ?? '',
-    content: content ?? '',
+    content: content ? await encryptContent(content) : '',
     tags: tags ?? [],
     savedAt: new Date().toISOString(),
   });

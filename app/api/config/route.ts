@@ -35,9 +35,7 @@ export async function GET() {
   if (configCache && now - configCache.timestamp < CACHE_TTL) {
     logger.info('GET', '使用缓存配置');
     const { _remoteConfig: _rc, _remoteConfigStatus: _rs, _remoteConfigError: _re, _githubRepo: _gr, ...publicCached } = configCache.data;
-    return NextResponse.json(publicCached, {
-      headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
-    });
+    return buildConfigResponse(publicCached);
   }
 
   logger.info('GET', '读取配置');
@@ -98,9 +96,22 @@ export async function GET() {
   // 更新内存缓存
   configCache = { data: response, timestamp: Date.now() };
 
-  // 剥离内部/管理字段，仅返回前端需要的配置
+  // 剥离内部/管理字段
   const { _remoteConfig, _remoteConfigStatus, _remoteConfigError, _githubRepo, ...publicConfig } = response;
-  return NextResponse.json(publicConfig, {
+
+  return buildConfigResponse(publicConfig);
+}
+
+/** 未认证用户剥离 access 规则和 users 映射，防止枚举安全边界和 UID */
+async function buildConfigResponse(config: Record<string, unknown>) {
+  const session = await getSession();
+  if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
+    const { access: _access, users: _users, ...safeConfig } = config;
+    return NextResponse.json(safeConfig, {
+      headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
+    });
+  }
+  return NextResponse.json(config, {
     headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
   });
 }

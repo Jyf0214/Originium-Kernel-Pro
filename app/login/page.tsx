@@ -40,7 +40,7 @@ function LoginForm() {
   const inputRef = useRef<React.ComponentRef<typeof Input>>(null);
   const { t } = useI18n();
 
-  const callbackUrl = sanitizeCallbackUrl(searchParams?.get('callbackUrl'));
+  const callbackUrl = sanitizeCallbackUrl(searchParams?.get('callbackUrl') ?? null);
   const clerkAvailable = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
   useEffect(() => {

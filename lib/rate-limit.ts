@@ -40,12 +40,13 @@ function cleanup(now: number): void {
 export function getClientIp(req: NextRequest): string {
   const forwarded = req.headers.get('x-forwarded-for');
   if (typeof forwarded === 'string' && forwarded.length > 0) {
-    // x-forwarded-for 可能包含多个 IP，取第一个（最上游客户端）
-    // 注意：若无可信代理，客户端可伪造此头部绕过频率限制
     const firstIp = forwarded.split(',')[0];
     if (firstIp) return firstIp.trim();
   }
-  return req.headers.get('x-real-ip') ?? '127.0.0.1';
+  const realIp = req.headers.get('x-real-ip');
+  if (realIp) return realIp;
+  // 无法识别 IP 时使用随机标识，避免多实例下共享桶
+  return `anon:${crypto.randomUUID().slice(0, 8)}`;
 }
 
 /**

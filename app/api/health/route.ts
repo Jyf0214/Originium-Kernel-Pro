@@ -42,7 +42,7 @@ function readVersion(): { version: string; generatedAt: string } {
   try {
     const raw = readFileSync(join(process.cwd(), 'data', 'version.json'), 'utf-8')
     const data = JSON.parse(raw) as { major: string; minor: string; generatedAt: string }
-    return { version: `${data.major}+${data.minor}`, generatedAt: data.generatedAt }
+    return { version: data.major, generatedAt: '' }
   } catch {
     return { version: 'unknown', generatedAt: '' }
   }
@@ -62,7 +62,7 @@ async function checkDatabase(): Promise<CheckResult> {
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error)
     console.error('[health] database check failed:', msg)
-    return { status: 'error', latencyMs: Date.now() - start, message: '数据库连接失败' }
+    return { status: 'error', latencyMs: Date.now() - start }
   }
 }
 
@@ -80,7 +80,7 @@ async function checkStorage(): Promise<CheckResult> {
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error)
     console.error('[health] storage check failed:', msg)
-    return { status: 'error', latencyMs: Date.now() - start, message: '存储后端连接失败' }
+    return { status: 'error', latencyMs: Date.now() - start }
   }
 }
 
