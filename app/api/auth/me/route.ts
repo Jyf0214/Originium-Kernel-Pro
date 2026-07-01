@@ -40,7 +40,8 @@ export async function GET() {
         role: user.role,
         userGroup: user.userGroup,
         avatar: avatar ?? undefined,
-      }
+      },
+      _debug: { uid: session.uid, email: user.email, role: user.role, avatar },
     });
   } catch (error) {
     logger.error('GET', '获取用户信息失败', { error: error instanceof Error ? error.message : String(error) });
