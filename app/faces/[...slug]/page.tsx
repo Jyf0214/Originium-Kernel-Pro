@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/Button';
 
 function LoadingView() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
       <GlobalLoading size="large" />
     </div>
   );
@@ -35,8 +35,8 @@ function BreadcrumbsNav({ slugArray }: { slugArray: string[] }) {
   }));
 
   return (
-    <nav className="flex items-center gap-2 text-sm text-zinc-400 mb-8 flex-wrap">
-      <Link href="/faces" className="hover:text-zinc-900 transition-colors flex items-center gap-1">
+    <nav className="flex items-center gap-2 text-sm text-zinc-400 dark:text-zinc-500 mb-8 flex-wrap">
+      <Link href="/faces" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1">
         <ArrowLeft size={14} />
         {t('nav.faces')}
       </Link>
@@ -44,9 +44,9 @@ function BreadcrumbsNav({ slugArray }: { slugArray: string[] }) {
         <span key={crumb.href} className="flex items-center gap-2">
           <span>/</span>
           {crumb.isLast ? (
-            <span className="text-zinc-900 font-medium">{crumb.label}</span>
+            <span className="text-zinc-900 dark:text-zinc-100 font-medium">{crumb.label}</span>
           ) : (
-            <Link href={crumb.href} className="hover:text-zinc-900 transition-colors">
+            <Link href={crumb.href} className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
               {crumb.label}
             </Link>
           )}
@@ -74,11 +74,11 @@ function FaceDetailHeader({ file, isSudo, rawContent, showRaw, setShowRaw }: {
           fallbackImg={siteConfig?.errorImg?.flink}
         />
       </div>
-      <h1 className="text-2xl font-bold text-zinc-900 mb-4">
+      <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
         {file.meta.title}
       </h1>
       {file.meta.description && (
-        <p className="text-sm text-zinc-400">{file.meta.description}</p>
+        <p className="text-sm text-zinc-400 dark:text-zinc-500">{file.meta.description}</p>
       )}
       {file.meta.tags && file.meta.tags.length > 0 && (
         <div className="flex flex-wrap justify-center gap-2 mt-4">
@@ -116,7 +116,7 @@ function FaceDetailContent({ file, showRaw, rawContent, fullPath }: {
   return (
     <div className="max-w-3xl mx-auto">
       {showRaw && rawContent ? (
-        <pre className="bg-zinc-50 border border-zinc-200 rounded-2xl p-6 overflow-x-auto font-mono text-sm leading-relaxed whitespace-pre-wrap">
+        <pre className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-6 overflow-x-auto font-mono text-sm leading-relaxed whitespace-pre-wrap">
           {rawContent}
         </pre>
       ) : (
@@ -169,7 +169,7 @@ export default function FaceDetailPage() {
   if (!file) notFound();
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <PageContainer maxWidth="4xl">
         <BreadcrumbsNav slugArray={slugArray} />
         <article>

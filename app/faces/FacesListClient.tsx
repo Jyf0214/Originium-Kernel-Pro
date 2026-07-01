@@ -83,7 +83,7 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
             placeholder={t('faces.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-12 h-10 text-sm w-full rounded-xl bg-white border-zinc-200 hover:border-zinc-300 focus:border-zinc-900 transition-colors"
+            className="pl-12 h-10 text-sm w-full rounded-xl bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 focus:border-zinc-900 dark:focus:border-zinc-500 transition-colors"
             variant="outlined"
             prefix={<span className="w-3" />}
           />
@@ -117,7 +117,7 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
       </div>
 
       {/* 联系人卡片列表 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-full overflow-hidden">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-full overflow-hidden">
         <AnimatePresence mode="popLayout">
           {filteredFaces.map((face) => (
             <motion.div
@@ -127,20 +127,20 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="group bg-white rounded-2xl border border-zinc-100 p-6 overflow-hidden hover:shadow-xl hover:shadow-zinc-200/50 hover:-translate-y-1 transition-all duration-300"
+              className="group bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 p-6 overflow-hidden hover:shadow-xl hover:shadow-zinc-200/50 dark:hover:shadow-zinc-900/50 hover:-translate-y-1 transition-all duration-300"
             >
               <Link href={`/faces${face.slug}`} className="block">
                 {/* 头像 */}
-                <div className="w-20 h-20 bg-gradient-to-br from-zinc-100 to-zinc-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-zinc-100 group-hover:border-zinc-200 group-hover:from-zinc-200 group-hover:to-zinc-100 transition-all duration-300">
-                  <UserCircle size={40} className="text-zinc-300 group-hover:text-zinc-500 transition-colors duration-300" />
+                <div className="w-20 h-20 bg-gradient-to-br from-zinc-100 to-zinc-50 dark:from-zinc-700 dark:to-zinc-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-zinc-100 dark:border-zinc-600 group-hover:border-zinc-200 dark:group-hover:border-zinc-500 group-hover:from-zinc-200 group-hover:to-zinc-100 dark:group-hover:from-zinc-600 dark:group-hover:to-zinc-500 transition-all duration-300">
+                  <UserCircle size={40} className="text-zinc-300 dark:text-zinc-400 group-hover:text-zinc-500 dark:group-hover:text-zinc-300 transition-colors duration-300" />
                 </div>
                 {/* 姓名 */}
-                <h3 className="text-lg font-bold text-zinc-900 text-center mb-2 group-hover:text-zinc-600 transition-colors duration-300 overflow-hidden text-ellipsis whitespace-nowrap">
+                <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 text-center mb-2 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors duration-300 overflow-hidden text-ellipsis whitespace-nowrap">
                   {face.title}
                 </h3>
                 {/* 描述 */}
                 {face.description && (
-                  <p className="text-zinc-400 text-sm text-center line-clamp-2 mb-3">
+                  <p className="text-zinc-400 dark:text-zinc-500 text-sm text-center line-clamp-2 mb-3">
                     {face.description}
                   </p>
                 )}
@@ -172,7 +172,7 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
             <EmptyState
               variant="card"
               icon={
-                <div className="w-24 h-24 bg-gradient-to-br from-zinc-50 to-zinc-100 rounded-2xl flex items-center justify-center text-zinc-300">
+                <div className="w-24 h-24 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-700 dark:to-zinc-800 rounded-2xl flex items-center justify-center text-zinc-300 dark:text-zinc-500">
                   <Users size={40} />
                 </div>
               }

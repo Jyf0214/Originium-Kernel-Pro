@@ -40,7 +40,7 @@ export default function FacesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-zinc-50">
+      <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
         <div className="flex-1 flex items-center justify-center">
           <GlobalLoading size="large" />
         </div>
@@ -49,7 +49,7 @@ export default function FacesPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <PageContainer maxWidth="4xl">
         <PageHeader
           title={t('nav.faces')}
