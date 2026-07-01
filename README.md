@@ -252,7 +252,7 @@
 
 ## 环境变量
 
-> **URL 解析顺序**（详见 `const/url.ts`）：`APP_URL` → `NEXT_PUBLIC_SITE_URL`（已弃用，命中时 warn）→ `VERCEL_PROJECT_PRODUCTION_URL`（warn）→ `VERCEL_URL`（warn）→ 抛错。
+> **URL 解析顺序**（详见 `const/url.ts`）：`APP_URL` → `VERCEL_PROJECT_PRODUCTION_URL`（warn）→ `VERCEL_URL`（warn）→ 抛错。
 > **存储后端切换**（`STORAGE_TYPE`）：`webdav`（默认）或 `backblaze`，决定存储池与自定义页面使用哪个后端。
 > **WebDAV 启用判定**（`lib/env.ts → isWebDavConfigured`）：`WEBDAV_URL` / `WEBDAV_USER` / `WEBDAV_PASS` 三者必须同时存在。
 > **Backblaze B2 启用判定**（`lib/env.ts → isBackblazeConfigured`）：`B2_KEY_ID` / `B2_APP_KEY` / `B2_BUCKET` 三者必须同时存在。
@@ -267,7 +267,6 @@
 | `ADMIN_EMAIL` | 初始管理员邮箱 | 否 | - |
 | `ADMIN_PASSWORD` | 初始管理员密码 | 否 | - |
 | `APP_URL` | 站点根地址（生产环境必填；影响 og:url / 分享链接 / 版权链接 / OAuth 回调）。缺失时运行时回退到 Vercel 注入的环境变量（`next build` 时会发出 build warning） | 否 | `http://localhost:3000` |
-| `NEXT_PUBLIC_SITE_URL` | 站点根地址旧名（已弃用，命中时控制台 warn 并提示迁移到 `APP_URL`） | 否 | - |
 | `GITHUB_REPO` | GitHub 仓库（格式：`用户名/仓库名`） | 否 | - |
 | `GITHUB_TOKEN` | GitHub 访问令牌（需要 repo 权限） | 否 | - |
 | `CRON_SECRET` | 定时任务认证密钥 | 否 | - |

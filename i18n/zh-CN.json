@@ -436,8 +436,7 @@
         "ADMIN_PASSWORD": "种子管理员的密码。必须与 ADMIN_EMAIL 同时设置；否则跳过种子步骤。"
       },
       "app": {
-        "APP_URL": "站点规范根 URL（例如 https://example.com）。用于 og:url、分享链接、版权链接和邮件回调地址。",
-        "NEXT_PUBLIC_SITE_URL": "APP_URL 的旧名字。仍可兼容使用，但命中时会输出 console.warn 警告。"
+        "APP_URL": "站点规范根 URL（例如 https://example.com）。用于 og:url、分享链接、版权链接和邮件回调地址。"
       },
       "github": {
         "GITHUB_REPO": "目标仓库，格式 owner/repo。GitHub 同步所必需。",
