@@ -42,13 +42,13 @@ export default function LanguageSwitcher() {
   return (
     <div ref={wrapperRef} className="relative">
       <Button variant="default" size="sm" onClick={() => setIsOpen(!isOpen)} className="justify-start bg-transparent" autoLoading={false}>
-        <Globe size={14} className="text-zinc-500" />
+        <Globe size={14} className="text-zinc-500 dark:text-zinc-400" />
         <span className="text-xs font-medium">{currentLang.name}</span>
       </Button>
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="bg-white border border-zinc-200 rounded-lg shadow-lg overflow-hidden z-[1000] min-w-[150px] fixed"
+          className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg overflow-hidden z-[1000] min-w-[150px] fixed"
           style={{
             top: wrapperRef.current ? wrapperRef.current.getBoundingClientRect().bottom + 4 : 68,
             left: wrapperRef.current

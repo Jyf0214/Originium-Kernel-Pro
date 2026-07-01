@@ -32,13 +32,13 @@ interface ArticleData {
  */
 function ArticleMetaSection({ articleData, userParam }: { articleData: ArticleData; userParam: string | null }) {
   return (
-    <div className="flex flex-wrap items-center gap-6 text-zinc-400 border-y border-zinc-100 py-8">
+    <div className="flex flex-wrap items-center gap-6 text-zinc-400 dark:text-zinc-500 border-y border-zinc-100 dark:border-zinc-700 py-8">
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-white">
+        <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-900 rounded-2xl flex items-center justify-center text-white">
           <User size={20} />
         </div>
         <div>
-          <div className="font-black text-zinc-900 leading-none mb-1">{articleData.authorName ?? articleData.author ?? 'Anonymous'}</div>
+          <div className="font-black text-zinc-900 dark:text-zinc-100 leading-none mb-1">{articleData.authorName ?? articleData.author ?? 'Anonymous'}</div>
           {userParam && (
             <Tag size="xs" variant="outline">@{userParam}</Tag>
           )}
@@ -46,10 +46,10 @@ function ArticleMetaSection({ articleData, userParam }: { articleData: ArticleDa
       </div>
       {articleData.date && (
         <>
-          <div className="h-8 w-px bg-zinc-100 hidden sm:block"></div>
+          <div className="h-8 w-px bg-zinc-100 dark:bg-zinc-700 hidden sm:block"></div>
           <div className="flex items-center gap-2">
             <Calendar size={18} />
-            <time className="text-sm font-bold text-zinc-500">
+            <time className="text-sm font-bold text-zinc-500 dark:text-zinc-400">
               {new Date(articleData.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
             </time>
           </div>
@@ -69,7 +69,7 @@ function ArticleHeaderSection({ articleData, userParam }: { articleData: Article
           </Tag>
         ))}
       </div>
-      <h1 className="text-4xl md:text-7xl font-display font-black tracking-tight text-zinc-900 mb-10 leading-[1.05]">
+      <h1 className="text-4xl md:text-7xl font-display font-black tracking-tight text-zinc-900 dark:text-zinc-100 mb-10 leading-[1.05]">
         {articleData.title}
       </h1>
       <ArticleMetaSection articleData={articleData} userParam={userParam} />
@@ -79,10 +79,10 @@ function ArticleHeaderSection({ articleData, userParam }: { articleData: Article
 
 function NotFoundView() {
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="text-4xl font-display font-black text-zinc-900 mb-4">404</h1>
-        <p className="text-zinc-500 mb-8">Article not found in this kernel.</p>
+        <h1 className="text-4xl font-display font-black text-zinc-900 dark:text-zinc-100 mb-4">404</h1>
+        <p className="text-zinc-500 dark:text-zinc-400 mb-8">Article not found in this kernel.</p>
         <Link href="/">
           <Button variant="primary" size="lg" autoLoading={false}>Back Home</Button>
         </Link>
@@ -93,7 +93,7 @@ function NotFoundView() {
 
 function LoadingView() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
       <GlobalLoading size="large" />
     </div>
   );
@@ -135,11 +135,11 @@ function ArticleViewContent() {
   if (!article) return <NotFoundView />;
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <ReadingProgressBar />
       <ScrollToTop />
       <PageContainer maxWidth="4xl" padding="wide">
-        <Link href="/" className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-900 mb-12 transition-all group">
+        <Link href="/" className="inline-flex items-center gap-2 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 mb-12 transition-all group">
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           <span className="font-medium">Back to Home</span>
         </Link>
@@ -148,7 +148,7 @@ function ArticleViewContent() {
           <ArticleHeaderSection articleData={articleData} userParam={userParam ?? null} />
 
           {(articleData.coverImage ?? articleData.cover) && (
-            <div className="w-full aspect-[21/9] rounded-[2rem] overflow-hidden bg-zinc-50 mb-16 shadow-2xl shadow-zinc-200 relative">
+            <div className="w-full aspect-[21/9] rounded-[2rem] overflow-hidden bg-zinc-50 dark:bg-zinc-800 mb-16 shadow-2xl shadow-zinc-200 relative">
               <Image
                 src={articleData.coverImage ?? articleData.cover ?? ''}
                 alt={articleData.title ?? ''}
@@ -173,7 +173,7 @@ function ArticleViewContent() {
 
 export default function ArticleViewPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><GlobalLoading size="large" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900"><GlobalLoading size="large" /></div>}>
       <ArticleViewContent />
     </Suspense>
   );

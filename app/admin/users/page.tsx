@@ -118,12 +118,12 @@ export default function UsersPage() {
 
   return (
     <PageContainer maxWidth="5xl">
-      <h1 className="text-2xl font-bold text-zinc-900 mb-6">{t('admin.users')}</h1>
+      <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">{t('admin.users')}</h1>
 
-      <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
+      <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 overflow-hidden">
         <div className="overflow-x-auto">
           {/* 表头 */}
-          <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-zinc-50 border-b border-zinc-100 text-xs font-bold text-zinc-500 uppercase tracking-wider min-w-[640px]">
+          <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-100 dark:border-zinc-700 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider min-w-[640px]">
             <div className="col-span-3">{t('common.user')}</div>
             <div className="col-span-4">{t('admin.email')}</div>
             <div className="col-span-3">{t('admin.role')}</div>
@@ -133,17 +133,17 @@ export default function UsersPage() {
         {users.length > 0 ? (
           <div className="divide-y divide-zinc-50">
             {users.map((u) => (
-              <div key={String(u.uid ?? u.id)} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-zinc-50/50 transition-colors min-w-[640px]">
+              <div key={String(u.uid ?? u.id)} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-zinc-50/50 dark:hover:bg-zinc-700/50 transition-colors min-w-[640px]">
                 {/* 用户 */}
                 <div className="col-span-3 flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 bg-zinc-100 rounded-full flex items-center justify-center shrink-0">
-                    <User size={14} className="text-zinc-400" />
+                    <User size={14} className="text-zinc-400 dark:text-zinc-500" />
                   </div>
-                  <span className="font-medium text-sm text-zinc-900 truncate">{String(u.name ?? u.username ?? t('admin.noRole'))}</span>
+                  <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100 truncate">{String(u.name ?? u.username ?? t('admin.noRole'))}</span>
                 </div>
 
                 {/* 邮箱 */}
-                <div className="col-span-4 text-sm text-zinc-400 truncate">{String(u.email)}</div>
+                <div className="col-span-4 text-sm text-zinc-400 dark:text-zinc-500 truncate">{String(u.email)}</div>
 
                 {/* 角色 */}
                 <div className="col-span-3">
@@ -172,7 +172,7 @@ export default function UsersPage() {
                   {editingId === u.uid ? (
                     <>
                       <Button variant="ghost" size="sm" icon={<Check size={14} className="text-emerald-500" />} onClick={() => handleUpdateRole(String(u.uid))} loading={operating === u.uid} />
-                      <Button variant="ghost" size="sm" icon={<X size={14} className="text-zinc-400" />} onClick={() => setEditingId(null)} disabled={operating === u.uid} autoLoading={false} />
+                      <Button variant="ghost" size="sm" icon={<X size={14} className="text-zinc-400 dark:text-zinc-500" />} onClick={() => setEditingId(null)} disabled={operating === u.uid} autoLoading={false} />
                     </>
                   ) : (
                     <>
@@ -193,7 +193,7 @@ export default function UsersPage() {
           </div>
         ) : (
           <div className="py-16 text-center">
-            <span className="text-zinc-400">{t('admin.noUsers')}</span>
+            <span className="text-zinc-400 dark:text-zinc-500">{t('admin.noUsers')}</span>
           </div>
         )}
         </div>

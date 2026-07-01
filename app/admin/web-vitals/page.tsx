@@ -42,8 +42,8 @@ export default function WebVitalsPage() {
   return (
     <PageContainer maxWidth="4xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-zinc-900">Web Vitals</h1>
-        <p className="text-zinc-400 text-sm mt-1">Core Web Vitals 性能指标监控</p>
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Web Vitals</h1>
+        <p className="text-zinc-400 dark:text-zinc-500 text-sm mt-1">Core Web Vitals 性能指标监控</p>
       </div>
 
       {/* 迁移提示 */}
@@ -80,15 +80,15 @@ export default function WebVitalsPage() {
           return (
             <div
               key={f.title}
-              className="bg-white rounded-2xl border border-zinc-100 p-5"
+              className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 p-5"
             >
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-zinc-50 rounded-lg flex items-center justify-center shrink-0">
-                  <Icon size={18} className="text-zinc-600" />
+                <div className="w-10 h-10 bg-zinc-50 dark:bg-zinc-700 rounded-lg flex items-center justify-center shrink-0">
+                  <Icon size={18} className="text-zinc-600 dark:text-zinc-400" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-zinc-900 mb-1">{f.title}</h3>
-                  <p className="text-xs text-zinc-400 leading-relaxed">{f.desc}</p>
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1">{f.title}</h3>
+                  <p className="text-xs text-zinc-400 dark:text-zinc-500 leading-relaxed">{f.desc}</p>
                 </div>
               </div>
             </div>

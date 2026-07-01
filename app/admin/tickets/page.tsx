@@ -184,8 +184,8 @@ const handleDelete = async (id: string) => {
       {/* 标题 */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900">{t('tickets.management')}</h1>
-          <p className="text-sm text-zinc-400 mt-1">{t('tickets.subtitle')}</p>
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{t('tickets.management')}</h1>
+          <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-1">{t('tickets.subtitle')}</p>
         </div>
         <Button variant="primary" rounded="md" icon={<Plus size={14} />} onClick={handleCreate} autoLoading={false}>
           {t('tickets.createTemplate')}
@@ -193,19 +193,19 @@ const handleDelete = async (id: string) => {
       </div>
 
       {/* 模板列表 */}
-      <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
+      <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 overflow-hidden">
         <div className="overflow-x-auto">
         {templates.length > 0 ? (
           <div className="divide-y divide-zinc-50">
             {templates.map((template) => (
-              <div key={template.slug} className="px-6 py-4 flex items-center justify-between hover:bg-zinc-50/50 transition-colors">
+              <div key={template.slug} className="px-6 py-4 flex items-center justify-between hover:bg-zinc-50/50 dark:hover:bg-zinc-700/50 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
                     <FileText size={18} className="text-blue-500" />
                   </div>
                   <div>
-                    <span className="font-medium text-sm text-zinc-900">{template.name}</span>
-                    <p className="text-xs text-zinc-400 mt-0.5">
+                    <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100">{template.name}</span>
+                    <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
                       {template.description || t('tickets.noDescription')} · {t('tickets.fieldsCount', { count: template.fields?.length || 0 })}
                     </p>
                   </div>
@@ -227,7 +227,7 @@ const handleDelete = async (id: string) => {
         ) : (
           <div className="py-16 text-center">
             <FileText size={48} className="text-zinc-200 mx-auto mb-4" />
-            <p className="text-zinc-400 mb-4">{t('tickets.noTemplates')}</p>
+            <p className="text-zinc-400 dark:text-zinc-500 mb-4">{t('tickets.noTemplates')}</p>
             <Button variant="primary" rounded="md" icon={<Plus size={14} />} onClick={handleCreate} autoLoading={false}>
               {t('tickets.createFirst')}
             </Button>
@@ -280,12 +280,12 @@ const handleDelete = async (id: string) => {
                   value={field.name}
                   onChange={e => updateField(index, { ...field, name: e.target.value })}
                   placeholder={t('tickets.fieldName')}
-                  className="flex-1 h-9 px-3 border border-zinc-200 rounded-md text-sm outline-none"
+                  className="flex-1 h-9 px-3 border border-zinc-200 dark:border-zinc-700 rounded-md text-sm outline-none"
                 />
                 <select
                   value={field.type}
                   onChange={e => updateField(index, { ...field, type: e.target.value })}
-                  className="h-9 px-2 border border-zinc-200 rounded-md text-sm"
+                  className="h-9 px-2 border border-zinc-200 dark:border-zinc-700 rounded-md text-sm"
                 >
                   <option value="text">{t('tickets.typeText')}</option>
                   <option value="textarea">{t('tickets.typeTextarea')}</option>

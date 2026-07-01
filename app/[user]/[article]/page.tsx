@@ -4,7 +4,7 @@ import { GlobalLoading } from '@/components/Loading';
 
 export default function UserArticlePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-zinc-50"><GlobalLoading size="large" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900"><GlobalLoading size="large" /></div>}>
       <UserArticleContent />
     </Suspense>
   );

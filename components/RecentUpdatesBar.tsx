@@ -53,12 +53,12 @@ export function RecentUpdatesBar({
 
   return (
     <div
-      className="bg-white rounded-xl border border-zinc-100 shadow-sm px-4 py-3 flex items-center gap-3"
+      className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm px-4 py-3 flex items-center gap-3"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* 图标 */}
-      <div className="shrink-0 w-9 h-9 rounded-lg bg-zinc-50 flex items-center justify-center text-zinc-500">
+      <div className="shrink-0 w-9 h-9 rounded-lg bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center text-zinc-500 dark:text-zinc-400">
         <Bell size={16} />
       </div>
 
@@ -77,12 +77,12 @@ export function RecentUpdatesBar({
               {item.link ? (
                 <Link
                   href={item.link}
-                  className="text-sm text-zinc-700 hover:text-zinc-900 transition-colors truncate w-full"
+                  className="text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors truncate w-full"
                 >
                   {item.text}
                 </Link>
               ) : (
-                <span className="text-sm text-zinc-700 truncate w-full">
+                <span className="text-sm text-zinc-700 dark:text-zinc-300 truncate w-full">
                   {item.text}
                 </span>
               )}
@@ -95,7 +95,7 @@ export function RecentUpdatesBar({
       {viewAllLink && (
         <Link
           href={viewAllLink}
-          className="shrink-0 flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-900 transition-colors ml-auto"
+          className="shrink-0 flex items-center gap-1 text-xs text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors ml-auto"
         >
           {viewAllText}
           <ChevronRight size={14} />

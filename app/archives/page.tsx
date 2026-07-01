@@ -79,12 +79,12 @@ export default function ArchivesPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <PageContainer maxWidth="4xl" padding="wide">
-        <h1 className="text-4xl md:text-5xl font-display font-black tracking-tighter text-zinc-900 mb-2">
+        <h1 className="text-4xl md:text-5xl font-display font-black tracking-tighter text-zinc-900 dark:text-zinc-100 mb-2">
           归档 Archives
         </h1>
-        <p className="text-zinc-400 text-base mb-12">
+        <p className="text-zinc-400 dark:text-zinc-500 text-base mb-12">
           共 {posts.length} 篇文章
         </p>
 
@@ -92,10 +92,10 @@ export default function ArchivesPage() {
           {groups.map((group) => (
             <section key={group.year}>
               <div className="flex items-baseline gap-3 mb-4">
-                <h2 className="text-2xl font-bold text-zinc-900">
+                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                   {group.year}
                 </h2>
-                <span className="text-sm text-zinc-400">
+                <span className="text-sm text-zinc-400 dark:text-zinc-500">
                   {group.posts.length} 篇
                 </span>
               </div>
@@ -104,9 +104,9 @@ export default function ArchivesPage() {
                 {group.posts.map((post) => (
                   <article
                     key={post.slug}
-                    className="flex items-center gap-4 py-2 border-b border-zinc-100 last:border-b-0"
+                    className="flex items-center gap-4 py-2 border-b border-zinc-100 dark:border-zinc-700 last:border-b-0"
                   >
-                    <time className="text-sm text-zinc-400 font-mono shrink-0 w-10">
+                    <time className="text-sm text-zinc-400 dark:text-zinc-500 font-mono shrink-0 w-10">
                       {formatShortDate(post.date)}
                     </time>
                     <Link
@@ -131,7 +131,7 @@ export default function ArchivesPage() {
           ))}
 
           {groups.length === 0 && (
-            <p className="text-zinc-400 text-center py-16">
+            <p className="text-zinc-400 dark:text-zinc-500 text-center py-16">
               暂无归档内容
             </p>
           )}

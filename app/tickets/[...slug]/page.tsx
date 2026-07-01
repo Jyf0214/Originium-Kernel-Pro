@@ -66,9 +66,9 @@ function TicketStatusUpdater({
   if (!isAdmin) return null;
 
   return (
-    <div className="mt-6 pt-5 border-t border-zinc-100">
+    <div className="mt-6 pt-5 border-t border-zinc-100 dark:border-zinc-700">
       <div className="flex items-center gap-3">
-        <span className="text-sm font-medium text-zinc-700">{t('tickets.updateStatus')}:</span>
+        <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{t('tickets.updateStatus')}:</span>
         <Select
           value={newStatus}
           onChange={e => onStatusChange(e.target.value)}
@@ -192,7 +192,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
   if (!ticket) {
     return (
       <div className="flex items-center justify-center h-96">
-        <span className="text-zinc-400">{t('tickets.notFound')}</span>
+        <span className="text-zinc-400 dark:text-zinc-500">{t('tickets.notFound')}</span>
       </div>
     );
   }
@@ -201,22 +201,22 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
     <PageContainer maxWidth="3xl">
       <div className="flex items-center gap-3 mb-8">
         <Button variant="default" size="sm" rounded="sm" autoLoading={false} icon={<ArrowLeft size={14} />} onClick={() => router.push('/tickets')} />
-        <h1 className="text-2xl font-bold text-zinc-900">{t('tickets.details')}</h1>
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{t('tickets.details')}</h1>
       </div>
 
-      <div className="bg-white rounded-2xl border border-zinc-100 p-4 sm:p-6 overflow-hidden">
+      <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 p-4 sm:p-6 overflow-hidden">
         {/* 标题和状态 */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2 min-w-0 overflow-hidden">
             <span className="shrink-0">{getStatusIcon(ticket.status)}</span>
-            <span className="text-xl font-semibold text-zinc-900 truncate">{ticket.title}</span>
+            <span className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 truncate">{ticket.title}</span>
           </div>
           <TicketStatusBadge status={ticket.status} t={t} />
         </div>
 
         {/* 元信息 */}
-        <div className="mb-5 p-4 bg-zinc-50 rounded-xl overflow-hidden">
-          <p className="text-xs text-zinc-400 truncate">
+        <div className="mb-5 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl overflow-hidden">
+          <p className="text-xs text-zinc-400 dark:text-zinc-500 truncate">
             {t('tickets.author')}: {ticket.author} · {t('common.createdAt') ?? t('tickets.date')}: {new Date(ticket.date).toLocaleString(locale)} · {t('tickets.template')}: {ticket.template}
           </p>
           {ticket.labels.length > 0 && (
@@ -229,7 +229,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ slug: s
         </div>
 
         {/* 工单内容 */}
-        <div className="p-4 bg-zinc-50 rounded-xl min-h-[200px] whitespace-pre-wrap leading-relaxed text-sm text-zinc-700 overflow-hidden">
+        <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl min-h-[200px] whitespace-pre-wrap leading-relaxed text-sm text-zinc-700 dark:text-zinc-300 overflow-hidden">
           {ticket.content}
         </div>
 

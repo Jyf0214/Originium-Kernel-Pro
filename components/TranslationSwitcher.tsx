@@ -113,17 +113,17 @@ export function TranslationSwitcher({
         onClick={() => setExpanded(!expanded)}
         className={cn(
           'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-          'border border-zinc-200 bg-white hover:bg-zinc-50 hover:border-zinc-300',
+          'border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500',
           expanded && 'bg-zinc-50 border-zinc-300',
         )}
         aria-expanded={expanded}
         aria-label="切换语言"
       >
-        <Globe size={14} className="text-zinc-500" />
+        <Globe size={14} className="text-zinc-500 dark:text-zinc-400" />
         {loading ? (
-          <span className="text-zinc-400">...</span>
+          <span className="text-zinc-400 dark:text-zinc-500">...</span>
         ) : (
-          <span className="text-zinc-600">{getLangLabel(locale)}</span>
+          <span className="text-zinc-600 dark:text-zinc-400">{getLangLabel(locale)}</span>
         )}
       </button>
 
@@ -135,8 +135,8 @@ export function TranslationSwitcher({
               href={t.slug}
               className={cn(
                 'inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-                'border border-zinc-200 bg-white hover:bg-zinc-50 hover:border-zinc-300 text-zinc-600',
-                t.lang === locale && 'bg-zinc-50 border-zinc-300 text-zinc-900',
+                'border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500 text-zinc-600 dark:text-zinc-400',
+                t.lang === locale && 'bg-zinc-50 border-zinc-300 text-zinc-900 dark:text-zinc-100',
               )}
               title={t.title || getLangLabel(t.lang)}
             >

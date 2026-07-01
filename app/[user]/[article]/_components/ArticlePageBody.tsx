@@ -47,9 +47,9 @@ export function ArticlePageBody({
   const showShare = shareConfig && (shareConfig.sharejs.enable || shareConfig.addtoany.enable);
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <PageContainer maxWidth="4xl" padding="wide">
-        <Link href={`/${username}`} className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-900 mb-12 transition-all group">
+        <Link href={`/${username}`} className="inline-flex items-center gap-2 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 mb-12 transition-all group">
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           <span className="font-medium">Back to {userData?.name}&apos;s Profile</span>
         </Link>
@@ -87,7 +87,7 @@ export function ArticlePageBody({
             highlight={siteConfig?.highlight}
           />
 
-          <div className="max-w-3xl mx-auto mt-12 pt-8 border-t border-zinc-100 flex items-center justify-between">
+          <div className="max-w-3xl mx-auto mt-12 pt-8 border-t border-zinc-100 dark:border-zinc-700 flex items-center justify-between">
             <PostEditLink slug={articleData.id || article} />
             {showShare && <ShareButtons config={shareConfig} title={articleData.title} variant="horizontal" />}
           </div>

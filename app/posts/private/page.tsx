@@ -51,12 +51,12 @@ export default async function PrivatePostsPage() {
   }));
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12 md:py-20">
-        <h1 className="text-5xl md:text-7xl font-display font-black tracking-tighter text-zinc-900 mb-4">
+        <h1 className="text-5xl md:text-7xl font-display font-black tracking-tighter text-zinc-900 dark:text-zinc-100 mb-4">
           🔒 私人内容
         </h1>
-        <p className="text-zinc-400 text-lg mb-12">仅登录用户可见的私人帖子</p>
+        <p className="text-zinc-400 dark:text-zinc-500 text-lg mb-12">仅登录用户可见的私人帖子</p>
         <PostListClient posts={posts} groups={groups} />
       </main>
       <Footer />

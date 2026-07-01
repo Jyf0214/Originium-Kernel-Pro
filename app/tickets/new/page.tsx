@@ -112,7 +112,7 @@ export default function NewTicketPage() {
     <PageContainer maxWidth="3xl" padding="compact">
       <div className="flex flex-wrap items-center gap-3 mb-8">
         <Button size="sm" autoLoading={false} icon={<ArrowLeft size={14} />} onClick={() => router.back()} rounded="sm" />
-        <h1 className="text-xl sm:text-2xl font-bold text-zinc-900">{selectedTemplate ? t('tickets.fillTicket') : t('tickets.selectTemplate')}</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">{selectedTemplate ? t('tickets.fillTicket') : t('tickets.selectTemplate')}</h1>
       </div>
 
       {!selectedTemplate ? (
@@ -121,13 +121,13 @@ export default function NewTicketPage() {
             <div
               key={template.slug}
               onClick={() => handleTemplateSelect(template)}
-              className="p-5 bg-white rounded-2xl border border-zinc-100 cursor-pointer hover:border-zinc-300 hover:shadow-md transition-all"
+              className="p-5 bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-500 hover:shadow-md transition-all"
             >
               <div className="flex items-center gap-3 mb-2">
                 <FileText size={20} className="text-blue-500" />
-                <span className="font-medium text-sm text-zinc-900">{template.name}</span>
+                <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100">{template.name}</span>
               </div>
-              <p className="text-sm text-zinc-400">{template.description}</p>
+              <p className="text-sm text-zinc-400 dark:text-zinc-500">{template.description}</p>
               {template.labels.length > 0 && (
                 <div className="mt-2 flex gap-1">
                   {template.labels.map(label => (
@@ -139,7 +139,7 @@ export default function NewTicketPage() {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-zinc-100 p-4 sm:p-6">
+        <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 p-4 sm:p-6">
           <div className="mb-5">
             <label className="block text-sm font-medium mb-2">{t('tickets.title')} *</label>
             <Input value={title} onChange={e => setTitle(e.target.value)} placeholder={t('tickets.placeholderTitle')} className="rounded-xl w-full" />
@@ -176,7 +176,7 @@ export default function NewTicketPage() {
               )}
             </div>
           ))}
-          <div className="flex items-center justify-between pt-4 border-t border-zinc-100">
+          <div className="flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-zinc-700">
             <Button autoLoading={false} icon={<ArrowLeft size={16} />} onClick={() => setSelectedTemplate(null)}>
               {t('common.back')}
             </Button>

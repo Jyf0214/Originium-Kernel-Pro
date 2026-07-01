@@ -71,13 +71,13 @@ export default function ArticlePage() {
   const articleData = article as ArticleData;
 
   if (!article) return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-20 h-20 bg-zinc-50 rounded-full flex items-center justify-center mb-6 text-zinc-300">
+        <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-6 text-zinc-300 dark:text-zinc-600">
           <User size={40} />
         </div>
-        <h1 className="text-3xl font-display font-bold text-zinc-900 mb-4">{t('error.notFound')}</h1>
-        <p className="text-zinc-500 mb-8 max-w-md">{t('error.networkError')}</p>
+        <h1 className="text-3xl font-display font-bold text-zinc-900 dark:text-zinc-100 mb-4">{t('error.notFound')}</h1>
+        <p className="text-zinc-500 dark:text-zinc-400 mb-8 max-w-md">{t('error.networkError')}</p>
         <Link href="/">
           <Button variant="primary" size="lg" autoLoading={false}>{t('common.back')}</Button>
         </Link>
@@ -86,11 +86,11 @@ export default function ArticlePage() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <ReadingProgressBar />
       <ScrollToTop />
       <PageContainer maxWidth="4xl" padding="wide">
-        <Link href="/" className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 mb-10 transition-colors group">
+        <Link href="/" className="inline-flex items-center gap-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 mb-10 transition-colors group">
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           <span className="font-medium">Back to articles</span>
         </Link>
@@ -106,21 +106,21 @@ export default function ArticlePage() {
                 ))}
               </div>
             )}
-            <h1 className="text-4xl md:text-6xl font-display font-black tracking-tight text-zinc-900 mb-6 leading-tight">
+            <h1 className="text-4xl md:text-6xl font-display font-black tracking-tight text-zinc-900 dark:text-zinc-100 mb-6 leading-tight">
               {articleData.title}
             </h1>
-            <div className="flex items-center gap-4 text-zinc-500 border-b border-zinc-100 pb-8">
+            <div className="flex items-center gap-4 text-zinc-500 dark:text-zinc-400 border-b border-zinc-100 dark:border-zinc-700 pb-8">
               <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-zinc-100 rounded-full flex items-center justify-center text-sm font-bold text-zinc-600">
+                <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-700 rounded-full flex items-center justify-center text-sm font-bold text-zinc-600 dark:text-zinc-300">
                   <User size={20} />
                 </div>
                 <div>
-                  <div className="font-bold text-zinc-900 leading-none mb-1">{articleData.authorName ?? articleData.author ?? 'Anonymous'}</div>
+                  <div className="font-bold text-zinc-900 dark:text-zinc-100 leading-none mb-1">{articleData.authorName ?? articleData.author ?? 'Anonymous'}</div>
                 </div>
               </div>
               {articleData.date && (
                 <>
-                  <span className="text-zinc-200">|</span>
+                  <span className="text-zinc-200 dark:text-zinc-700">|</span>
                   <time className="text-sm font-medium" dateTime={articleData.date}>
                     {new Date(articleData.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
                   </time>
@@ -128,7 +128,7 @@ export default function ArticlePage() {
               )}
               {articleData.content && (
                 <>
-                  <span className="text-zinc-200">|</span>
+                  <span className="text-zinc-200 dark:text-zinc-700">|</span>
                   <span className="flex items-center gap-1 text-sm font-medium">
                     <Clock size={14} />
                     <span>阅读 {estimateReadingTime(articleData.content)} 分钟</span>
@@ -142,7 +142,7 @@ export default function ArticlePage() {
             <MarkdownRenderer content={articleData.content ?? ''} highlight={siteConfig?.highlight} />
           </div>
 
-          <div className="max-w-3xl mx-auto mt-12 pt-8 border-t border-zinc-100">
+          <div className="max-w-3xl mx-auto mt-12 pt-8 border-t border-zinc-100 dark:border-zinc-700">
             <ShareButtons config={siteConfig?.share} title={articleData.title} variant="horizontal" />
           </div>
         </article>
