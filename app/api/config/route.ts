@@ -106,17 +106,17 @@ async function handleConfigGet() {
   // 更新内存缓存
   configCache = { data: response, timestamp: Date.now() };
 
-  // 剥离内部字段（保留 _githubRepo 供管理员前端使用）
-  const { _remoteConfig, _remoteConfigStatus, _remoteConfigError, ...publicConfig } = response;
+  // 剥离内部/管理字段
+  const { _remoteConfig, _remoteConfigStatus, _remoteConfigError, _githubRepo, ...publicConfig } = response;
 
   return buildConfigResponse(publicConfig);
 }
 
-/** 未认证用户剥离 access 规则、users 映射和 _githubRepo，防止信息泄露 */
+/** 未认证用户剥离 access 规则和 users 映射，防止枚举安全边界和 UID */
 async function buildConfigResponse(config: Record<string, unknown>) {
   const session = await getSession();
   if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
-    const { access: _access, users: _users, _githubRepo: _gr, ...safeConfig } = config;
+    const { access: _access, users: _users, ...safeConfig } = config;
     return NextResponse.json(safeConfig, {
       headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
     });
