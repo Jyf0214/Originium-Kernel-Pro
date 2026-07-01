@@ -99,7 +99,7 @@ export function StorageFolderTree({
                       size={14}
                       className={active ? 'text-zinc-700' : 'text-zinc-400'}
                     />
-                    <span className="flex-1 text-left truncate">
+                    <span className="flex-1 text-left min-w-0 break-all">
                       {folder.path.includes('/') ? (
                         <>
                           <span className="text-zinc-400 text-xs">

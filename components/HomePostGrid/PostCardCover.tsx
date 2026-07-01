@@ -21,8 +21,8 @@ function PostCardImage({ post, defaultCover }: { post: PostItem; defaultCover?: 
     );
   }
   return (
-    <div className="w-full h-full flex items-center justify-center text-zinc-100 dark:text-zinc-600 font-black text-6xl select-none">
-      {post.title.charAt(0)}
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-700 dark:to-zinc-800 select-none">
+      <span className="text-3xl font-bold text-zinc-300 dark:text-zinc-500">{post.title.charAt(0)}</span>
     </div>
   );
 }

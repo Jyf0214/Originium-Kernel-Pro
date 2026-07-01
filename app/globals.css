@@ -187,6 +187,16 @@ pre:hover .code-copy-btn {
 .markdown-content tr:hover td {
   background: rgb(250 250 250);
 }
+.dark .markdown-content th {
+  background: rgb(39 39 42);
+  border-bottom-color: rgb(63 63 70);
+}
+.dark .markdown-content td {
+  border-bottom-color: rgb(63 63 70);
+}
+.dark .markdown-content tr:hover td {
+  background: rgb(39 39 42);
+}
 
 /* 引用块 */
 .markdown-content blockquote {
@@ -200,12 +210,20 @@ pre:hover .code-copy-btn {
 .markdown-content blockquote p:last-child {
   margin-bottom: 0;
 }
+.dark .markdown-content blockquote {
+  border-left-color: rgb(161 161 170);
+  background: rgb(39 39 42);
+  color: rgb(212 212 216);
+}
 
 /* 水平分割线 */
 .markdown-content hr {
   border: none;
   border-top: 1px solid rgb(228 228 231);
   margin: 2rem 0;
+}
+.dark .markdown-content hr {
+  border-top-color: rgb(63 63 70);
 }
 
 /* === 自定义滚动条（Webkit + Firefox） === */

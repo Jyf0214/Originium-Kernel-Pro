@@ -125,17 +125,17 @@ function SortButton({
       type="button"
       onClick={() => onToggle(field)}
       className={[
-        'inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors',
+        'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors',
         active
-          ? 'bg-zinc-200 text-zinc-900 font-medium'
+          ? 'bg-zinc-900 text-white'
           : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700',
       ].join(' ')}
     >
       {label}
       {active ? (
-        currentDirection === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />
+        currentDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />
       ) : (
-        <ArrowUpDown size={10} className="opacity-40" />
+        <ArrowUpDown size={12} className="opacity-40" />
       )}
     </button>
   );
@@ -229,7 +229,7 @@ function SortToolbar({
   disabled: boolean;
 }) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1.5 flex-wrap">
       {entries.length > 0 && (
         <div className="relative mr-1">
           <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />

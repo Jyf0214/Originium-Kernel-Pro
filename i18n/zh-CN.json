@@ -191,7 +191,8 @@
     "auditLogs": "审计日志",
     "switchToUserMenu": "切换到用户面板菜单",
     "switchToAdminMenu": "返回管理后台菜单",
-    "apiKeys": "API 密钥"
+    "apiKeys": "API 密钥",
+    "webVitals": "性能监控"
   },
   "tickets": {
     "add": "添加",
