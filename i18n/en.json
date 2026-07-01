@@ -191,7 +191,8 @@
     "auditLogs": "Audit Logs",
     "switchToUserMenu": "Switch to User Menu",
     "switchToAdminMenu": "Back to Admin Menu",
-    "apiKeys": "API Keys"
+    "apiKeys": "API Keys",
+    "webVitals": "Web Vitals"
   },
   "tickets": {
     "add": "Add",

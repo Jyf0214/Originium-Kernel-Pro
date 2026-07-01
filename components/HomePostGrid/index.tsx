@@ -56,9 +56,9 @@ export function HomePostGrid({
 
       <section>
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold text-zinc-900">{t('home.latestPosts')}</h2>
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{t('home.latestPosts')}</h2>
           {posts.length > 0 && (
-            <Link href="/posts" className="text-sm text-zinc-400 hover:text-zinc-900 flex items-center gap-1 transition-colors">
+            <Link href="/posts" className="text-sm text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1 transition-colors">
               {t('home.viewAll')} <ArrowRight size={14} />
             </Link>
           )}
@@ -78,11 +78,11 @@ export function HomePostGrid({
                   />
                 ))
               : (
-                  <div className="col-span-full py-32 text-center bg-white rounded-[3rem] border border-zinc-100 shadow-sm">
-                    <div className="w-24 h-24 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-6 text-zinc-300">
+                  <div className="col-span-full py-32 text-center bg-white dark:bg-zinc-800 rounded-[3rem] border border-zinc-100 dark:border-zinc-700 shadow-sm">
+                    <div className="w-24 h-24 bg-zinc-50 dark:bg-zinc-700 rounded-full flex items-center justify-center mx-auto mb-6 text-zinc-300 dark:text-zinc-500">
                       <Sparkles size={40} />
                     </div>
-                    <h3 className="text-2xl font-black text-zinc-900 mb-2">{t('home.emptyTitle')}</h3>
+                    <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-2">{t('home.emptyTitle')}</h3>
                     <p className="text-zinc-400 font-medium whitespace-pre-line">
                       {t('home.noPosts')}
                     </p>

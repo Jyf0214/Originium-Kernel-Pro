@@ -8,7 +8,6 @@ import {
   Settings,
   Activity,
   FileText,
-  ArrowLeft,
   Eye,
   Folder,
   Globe,
@@ -34,7 +33,6 @@ export const userMenuItems: MenuItem[] = [
 ];
 
 export const adminMenuItems: MenuItem[] = [
-  { key: 'sidebar.returnDashboard', icon: ArrowLeft, href: '/dashboard', group: 'back' },
   { key: 'sidebar.systemConfig', icon: Settings, href: '/admin/config', group: 'admin' },
   { key: 'sidebar.configPreview', icon: Eye, href: '/admin/config/preview', group: 'admin' },
   { key: 'sidebar.envVariables', icon: Activity, href: '/admin/env', group: 'admin' },

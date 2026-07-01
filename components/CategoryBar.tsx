@@ -43,7 +43,7 @@ export function CategoryBar({
   const isAnyFilterActive = selectedCategory !== null || selectedTag !== null;
 
   return (
-    <div className="bg-white rounded-xl border border-zinc-100 shadow-sm p-1.5 relative">
+    <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm p-1.5 relative">
       <div
         ref={scrollRef}
         onWheel={handleWheel}
@@ -105,7 +105,7 @@ export function CategoryBar({
       </div>
 
       {/* 右侧渐变遮罩 + "更多"箭头按钮 */}
-      <div className="absolute right-0 top-0 bottom-0 w-[72px] pointer-events-none flex items-center justify-end rounded-r-xl bg-gradient-to-l from-white via-white/95 to-transparent">
+      <div className="absolute right-0 top-0 bottom-0 w-[72px] pointer-events-none flex items-center justify-end rounded-r-xl bg-gradient-to-l from-white dark:from-zinc-800 via-white/95 dark:via-zinc-800/95 to-transparent">
         <Button
           onClick={scrollRight}
           variant="default"

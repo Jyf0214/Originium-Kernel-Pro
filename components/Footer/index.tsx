@@ -59,10 +59,7 @@ export default function Footer() {
   const rightSocial = socialEntries.slice(mid);
 
   return (
-    <footer className="relative overflow-hidden">
-      {/* 渐变背景：透明 → bg-zinc-50 */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-50/80 to-zinc-50 dark:via-zinc-800/80 dark:to-zinc-800 pointer-events-none" />
-
+    <footer className="relative overflow-hidden bg-zinc-50 dark:bg-zinc-800">
       <div className="relative max-w-5xl mx-auto px-6 pt-16 pb-0 space-y-8">
         {/* 1. 社交区：左侧图标 + 居中头像 + 右侧图标 */}
         {(leftSocial.length > 0 || rightSocial.length > 0 || avatarUrl) && (

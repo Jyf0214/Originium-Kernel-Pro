@@ -86,8 +86,9 @@ export function LazyImage({
 
   if (status === 'error') {
     return (
-      <div className={`bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center rounded-xl ${className ?? ''}`} style={containerStyle}>
-        <ImageOff size={32} className="text-zinc-300 dark:text-zinc-600" />
+      <div className={`bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-700 dark:to-zinc-800 flex flex-col items-center justify-center gap-2 rounded-xl ${className ?? ''}`} style={containerStyle}>
+        <ImageOff size={28} className="text-zinc-300 dark:text-zinc-500" />
+        <span className="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium">图片加载失败</span>
       </div>
     );
   }
