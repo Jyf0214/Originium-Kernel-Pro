@@ -53,14 +53,13 @@ export type {
  *
  * 触发条件：
  * - NODE_ENV === 'production'（即 `next build`）
- * - APP_URL 未设置（且 NEXT_PUBLIC_SITE_URL 旧名也未设置）
+ * - APP_URL 未设置
  * - VERCEL === '1'（即在 Vercel 上构建，本地生产构建不警告）
  */
 if (
   process.env.NODE_ENV === 'production' &&
   process.env.VERCEL === '1' &&
-  !process.env.APP_URL &&
-  !process.env.NEXT_PUBLIC_SITE_URL
+  !process.env.APP_URL
 ) {
   const vercelProd = process.env.VERCEL_PROJECT_PRODUCTION_URL;
   const vercelUrl = process.env.VERCEL_URL;

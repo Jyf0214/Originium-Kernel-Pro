@@ -436,8 +436,7 @@
         "ADMIN_PASSWORD": "Password of the initial admin account. Must be set together with ADMIN_EMAIL; otherwise the seed step is skipped."
       },
       "app": {
-        "APP_URL": "Canonical site root URL (e.g. https://example.com). Used for og:url, share links, copyright links, and email callback URLs.",
-        "NEXT_PUBLIC_SITE_URL": "Legacy name of APP_URL. Still honored for backward compatibility but logs a console.warn on use."
+        "APP_URL": "Canonical site root URL (e.g. https://example.com). Used for og:url, share links, copyright links, and email callback URLs."
       },
       "github": {
         "GITHUB_REPO": "Target repository in the format owner/repo. Required for GitHub sync.",

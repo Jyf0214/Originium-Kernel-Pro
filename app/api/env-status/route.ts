@@ -89,14 +89,6 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
           required: false,
           descriptionKey: 'env.vars.app.APP_URL',
         },
-        {
-          name: 'NEXT_PUBLIC_SITE_URL',
-          isSet: !!process.env.NEXT_PUBLIC_SITE_URL,
-          required: false,
-          descriptionKey: 'env.vars.app.NEXT_PUBLIC_SITE_URL',
-          deprecated: true,
-          renamedTo: 'APP_URL',
-        },
       ],
     },
     github: {
