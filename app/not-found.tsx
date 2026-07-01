@@ -2,32 +2,48 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { SearchX, Home, ArrowLeft } from 'lucide-react';
+import { Home, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/ui';
+import { useConfig } from '@/hooks/use-config';
 
 export default function NotFound() {
+  const { config } = useConfig();
+  const errorImg = config?.errorImg?.postPage;
+
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <main className="flex-1 flex items-center justify-center px-4 py-16">
         <div className="max-w-lg w-full text-center">
-          {/* 搜索图标 */}
-          <div className="mb-6 flex justify-center">
+          {/* 自定义 404 图片 */}
+          {errorImg ? (
             <div
               className={cn(
-                'w-20 h-20 rounded-2xl bg-zinc-100 border border-zinc-200',
-                'flex items-center justify-center',
+                'mb-6 flex justify-center',
                 'animate-[fadeSlideUp_0.5s_ease-out]'
               )}
             >
-              <SearchX size={36} className="text-zinc-400" />
+              <img
+                src={errorImg}
+                alt="404"
+                className="w-48 h-48 object-contain drop-shadow-lg"
+              />
             </div>
-          </div>
+          ) : (
+            <div
+              className={cn(
+                'mb-6 flex justify-center',
+                'animate-[fadeSlideUp_0.5s_ease-out]'
+              )}
+            >
+              <div className="text-8xl select-none">🌌</div>
+            </div>
+          )}
 
           {/* 404 大号数字 */}
           <h1
             className={cn(
-              'text-8xl sm:text-9xl font-black text-zinc-200 select-none',
+              'text-8xl sm:text-9xl font-black text-zinc-200 dark:text-zinc-700 select-none',
               'animate-[fadeSlideUp_0.5s_ease-out_0.1s_both]'
             )}
           >
@@ -37,7 +53,7 @@ export default function NotFound() {
           {/* 友好提示 */}
           <h2
             className={cn(
-              'mt-4 text-xl sm:text-2xl font-bold text-zinc-800',
+              'mt-4 text-xl sm:text-2xl font-bold text-zinc-800 dark:text-zinc-100',
               'animate-[fadeSlideUp_0.5s_ease-out_0.2s_both]'
             )}
           >
@@ -45,7 +61,7 @@ export default function NotFound() {
           </h2>
           <p
             className={cn(
-              'mt-2 text-sm sm:text-base text-zinc-500 leading-relaxed max-w-sm mx-auto',
+              'mt-2 text-sm sm:text-base text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-sm mx-auto',
               'animate-[fadeSlideUp_0.5s_ease-out_0.3s_both]'
             )}
           >
