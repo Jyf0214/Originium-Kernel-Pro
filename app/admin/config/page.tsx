@@ -72,11 +72,11 @@ export default function ConfigPage() {
   const [remoteConfig, setRemoteConfig] = useState<string>('');
   const [remoteConfigStatus, setRemoteConfigStatus] = useState<string>('');
   const [remoteConfigError, setRemoteConfigError] = useState<string>('');
-  const [githubRepo, setGithubRepo] = useState<string>('');
   const initialConfigRef = React.useRef<ConfigState | null>(null);
 
   const { handleSave: handleGitHubSave, DiffModal } = useGitHubConfigSync({
-    repo: githubRepo,
+    repo: '',
+    githubConfigured,
     remoteConfig,
     currentConfig: config as unknown as Record<string, unknown>,
     managedFields: ['site', 'appearance', 'access', 'auth', 'nav', 'mourn', 'highlight', 'copy', 'social', 'authorStatus', 'cover', 'errorImg', 'postMeta', 'wordcount', 'toc', 'copyright', 'reward', 'postEdit', 'share', 'mainTone', 'footer'],
@@ -100,12 +100,10 @@ export default function ConfigPage() {
         const res = await fetch('/api/config', { signal: controller.signal });
         if (res.ok) {
           const data: Record<string, unknown> = await res.json();
-          setGithubRepo((data._githubRepo as string) ?? '');
           const configState = buildConfigState(data);
           setConfig(configState);
           initialConfigRef.current = configState;
-          const repo = (data._githubRepo as string) ?? process.env.NEXT_PUBLIC_GITHUB_REPO ?? '';
-          setGithubConfigured(!!repo);
+          setGithubConfigured(!!data.githubConfigured);
           setRemoteConfig((data._remoteConfig as string) ?? '');
           setRemoteConfigStatus((data._remoteConfigStatus as string) ?? '');
           setRemoteConfigError((data._remoteConfigError as string) ?? '');

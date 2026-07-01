@@ -9,6 +9,7 @@ import { useI18n } from '@/hooks/use-i18n';
 
 export interface UseGitHubConfigSyncOptions {
   repo: string;
+  githubConfigured?: boolean;
   remoteConfig: string;
   currentConfig: Record<string, unknown>;
   managedFields?: string[];
@@ -28,6 +29,7 @@ export interface UseGitHubConfigSyncOptions {
 
 export function useGitHubConfigSync({
   repo,
+  githubConfigured,
   remoteConfig,
   currentConfig,
   managedFields = ['site', 'appearance', 'access', 'auth'],
@@ -36,7 +38,7 @@ export function useGitHubConfigSync({
   onSyncComplete,
   onSyncError,
 }: UseGitHubConfigSyncOptions) {
-  const { showDiff, DiffModal } = useGitHubDiff({ repo });
+  const { showDiff, DiffModal } = useGitHubDiff({ repo: repo || (githubConfigured ? 'GitHub' : '') });
   const { t } = useI18n();
 
   /**
@@ -48,7 +50,7 @@ export function useGitHubConfigSync({
    */
   const handleSave = useCallback((initialConfig: Record<string, unknown>, remoteConfigOverride?: string, commitMessage?: string, repoOverride?: string) => {
     const effectiveRepo = repoOverride ?? repo;
-    if (!effectiveRepo) {
+    if (!effectiveRepo && !githubConfigured) {
       message.error('GitHub 未配置');
       return;
     }
@@ -115,7 +117,7 @@ export function useGitHubConfigSync({
         }
       },
     });
-  }, [repo, remoteConfig, currentConfig, managedFields, customTransform, showDiff, t, onSyncStart, onSyncComplete, onSyncError]);
+  }, [repo, githubConfigured, remoteConfig, currentConfig, managedFields, customTransform, showDiff, t, onSyncStart, onSyncComplete, onSyncError]);
 
   return { handleSave, DiffModal };
 }

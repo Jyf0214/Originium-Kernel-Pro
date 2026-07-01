@@ -19,7 +19,7 @@ export function SettingsPageContent() {
   const { user } = useAuth();
   const { t } = useI18n();
 
-  const { configData, configLoaded, githubRepo } = useConfigData();
+  const { configData, configLoaded, githubConfigured } = useConfigData();
   const { form, watchedAvatarUrl, originalAvatar, pageReady } = useSettingsForm({
     user,
     configData,
@@ -28,7 +28,7 @@ export function SettingsPageContent() {
   const { loading, DiffModal, handleSave } = useSettingsSave({
     uid: user?.uid,
     originalAvatar,
-    githubRepo,
+    githubConfigured,
     watchedAvatarUrl,
     userName: user?.name ?? user?.uid ?? '',
   });
