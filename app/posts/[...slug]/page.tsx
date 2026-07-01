@@ -57,9 +57,11 @@ export default async function PostDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
-      <main className="flex-1 max-w-6xl 2xl:max-w-7xl mx-auto w-full px-6 pt-8 pb-16">
-        <div className="lg:flex lg:gap-12">
-          <PostDetailBody {...viewModel} />
+      <main className="flex-1 max-w-6xl 2xl:max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-8 pb-16">
+        <div className="lg:flex lg:gap-8 items-start">
+          <div className="flex-1 min-w-0 bg-white dark:bg-zinc-800 rounded-3xl shadow-xl shadow-zinc-200/50 dark:shadow-zinc-900/50 border border-zinc-100 dark:border-zinc-700 p-6 sm:p-8 md:p-10 lg:p-12">
+            <PostDetailBody {...viewModel} />
+          </div>
           <PostSidebar
             content={file.content}
             headingCount={viewModel.headingCount}

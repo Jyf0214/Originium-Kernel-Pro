@@ -26,7 +26,7 @@ function CoverHero({
   coverStr: string;
 }) {
   return (
-    <header className="relative -mx-6 sm:-mx-8 mb-12 rounded-2xl sm:rounded-3xl overflow-hidden">
+    <header className="relative -m-6 sm:-m-8 md:-m-10 lg:-m-12 mb-12 rounded-t-3xl overflow-hidden">
       <div className="absolute inset-0">
         <div
           className="absolute inset-0 bg-cover bg-center scale-105 blur-sm"
