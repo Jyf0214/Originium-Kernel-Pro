@@ -77,7 +77,7 @@ export default function DiaryDraftsPage() {
   if (!user || !isSudo) return null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <PageHeader
         title="草稿箱"
         backHref="/diary"
@@ -86,7 +86,7 @@ export default function DiaryDraftsPage() {
       <PageContainer maxWidth="4xl" padding="compact">
         {loading ? (
           <div className="flex items-center justify-center py-32">
-            <Loader2 size={32} className="text-zinc-300 animate-spin" />
+            <Loader2 size={32} className="text-zinc-300 dark:text-zinc-600 animate-spin" />
           </div>
         ) : drafts.length === 0 ? (
           <EmptyState
@@ -98,22 +98,22 @@ export default function DiaryDraftsPage() {
         ) : (
           <div className="space-y-3 sm:space-y-4">
             {drafts.map((d) => (
-              <div key={d.id} className="bg-white rounded-2xl border border-zinc-100 p-4 sm:p-5">
+              <div key={d.id} className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-base sm:text-lg font-bold text-zinc-900 truncate">
+                    <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">
                       {d.title || '无标题'}
                     </h3>
                     {d.content && (
-                      <p className="text-sm text-zinc-400 mt-1 line-clamp-2">{d.content}</p>
+                      <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-1 line-clamp-2">{d.content}</p>
                     )}
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2 text-xs text-zinc-400">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2 text-xs text-zinc-400 dark:text-zinc-500">
                       <span className="flex items-center gap-1">
                         <Calendar size={12} />
                         {new Date(d.savedAt).toLocaleString('zh-CN')}
                       </span>
                       {(d.tags ?? []).length > 0 && (
-                        <span className="text-zinc-300">{(d.tags ?? []).join(', ')}</span>
+                        <span className="text-zinc-300 dark:text-zinc-600">{(d.tags ?? []).join(', ')}</span>
                       )}
                     </div>
                   </div>

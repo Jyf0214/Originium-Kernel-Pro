@@ -33,8 +33,8 @@ function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType
           <Icon size={20} className="text-white" />
         </div>
         <div>
-          <div className="text-2xl font-bold text-zinc-900">{typeof value === 'number' ? value.toLocaleString() : value}</div>
-          <div className="text-xs text-zinc-400 mt-0.5">{label}</div>
+          <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{typeof value === 'number' ? value.toLocaleString() : value}</div>
+          <div className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">{label}</div>
         </div>
       </div>
     </ProCard>
@@ -45,20 +45,20 @@ function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType
 
 function BarChart({ items, maxCount }: { items: { name: string; count: number }[]; maxCount: number }) {
   if (items.length === 0) {
-    return <div className="text-sm text-zinc-400 py-4">暂无数据</div>;
+    return <div className="text-sm text-zinc-400 dark:text-zinc-500 py-4">暂无数据</div>;
   }
   return (
     <div className="space-y-3">
       {items.map((item) => (
         <div key={item.name} className="flex items-center gap-3">
-          <div className="w-24 text-sm text-zinc-600 truncate shrink-0" title={item.name}>{item.name}</div>
-          <div className="flex-1 h-6 bg-zinc-50 rounded-full overflow-hidden">
+          <div className="w-24 text-sm text-zinc-600 dark:text-zinc-400 truncate shrink-0" title={item.name}>{item.name}</div>
+          <div className="flex-1 h-6 bg-zinc-50 dark:bg-zinc-800 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full bg-zinc-900 transition-all duration-500"
               style={{ width: maxCount > 0 ? `${(item.count / maxCount) * 100}%` : '0%' }}
             />
           </div>
-          <div className="w-10 text-right text-sm font-medium text-zinc-500 shrink-0">{item.count}</div>
+          <div className="w-10 text-right text-sm font-medium text-zinc-500 dark:text-zinc-400 shrink-0">{item.count}</div>
         </div>
       ))}
     </div>
@@ -69,7 +69,7 @@ function BarChart({ items, maxCount }: { items: { name: string; count: number }[
 
 function Timeline({ posts }: { posts: RecentPost[] }) {
   if (posts.length === 0) {
-    return <div className="text-sm text-zinc-400 py-4">暂无发布记录</div>;
+    return <div className="text-sm text-zinc-400 dark:text-zinc-500 py-4">暂无发布记录</div>;
   }
   return (
     <div className="space-y-0">
@@ -84,8 +84,8 @@ function Timeline({ posts }: { posts: RecentPost[] }) {
               {i < posts.length - 1 && <div className="w-px flex-1 bg-zinc-100 my-1" />}
             </div>
             <div className="flex-1 min-w-0 pb-1">
-              <div className="text-sm font-medium text-zinc-900 truncate">{post.title}</div>
-              <div className="flex items-center gap-3 mt-1 text-xs text-zinc-400">
+              <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">{post.title}</div>
+              <div className="flex items-center gap-3 mt-1 text-xs text-zinc-400 dark:text-zinc-500">
                 <span>{dateStr}</span>
                 <span>{post.wordCount.toLocaleString()} 字</span>
               </div>

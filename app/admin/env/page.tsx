@@ -105,7 +105,7 @@ export default function EnvStatusPage() {
   if (!envStatus) {
     return (
       <div className="flex items-center justify-center h-96">
-        <span className="text-zinc-400">获取环境变量状态失败</span>
+        <span className="text-zinc-400 dark:text-zinc-500">获取环境变量状态失败</span>
       </div>
     );
   }
@@ -122,15 +122,15 @@ export default function EnvStatusPage() {
   const allCollapsed = orderedEntries.every(([key]) => collapsed[key]);
 
   return (
-    <PageContainer maxWidth="4xl" className="bg-zinc-50">
+    <PageContainer maxWidth="4xl" className="bg-zinc-50 dark:bg-zinc-900">
       <div className="flex items-center justify-between mb-5 gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center shrink-0">
             <Server size={22} className="text-white" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-zinc-900">{t('env.title') || '环境变量状态'}</h1>
-            <p className="text-zinc-400 text-sm">{t('env.subtitle') || '检查系统所需环境变量配置'}</p>
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{t('env.title') || '环境变量状态'}</h1>
+            <p className="text-zinc-400 dark:text-zinc-500 text-sm">{t('env.subtitle') || '检查系统所需环境变量配置'}</p>
           </div>
         </div>
         <HeaderActions onToggleAll={handleToggleAll} onRefresh={fetchEnvStatus} allCollapsed={allCollapsed} t={t} />

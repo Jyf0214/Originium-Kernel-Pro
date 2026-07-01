@@ -187,7 +187,7 @@ function EditorContent() {
     <div className="max-w-5xl mx-auto p-6 md:p-10 min-h-screen flex flex-col overflow-hidden">
       {/* 顶部操作栏 */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
-        <Link href="/dashboard/articles" className="flex items-center gap-2 text-zinc-500 hover:text-zinc-900 transition-colors shrink-0">
+        <Link href="/dashboard/articles" className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors shrink-0">
           <ArrowLeft size={20} />
           <span className="hidden sm:inline">{t('editor.back')}</span>
         </Link>
@@ -253,13 +253,13 @@ function EditorContent() {
           placeholder={t('editor.titlePlaceholder')}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="text-4xl md:text-5xl font-display font-bold text-zinc-900 bg-transparent border-none outline-none placeholder:text-zinc-300 w-full"
+          className="text-4xl md:text-5xl font-display font-bold text-zinc-900 dark:text-zinc-100 bg-transparent border-none outline-none placeholder:text-zinc-300 dark:placeholder:text-zinc-600 w-full"
         />
 
         {/* Slug / 封面 / 标签 */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-mono">/posts</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-xs font-mono">/posts</span>
             <Input
               type="text"
               placeholder="/category/my-post（留空自动生成）"
@@ -272,7 +272,7 @@ function EditorContent() {
             />
           </div>
           <div className="flex-1 relative">
-            <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+            <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" size={18} />
             <Input
               type="text"
               placeholder={t('editor.coverUrl')}
@@ -315,7 +315,7 @@ function EditorContent() {
           placeholder={t('editor.contentPlaceholder')}
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="flex-1 w-full bg-zinc-50 border border-zinc-200 rounded-2xl p-6 text-zinc-800 font-mono text-sm resize-none outline-none focus:border-zinc-400 transition-colors min-h-[300px] max-h-[70vh]"
+          className="flex-1 w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-6 text-zinc-800 dark:text-zinc-200 font-mono text-sm resize-none outline-none focus:border-zinc-400 dark:focus:border-zinc-500 transition-colors min-h-[300px] max-h-[70vh]"
         />
       </div>
     </div>
@@ -324,7 +324,7 @@ function EditorContent() {
 
 function EditorLoading() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
       <GlobalLoading size="large" />
     </div>
   );

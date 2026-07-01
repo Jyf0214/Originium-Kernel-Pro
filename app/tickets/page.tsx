@@ -111,22 +111,22 @@ export default function TicketsPage() {
       </div>
 
       {/* 工单列表 */}
-      <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
+      <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 overflow-hidden">
         {filteredTickets.length > 0 ? (
           <div className="divide-y divide-zinc-50">
             {filteredTickets.map((ticket) => (
               <div
                 key={ticket.slug}
                 onClick={() => router.push(`/tickets${ticket.slug}`)}
-                className="px-4 sm:px-6 py-4 cursor-pointer hover:bg-zinc-50/50 transition-colors overflow-hidden"
+                className="px-4 sm:px-6 py-4 cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-zinc-700/50 transition-colors overflow-hidden"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1 min-w-0 overflow-hidden">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="shrink-0">{getStatusIcon(ticket.status)}</span>
-                      <span className="font-medium text-sm text-zinc-900 truncate">{ticket.title}</span>
+                      <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100 truncate">{ticket.title}</span>
                     </div>
-                    <p className="text-xs text-zinc-400 truncate">
+                    <p className="text-xs text-zinc-400 dark:text-zinc-500 truncate">
                       {ticket.template} · {ticket.author} · {new Date(ticket.date).toLocaleDateString(locale)}
                     </p>
                     {ticket.labels.length > 0 && (
@@ -137,14 +137,14 @@ export default function TicketsPage() {
                       </div>
                     )}
                   </div>
-                  <span className="text-xs text-zinc-400 shrink-0 whitespace-nowrap">{getStatusText(ticket.status)}</span>
+                  <span className="text-xs text-zinc-400 dark:text-zinc-500 shrink-0 whitespace-nowrap">{getStatusText(ticket.status)}</span>
                 </div>
               </div>
             ))}
           </div>
         ) : (
           <div className="py-16 text-center">
-            <span className="text-zinc-400">{t('common.noData')}</span>
+            <span className="text-zinc-400 dark:text-zinc-500">{t('common.noData')}</span>
           </div>
         )}
       </div>

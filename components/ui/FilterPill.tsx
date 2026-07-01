@@ -22,7 +22,7 @@ export function FilterPill({
 }: FilterPillProps) {
   const selectedStyles = 'bg-zinc-900 text-white shadow-sm';
   const unselectedStyles =
-    'bg-white text-zinc-600 border border-zinc-200 hover:border-zinc-300 hover:text-zinc-700';
+    'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300';
 
   const classes = [
     baseStyles,

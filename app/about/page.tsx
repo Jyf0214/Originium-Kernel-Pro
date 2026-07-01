@@ -39,7 +39,7 @@ export default function AboutPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <PageContainer maxWidth="5xl" padding="compact">
         <HeroBanner
           title="关于"
@@ -59,8 +59,8 @@ export default function AboutPage() {
 
         {/* 项目简介 */}
         <section className="mb-10 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 mb-4">项目介绍</h2>
-          <p className="text-zinc-600 leading-relaxed">
+          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">项目介绍</h2>
+          <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
             Originium Kernel 是一个基于 Next.js 构建的现代内容发布平台，专注于内容创作与管理的简洁体验。
             项目采用文件系统作为主要内容存储，数据库仅用于授权验证与最小化运行支撑，确保数据安全与可移植性。
           </p>
@@ -68,20 +68,20 @@ export default function AboutPage() {
 
         {/* 功能特点 */}
         <section className="mb-10 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 mb-6">功能特点</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">功能特点</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {features.map((feature) => {
               const Icon = feature.icon;
               return (
                 <div
                   key={feature.title}
-                  className="bg-white rounded-2xl border border-zinc-100 p-5 sm:p-6 hover:border-zinc-200 hover:shadow-sm transition-all"
+                  className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 p-5 sm:p-6 hover:border-zinc-200 dark:hover:border-zinc-500 hover:shadow-sm transition-all"
                 >
                   <div className="w-10 h-10 bg-zinc-50 rounded-xl flex items-center justify-center mb-3">
-                    <Icon size={20} className="text-zinc-700" />
+                    <Icon size={20} className="text-zinc-700 dark:text-zinc-300" />
                   </div>
-                  <h3 className="text-base font-bold text-zinc-900 mb-1.5">{feature.title}</h3>
-                  <p className="text-sm text-zinc-500 leading-relaxed">{feature.description}</p>
+                  <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-1.5">{feature.title}</h3>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">{feature.description}</p>
                 </div>
               );
             })}
@@ -90,9 +90,9 @@ export default function AboutPage() {
 
         {/* 技术栈 */}
         <section className="mb-10 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 mb-4">技术栈</h2>
-          <div className="bg-white rounded-2xl border border-zinc-100 p-5 sm:p-6">
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-zinc-600">
+          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">技术栈</h2>
+          <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 p-5 sm:p-6">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-zinc-600 dark:text-zinc-400">
               <li className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-zinc-900 shrink-0" />
                 Next.js 16 (App Router)
@@ -124,16 +124,16 @@ export default function AboutPage() {
         {/* 版本信息 */}
         {version && (
           <section className="mb-10 sm:mb-12">
-            <div className="bg-white rounded-2xl border border-zinc-100 p-5 sm:p-6 text-center">
-              <p className="text-xs text-zinc-400 mb-1">当前版本</p>
-              <p className="text-lg font-mono font-bold text-zinc-900">{version}</p>
+            <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 p-5 sm:p-6 text-center">
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-1">当前版本</p>
+              <p className="text-lg font-mono font-bold text-zinc-900 dark:text-zinc-100">{version}</p>
             </div>
           </section>
         )}
 
         {/* 反馈 */}
         <section className="mb-10 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 mb-4">反馈与建议</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">反馈与建议</h2>
           <FeedbackForm />
         </section>
 

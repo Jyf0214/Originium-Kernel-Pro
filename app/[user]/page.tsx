@@ -65,16 +65,16 @@ function UserProfileContent() {
   }, [username]);
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-900">
       <GlobalLoading size="large" />
     </div>
   );
 
   if (!user) return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-zinc-900">
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="text-4xl font-display font-black text-zinc-900 mb-4">{t('error.404')}</h1>
-        <p className="text-zinc-500 mb-8">{t('error.notFound')}</p>
+        <h1 className="text-4xl font-display font-black text-zinc-900 dark:text-zinc-100 mb-4">{t('error.404')}</h1>
+        <p className="text-zinc-500 dark:text-zinc-400 mb-8">{t('error.notFound')}</p>
         <Link href="/">
           <Button variant="primary" size="lg" autoLoading={false}>{t('common.back')}</Button>
         </Link>
@@ -83,24 +83,24 @@ function UserProfileContent() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-zinc-900">
 
       <main className="flex-1">
         {/* User Profile Header */}
-        <div className="bg-zinc-50 border-b border-zinc-100">
+        <div className="bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-100 dark:border-zinc-700">
           <div className="max-w-4xl mx-auto px-6 py-12">
             <div className="flex flex-col items-center text-center">
               <div className="w-24 h-24 bg-zinc-900 rounded-3xl flex items-center justify-center text-white mb-6 shadow-xl shadow-zinc-200 overflow-hidden">
                 <Avatar name={user.name} avatarUrl={user.avatar ?? undefined} size={96} />
               </div>
               
-              <h1 className="text-4xl font-display font-black text-zinc-900 mb-2">
+              <h1 className="text-4xl font-display font-black text-zinc-900 dark:text-zinc-100 mb-2">
                 {user.name}
               </h1>
               
-              <p className="text-zinc-400 font-medium mb-6">@{username}</p>
-              
-              <div className="flex flex-wrap justify-center gap-4 text-sm text-zinc-500">
+              <p className="text-zinc-400 dark:text-zinc-500 font-medium mb-6">@{username}</p>
+
+              <div className="flex flex-wrap justify-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
                 <div className="flex items-center gap-2">
                   <Calendar size={16} />
                   <span>Joined {new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</span>
@@ -128,10 +128,10 @@ function UserProfileContent() {
             const showTotal = siteConfig?.wordcount?.totalWordcount === true;
             const totalWords = showTotal ? articles.reduce((sum, a) => sum + calcTotalWords(a.content ?? ''), 0) : 0;
             return (
-              <h2 className="text-2xl font-display font-bold text-zinc-900 mb-8">
+              <h2 className="text-2xl font-display font-bold text-zinc-900 dark:text-zinc-100 mb-8">
                 Articles ({articles.length})
                 {showTotal && totalWords > 0 && (
-                  <span className="inline-flex items-center gap-1.5 text-sm font-normal text-zinc-400 ml-3">
+                  <span className="inline-flex items-center gap-1.5 text-sm font-normal text-zinc-400 dark:text-zinc-500 ml-3">
                     <BookOpen size={14} />
                     总计 {totalWords} 字
                   </span>
@@ -141,7 +141,7 @@ function UserProfileContent() {
           })()}
           
           {articles.length === 0 ? (
-            <div className="text-center py-12 text-zinc-400">
+            <div className="text-center py-12 text-zinc-400 dark:text-zinc-500">
               <p className="font-medium">No articles published yet</p>
             </div>
           ) : (
@@ -161,7 +161,7 @@ function UserProfileContent() {
 
 export default function UserProfilePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><GlobalLoading size="large" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-900"><GlobalLoading size="large" /></div>}>
       <UserProfileContent />
     </Suspense>
   );

@@ -31,8 +31,8 @@ export default function NewDiaryPage() {
   if (!user) return null;
   if (!isSudo) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
-        <p className="text-zinc-400 text-lg">无权访问</p>
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
+        <p className="text-zinc-400 dark:text-zinc-500 text-lg">无权访问</p>
       </div>
     );
   }

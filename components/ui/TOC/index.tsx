@@ -88,7 +88,7 @@ export function TOC({ content, config, locale }: TOCProps) {
     <>
       {/* 桌面端：sticky 侧边栏 */}
       <nav className="hidden lg:block sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
-        <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-3 px-3">
+        <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-3 px-3">
           {label}
         </h4>
         <TocItem
@@ -106,7 +106,7 @@ export function TOC({ content, config, locale }: TOCProps) {
           onToggle={(e) => setMobileOpen((e.target as HTMLDetailsElement).open)}
           className="group"
         >
-          <summary className="w-12 h-12 bg-white rounded-2xl shadow-lg border border-zinc-100 flex items-center justify-center cursor-pointer list-none text-zinc-500 hover:text-zinc-900 hover:shadow-xl transition-all">
+          <summary className="w-12 h-12 bg-white dark:bg-zinc-800 rounded-2xl shadow-lg border border-zinc-100 dark:border-zinc-700 flex items-center justify-center cursor-pointer list-none text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:shadow-xl transition-all">
             <svg
               width="20"
               height="20"
@@ -125,10 +125,10 @@ export function TOC({ content, config, locale }: TOCProps) {
               <line x1="3" y1="18" x2="3.01" y2="18" />
             </svg>
           </summary>
-          <div className={`absolute right-0 w-64 max-h-80 overflow-y-auto bg-white rounded-2xl shadow-xl border border-zinc-100 p-4 ${
+          <div className={`absolute right-0 w-64 max-h-80 overflow-y-auto bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-zinc-100 dark:border-zinc-700 p-4 ${
             isShortScreen ? 'top-full' : 'bottom-16'
           }`}>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-3">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-3">
               {label}
             </h4>
             <TocItem

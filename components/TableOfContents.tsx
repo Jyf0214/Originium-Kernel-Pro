@@ -21,10 +21,10 @@ function TocButton({ simple, onClick, expanded }: { simple?: boolean; onClick: (
   return (
     <button
       onClick={onClick}
-      className={`fixed bottom-6 right-6 z-50 w-12 h-12 bg-white rounded-2xl shadow-lg border border-zinc-100 flex items-center justify-center transition-all ${
+      className={`fixed bottom-6 right-6 z-50 w-12 h-12 bg-white dark:bg-zinc-800 rounded-2xl shadow-lg border border-zinc-100 dark:border-zinc-700 flex items-center justify-center transition-all ${
         simple
           ? 'text-zinc-300 hover:text-zinc-500 shadow-sm'
-          : 'text-zinc-500 hover:text-zinc-900 hover:shadow-xl'
+          : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:shadow-xl'
       }`}
       aria-label="目录"
       aria-expanded={expanded}
@@ -52,11 +52,11 @@ function TocItemButton({ item, index, activeId, simple, maxLevel, numberEnabled,
       className={`block w-full text-left py-1 rounded-lg px-2 transition-colors ${
         isActive
           ? simple
-            ? 'bg-zinc-50 text-zinc-700 border-l-2 border-zinc-900'
-            : 'bg-zinc-100 text-zinc-900 font-medium border-l-2 border-zinc-900'
+            ? 'bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-l-2 border-zinc-900'
+            : 'bg-zinc-100 text-zinc-900 dark:text-zinc-100 font-medium border-l-2 border-zinc-900'
           : simple
-            ? 'text-zinc-300 hover:text-zinc-500 hover:bg-zinc-50 border-l-2 border-transparent'
-            : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50 border-l-2 border-transparent'
+            ? 'text-zinc-300 hover:text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-700 border-l-2 border-transparent'
+            : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 border-l-2 border-transparent'
       } ${simple ? 'text-xs' : 'text-sm'}`}
       style={{ paddingLeft: `${(item.level - maxLevel) * (simple ? 8 : 12) + 8}px` }}
       aria-current={isActive ? 'true' : undefined}
@@ -83,13 +83,13 @@ function TocPanel({ open, items, activeId, simple, maxLevel, numberEnabled, isSh
   return (
     <div
       ref={panelRef}
-      className={`fixed right-6 z-50 max-h-80 overflow-y-auto bg-white rounded-2xl shadow-xl border border-zinc-100 max-w-[calc(100vw-3rem)] ${
+      className={`fixed right-6 z-50 max-h-80 overflow-y-auto bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-zinc-100 dark:border-zinc-700 max-w-[calc(100vw-3rem)] ${
         isShortScreen ? 'top-20' : 'bottom-20'
       } ${simple ? 'p-3 w-56' : 'p-4 w-64'}`}
       role="dialog"
       aria-label="文章目录"
     >
-      <h4 className={`font-bold uppercase tracking-widest text-zinc-400 mb-3 ${
+      <h4 className={`font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-3 ${
         simple ? 'text-[10px]' : 'text-xs'
       }`}>目录</h4>
       <nav role="navigation" aria-label="文章目录" className={simple ? 'space-y-0.5' : 'space-y-1'}>

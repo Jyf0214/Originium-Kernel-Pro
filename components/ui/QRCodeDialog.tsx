@@ -63,7 +63,7 @@ export default function QRCodeDialog({ open, url, title, onClose }: QRCodeDialog
     >
       <div className="flex flex-col items-center gap-5 pt-2 pb-2">
         {/* 二维码图片 */}
-        <div className="p-4 bg-white rounded-2xl border border-zinc-100 shadow-sm">
+        <div className="p-4 bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
           <img
             src={qrSrc}
             alt={title ? `${title} 的二维码` : t('posts.shareQR')}
@@ -74,7 +74,7 @@ export default function QRCodeDialog({ open, url, title, onClose }: QRCodeDialog
 
         {/* 文章标题 */}
         {title && (
-          <p className="text-sm font-semibold text-zinc-800 text-center line-clamp-2 w-full">
+          <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 text-center line-clamp-2 w-full">
             {title}
           </p>
         )}
@@ -85,7 +85,7 @@ export default function QRCodeDialog({ open, url, title, onClose }: QRCodeDialog
             type="text"
             readOnly
             value={url}
-            className="flex-1 min-w-0 px-3 py-2 text-sm text-zinc-600 bg-zinc-50 border border-zinc-200 rounded-l-lg outline-none select-all"
+            className="flex-1 min-w-0 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-l-lg outline-none select-all"
           />
           <button
             type="button"
@@ -93,7 +93,7 @@ export default function QRCodeDialog({ open, url, title, onClose }: QRCodeDialog
             className={`flex items-center gap-1.5 px-4 text-sm font-medium border transition-colors whitespace-nowrap rounded-r-lg ${
               copied
                 ? 'bg-green-50 border-green-300 text-green-600'
-                : 'bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50'
+                : 'bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-700'
             }`}
           >
             {copied ? <Check size={14} /> : <Copy size={14} />}

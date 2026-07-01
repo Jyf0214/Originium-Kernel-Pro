@@ -31,7 +31,7 @@ export function PageHeader({
   actions,
 }: PageHeaderProps) {
   return (
-    <div className="bg-white border-b border-zinc-100">
+    <div className="bg-white dark:bg-zinc-800 border-b border-zinc-100 dark:border-zinc-700">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           {backHref && (
@@ -47,11 +47,11 @@ export function PageHeader({
             </Link>
           )}
           <div className="min-w-0">
-            <h1 className="text-base sm:text-lg font-bold text-zinc-900 truncate">
+            <h1 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">
               {title}
             </h1>
             {description && (
-              <p className="text-xs sm:text-sm text-zinc-400 truncate">{description}</p>
+              <p className="text-xs sm:text-sm text-zinc-400 dark:text-zinc-500 truncate">{description}</p>
             )}
           </div>
         </div>

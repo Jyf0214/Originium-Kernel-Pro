@@ -117,13 +117,13 @@ export default function RequestsPage() {
 
   return (
     <PageContainer maxWidth="7xl">
-      <h1 className="text-3xl font-display font-bold text-zinc-900 mb-8">文章删除申请</h1>
+      <h1 className="text-3xl font-display font-bold text-zinc-900 dark:text-zinc-100 mb-8">文章删除申请</h1>
 
-      <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-zinc-50 border-b border-zinc-200 text-xs uppercase tracking-wider text-zinc-500 font-bold">
+              <tr className="bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400 font-bold">
                 <th className="p-4">申请人</th>
                 <th className="p-4">文章</th>
                 <th className="p-4">原因</th>
@@ -133,18 +133,18 @@ export default function RequestsPage() {
             </thead>
             <tbody className="divide-y divide-zinc-100">
               {requests.map((req) => (
-                <tr key={req.id} className="hover:bg-zinc-50 transition-colors">
-                  <td className="p-4 font-medium text-zinc-900">{req.userName}</td>
+                <tr key={req.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors">
+                  <td className="p-4 font-medium text-zinc-900 dark:text-zinc-100">{req.userName}</td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
-                      <FileText size={16} className="text-zinc-400" />
+                      <FileText size={16} className="text-zinc-400 dark:text-zinc-500" />
                       <div>
-                        <div className="font-medium text-zinc-900">{req.postTitle}</div>
-                        <div className="text-xs text-zinc-500">{req.postSlug}</div>
+                        <div className="font-medium text-zinc-900 dark:text-zinc-100">{req.postTitle}</div>
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400">{req.postSlug}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="p-4 text-sm text-zinc-600 max-w-xs truncate">
+                  <td className="p-4 text-sm text-zinc-600 dark:text-zinc-400 max-w-xs truncate">
                     {req.reason ?? '-'}
                   </td>
                   <td className="p-4">
@@ -183,7 +183,7 @@ export default function RequestsPage() {
               ))}
               {requests.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-zinc-500 font-medium">
+                  <td colSpan={5} className="p-8 text-center text-zinc-500 dark:text-zinc-400 font-medium">
                     没有待处理的申请
                   </td>
                 </tr>

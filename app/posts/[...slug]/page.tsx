@@ -56,7 +56,7 @@ export default async function PostDetailPage({ params }: PageProps) {
   const viewModel = buildViewModel(slug, fullPath, file.content, file.meta);
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <main className="flex-1 max-w-6xl 2xl:max-w-7xl mx-auto w-full px-6 pt-8 pb-16">
         <div className="lg:flex lg:gap-12">
           <PostDetailBody {...viewModel} />

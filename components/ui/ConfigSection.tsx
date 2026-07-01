@@ -29,7 +29,7 @@ export default function ConfigSection({
     <div
       id={id}
       className={cn(
-        'bg-white rounded-2xl border border-zinc-100 scroll-mt-24 transition-all',
+        'bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 scroll-mt-24 transition-all',
         className,
       )}
     >
@@ -46,11 +46,11 @@ export default function ConfigSection({
         ) : (
           <span className={cn('w-2 h-2 rounded-full shrink-0', color)} />
         )}
-        <span className="text-base font-bold text-zinc-900 flex-1">{title}</span>
+        <span className="text-base font-bold text-zinc-900 dark:text-zinc-100 flex-1">{title}</span>
         <ChevronDown
           size={16}
           className={cn(
-            'text-zinc-400 transition-transform duration-200 shrink-0',
+            'text-zinc-400 dark:text-zinc-500 transition-transform duration-200 shrink-0',
             open ? 'rotate-0' : '-rotate-90',
           )}
         />
