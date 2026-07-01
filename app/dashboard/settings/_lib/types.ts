@@ -29,7 +29,7 @@ export interface UserCardData {
 
 // /api/config 接口返回结构
 export interface RemoteConfigData {
-  _githubRepo?: string;
+  githubConfigured?: boolean;
   _remoteConfig?: string;
   users?: Record<string, { avatar?: string }>;
 }

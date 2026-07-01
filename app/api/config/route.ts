@@ -12,7 +12,7 @@ const logger = createApiLogger('/api/config');
 // 内存缓存：避免每次请求都调用 GitHub API
 // 配置变更频率极低，5 分钟缓存足以覆盖大多数场景
 type ConfigResponse = AppConfig & {
-  _githubRepo?: string;
+  githubConfigured?: boolean;
   _remoteConfig?: string;
   _remoteConfigStatus?: string;
   _remoteConfigError?: string;
@@ -44,7 +44,7 @@ async function handleConfigGet() {
   const now = Date.now();
   if (configCache && now - configCache.timestamp < CACHE_TTL) {
     logger.info('GET', '使用缓存配置');
-    const { _remoteConfig: _rc, _remoteConfigStatus: _rs, _remoteConfigError: _re, _githubRepo: _gr, ...publicCached } = configCache.data;
+    const { _remoteConfig: _rc, _remoteConfigStatus: _rs, _remoteConfigError: _re, ...publicCached } = configCache.data;
     return buildConfigResponse(publicCached);
   }
 
@@ -96,7 +96,7 @@ async function handleConfigGet() {
   };
 
   if (githubRepo) {
-    response._githubRepo = githubRepo;
+    response.githubConfigured = true;
   }
   if (remoteConfigError) {
     response._remoteConfigError = remoteConfigError;
@@ -106,17 +106,17 @@ async function handleConfigGet() {
   // 更新内存缓存
   configCache = { data: response, timestamp: Date.now() };
 
-  // 剥离内部/管理字段
-  const { _remoteConfig, _remoteConfigStatus, _remoteConfigError, _githubRepo, ...publicConfig } = response;
+  // 剥离内部字段（githubConfigured 保留，由 buildConfigResponse 按角色处理）
+  const { _remoteConfig, _remoteConfigStatus, _remoteConfigError, ...publicConfig } = response;
 
   return buildConfigResponse(publicConfig);
 }
 
-/** 未认证用户剥离 access 规则和 users 映射，防止枚举安全边界和 UID */
+/** 未认证用户剥离 access 规则、users 映射和 githubConfigured，防止信息泄露 */
 async function buildConfigResponse(config: Record<string, unknown>) {
   const session = await getSession();
   if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
-    const { access: _access, users: _users, ...safeConfig } = config;
+    const { access: _access, users: _users, githubConfigured: _gc, ...safeConfig } = config;
     return NextResponse.json(safeConfig, {
       headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
     });

@@ -7,15 +7,15 @@ import type { RemoteConfigData } from './types';
 export interface UseConfigDataResult {
   configData: RemoteConfigData | null;
   configLoaded: boolean;
-  githubRepo: string;
+  githubConfigured: boolean;
 }
 
 /**
- * 页面加载时从 /api/config 拉取 GitHub 仓库与远程配置数据。
+ * 页面加载时从 /api/config 拉取 GitHub 配置状态与远程配置数据。
  * 不论成功或失败都会将 configLoaded 置为 true，以便上层继续渲染。
  */
 export function useConfigData(): UseConfigDataResult {
-  const [githubRepo, setGithubRepo] = useState('');
+  const [githubConfigured, setGithubConfigured] = useState(false);
   const [configData, setConfigData] = useState<RemoteConfigData | null>(null);
   const [configLoaded, setConfigLoaded] = useState(false);
 
@@ -25,9 +25,7 @@ export function useConfigData(): UseConfigDataResult {
         const res = await fetch('/api/config');
         if (res.ok) {
           const data: RemoteConfigData = await res.json();
-          if (data._githubRepo) {
-            setGithubRepo(data._githubRepo);
-          }
+          setGithubConfigured(!!data.githubConfigured);
           setConfigData(data);
         } else {
           showError('GitHub 配置加载失败');
@@ -41,5 +39,5 @@ export function useConfigData(): UseConfigDataResult {
     void fetchGithubInfo();
   }, []);
 
-  return { configData, configLoaded, githubRepo };
+  return { configData, configLoaded, githubConfigured };
 }

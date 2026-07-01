@@ -20,7 +20,7 @@ export interface UseSettingsSaveResult {
 interface UseSettingsSaveArgs {
   uid: string | undefined;
   originalAvatar: string;
-  githubRepo: string;
+  githubConfigured: boolean;
   watchedAvatarUrl: string | undefined;
   userName: string;
 }
@@ -33,7 +33,7 @@ interface UseSettingsSaveArgs {
 export function useSettingsSave({
   uid,
   originalAvatar,
-  githubRepo,
+  githubConfigured,
   watchedAvatarUrl,
   userName,
 }: UseSettingsSaveArgs): UseSettingsSaveResult {
@@ -57,7 +57,8 @@ export function useSettingsSave({
   }, []);
 
   const { handleSave: syncAvatar, DiffModal } = useGitHubConfigSync({
-    repo: githubRepo || '',
+    repo: '',
+    githubConfigured,
     remoteConfig: '',
     currentConfig: syncCurrentConfig,
     customTransform: applyAvatarTransform,
@@ -74,7 +75,7 @@ export function useSettingsSave({
       const newAvatar = values.avatarUrl ?? '';
       if (newAvatar !== originalAvatar && uid) {
         await syncAvatarChanges({
-          githubRepo,
+          githubConfigured,
           originalAvatar,
           uid,
           userName,
