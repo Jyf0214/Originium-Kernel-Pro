@@ -14,6 +14,7 @@ import { splitDirFilename } from './path'
 import type { AccessResult, StorageFolderMeta } from './types'
 import { PAGES_PREFIX, isHtmlPath } from '@/lib/page-source/shared'
 import { checkCustomPageAccess, type ApiKeyPermissions } from '@/lib/api-key-permissions'
+import type { SessionPayload } from '@/lib/auth'
 
 /**
  * 规范化路径:去除前导/尾随斜杠,空字符串代表根
@@ -221,8 +222,14 @@ export function getPageProjectFolder(fullPath: string): string {
  */
 export async function checkPageAccess(
   fullPath: string,
-  queryPwd: string | null
+  queryPwd: string | null,
+  session?: SessionPayload | null
 ): Promise<PageAccessResult> {
+  // 0. 管理员/ sudo 用户跳过所有权限检查
+  if (session?.role === 'admin' || session?.role === 'sudo') {
+    return { allowed: true, reason: 'public' }
+  }
+
   // 1. 数据库未配置 → 拒绝访问(失败安全)
   const prisma = getDb().prisma
   if (!prisma) {
