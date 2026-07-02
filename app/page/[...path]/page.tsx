@@ -18,33 +18,17 @@
 import type { Metadata } from 'next';
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
-import fs from 'fs';
-import path from 'path';
 import { buildPageRelativePath, resolvePageFilePath, extractTitle } from '@/lib/page-source/shared';
 import { isStorageConfigured } from '@/lib/storage/storage-provider';
 import { fetchPageHtml } from '@/lib/page-source/fs';
+import { getSession } from '@/lib/auth';
 import { checkPageAccess, type PageAccessResult } from '@/lib/storage/acl';
 import { UserWidget } from '../_components/UserWidget';
 import { NotConfiguredView } from '../_components/NotConfiguredView';
 import { PasswordPrompt } from '../_components/PasswordPrompt';
 
-// 用 React cache 包装，确保 generateMetadata 和组件体共享同一次 WebDAV 请求
+// 用 React cache 包装，确保 generateMetadata 和组件体共享同一次本地文件读取
 const cachedFetchPageHtml = cache(fetchPageHtml);
-
-/**
- * 校验请求路径是否在构建时生成的索引中
- */
-function isPathIndexed(relativePath: string): boolean {
-  try {
-    const indexPath = path.join(process.cwd(), 'data', 'pages-index.json');
-    if (!fs.existsSync(indexPath)) return false;
-    const content = fs.readFileSync(indexPath, 'utf8');
-    const index = JSON.parse(content) as string[];
-    return index.includes(relativePath);
-  } catch {
-    return false;
-  }
-}
 
 interface PageProps {
   params: Promise<{ path: string[] }>;
@@ -88,11 +72,7 @@ export default async function CustomPage({ params, searchParams }: PageProps) {
     notFound();
   }
 
-  // 首先校验是否在构建索引中
-  if (!isPathIndexed(relativePath)) {
-    notFound();
-  }
-
+  // 读取本地文件系统中的 HTML（构建时由 sync-pages.mjs 从 WebDAV/B2 同步）
   let filePath = resolvePageFilePath(relativePath);
   let html = await cachedFetchPageHtml(filePath);
   // 根级 HTML 页面（如 pages/about.html）的 clean URL 访问：
@@ -105,8 +85,10 @@ export default async function CustomPage({ params, searchParams }: PageProps) {
     notFound();
   }
 
+  // 权限检查：管理员 session 跳过所有限制
+  const session = await getSession();
   const queryPwd = typeof pwd === 'string' && pwd.length > 0 ? pwd : null;
-  const access = await checkPageAccess(filePath, queryPwd);
+  const access = await checkPageAccess(filePath, queryPwd, session);
 
   if (access.allowed) {
     const title = extractTitle(html) ?? 'Custom Page';

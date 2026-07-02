@@ -8,7 +8,7 @@
  */
 import { NextResponse } from 'next/server'
 import { apiHandler } from '@/lib/api-handler'
-import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth'
+import { getSessionWithKeyId, requireApiKeyPermission, getSession } from '@/lib/auth'
 import { buildPageRelativePath, type PageMeta } from '@/lib/page-source/shared'
 import { isStorageConfigured } from '@/lib/storage/storage-provider'
 import { fetchPageMeta, putPageMeta, deletePageMeta } from '@/lib/page-source/webdav'
@@ -55,8 +55,10 @@ export const GET = apiHandler<{ path: string[] }>('GET', { label: 'page-meta.get
   const relativePath = await resolveRelativePath(ctx);
   if (!relativePath) return NextResponse.json({ error: '路径无效' }, { status: 400 });
   // ACL 检查：私有页面元数据不得对未授权用户泄露
+  // 管理员 session 跳过权限检查
+  const session = await getSession();
   const pwd = req.nextUrl.searchParams.get('pwd');
-  const access = await checkPageAccess(relativePath, pwd);
+  const access = await checkPageAccess(relativePath, pwd, session);
   if (!access.allowed) {
     return NextResponse.json({ error: '无权访问该页面' }, { status: 403 });
   }
