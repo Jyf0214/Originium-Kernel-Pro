@@ -54,7 +54,7 @@ function buildPageHref(relativePath: string): string {
       : `/page`;
   }
   // 目录路径直接返回
-  if (!relFilename.includes('.')) {
+  if (!relFilename?.includes('.')) {
     return `/page/${relPath}`;
   }
   return `/page/${relPath.replace(/\.(html?|htm)$/i, '')}`;
