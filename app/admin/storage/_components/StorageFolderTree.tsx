@@ -8,8 +8,8 @@
  */
 'use client';
 
-import { useEffect, useCallback } from 'react';
-import { Folder, Globe, Lock, PenLine, Plus } from 'lucide-react';
+import { useEffect, useCallback, useState, useMemo } from 'react';
+import { Folder, Globe, Lock, PenLine, Plus, ChevronRight, ChevronDown } from 'lucide-react';
 import { Tooltip } from 'antd';
 import type { StorageFolderMeta, WebDavEntry } from '@/lib/storage/types';
 import { Tag } from '@/components/ui/Tag';
@@ -30,6 +30,33 @@ interface Props {
   disabled?: boolean;
   projectContents: Record<string, WebDavEntry[]>;
   onFetchProjectContents: (path: string) => Promise<void>;
+}
+
+/** 渲染状态标签 */
+function FolderStatusTag({
+  publicStatus,
+  path,
+  publicLabel,
+  privateLabel,
+}: {
+  publicStatus: boolean | undefined;
+  path: string;
+  publicLabel: string;
+  privateLabel: string;
+}) {
+  if (publicStatus === undefined || SYSTEM_FOLDERS.has(path)) return null;
+  return (
+    <Tag
+      size="sm"
+      variant={publicStatus ? 'emerald' : 'light'}
+      className="shrink-0"
+    >
+      <span className="inline-flex items-center gap-1">
+        {publicStatus ? <Globe size={10} /> : <Lock size={10} />}
+        {publicStatus ? publicLabel : privateLabel}
+      </span>
+    </Tag>
+  );
 }
 
 /** 递归项组件 */
@@ -58,6 +85,13 @@ function FolderTreeItem({
   disabled: boolean,
   children?: WebDavEntry[],
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
+  };
+
   return (
     <div className="flex flex-col">
       <li className="group/folder relative">
@@ -71,8 +105,20 @@ function FolderTreeItem({
               : 'text-zinc-700 hover:bg-zinc-50',
             isProject && 'font-bold text-zinc-900',
           ].join(' ')}
-          style={{ paddingLeft: `${12 * depth + 12}px` }}
+          style={{ paddingLeft: `${20 * depth + 12}px` }}
         >
+          {/* 展开/收起箭头 */}
+          <div className="w-4 h-4 flex items-center justify-center mr-1">
+            {entry.isDirectory && (
+              <button
+                type="button"
+                onClick={handleToggle}
+                className="text-zinc-400 hover:text-zinc-600 transition-colors"
+              >
+                {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              </button>
+            )}
+          </div>
           <Folder
             size={14}
             className={[
@@ -83,18 +129,12 @@ function FolderTreeItem({
           <span className="flex-1 text-left min-w-0 break-all">
             {entry.filename}
           </span>
-          {entry.public !== undefined && !SYSTEM_FOLDERS.has(entry.path) && (
-            <Tag
-              size="sm"
-              variant={entry.public ? 'emerald' : 'light'}
-              className="shrink-0"
-            >
-              <span className="inline-flex items-center gap-1">
-                {entry.public ? <Globe size={10} /> : <Lock size={10} />}
-                {entry.public ? publicLabel : privateLabel}
-              </span>
-            </Tag>
-          )}
+          <FolderStatusTag
+            publicStatus={entry.public}
+            path={entry.path}
+            publicLabel={publicLabel}
+            privateLabel={privateLabel}
+          />
         </button>
         {!disabled && (
           <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/folder:opacity-100 transition-opacity">
@@ -113,11 +153,11 @@ function FolderTreeItem({
           </div>
         )}
       </li>
-      {children && children.length > 0 && (
+      {isExpanded && children && children.length > 0 && (
         <ul className="mt-0.5 space-y-0.5">
           {children.map((child) => {
-            const fullPath = entry.path 
-              ? `${entry.path}/${child.filename}` 
+            const fullPath = entry.path
+              ? `${entry.path}/${child.filename}`
               : child.filename;
             return (
               <FolderTreeItem
@@ -175,6 +215,11 @@ export function StorageFolderTree({
 
   const isRootActive = currentPath === '';
 
+  // 过滤出顶级文件夹 (没有父目录的)
+  const topLevelFolders = useMemo(() => {
+    return folders.filter(f => !f.path.includes('/'));
+  }, [folders]);
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100">
@@ -207,13 +252,13 @@ export function StorageFolderTree({
           <span className="flex-1 text-left font-medium">{rootLabel}</span>
         </button>
 
-        {folders.length === 0 ? (
+        {topLevelFolders.length === 0 ? (
           <div className="px-4 py-6 text-center text-xs text-zinc-400">
             暂无文件夹
           </div>
         ) : (
           <ul className="mt-1 space-y-0.5 px-2">
-            {folders.map((folder) => {
+            {topLevelFolders.map((folder: StorageFolderMeta) => {
               const active = currentPath === folder.path;
               const project = isProject(folder.path);
               const children = project ? projectContents[folder.path] : undefined;
@@ -221,12 +266,7 @@ export function StorageFolderTree({
               return (
                 <FolderTreeItem
                   key={folder.path}
-                  entry={{
-                    path: folder.path,
-                    filename: folder.path.split('/').at(-1) ?? folder.path,
-                    isDirectory: true,
-                    public: folder.public,
-                  }}
+                  entry={folder}
                   depth={0}
                   isProject={project}
                   active={active}

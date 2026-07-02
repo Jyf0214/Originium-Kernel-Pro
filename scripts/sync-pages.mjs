@@ -59,6 +59,27 @@ const MAX_CONCURRENCY = 8;
 const LOG_PREFIX = '[sync-pages]';
 
 /**
+ * 将同步的文件路径列表写入索引文件
+ *
+ * @param {string[]} entries 文件相对路径列表 (如 ['pages/index.html', 'pages/about.html'])
+ */
+async function writePagesIndex(entries) {
+  const indexDir = path.join(PROJECT_ROOT, 'data');
+  const indexPath = path.join(indexDir, 'pages-index.json');
+
+  try {
+    await fs.mkdir(indexDir, { recursive: true });
+    // 索引内容：简单数组，记录所有有效 HTML 路径
+    const content = JSON.stringify(entries, null, 2);
+    await fs.writeFile(indexPath, content, 'utf8');
+    console.log(`${LOG_PREFIX} 索引已更新: ${entries.length} 个路径 -> ${indexPath}`);
+  } catch (err) {
+    console.error(`${LOG_PREFIX} 写入索引失败: ${err.message}`);
+    // 索引写入失败不终止构建,但记录警告
+  }
+}
+
+/**
  * 容错分支:远端必须存在的子目录清单
  *
  * 推断依据:
@@ -439,6 +460,7 @@ async function syncFromWebdav() {
   await downloadAll(entries, async (relPath) => {
     return downloadViaHttps(webdavUrl, relPath, auth, DOWNLOAD_TIMEOUT_MS);
   });
+  await writePagesIndex(entries);
 }
 
 // ─── Backblaze B2 后端 ─────────────────────────────────────────────────────
@@ -943,6 +965,7 @@ async function syncFromB2() {
 
   // 4. 并发下载:使用 B2 下载函数
   await downloadAll(entries, (relPath) => b2DownloadFile(relPath));
+  await writePagesIndex(entries);
 }
 
 // ─── 入口 ──────────────────────────────────────────────────────────────────
