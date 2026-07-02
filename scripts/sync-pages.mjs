@@ -81,7 +81,7 @@ async function writePagesIndex(entries) {
       // 逐级提取父目录（不含文件名本身）
       for (let i = 1; i < parts.length; i++) {
         const dirPath = parts.slice(0, i).join('/');
-        if (dirPath && dirPath !== 'page') {
+        if (dirPath && dirPath !== 'pages') {
           dirs.add(dirPath);
         }
       }
@@ -837,16 +837,18 @@ async function b2ListHtmlRecursive() {
   const rootFiles = rootData.files?.files || rootData.files || [];
   const rootFolders = rootData.folders || [];
 
+  console.log(`${LOG_PREFIX} B2 根目录: files=${rootFiles.length}, folders=${rootFolders.length}`);
+
   if (rootFiles.length === 0 && rootFolders.length === 0) {
     return null; // 空目录视为缺失,触发 bootstrap
   }
 
   const out = [];
 
-  // 处理根级文件
+  // 处理根级文件（只取 .html/.htm 文件）
   for (const f of rootFiles) {
     const name = f.fileName.split('/').pop();
-    if (name && name !== '.keep') {
+    if (name && name !== '.keep' && /\.html?$/i.test(name)) {
       out.push(`${WEBDAV_PREFIX}/${name}`);
     }
   }
@@ -856,6 +858,8 @@ async function b2ListHtmlRecursive() {
     // folder 可能是 'pages/blog/' 或 'pages/blog'
     const folderName = folder.replace(`${WEBDAV_PREFIX}/`, '').replace(/\/$/, '');
     if (!folderName) continue;
+    // 跳过 'pages' 自身
+    if (folderName === 'pages') continue;
 
     const subPrefix = `${WEBDAV_PREFIX}/${folderName}/`;
     let subData;
@@ -867,14 +871,16 @@ async function b2ListHtmlRecursive() {
     }
 
     const subFiles = subData.files?.files || subData.files || [];
+    console.log(`${LOG_PREFIX} B2 子目录 ${folderName}: files=${subFiles.length}`);
     for (const f of subFiles) {
       const subName = f.fileName.split('/').pop();
-      if (subName && subName !== '.keep') {
+      if (subName && subName !== '.keep' && /\.html?$/i.test(subName)) {
         out.push(`${WEBDAV_PREFIX}/${folderName}/${subName}`);
       }
     }
   }
 
+  console.log(`${LOG_PREFIX} B2 扫描完成: ${out.length} 个 HTML 文件`);
   return out;
 }
 
