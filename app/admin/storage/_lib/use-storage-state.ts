@@ -41,10 +41,14 @@ interface UseStorageState {
   error: string | null;
   dialog: DialogKind;
   pendingTarget: DialogTarget;
+  /** 项目内容缓存: path -> entries */
+  projectContents: Record<string, WebDavEntry[]>;
   /** 重置整个页面(重新拉 config + folders + 当前路径) */
   refreshAll: () => Promise<void>;
   /** 仅刷新当前路径文件列表(不重新拉 config/folders) */
   loadEntries: (path: string) => Promise<void>;
+  /** 获取指定路径的内容(用于树形展开) */
+  fetchEntriesForPath: (path: string) => Promise<void>;
   /** 切换浏览路径 */
   navigateTo: (path: string) => Promise<void>;
   /** 打开 / 关闭对话框 */
@@ -90,6 +94,7 @@ export function useStorageState(): UseStorageState {
   const [folders, setFolders] = useState<StorageFolderMeta[]>([]);
   const [currentPath, setCurrentPath] = useState<string>('');
   const [entries, setEntries] = useState<WebDavEntry[]>([]);
+  const [projectContents, setProjectContents] = useState<Record<string, WebDavEntry[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogKind>(null);
@@ -161,6 +166,21 @@ export function useStorageState(): UseStorageState {
       }
     }
   }, []);
+
+  /** 获取指定路径的内容(用于树形展开,不触发页面加载态) */
+  const fetchEntriesForPath = useCallback(
+    async (path: string) => {
+      if (projectContents[path]) return; // 已缓存则跳过
+      try {
+        const res = await fetchEntries(path);
+        const items = Array.isArray(res?.entries) ? res.entries : [];
+        setProjectContents((prev) => ({ ...prev, [path]: items }));
+      } catch (err) {
+        console.error(`[storage-state] fetchEntriesForPath 失败: ${path}`, err);
+      }
+    },
+    [projectContents]
+  );
 
   /** 进入指定路径(刷新对应 entries) */
   const navigateTo = useCallback(
@@ -520,8 +540,10 @@ export function useStorageState(): UseStorageState {
     error,
     dialog,
     pendingTarget,
+    projectContents,
     refreshAll,
     loadEntries,
+    fetchEntriesForPath,
     navigateTo,
     openDialog,
     closeDialog,

@@ -1,19 +1,20 @@
 /**
- * 左侧文件夹树(简化版:只列顶层 storage_folders,不做递归)
+ * 左侧文件夹树
  *
- * - 选中项高亮
- * - 公开/私有用 Tag 标记
- * - 点击 → navigateTo(folder.path)
- * - 悬浮显示重命名按钮
+ * - 只有一级子文件夹被认定为“项目”
+ * - 选中项目时，展开其内部结构 (仅展开一层)
+ * - 项目根目录具有特殊视觉样式 (加粗 + 蓝色)
+ * - 实现层级缩进
  */
 'use client';
 
+import { useEffect, useCallback } from 'react';
 import { Folder, Globe, Lock, PenLine, Plus } from 'lucide-react';
 import { Tooltip } from 'antd';
-import type { StorageFolderMeta } from '@/lib/storage/types';
+import type { StorageFolderMeta, WebDavEntry } from '@/lib/storage/types';
 import { Tag } from '@/components/ui/Tag';
 
-/** 系统保留目录——不显示公开/私有标签 */
+/** 系统保留目录 */
 const SYSTEM_FOLDERS = new Set(['pages']);
 
 interface Props {
@@ -27,6 +28,122 @@ interface Props {
   onNewFolder: () => void;
   onRename: (path: string) => void;
   disabled?: boolean;
+  projectContents: Record<string, WebDavEntry[]>;
+  onFetchProjectContents: (path: string) => Promise<void>;
+}
+
+/** 递归项组件 */
+function FolderTreeItem({
+  entry,
+  depth,
+  isProject,
+  active,
+  publicLabel,
+  privateLabel,
+  renameLabel,
+  onNavigate,
+  onRename,
+  disabled,
+  children,
+}: {
+  entry: { path: string; filename: string; isDirectory: boolean; public?: boolean },
+  depth: number,
+  isProject: boolean,
+  active: boolean,
+  publicLabel: string,
+  privateLabel: string,
+  renameLabel: string,
+  onNavigate: (path: string) => void,
+  onRename: (path: string) => void,
+  disabled: boolean,
+  children?: WebDavEntry[],
+}) {
+  return (
+    <div className="flex flex-col">
+      <li className="group/folder relative">
+        <button
+          type="button"
+          onClick={() => onNavigate(entry.path)}
+          className={[
+            'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors',
+            active
+              ? 'bg-zinc-100 text-zinc-900 font-semibold'
+              : 'text-zinc-700 hover:bg-zinc-50',
+            isProject && 'font-bold text-zinc-900',
+          ].join(' ')}
+          style={{ paddingLeft: `${12 * depth + 12}px` }}
+        >
+          <Folder
+            size={14}
+            className={[
+              active ? 'text-zinc-700' : 'text-zinc-400',
+              isProject && 'text-blue-500',
+            ].join(' ')}
+          />
+          <span className="flex-1 text-left min-w-0 break-all">
+            {entry.filename}
+          </span>
+          {entry.public !== undefined && !SYSTEM_FOLDERS.has(entry.path) && (
+            <Tag
+              size="sm"
+              variant={entry.public ? 'emerald' : 'light'}
+              className="shrink-0"
+            >
+              <span className="inline-flex items-center gap-1">
+                {entry.public ? <Globe size={10} /> : <Lock size={10} />}
+                {entry.public ? publicLabel : privateLabel}
+              </span>
+            </Tag>
+          )}
+        </button>
+        {!disabled && (
+          <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/folder:opacity-100 transition-opacity">
+            <Tooltip title={renameLabel} placement="right">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRename(entry.path);
+                }}
+                className="inline-flex items-center justify-center w-6 h-6 rounded-md text-zinc-400 hover:bg-zinc-200 hover:text-zinc-700 transition-colors"
+              >
+                <PenLine size={12} />
+              </button>
+            </Tooltip>
+          </div>
+        )}
+      </li>
+      {children && children.length > 0 && (
+        <ul className="mt-0.5 space-y-0.5">
+          {children.map((child) => {
+            const fullPath = entry.path 
+              ? `${entry.path}/${child.filename}` 
+              : child.filename;
+            return (
+              <FolderTreeItem
+                key={child.basename}
+                entry={{
+                  path: fullPath,
+                  filename: child.filename,
+                  isDirectory: child.isDirectory,
+                  public: undefined,
+                }}
+                depth={depth + 1}
+                isProject={false}
+                active={false}
+                publicLabel={publicLabel}
+                privateLabel={privateLabel}
+                renameLabel={renameLabel}
+                onNavigate={onNavigate}
+                onRename={onRename}
+                disabled={disabled}
+              />
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 export function StorageFolderTree({
@@ -40,7 +157,22 @@ export function StorageFolderTree({
   onNewFolder,
   onRename,
   disabled = false,
+  projectContents,
+  onFetchProjectContents,
 }: Props) {
+  // 判定是否为“项目”：必须是一级子文件夹 (不含 '/')
+  const isProject = useCallback((path: string) => {
+    if (!path) return false;
+    return !path.includes('/');
+  }, []);
+
+  // 当选中一个项目时，触发加载其子项
+  useEffect(() => {
+    if (currentPath && isProject(currentPath)) {
+      void onFetchProjectContents(currentPath);
+    }
+  }, [currentPath, isProject, onFetchProjectContents]);
+
   const isRootActive = currentPath === '';
 
   return (
@@ -83,69 +215,24 @@ export function StorageFolderTree({
           <ul className="mt-1 space-y-0.5 px-2">
             {folders.map((folder) => {
               const active = currentPath === folder.path;
+              const project = isProject(folder.path);
+              const children = project && projectContents[folder.path];
+
               return (
-                <li key={folder.path} className="group/folder relative">
-                  <button
-                    type="button"
-                    onClick={() => onNavigate(folder.path)}
-                    className={[
-                      'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors',
-                      active
-                        ? 'bg-zinc-100 text-zinc-900 font-semibold'
-                        : 'text-zinc-700 hover:bg-zinc-50',
-                    ].join(' ')}
-                  >
-                    <Folder
-                      size={14}
-                      className={active ? 'text-zinc-700' : 'text-zinc-400'}
-                    />
-                    <span className="flex-1 text-left min-w-0 break-all">
-                      {folder.path.includes('/') ? (
-                        <>
-                          <span className="text-zinc-400 text-xs">
-                            {folder.path.split('/').slice(0, -1).join('/')}/
-                          </span>
-                          {folder.path.split('/').at(-1)}
-                        </>
-                      ) : (
-                        folder.path
-                      )}
-                    </span>
-                    {!SYSTEM_FOLDERS.has(folder.path) && (
-                      <Tag
-                        size="sm"
-                        variant={folder.public ? 'emerald' : 'light'}
-                        className="shrink-0"
-                      >
-                        <span className="inline-flex items-center gap-1">
-                          {folder.public ? (
-                            <Globe size={10} />
-                          ) : (
-                            <Lock size={10} />
-                          )}
-                          {folder.public ? publicLabel : privateLabel}
-                        </span>
-                      </Tag>
-                    )}
-                  </button>
-                  {/* 重命名按钮(悬浮显示) */}
-                  {!disabled && (
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/folder:opacity-100 transition-opacity">
-                      <Tooltip title={renameLabel} placement="right">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onRename(folder.path);
-                          }}
-                          className="inline-flex items-center justify-center w-6 h-6 rounded-md text-zinc-400 hover:bg-zinc-200 hover:text-zinc-700 transition-colors"
-                        >
-                          <PenLine size={12} />
-                        </button>
-                      </Tooltip>
-                    </div>
-                  )}
-                </li>
+                <FolderTreeItem
+                  key={folder.path}
+                  entry={folder}
+                  depth={0}
+                  isProject={project}
+                  active={active}
+                  publicLabel={publicLabel}
+                  privateLabel={privateLabel}
+                  renameLabel={renameLabel}
+                  onNavigate={onNavigate}
+                  onRename={onRename}
+                  disabled={disabled}
+                  children={children}
+                />
               );
             })}
           </ul>
