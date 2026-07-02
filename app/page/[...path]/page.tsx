@@ -20,7 +20,7 @@ import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { buildPageRelativePath, resolvePageFilePath, extractTitle } from '@/lib/page-source/shared';
 import { isStorageConfigured } from '@/lib/storage/storage-provider';
-import { fetchPageHtml } from '@/lib/page-source/fs';
+import { fetchPageHtml } from '@/lib/page-source/webdav';
 import { checkPageAccess, type PageAccessResult } from '@/lib/storage/acl';
 import { UserWidget } from '../_components/UserWidget';
 import { NotConfiguredView } from '../_components/NotConfiguredView';
