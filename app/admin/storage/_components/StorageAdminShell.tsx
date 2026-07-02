@@ -347,6 +347,8 @@ export function StorageAdminShell() {
               onNewFolder={() => state.openDialog('mkdir')}
               onRename={handleOpenRename}
               disabled={!state.configured}
+              projectContents={state.projectContents}
+              onFetchProjectContents={state.fetchEntriesForPath}
             />
           </ProCard>
         </div>
