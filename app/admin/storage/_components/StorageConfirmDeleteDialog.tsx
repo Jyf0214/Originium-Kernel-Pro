@@ -67,6 +67,11 @@ export function StorageConfirmDeleteDialog({
               </>
             ) : null}
           </p>
+          {isFolder && (
+            <div className="mt-3 p-2.5 rounded-lg bg-red-50 border border-red-100 text-red-600 text-xs leading-relaxed">
+              <strong>警告：</strong> 删除文件夹将同时删除其内部的所有子文件和子文件夹，此操作不可逆，请谨慎操作。
+            </div>
+          )}
         </div>
       </div>
       <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-5">
