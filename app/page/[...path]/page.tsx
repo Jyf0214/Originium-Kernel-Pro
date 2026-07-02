@@ -18,9 +18,11 @@
 import type { Metadata } from 'next';
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
+import fs from 'fs';
+import path from 'path';
 import { buildPageRelativePath, resolvePageFilePath, extractTitle } from '@/lib/page-source/shared';
 import { isStorageConfigured } from '@/lib/storage/storage-provider';
-import { fetchPageHtml } from '@/lib/page-source/webdav';
+import { fetchPageHtml } from '@/lib/page-source/fs';
 import { checkPageAccess, type PageAccessResult } from '@/lib/storage/acl';
 import { UserWidget } from '../_components/UserWidget';
 import { NotConfiguredView } from '../_components/NotConfiguredView';
@@ -28,6 +30,21 @@ import { PasswordPrompt } from '../_components/PasswordPrompt';
 
 // 用 React cache 包装，确保 generateMetadata 和组件体共享同一次 WebDAV 请求
 const cachedFetchPageHtml = cache(fetchPageHtml);
+
+/**
+ * 校验请求路径是否在构建时生成的索引中
+ */
+function isPathIndexed(relativePath: string): boolean {
+  try {
+    const indexPath = path.join(process.cwd(), 'data', 'pages-index.json');
+    if (!fs.existsSync(indexPath)) return false;
+    const content = fs.readFileSync(indexPath, 'utf8');
+    const index = JSON.parse(content) as string[];
+    return index.includes(relativePath);
+  } catch {
+    return false;
+  }
+}
 
 interface PageProps {
   params: Promise<{ path: string[] }>;
@@ -43,8 +60,8 @@ function isPasswordReason(reason: PageAccessResult['reason']): boolean {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { path } = await params;
-  const relativePath = buildPageRelativePath(path);
+  const { path: pathSegments } = await params;
+  const relativePath = buildPageRelativePath(pathSegments);
   if (!relativePath || !isStorageConfigured()) {
     return { title: 'Custom Page' };
   }
@@ -59,15 +76,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function CustomPage({ params, searchParams }: PageProps) {
-  const { path } = await params;
+  const { path: pathSegments } = await params;
   const { pwd } = await searchParams;
 
   if (!isStorageConfigured()) {
     return <NotConfiguredView />;
   }
 
-  const relativePath = buildPageRelativePath(path);
+  const relativePath = buildPageRelativePath(pathSegments);
   if (!relativePath) {
+    notFound();
+  }
+
+  // 首先校验是否在构建索引中
+  if (!isPathIndexed(relativePath)) {
     notFound();
   }
 
@@ -104,7 +126,7 @@ export default async function CustomPage({ params, searchParams }: PageProps) {
   if (isPasswordReason(access.reason)) {
     return (
       <PasswordPrompt
-        path={path.join('/')}
+        path={pathSegments.join('/')}
         wrongPassword={access.reason === 'wrong-password'}
       />
     );
@@ -114,7 +136,7 @@ export default async function CustomPage({ params, searchParams }: PageProps) {
   if (access.reason === 'password-required') {
     return (
       <PasswordPrompt
-        path={path.join('/')}
+        path={pathSegments.join('/')}
         wrongPassword={false}
         hint="此页面已设为私有但尚未配置访问密码，请联系管理员"
       />
@@ -125,7 +147,7 @@ export default async function CustomPage({ params, searchParams }: PageProps) {
   if (access.reason === 'db-error' || access.reason === 'db-not-configured') {
     return (
       <PasswordPrompt
-        path={path.join('/')}
+        path={pathSegments.join('/')}
         wrongPassword={false}
         hint="服务暂时不可用，请稍后再试"
       />

@@ -61,6 +61,10 @@ const LOG_PREFIX = '[sync-pages]';
 /**
  * 将同步的文件路径列表写入索引文件
  *
+ * 索引包含两种路径:
+ * 1. 文件路径 (如 'pages/hello world/index.html')
+ * 2. 目录路径 (如 'pages/hello world') — 用于支持目录级访问 (/page/hello world)
+ *
  * @param {string[]} entries 文件相对路径列表 (如 ['pages/index.html', 'pages/about.html'])
  */
 async function writePagesIndex(entries) {
@@ -69,10 +73,26 @@ async function writePagesIndex(entries) {
 
   try {
     await fs.mkdir(indexDir, { recursive: true });
-    // 索引内容：简单数组，记录所有有效 HTML 路径
-    const content = JSON.stringify(entries, null, 2);
+
+    // 收集所有目录路径（从文件路径中提取父目录）
+    const dirs = new Set();
+    for (const entry of entries) {
+      const parts = entry.split('/');
+      // 逐级提取父目录（不含文件名本身）
+      for (let i = 1; i < parts.length; i++) {
+        const dirPath = parts.slice(0, i).join('/');
+        if (dirPath && dirPath !== 'pages') {
+          dirs.add(dirPath);
+        }
+      }
+    }
+
+    // 合并文件路径和目录路径，去重
+    const index = [...new Set([...entries, ...dirs])];
+
+    const content = JSON.stringify(index, null, 2);
     await fs.writeFile(indexPath, content, 'utf8');
-    console.log(`${LOG_PREFIX} 索引已更新: ${entries.length} 个路径 -> ${indexPath}`);
+    console.log(`${LOG_PREFIX} 索引已更新: ${index.length} 个路径 (${entries.length} 文件 + ${dirs.size} 目录) -> ${indexPath}`);
   } catch (err) {
     console.error(`${LOG_PREFIX} 写入索引失败: ${err.message}`);
     // 索引写入失败不终止构建,但记录警告
