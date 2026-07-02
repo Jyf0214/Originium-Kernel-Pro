@@ -122,7 +122,8 @@ export function uploadFile(
 ): Promise<{ path: string; size: number; uploadedAt: string }> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', `/api/storage/upload/${encodePathSegments(path)}`);
+    const uploadPath = path ? `${path}/${file.name}` : file.name;
+    xhr.open('POST', `/api/storage/upload/${encodePathSegments(uploadPath)}`);
     xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable && onProgress) {
