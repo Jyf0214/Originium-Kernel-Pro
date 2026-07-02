@@ -266,7 +266,12 @@ export function StorageFolderTree({
               return (
                 <FolderTreeItem
                   key={folder.path}
-                  entry={folder}
+                  entry={{
+                    path: folder.path,
+                    filename: folder.path.split('/').at(-1) ?? folder.path,
+                    isDirectory: true,
+                    public: folder.public,
+                  }}
                   depth={0}
                   isProject={project}
                   active={active}
