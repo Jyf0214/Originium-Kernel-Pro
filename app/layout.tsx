@@ -41,6 +41,12 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
           </>
         )}
         <link rel="apple-touch-icon" href="/icon-192.png" />
+        {/* 暗色模式 FOUC 防护：在 React hydration 前读取 localStorage 并应用 dark 类 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var m=localStorage.getItem('theme-mode');var d=m==='dark'||(m!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches);if(d)document.documentElement.classList.add('dark')}catch(e){}})()`,
+          }}
+        />
       </head>
       <body>
         <CustomHead />

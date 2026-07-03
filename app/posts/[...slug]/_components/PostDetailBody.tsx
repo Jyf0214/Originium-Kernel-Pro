@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { BacklinkPanel } from '@/components/BacklinkPanel';
 import { Giscus } from '@/components/Comments/Giscus';
+import { LazyLoad } from '@/components/ui/LazyLoad';
 import { CopyrightNotice } from '@/components/ui/CopyrightNotice';
 import ShareButtons from '@/components/ui/ShareButtons';
 import QRCodeDialog from '@/components/ui/QRCodeDialog';
@@ -107,7 +108,9 @@ export function PostDetailBody({
       </article>
 
       <div className="mt-12 max-w-3xl">
-        <Giscus slug={fullPath} />
+        <LazyLoad rootMargin="300px">
+          <Giscus slug={fullPath} />
+        </LazyLoad>
       </div>
 
       {showWordCount && (

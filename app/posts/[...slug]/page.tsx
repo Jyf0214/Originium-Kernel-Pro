@@ -12,6 +12,7 @@ import { getRelatedPosts } from './_lib/related-posts';
 import { buildTocConfig, computeWordStats } from './_lib/post-page-config';
 import { PostDetailBody } from './_components/PostDetailBody';
 import { PostSidebar } from './_components/PostSidebar';
+import { JsonLd } from '@/components/JsonLd';
 import type { Crumb } from './_components/PostBreadcrumb';
 import Footer from '@/components/Footer';
 
@@ -57,6 +58,15 @@ export default async function PostDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
+      <JsonLd
+        title={file.meta.title}
+        description={file.meta.description}
+        datePublished={file.meta.date}
+        author={file.meta.author}
+        tags={file.meta.tags}
+        slug={fullPath}
+        wordCount={viewModel.wordCount}
+      />
       <main className="flex-1 max-w-6xl 2xl:max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-8 pb-16">
         <div className="lg:flex lg:gap-8 items-start">
           <div className="flex-1 min-w-0 bg-white dark:bg-zinc-800 rounded-3xl shadow-xl shadow-zinc-200/50 dark:shadow-zinc-900/50 border border-zinc-100 dark:border-zinc-700 p-6 sm:p-8 md:p-10 lg:p-12">
