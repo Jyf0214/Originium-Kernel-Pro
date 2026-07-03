@@ -5,8 +5,6 @@ import { PAGE_SIZE } from './home-constants';
 export interface UseHomeFilterResult {
   selectedTag: string | null;
   setSelectedTag: (v: string | null) => void;
-  selectedCategory: string | null;
-  setSelectedCategory: (v: string | null) => void;
   currentPage: number;
   setCurrentPage: (v: number) => void;
   filteredPosts: PostItem[];
@@ -17,12 +15,11 @@ export interface UseHomeFilterResult {
 
 export function useHomeFilter(posts: PostItem[]): UseHomeFilterResult {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedTag, selectedCategory]);
+  }, [selectedTag]);
 
   const allTags = useMemo(
     () => Array.from(new Set(posts.flatMap((p) => p.tags || []))).sort(),
@@ -33,7 +30,6 @@ export function useHomeFilter(posts: PostItem[]): UseHomeFilterResult {
     () =>
       posts
         .filter((p) => {
-          if (selectedCategory && !p.tags?.some((tag) => tag === selectedCategory)) return false;
           if (selectedTag && !p.tags?.includes(selectedTag)) return false;
           return true;
         })
@@ -42,7 +38,7 @@ export function useHomeFilter(posts: PostItem[]): UseHomeFilterResult {
           if (!a.pinned && b.pinned) return 1;
           return new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime();
         }),
-    [posts, selectedTag, selectedCategory],
+    [posts, selectedTag],
   );
 
   const totalPages = useMemo(
@@ -58,8 +54,6 @@ export function useHomeFilter(posts: PostItem[]): UseHomeFilterResult {
   return {
     selectedTag,
     setSelectedTag,
-    selectedCategory,
-    setSelectedCategory,
     currentPage,
     setCurrentPage,
     filteredPosts,
