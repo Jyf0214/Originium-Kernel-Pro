@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
-import { ArrowLeftFromLine, ArrowRightToLine } from 'lucide-react';
 import SidebarHeader from './SidebarHeader';
 import SidebarUserMenu from './SidebarUserMenu';
 import SidebarGroup from './SidebarGroup';
@@ -12,27 +11,22 @@ import SidebarCollapseButton from './SidebarCollapseButton';
 import MobileToggle from './MobileToggle';
 import { useSidebarState } from './use-sidebar-state';
 import { useSidebarCollapsed } from './use-sidebar-collapsed';
-import { userMenuItems, adminMenuItems } from './sidebar-config';
-import type { SidebarVariant, MenuItem } from './types';
+import { menuItems } from './sidebar-config';
+import type { MenuItem } from './types';
 
-function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
+function Sidebar() {
   const { user, isSudo, logout } = useAuth();
   const pathname = usePathname();
   const { t } = useI18n();
   const { isOpen, open, close } = useSidebarState();
   const { collapsed, toggle: toggleCollapsed, hydrated } = useSidebarCollapsed();
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
-  const [internalVariant, setInternalVariant] = useState<SidebarVariant | null>(null);
 
-  const effectiveVariant: SidebarVariant = internalVariant ?? variant;
-
-  const visibleUserItems: MenuItem[] = userMenuItems.filter((item) => {
+  const items: MenuItem[] = menuItems.filter((item) => {
     if (!item.roles || item.roles.length === 0) return true;
     if (item.roles.includes('sudo')) return isSudo;
     return false;
   });
-
-  const items: MenuItem[] = effectiveVariant === 'admin' ? adminMenuItems : visibleUserItems;
 
   const handleLogout = async () => {
     await logout();
@@ -74,29 +68,6 @@ function Sidebar({ variant = 'user' }: { variant?: SidebarVariant }) {
             collapsed={desktopCollapsed}
           />
         ))}
-
-        {/* 视图切换按钮：在管理后台菜单中快速切换到用户面板菜单 */}
-        {effectiveVariant === 'admin' ? (
-          <button
-            type="button"
-            onClick={() => setInternalVariant('user')}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all duration-300 w-full no-underline font-medium"
-            title={desktopCollapsed ? t('sidebar.switchToUserMenu') : undefined}
-          >
-            <ArrowRightToLine size={18} className="shrink-0 text-zinc-300" />
-            {!desktopCollapsed && <span>{t('sidebar.switchToUserMenu')}</span>}
-          </button>
-        ) : variant === 'admin' ? (
-          <button
-            type="button"
-            onClick={() => setInternalVariant(null)}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-all duration-300 w-full no-underline font-medium"
-            title={desktopCollapsed ? t('sidebar.switchToAdminMenu') : undefined}
-          >
-            <ArrowLeftFromLine size={18} className="shrink-0 text-amber-400" />
-            {!desktopCollapsed && <span>{t('sidebar.switchToAdminMenu')}</span>}
-          </button>
-        ) : null}
 
         {/* 桌面端折叠按钮 */}
         {!showCloseButton && (
