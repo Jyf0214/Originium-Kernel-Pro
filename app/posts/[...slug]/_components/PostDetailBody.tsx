@@ -64,7 +64,7 @@ export function PostDetailBody({
 
   return (
     <>
-      <ReadingProgressBar />
+      <ReadingProgressBar pageKey={fullPath} />
       <ScrollToTop />
       <PostNavigationShortcuts
         prevSlug={adjacentPosts.prev?.slug ?? null}

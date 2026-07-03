@@ -1,5 +1,7 @@
 import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { loadConfig } from '@/lib/config';
+import Link from 'next/link';
+import { ChevronRight, Home } from 'lucide-react';
 import { PostListClient } from './PostListClient';
 import PostNavigation from '@/components/PostNavigation';
 import Footer from '@/components/Footer';
@@ -63,6 +65,15 @@ export default function PostsPage() {
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12 md:py-20">
+        {/* 面包屑导航 */}
+        <nav className="flex items-center gap-1.5 text-sm text-zinc-400 dark:text-zinc-500 mb-6">
+          <Link href="/" className="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
+            <Home size={14} />
+          </Link>
+          <ChevronRight size={12} className="text-zinc-300 dark:text-zinc-600" />
+          <span className="text-zinc-600 dark:text-zinc-300 font-medium">帖子</span>
+        </nav>
+
         <h1 className="text-5xl md:text-7xl font-display font-black tracking-tighter text-zinc-900 dark:text-zinc-100 mb-4">
           {config.site.title}
         </h1>
