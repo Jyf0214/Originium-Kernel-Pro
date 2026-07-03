@@ -3,7 +3,8 @@
 
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ArrowUp } from 'lucide-react';
 
 // ─── Typed Text（私有辅助组件） ──────────────────────
 
@@ -93,6 +94,10 @@ export function FooterBar({
 }: FooterBarProps) {
   const year = new Date().getFullYear();
 
+  const handleScrollTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   return (
     <div className="border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
       <div className="max-w-5xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
@@ -114,12 +119,21 @@ export function FooterBar({
           </a>
         </div>
 
-        {/* 右侧：打字机 + 自定义文字 */}
+        {/* 右侧：打字机 + 自定义文字 + 回到顶部 */}
         <div className="text-sm text-zinc-400 flex items-center gap-4 min-w-0 overflow-hidden">
           {typedText && typedText.length > 0 && (
             <TypedText prefix={typedTextPrefix} texts={typedText} />
           )}
           {customText && <span>{customText}</span>}
+          <button
+            type="button"
+            onClick={handleScrollTop}
+            className="shrink-0 w-7 h-7 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-600 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+            title="回到顶部"
+            aria-label="回到顶部"
+          >
+            <ArrowUp size={14} />
+          </button>
         </div>
       </div>
     </div>

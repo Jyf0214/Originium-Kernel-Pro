@@ -1,5 +1,5 @@
 // Footer - 页脚主组件
-// 负责装配：社交区（头像 + 社交图标）、链接组、徽章、运行时状态、版权底栏。
+// 负责装配：链接组、徽章、运行时状态、版权底栏（含回到顶部）。
 // 所有配置加载、默认值兜底、动画变体均来自 footer-config / 子组件本身。
 
 'use client';
@@ -7,17 +7,11 @@
 import React from 'react';
 import { motion } from 'motion/react';
 
-import { FooterAvatar } from './FooterAvatar';
-import { FooterSocial } from './FooterSocial';
 import { FooterLinkGroups, FooterBadges } from './FooterLinks';
 import { FooterRuntimeStatus } from './FooterBrand';
 import { FooterBar } from './FooterCopyright';
 import {
   useFooterConfig,
-  buildSocialEntries,
-  defSocialData,
-  defAvatarUrl,
-  defSocialLinksConfig,
   defLinks,
   defBadges,
   defTypedText,
@@ -36,12 +30,9 @@ const footerSectionVariants = {
 };
 
 export default function Footer() {
-  const { config, socialData, error } = useFooterConfig();
+  const { config, error } = useFooterConfig();
 
   // 解析后的最终值
-  const effectiveSocialData = defSocialData(socialData);
-  const avatarUrl = defAvatarUrl(config);
-  const socialLinksConfig = defSocialLinksConfig(config);
   const links = defLinks(config);
   const badges = defBadges(config);
   const typedText = defTypedText(config);
@@ -52,32 +43,10 @@ export default function Footer() {
   const runtimeEnable = defRuntimeEnable(config);
   const launchTime = defLaunchTime(config);
 
-  // 社交条目：构建一次，左右平分
-  const socialEntries = buildSocialEntries(effectiveSocialData, socialLinksConfig);
-  const mid = Math.ceil(socialEntries.length / 2);
-  const leftSocial = socialEntries.slice(0, mid);
-  const rightSocial = socialEntries.slice(mid);
-
   return (
     <footer className="relative overflow-hidden bg-zinc-50 dark:bg-zinc-800">
       <div className="relative max-w-5xl mx-auto px-6 pt-16 pb-0 space-y-8">
-        {/* 1. 社交区：左侧图标 + 居中头像 + 右侧图标 */}
-        {(leftSocial.length > 0 || rightSocial.length > 0 || avatarUrl) && (
-          <motion.div
-            variants={footerSectionVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-60px' }}
-          >
-            <div className="flex items-center justify-center">
-              <FooterSocial entries={leftSocial} />
-              <FooterAvatar avatarUrl={avatarUrl} hasSiblings={leftSocial.length + rightSocial.length > 0} />
-              <FooterSocial entries={rightSocial} />
-            </div>
-          </motion.div>
-        )}
-
-        {/* 2. 链接组 */}
+        {/* 1. 链接组 */}
         <motion.div
           variants={footerSectionVariants}
           initial="hidden"
@@ -87,7 +56,7 @@ export default function Footer() {
           <FooterLinkGroups groups={links} />
         </motion.div>
 
-        {/* 3. 技术栈徽章 */}
+        {/* 2. 技术栈徽章 */}
         <motion.div
           variants={footerSectionVariants}
           initial="hidden"
@@ -97,7 +66,7 @@ export default function Footer() {
           <FooterBadges badges={badges} />
         </motion.div>
 
-        {/* 4. 运行时状态 */}
+        {/* 3. 运行时状态 */}
         <motion.div
           variants={footerSectionVariants}
           initial="hidden"
@@ -111,7 +80,7 @@ export default function Footer() {
         <div className="pb-8" />
       </div>
 
-      {/* 5. 版权底栏 */}
+      {/* 4. 版权底栏 + 回到顶部 */}
       <FooterBar
         owner={owner}
         author={author}
