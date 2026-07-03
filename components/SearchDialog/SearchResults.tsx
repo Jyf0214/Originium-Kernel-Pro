@@ -1,8 +1,8 @@
-// SearchResults - 搜索结果列表：单条结果渲染、文本高亮、加载态
+// SearchResults - 搜索结果列表：单条结果渲染、文本高亮、加载态、键盘选中
 
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { BookOpen, FileText } from 'lucide-react';
 import Link from 'next/link';
 
@@ -55,6 +55,10 @@ interface SearchResultItemProps {
   result: SearchResult;
   query: string;
   onClose: () => void;
+  /** 键盘导航选中状态 */
+  isSelected?: boolean;
+  /** 在扁平结果列表中的索引（用于滚动到可视区域） */
+  flatIndex?: number;
 }
 
 /** 单条搜索结果项 */
@@ -62,28 +66,49 @@ function SearchResultItem({
   result,
   query,
   onClose,
+  isSelected,
+  flatIndex,
 }: SearchResultItemProps) {
+  const ref = useRef<HTMLAnchorElement>(null);
+
   const href =
     result.type === 'diary' ? result.slug : `/posts${result.slug}`;
 
+  // 选中时自动滚动到可视区域
+  useEffect(() => {
+    if (isSelected && ref.current) {
+      ref.current.scrollIntoView({ block: 'nearest' });
+    }
+  }, [isSelected]);
+
   return (
     <Link
+      ref={ref}
       href={href}
       onClick={onClose}
-      className="flex items-start gap-4 px-6 py-3.5 hover:bg-zinc-50 transition-colors rounded-lg mx-2 group"
+      data-result-index={flatIndex}
+      className={`flex items-start gap-4 px-6 py-3.5 transition-colors rounded-lg mx-2 group ${
+        isSelected
+          ? 'bg-zinc-100 dark:bg-zinc-800'
+          : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
+      }`}
     >
       {/* 左侧图标 */}
-      <div className="w-10 h-10 rounded-xl bg-zinc-50 flex items-center justify-center shrink-0 group-hover:bg-zinc-100 transition-colors">
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+        isSelected ? 'bg-zinc-200 dark:bg-zinc-700' : 'bg-zinc-50 group-hover:bg-zinc-100'
+      }`}>
         {result.type === 'diary' ? (
-          <BookOpen size={18} className="text-zinc-400" />
+          <BookOpen size={18} className={isSelected ? 'text-zinc-600 dark:text-zinc-300' : 'text-zinc-400'} />
         ) : (
-          <FileText size={18} className="text-zinc-400" />
+          <FileText size={18} className={isSelected ? 'text-zinc-600 dark:text-zinc-300' : 'text-zinc-400'} />
         )}
       </div>
 
       {/* 右侧内容 */}
       <div className="flex-1 min-w-0">
-        <h4 className="text-sm font-semibold text-zinc-900 truncate leading-snug">
+        <h4 className={`text-sm font-semibold truncate leading-snug ${
+          isSelected ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-900 dark:text-zinc-100'
+        }`}>
           <HighlightText text={result.title} query={query} />
         </h4>
         {result.matchPreview && (
@@ -114,6 +139,26 @@ function SearchLoading() {
   );
 }
 
+// ─── Search Results Summary ──────────────────────────────────────────────────
+
+interface SearchResultsSummaryProps {
+  totalResults: number;
+  query: string;
+}
+
+/** 搜索结果计数摘要 */
+function SearchResultsSummary({ totalResults, query }: SearchResultsSummaryProps) {
+  if (!query || totalResults === 0) return null;
+  return (
+    <div className="px-6 py-2">
+      <p className="text-[11px] text-zinc-400">
+        找到 <span className="font-medium text-zinc-500">{totalResults}</span> 条与
+        「<span className="font-medium text-zinc-500">{query}</span>」相关的结果
+      </p>
+    </div>
+  );
+}
+
 // ─── Exports ────────────────────────────────────────────────────────────────
 
-export { HighlightText, SearchLoading, SearchResultItem };
+export { HighlightText, SearchLoading, SearchResultItem, SearchResultsSummary };

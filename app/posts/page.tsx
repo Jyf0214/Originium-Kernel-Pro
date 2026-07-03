@@ -1,6 +1,7 @@
 import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { loadConfig } from '@/lib/config';
 import { PostListClient } from './PostListClient';
+import PostNavigation from '@/components/PostNavigation';
 import Footer from '@/components/Footer';
 import type { Metadata } from 'next';
 
@@ -48,6 +49,17 @@ export default function PostsPage() {
     groupName: idx.groupName,
   }));
 
+  // 构建服务端预渲染的导航树（从目录索引转换）
+  const navigationTree = publicIndexes.map((idx) => ({
+    slug: idx.slug.replace(/^\//, ''),
+    title: idx.title,
+    description: idx.description ?? '',
+    icon: '',
+    order: 0,
+    public: idx.public,
+    children: [],
+  }));
+
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12 md:py-20">
@@ -55,7 +67,12 @@ export default function PostsPage() {
           {config.site.title}
         </h1>
         <p className="text-zinc-400 dark:text-zinc-500 text-lg mb-12">{config.site.description}</p>
-        <PostListClient posts={posts} groups={groups} coverConfig={config.cover} />
+        <div className="flex gap-8 items-start">
+          <PostNavigation initialTree={navigationTree} />
+          <div className="flex-1 min-w-0">
+            <PostListClient posts={posts} groups={groups} coverConfig={config.cover} />
+          </div>
+        </div>
       </main>
       <Footer />
     </div>
