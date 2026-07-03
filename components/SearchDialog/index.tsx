@@ -1,6 +1,6 @@
 // SearchDialog - 搜索对话框主组件
 // 负责装配：动画容器、输入栏、ESC 提示、结果区域（含初始/加载/空/分组四种状态）。
-// 状态与副作用由 use-search hook 提供；视觉单元由同级子组件负责。
+// 支持键盘导航（↑↓ 选择，Enter 跳转）、搜索历史、结果计数。
 
 'use client';
 
@@ -8,8 +8,9 @@ import React from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 
 import { SearchEmpty } from './SearchEmpty';
+import { SearchHistory } from './SearchHistory';
 import { SearchInput } from './SearchInput';
-import { SearchResultItem, SearchLoading } from './SearchResults';
+import { SearchResultItem, SearchResultsSummary, SearchLoading } from './SearchResults';
 import { SearchTags } from './SearchTags';
 import { useSearch } from './use-search';
 import type { SearchDialogProps } from './types';
@@ -24,7 +25,15 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
     hasSearched,
     inputRef,
     handleTagClick,
+    selectedIndex,
+    flatResults,
+    handleHistoryClick,
+    clearHistory,
+    searchHistory,
   } = useSearch({ open, onClose });
+
+  // 计算扁平索引偏移量（用于键盘导航定位）
+  let flatOffset = 0;
 
   return (
     <AnimatePresence>
@@ -59,18 +68,25 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
               inputRef={inputRef}
             />
 
-            {/* ── ESC 快捷键提示 ── */}
-            <div className="absolute top-4 right-14 hidden sm:flex items-center gap-1 text-[11px] text-zinc-300 select-none">
-              <kbd className="px-1.5 py-0.5 rounded border border-zinc-200 bg-zinc-50 font-mono">
-                ESC
-              </kbd>
+            {/* ── 快捷键提示 ── */}
+            <div className="absolute top-4 right-14 hidden sm:flex items-center gap-1.5 text-[11px] text-zinc-300 select-none">
+              <kbd className="px-1.5 py-0.5 rounded border border-zinc-200 bg-zinc-50 font-mono">↑↓</kbd>
+              <kbd className="px-1.5 py-0.5 rounded border border-zinc-200 bg-zinc-50 font-mono">↵</kbd>
+              <kbd className="px-1.5 py-0.5 rounded border border-zinc-200 bg-zinc-50 font-mono">ESC</kbd>
             </div>
 
             {/* ── 搜索结果区域 ── */}
             <div className="max-h-[55vh] sm:max-h-[60vh] overflow-y-auto overscroll-contain py-2">
-              {/* 初始状态：未搜索 */}
+              {/* 初始状态：未搜索 — 显示搜索历史 + 热门标签 */}
               {!hasSearched && !query && (
-                <SearchTags onTagClick={handleTagClick} />
+                <>
+                  <SearchHistory
+                    history={searchHistory}
+                    onHistoryClick={handleHistoryClick}
+                    onClear={clearHistory}
+                  />
+                  <SearchTags onTagClick={handleTagClick} />
+                </>
               )}
 
               {/* 加载中 */}
@@ -81,31 +97,46 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
                 <SearchEmpty query={query} />
               )}
 
+              {/* 结果计数 */}
+              {!loading && hasSearched && flatResults.length > 0 && (
+                <SearchResultsSummary totalResults={flatResults.length} query={query} />
+              )}
+
               {/* 结果分组 */}
               {!loading &&
-                groups.map((group) => (
-                  <div key={group.type}>
-                    {/* 分组标题 */}
-                    <div className="px-6 py-2.5">
-                      <h3 className="text-[11px] font-bold uppercase tracking-widest text-zinc-400">
-                        {group.label}
-                        <span className="ml-1.5 font-normal normal-case text-zinc-300">
-                          ({group.results.length})
-                        </span>
-                      </h3>
-                    </div>
+                groups.map((group) => {
+                  const groupOffset = flatOffset;
+                  return (
+                    <div key={group.type}>
+                      {/* 分组标题 */}
+                      <div className="px-6 py-2.5">
+                        <h3 className="text-[11px] font-bold uppercase tracking-widest text-zinc-400">
+                          {group.label}
+                          <span className="ml-1.5 font-normal normal-case text-zinc-300">
+                            ({group.results.length})
+                          </span>
+                        </h3>
+                      </div>
 
-                    {/* 分组结果列表 */}
-                    {group.results.map((result) => (
-                      <SearchResultItem
-                        key={result.id}
-                        result={result}
-                        query={query}
-                        onClose={onClose}
-                      />
-                    ))}
-                  </div>
-                ))}
+                      {/* 分组结果列表 */}
+                      {group.results.map((result, idx) => {
+                        const item = (
+                          <SearchResultItem
+                            key={result.id}
+                            result={result}
+                            query={query}
+                            onClose={onClose}
+                            isSelected={selectedIndex === groupOffset + idx}
+                            flatIndex={groupOffset + idx}
+                          />
+                        );
+                        return item;
+                      })}
+                      {/* 更新偏移量 */}
+                      {(() => { flatOffset += group.results.length; return null; })()}
+                    </div>
+                  );
+                })}
             </div>
           </motion.div>
         </motion.div>
