@@ -8,14 +8,16 @@ export function PostListHeader({
   onSearchChange,
   postCount,
   t,
+  rightExtra,
 }: {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   postCount: number;
   t: (key: string) => string;
+  rightExtra?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap gap-4 mb-10">
+    <div className="flex flex-wrap items-center gap-4 mb-10">
       <div className="relative flex-1 min-w-[240px]">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={20} />
         <Input
@@ -29,6 +31,7 @@ export function PostListHeader({
         />
       </div>
       <div className="flex items-center gap-2">
+        {rightExtra}
         <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white rounded-2xl border border-zinc-200">
           <BookOpen size={16} className="text-zinc-400" />
           <span className="text-sm font-bold text-zinc-900">{postCount}</span>
