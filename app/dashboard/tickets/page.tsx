@@ -5,8 +5,9 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
 import { Plus, Trash2, Edit2, FileText, X, Save, Loader2 } from 'lucide-react';
-import { Modal, Popconfirm, message } from 'antd';
+import { Modal, message } from 'antd';
 import { Button } from '@/components/ui/Button';
+import { CuteConfirm } from '@/components/ui/CuteConfirm';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 import { PageContainer } from '@/components/ui/PageContainer';
@@ -212,14 +213,14 @@ const handleDelete = async (id: string) => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Button size="sm" rounded="sm" icon={<Edit2 size={13} />} onClick={() => handleEdit(template)} autoLoading={false}>{t('tickets.edit')}</Button>
-                  <Popconfirm
-                    title={t('tickets.deleteConfirm')}
+                  <CuteConfirm
+                    category="delete"
                     onConfirm={() => handleDelete(template.slug)}
                     okButtonProps={{ danger: true, loading: deleting === template.slug }}
                     placement="topRight"
                   >
                     <Button size="sm" variant="danger" rounded="sm" icon={deleting === template.slug ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />} disabled={deleting === template.slug} autoLoading={false}>{t('tickets.delete')}</Button>
-                  </Popconfirm>
+                  </CuteConfirm>
                 </div>
               </div>
             ))}

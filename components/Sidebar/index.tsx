@@ -12,6 +12,7 @@ import MobileToggle from './MobileToggle';
 import { useSidebarState } from './use-sidebar-state';
 import { useSidebarCollapsed } from './use-sidebar-collapsed';
 import { menuItems } from './sidebar-config';
+import { showCuteLogoutConfirm } from '@/components/ui/CuteLogout';
 import type { MenuItem } from './types';
 
 function Sidebar() {
@@ -29,8 +30,11 @@ function Sidebar() {
   });
 
   const handleLogout = async () => {
-    await logout();
-    window.location.href = '/login';
+    const confirmed = await showCuteLogoutConfirm();
+    if (confirmed) {
+      await logout();
+      window.location.href = '/login';
+    }
   };
 
   const isActive = (href: string) => {

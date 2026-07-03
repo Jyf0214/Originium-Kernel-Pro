@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/Button';
 import { showError } from '@/lib/error';
 import { useDiaryDraft } from '@/hooks/use-diary-draft';
 import { PageContainer } from '@/components/ui/PageContainer';
+import { Modal } from 'antd';
+import { getConfirmMessage } from '@/lib/kaomoji';
 
 interface DiaryFormProps {
   mode: 'new' | 'edit';
@@ -47,9 +49,20 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
     tags: tags.split(',').map(t => t.trim()).filter(Boolean),
     group: diaryGroup,
     date: diaryDate,
-    onDraftFound: (data) => {
+    onDraftFound: async (data) => {
       if (!recovered && (data.title || data.content)) {
-        const ok = window.confirm(`检测到上次未完成的草稿（${data.savedAt ? new Date(data.savedAt).toLocaleString('zh-CN') : '未知时间'}），是否恢复？`);
+        const ok = await new Promise<boolean>((resolve) => {
+          const msg = getConfirmMessage('restore');
+          const timeStr = data.savedAt ? new Date(data.savedAt).toLocaleString('zh-CN') : '未知时间';
+          Modal.confirm({
+            title: `${msg.kaomoji} 恢复草稿？`,
+            content: `检测到上次未完成的草稿（${timeStr}），要恢复吗？`,
+            okText: '恢复',
+            cancelText: '不要了',
+            onOk: () => resolve(true),
+            onCancel: () => resolve(false),
+          });
+        });
         if (ok) {
           setTitle(data.title ?? '');
           setContent(data.content ?? '');

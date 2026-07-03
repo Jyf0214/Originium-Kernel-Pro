@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { Save, Trash2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { Input, Form, Popconfirm, message } from 'antd';
+import { Input, Form, message } from 'antd';
 import { Button } from '@/components/ui/Button';
+import { CuteConfirm } from '@/components/ui/CuteConfirm';
 import { Select } from '@/components/ui/Select';
 import { showError } from '@/lib/error';
 import { useI18n } from '@/hooks/use-i18n';
@@ -236,14 +237,12 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
 
           <div className="flex gap-3">
             {isEdit && (
-              <Popconfirm
-                title={t('common.confirm')}
-                description={t('article.deleteConfirm')}
+              <CuteConfirm
+                category="delete"
                 onConfirm={handleDelete}
                 okText={t('common.confirm')}
                 cancelText={t('common.cancel')}
                 okButtonProps={{ danger: true }}
-                placement="topRight"
               >
                 <Button
                   variant="danger"
@@ -253,7 +252,7 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
                 >
                   {t('common.delete')}
                 </Button>
-              </Popconfirm>
+              </CuteConfirm>
             )}
             <Button
               type="submit"

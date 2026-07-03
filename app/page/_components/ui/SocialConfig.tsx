@@ -1,5 +1,6 @@
 import React from 'react';
 import Button from '@/components/ui/Button';
+import { CuteConfirm } from '@/components/ui/CuteConfirm';
 import { Plus, Trash2 } from 'lucide-react';
 
 type SocialConfigData = Record<string, string>;
@@ -58,15 +59,16 @@ export default function SocialConfig({ config, onChange }: SocialConfigProps) {
             placeholder="链接 || 图标 (可选)"
             className="flex-1 h-9 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400"
           />
-          <Button
-            variant="danger"
-            size="sm"
-            iconOnly
-            icon={<Trash2 size={14} />}
-            onClick={() => removeEntry(key)}
-            autoLoading={false}
-            className="shrink-0"
-          />
+          <CuteConfirm category="delete" confirmText="确定删除这个社交链接吗？" onConfirm={() => removeEntry(key)}>
+            <Button
+              variant="danger"
+              size="sm"
+              iconOnly
+              icon={<Trash2 size={14} />}
+              autoLoading={false}
+              className="shrink-0"
+            />
+          </CuteConfirm>
         </div>
       ))}
 

@@ -9,10 +9,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Popconfirm } from 'antd';
 import { Lock, LockOpen } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { CuteConfirm } from '@/components/ui/CuteConfirm';
 
 interface Props {
   hasPassword: boolean;
@@ -23,7 +23,6 @@ interface Props {
   noPasswordLabel: string;
   setPasswordLabel: string;
   clearPasswordLabel: string;
-  confirmClearTitle: string;
   okLabel: string;
   cancelLabel: string;
   disabled?: boolean;
@@ -41,7 +40,6 @@ export function StorageFolderPasswordSection({
   noPasswordLabel,
   setPasswordLabel,
   clearPasswordLabel,
-  confirmClearTitle,
   okLabel,
   cancelLabel,
   disabled = false,
@@ -120,8 +118,9 @@ export function StorageFolderPasswordSection({
           {setPasswordLabel}
         </Button>
         {hasPassword && (
-          <Popconfirm
-            title={confirmClearTitle}
+          <CuteConfirm
+            category="reset"
+            confirmText="确定要清除密码吗？"
             okText={okLabel}
             cancelText={cancelLabel}
             okButtonProps={{ danger: true, disabled: disabled || submitting }}
@@ -133,7 +132,7 @@ export function StorageFolderPasswordSection({
             <Button variant="danger" size="sm" disabled={disabled || submitting}>
               {clearPasswordLabel}
             </Button>
-          </Popconfirm>
+          </CuteConfirm>
         )}
       </div>
     </div>
