@@ -24,9 +24,8 @@ async function findArticleUser(
   }
 }
 
-function getUserAvatar(config: AppConfig, user: Record<string, unknown>): string | null {
-  const avatar = config.users?.[String(user.uid)]?.avatar ?? config.auth?.admin?.avatar;
-  return avatar ?? null;
+function getUserAvatar(config: AppConfig): string | null {
+  return config.auth?.admin?.avatar ?? null;
 }
 
 async function getRawMarkdownContent(articleId: string): Promise<string> {
@@ -54,7 +53,7 @@ export async function GET(
       return NextResponse.json({ error: '用户不存在' }, { status: 404 });
     }
 
-    const avatar = getUserAvatar(config, user);
+    const avatar = getUserAvatar(config);
 
     const articleStr = await db.get(`article:data:${articleId}`);
     if (!articleStr) {

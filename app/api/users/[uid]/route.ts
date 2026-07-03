@@ -51,7 +51,7 @@ export const GET = apiHandler('GET', { label: '获取用户信息', requireAdmin
     return NextResponse.json({ error: '用户数据损坏' }, { status: 500 });
   }
   const config = loadConfig();
-  const avatar = config.users?.[uid]?.avatar ?? config.auth?.admin?.avatar ?? null;
+  const avatar = config.auth?.admin?.avatar ?? null;
 
   logger.info('GET', '获取用户信息成功', { uid });
   return NextResponse.json({

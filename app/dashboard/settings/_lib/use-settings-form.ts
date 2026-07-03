@@ -34,9 +34,8 @@ export function useSettingsForm({
 
   useEffect(() => {
     if (user && configLoaded) {
-      // 优先使用远程配置中的头像，其次本地用户头像
-      const remoteAvatar = configData?.users?.[user.uid]?.avatar;
-      const effectiveAvatar = remoteAvatar ?? user.avatar ?? '';
+      // 全局头像统一从 auth.admin.avatar 读取
+      const effectiveAvatar = configData?.auth?.admin?.avatar ?? user.avatar ?? '';
       setOriginalAvatar(effectiveAvatar);
       form.setFieldsValue({
         avatarUrl: effectiveAvatar,

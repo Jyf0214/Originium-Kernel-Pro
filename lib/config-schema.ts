@@ -379,14 +379,6 @@ export const zClerkConfig = z.object({
 });
 
 // ============================================================================
-// UserConfig / Users
-// ============================================================================
-
-export const zUserConfig = z.object({
-  avatar: z.string().optional(),
-});
-
-// ============================================================================
 // MusicConfig
 // ============================================================================
 
@@ -442,7 +434,6 @@ export const zAppConfig = z.object({
   footer: withFullDefault(zFooterConfig),
   clerk: withFullDefault(zClerkConfig),
   music: withFullDefault(zMusicConfig),
-  users: z.record(z.string(), zUserConfig).default({}),
 }).strict();
 
 // ============================================================================
@@ -711,10 +702,6 @@ export interface MusicConfig {
   songs: MusicItem[];
 }
 
-export interface UserConfig {
-  avatar?: string;
-}
-
 export interface AppConfig {
   site: SiteConfig;
   appearance: AppearanceConfig;
@@ -739,5 +726,4 @@ export interface AppConfig {
   footer?: FooterConfig;
   clerk?: ClerkConfig;
   music?: MusicConfig;
-  users?: Record<string, UserConfig>;
 }

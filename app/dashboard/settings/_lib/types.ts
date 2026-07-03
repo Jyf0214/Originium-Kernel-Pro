@@ -31,5 +31,7 @@ export interface UserCardData {
 export interface RemoteConfigData {
   githubConfigured?: boolean;
   _remoteConfig?: string;
-  users?: Record<string, { avatar?: string }>;
+  auth?: {
+    admin?: { avatar?: string };
+  };
 }

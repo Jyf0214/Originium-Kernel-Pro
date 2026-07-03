@@ -16,7 +16,7 @@ export interface UseGitHubConfigSyncOptions {
   /**
    * 自定义字段合并函数。
    * 当提供时，覆盖 managedFields 的默认合并行为，
-   * 用于需要非标准字段映射的场景（如头像更新 users[uid].avatar）。
+   * 用于需要非标准字段映射的场景（如头像更新 auth.admin.avatar）。
    */
   customTransform?: (
     remoteObj: Record<string, unknown>,

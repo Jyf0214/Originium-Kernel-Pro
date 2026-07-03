@@ -1,10 +1,6 @@
 export type LoadingType = 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
 export type LoadingPosition = 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
-export interface UserConfig {
-  avatar?: string;
-}
-
 export interface NavMenuItemData {
   name: string;
   link: string;
@@ -81,7 +77,6 @@ export interface ConfigState {
   copyright: { enable: boolean; decode: boolean; authorHref: string; location: string; license: string; licenseUrl: string; avatarSinks: boolean; authorImgBack: string; authorImgFront: string; authorLink: string };
   reward: { enable: boolean; qrCodes: { img: string; link: string; text: string }[] };
   postEdit: { enable: boolean; github: string | false };
-  users?: Record<string, UserConfig>;
 }
 
 export function buildSiteConfig(data: Record<string, unknown>): ConfigState['site'] {
@@ -344,6 +339,5 @@ export function buildConfigState(data: Record<string, unknown>): ConfigState {
     share: buildShareConfig(data),
     mainTone: buildMainToneConfig(data),
     footer: buildFooterConfig(data),
-    users: (data.users as Record<string, UserConfig>) || {},
   };
 }
