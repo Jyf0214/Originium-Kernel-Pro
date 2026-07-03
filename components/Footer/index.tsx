@@ -45,39 +45,42 @@ export default function Footer() {
 
   return (
     <footer className="relative overflow-hidden bg-zinc-50 dark:bg-zinc-800">
-      <div className="relative max-w-5xl mx-auto px-6 pt-16 pb-0 space-y-8">
-        {/* 1. 链接组 */}
+      <div className="relative max-w-5xl mx-auto px-6 pt-0 md:pt-16 pb-0 space-y-8">
+        {/* 1. 链接组（移动端隐藏，仅桌面端显示） */}
         <motion.div
           variants={footerSectionVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-60px' }}
+          className="hidden md:block"
         >
           <FooterLinkGroups groups={links} />
         </motion.div>
 
-        {/* 2. 技术栈徽章 */}
+        {/* 2. 技术栈徽章（移动端隐藏） */}
         <motion.div
           variants={footerSectionVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-60px' }}
+          className="hidden md:block"
         >
           <FooterBadges badges={badges} />
         </motion.div>
 
-        {/* 3. 运行时状态 */}
+        {/* 3. 运行时状态（移动端隐藏） */}
         <motion.div
           variants={footerSectionVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-60px' }}
+          className="hidden md:block"
         >
           <FooterRuntimeStatus launchTime={launchTime} enable={runtimeEnable} />
         </motion.div>
 
-        {/* 间隔 */}
-        <div className="pb-8" />
+        {/* 间隔（仅桌面端） */}
+        <div className="hidden md:block pb-8" />
       </div>
 
       {/* 4. 版权底栏 + 回到顶部 */}

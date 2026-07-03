@@ -28,7 +28,7 @@ export function FooterLinkGroups({ groups }: FooterLinkGroupsProps) {
               <li key={item.name}>
                 <a
                   href={item.url}
-                  className="text-sm text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors duration-300"
+                  className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors duration-300"
                   {...(item.url.startsWith('http')
                     ? { target: '_blank', rel: 'noopener noreferrer' }
                     : {})}

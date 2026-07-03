@@ -68,8 +68,8 @@ export function CopyrightNotice({
         </div>
       </div>
 
-      {/* 文章标题 + 原创/转载标识 */}
-      <div className="flex items-start gap-2 mb-3">
+      {/* 文章标题 + 原创/转载标识（移动端隐藏，避免与顶部标题重复） */}
+      <div className="hidden sm:flex items-start gap-2 mb-3">
         <h4 className="text-sm font-medium text-zinc-800 dark:text-zinc-200 leading-relaxed flex-1 min-w-0">
           {displayTitle}
         </h4>
@@ -92,7 +92,7 @@ export function CopyrightNotice({
             href={config.licenseUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors underline underline-offset-2 decoration-zinc-300 dark:decoration-zinc-600"
+            className="text-xs text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors underline underline-offset-2 decoration-zinc-300 dark:decoration-zinc-600"
           >
             {config.license}
           </a>
@@ -100,7 +100,7 @@ export function CopyrightNotice({
       )}
 
       {/* 版权声明文本 */}
-      <p className="text-xs text-zinc-400 dark:text-zinc-500 leading-relaxed">
+      <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
         {locale === 'en' ? (
           <>
             Licensed under{' '}
@@ -108,7 +108,7 @@ export function CopyrightNotice({
               href={config.licenseUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 underline underline-offset-2 decoration-zinc-300 dark:decoration-zinc-600 transition-colors"
+              className="text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 underline underline-offset-2 decoration-zinc-300 dark:decoration-zinc-600 transition-colors"
             >
               {config.license}
             </a>
@@ -121,7 +121,7 @@ export function CopyrightNotice({
               href={config.licenseUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 underline underline-offset-2 decoration-zinc-300 dark:decoration-zinc-600 transition-colors"
+              className="text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 underline underline-offset-2 decoration-zinc-300 dark:decoration-zinc-600 transition-colors"
             >
               {config.license}
             </a>
