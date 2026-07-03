@@ -116,13 +116,13 @@ function ArticleCoverSection({ article, coverConfig }: { article: Article; cover
 
   if (isHorizontal) {
     return (
-      <div className={`${coverPosition === 'right' ? 'order-last' : ''} w-2/5 shrink-0 overflow-hidden`}>
+      <div className={`${coverPosition === 'right' ? 'order-last rounded-r-none sm:rounded-r-[2rem]' : 'rounded-l-none sm:rounded-l-[2rem]'} w-2/5 shrink-0 overflow-hidden`}>
         <ArticleCover article={article} horizontal defaultCover={coverConfig?.defaultCover?.[0]} />
       </div>
     );
   }
 
-  return <ArticleCover article={article} defaultCover={coverConfig?.defaultCover?.[0]} />;
+  return <div className="rounded-t-none sm:rounded-t-[2rem] overflow-hidden"><ArticleCover article={article} defaultCover={coverConfig?.defaultCover?.[0]} /></div>;
 }
 
 function FormatDate({ createdAt, postMeta }: { createdAt: string; postMeta?: PostMetaPageConfig }) {
