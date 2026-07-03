@@ -102,7 +102,7 @@ export function FooterBar({
     <div className="border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
       <div className="max-w-5xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
         {/* 左侧：版权 + 协议 */}
-        <div className="text-sm text-zinc-400 flex items-center gap-2 min-w-0 overflow-hidden">
+        <div className="text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-2 min-w-0 overflow-hidden">
           {owner.enable && (
             <span className="whitespace-nowrap overflow-hidden text-ellipsis">
               &copy; {owner.since}&mdash;{year} {author}
@@ -120,7 +120,7 @@ export function FooterBar({
         </div>
 
         {/* 右侧：打字机 + 自定义文字 + 回到顶部 */}
-        <div className="text-sm text-zinc-400 flex items-center gap-4 min-w-0 overflow-hidden">
+        <div className="text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-4 min-w-0 overflow-hidden">
           {typedText && typedText.length > 0 && (
             <TypedText prefix={typedTextPrefix} texts={typedText} />
           )}

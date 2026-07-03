@@ -61,7 +61,7 @@ export function FooterRuntimeStatus({ launchTime, enable }: FooterRuntimeStatusP
   if (!text) return null;
 
   return (
-    <div className="flex items-center justify-center text-sm text-zinc-400 gap-2">
+    <div className="flex items-center justify-center text-sm text-zinc-500 dark:text-zinc-400 gap-2">
       <Heart className="w-4 h-4 text-red-400 animate-pulse" />
       <span>{text}</span>
       <Tag
