@@ -1,7 +1,5 @@
 import type { ElementType } from 'react';
 
-export type SidebarVariant = 'user' | 'admin';
-
 export interface MenuItem {
   key: string;
   icon: ElementType;
