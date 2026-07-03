@@ -32,6 +32,11 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang={config.site.lang} suppressHydrationWarning>
       <head>
+        {/* 预连接外部资源，提前建立 TLS 连接减少延迟 */}
+        <link rel="dns-prefetch" href="https://vitals.vercel-insights.com" />
+        <link rel="preconnect" href="https://vitals.vercel-insights.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://giscus.app" />
+        <link rel="preconnect" href="https://giscus.app" crossOrigin="anonymous" />
         {config.appearance.favicon?.startsWith('/') ? (
           <link rel="icon" href={config.appearance.favicon} />
         ) : (
