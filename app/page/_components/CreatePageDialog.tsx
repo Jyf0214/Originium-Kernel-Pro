@@ -6,6 +6,7 @@
  * 输入名称 + 公开/私有切换，调用 POST /api/page/create 完成创建。
  */
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/ui';
 import { Button } from '@/components/ui/Button';
@@ -196,39 +197,54 @@ export function CreatePageDialog({ open, onClose, onCreated }: CreatePageDialogP
     if (e.key === 'Enter' && canSubmit) void handleCreate();
   }, [submitting, successMsg, onClose, canSubmit, handleCreate]);
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" onKeyDown={handleKeyDown}>
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={submitting || !!successMsg ? undefined : onClose} />
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          onKeyDown={handleKeyDown}
+        >
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={submitting || !!successMsg ? undefined : onClose} />
 
-      <div className="relative w-full max-w-sm mx-4 bg-white rounded-2xl shadow-2xl ring-1 ring-zinc-200">
-        <DialogHeader onClose={onClose} disabled={submitting || !!successMsg} />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -16 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="relative w-full max-w-sm mx-4 bg-white rounded-2xl shadow-2xl ring-1 ring-zinc-200"
+          >
+            <DialogHeader onClose={onClose} disabled={submitting || !!successMsg} />
 
-        <div className="px-5 pb-4 space-y-4">
-          <Input
-            ref={inputRef}
-            label="页面名称"
-            placeholder="例如: my-page"
-            value={name}
-            onChange={(e) => handleNameChange(e.target.value)}
-            error={nameError ?? duplicateError ?? undefined}
-            size="sm"
-            disabled={submitting}
-          />
-          <p className="text-xs text-zinc-400 -mt-2">
-            仅字母、数字、中文、连字符、下划线
-          </p>
+            <div className="px-5 pb-4 space-y-4">
+              <Input
+                ref={inputRef}
+                label="页面名称"
+                placeholder="例如: my-page"
+                value={name}
+                onChange={(e) => handleNameChange(e.target.value)}
+                error={nameError ?? duplicateError ?? undefined}
+                size="sm"
+                disabled={submitting}
+              />
+              <p className="text-xs text-zinc-400 -mt-2">
+                仅字母、数字、中文、连字符、下划线
+              </p>
 
-          <VisibilityToggle isPublic={isPublic} onToggle={() => setIsPublic(!isPublic)} disabled={submitting} />
+              <VisibilityToggle isPublic={isPublic} onToggle={() => setIsPublic(!isPublic)} disabled={submitting} />
 
-          {errorMsg && <ErrorBanner message={errorMsg} />}
-          {successMsg && <SuccessBanner message={successMsg} />}
-        </div>
+              {errorMsg && <ErrorBanner message={errorMsg} />}
+              {successMsg && <SuccessBanner message={successMsg} />}
+            </div>
 
-        <DialogFooter onClose={onClose} onSubmit={() => void handleCreate()} canSubmit={canSubmit} submitting={submitting} disabled={!!successMsg} />
-      </div>
-    </div>
+            <DialogFooter onClose={onClose} onSubmit={() => void handleCreate()} canSubmit={canSubmit} submitting={submitting} disabled={!!successMsg} />
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
