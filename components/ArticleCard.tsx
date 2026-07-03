@@ -116,7 +116,7 @@ function ArticleCoverSection({ article, coverConfig }: { article: Article; cover
 
   if (isHorizontal) {
     return (
-      <div className={`${coverPosition === 'right' ? 'order-last' : ''} w-2/5 shrink-0`}>
+      <div className={`${coverPosition === 'right' ? 'order-last' : ''} w-2/5 shrink-0 overflow-hidden`}>
         <ArticleCover article={article} horizontal defaultCover={coverConfig?.defaultCover?.[0]} />
       </div>
     );
