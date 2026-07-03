@@ -99,6 +99,8 @@ export interface PageMeta {
   description?: string;
   coverImage?: string;
   tags?: string[];
+  /** 页面创建者用户名，创建时由系统写入 */
+  creator?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -136,6 +138,7 @@ export function validatePageMeta(raw: unknown): PageMeta | null {
   if (Array.isArray(obj.tags) && obj.tags.every((t): t is string => typeof t === 'string')) {
     result.tags = obj.tags;
   }
+  if (typeof obj.creator === 'string') result.creator = obj.creator;
   if (typeof obj.createdAt === 'string') result.createdAt = obj.createdAt;
   if (typeof obj.updatedAt === 'string') result.updatedAt = obj.updatedAt;
   return result;

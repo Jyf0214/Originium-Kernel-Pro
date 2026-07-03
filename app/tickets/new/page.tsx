@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { Input, message } from 'antd';
 import { Button } from '@/components/ui/Button';
@@ -35,12 +35,17 @@ interface TicketTemplate {
 export default function NewTicketPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useI18n();
   const [templates, setTemplates] = useState<TicketTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<TicketTemplate | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [title, setTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // 从 URL 参数读取页面关联信息（来自自定义页面沙箱工单按钮）
+  const pagePath = searchParams.get('pagePath') ?? '';
+  const pageTitle = searchParams.get('pageTitle') ?? '';
 
   useEffect(() => {
     if (authLoading) return;
@@ -67,8 +72,14 @@ export default function NewTicketPage() {
 
   const handleTemplateSelect = (template: TicketTemplate) => {
     setSelectedTemplate(template);
-    setTitle(template.title ?? '');
-    setFormData({});
+    // 来自沙箱工单按钮时，预填标题和页面路径
+    const prefix = pageTitle ? `[${pageTitle}] ` : (template.title ?? '');
+    setTitle(prefix);
+    const initialData: Record<string, string> = {};
+    if (pagePath) {
+      initialData.pagePath = pagePath;
+    }
+    setFormData(initialData);
   };
 
   const handleSubmit = async () => {

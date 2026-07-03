@@ -11,7 +11,7 @@
  */
 import { NextResponse } from 'next/server'
 import { apiHandler } from '@/lib/api-handler'
-import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth'
+import { getSessionWithKeyId, requireApiKeyPermission, getSession } from '@/lib/auth'
 import { getDb } from '@/lib/db'
 import { isStorageConfigured, getStorageProvider } from '@/lib/storage/storage-provider'
 import { renderTemplate, type TemplateType } from '@/lib/page-templates'
@@ -68,6 +68,20 @@ async function writeToStorage(name: string, htmlContent: string): Promise<NextRe
   }
 }
 
+/** 写入 meta.json 记录创建者信息（不阻塞主流程） */
+async function writeCreatorMeta(name: string, creatorEmail: string | undefined): Promise<void> {
+  const metaPath = `pages/${name}/meta.json`
+  const now = new Date().toISOString()
+  const userName = creatorEmail?.split('@')[0] ?? 'admin'
+  try {
+    const provider = await getStorageProvider()
+    const meta = JSON.stringify({ creator: userName, createdAt: now, updatedAt: now }, null, 2)
+    await provider.putFileContents(metaPath, Buffer.from(meta, 'utf-8'), { headers: { overwrite: 'true' } })
+  } catch (err) {
+    console.error('[page.create] meta.json 写入失败:', err)
+  }
+}
+
 /* ── 主 Handler ── */
 
 export const POST = apiHandler('POST', { label: 'page.create', requireSudo: true }, async (req) => {
@@ -113,6 +127,10 @@ export const POST = apiHandler('POST', { label: 'page.create', requireSudo: true
 
   const storageError = await writeToStorage(body.name, htmlContent)
   if (storageError) return storageError
+
+  // 写入 meta.json 记录创建者信息
+  const creatorSession = await getSession()
+  await writeCreatorMeta(body.name, creatorSession?.email)
 
   // 持久化文件夹可见性设置到数据库
   const targetDir = `pages/${body.name}`

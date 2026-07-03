@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { buildPageRelativePath, resolvePageFilePath } from '@/lib/page-source/shared';
 import { fetchPageHtml, fetchPageMeta } from '@/lib/page-source/fs';
+import { loadConfig } from '@/lib/config';
 import CustomPageView from './CustomPageView';
 
 interface PageProps {
@@ -26,5 +27,23 @@ export default async function CustomPage({ params }: PageProps) {
   // 获取页面元数据
   const meta = fetchPageMeta(relativePath);
 
-  return <CustomPageView html={html} title={meta?.title} />;
+  // 站点标题（用于工具栏显示）
+  let siteTitle = 'Originium Kernel';
+  try {
+    const config = loadConfig();
+    if (config.site?.title) siteTitle = config.site.title;
+  } catch { /* 使用默认值 */ }
+
+  // 页面路径（用于工单关联）
+  const pagePath = '/page/' + pathSegments.join('/');
+
+  return (
+    <CustomPageView
+      html={html}
+      title={meta?.title}
+      creator={meta?.creator}
+      pagePath={pagePath}
+      siteTitle={siteTitle}
+    />
+  );
 }
