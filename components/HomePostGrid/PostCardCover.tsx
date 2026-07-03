@@ -42,7 +42,7 @@ export function PostCardCover({
   const isSide = coverConfig?.position === 'left' || coverConfig?.position === 'right';
 
   return (
-    <div className={getCoverPositionClass(coverConfig?.position)}>
+    <div className={`${getCoverPositionClass(coverConfig?.position)} overflow-hidden`}>
       <Link
         href={`/posts${post.slug}`}
         className={`block overflow-hidden bg-zinc-50 dark:bg-zinc-800 relative ${isSide ? 'h-full' : 'aspect-video'}`}
