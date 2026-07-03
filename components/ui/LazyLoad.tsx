@@ -1,12 +1,15 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useNetworkAware } from '@/hooks/use-network-aware';
 
 interface LazyLoadProps {
   children: ReactNode;
   /** 距离视口多远时开始加载（px），默认 200 */
   rootMargin?: string;
   className?: string;
+  /** 启用网络感知：根据连接质量自动调整 rootMargin */
+  networkAware?: boolean;
 }
 
 /**
@@ -14,10 +17,17 @@ interface LazyLoadProps {
  *
  * 使用 IntersectionObserver 延迟渲染子组件，直到滚动到视口附近。
  * 适用于评论系统、重型组件等非首屏必需内容。
+ *
+ * 网络感知模式下，根据连接质量自动调整预加载距离：
+ * - 4G：提前 400px（快速网络可预加载更多）
+ * - 3G：提前 200px（默认）
+ * - 2G / 省流：仅 50px（节省带宽）
  */
-export function LazyLoad({ children, rootMargin = '200px', className }: LazyLoadProps) {
+export function LazyLoad({ children, rootMargin, className, networkAware = false }: LazyLoadProps) {
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const { rootMargin: adaptiveMargin } = useNetworkAware(rootMargin);
+  const effectiveMargin = rootMargin ?? (networkAware ? adaptiveMargin : '200px 0px');
 
   useEffect(() => {
     const el = ref.current;
@@ -36,12 +46,12 @@ export function LazyLoad({ children, rootMargin = '200px', className }: LazyLoad
           observer.disconnect();
         }
       },
-      { rootMargin },
+      { rootMargin: effectiveMargin },
     );
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [rootMargin]);
+  }, [effectiveMargin]);
 
   return (
     <div ref={ref} className={className}>

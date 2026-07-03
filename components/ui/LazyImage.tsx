@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { ImageOff } from 'lucide-react';
+import { useNetworkAware } from '@/hooks/use-network-aware';
 
 /**
  * 800x450 灰色矩形 SVG（base64），用作 next/image blur placeholder
@@ -59,6 +60,7 @@ export function LazyImage({
   const [status, setStatus] = useState<'idle' | 'loaded' | 'error'>('idle');
   const [isInView, setIsInView] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { rootMargin: adaptiveMargin } = useNetworkAware();
 
   // src 变化时重置加载状态
   useEffect(() => { setStatus('idle'); }, [src]);
@@ -75,10 +77,10 @@ export function LazyImage({
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const observer = new IntersectionObserver(handleIntersection, { rootMargin: '200px 0px' });
+    const observer = new IntersectionObserver(handleIntersection, { rootMargin: adaptiveMargin });
     observer.observe(el);
     return () => observer.disconnect();
-  }, [handleIntersection]);
+  }, [handleIntersection, adaptiveMargin]);
 
   const useFill = resolveFill(fill, width, height);
   const containerStyle = buildContainerStyle(useFill, width, height, style);
