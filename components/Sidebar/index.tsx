@@ -36,7 +36,13 @@ function Sidebar() {
   const isActive = (href: string) => {
     const [path = ''] = href.split('?');
     if (path === '/dashboard') return pathname === '/dashboard';
-    return (pathname ?? '').startsWith(path);
+    const currentPath = pathname ?? '';
+    if (!currentPath.startsWith(path)) return false;
+    // href 带查询参数时，必须完整匹配（防止 /dashboard/articles 同时高亮两个）
+    if (href.includes('?')) {
+      return currentPath + window.location.search === href;
+    }
+    return true;
   };
 
   const grouped = items.reduce<Record<string, MenuItem[]>>((acc, item) => {
