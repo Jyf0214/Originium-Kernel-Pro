@@ -9,7 +9,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Globe, Folder, Lock, FileCode, Plus, FolderOpen, RotateCw } from 'lucide-react';
+import { Globe, Folder, FileCode, Plus, FolderOpen, RotateCw } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
 import Sidebar from '@/components/Sidebar/index';
@@ -23,7 +23,6 @@ export interface PageIndexItem {
   filename: string;
   folder: string;
   title: string;
-  isPrivate: boolean;
   /** 同目录下存储池中有但未显示的文件数 */
   hiddenCount?: number;
   /** 页面描述 */
@@ -230,7 +229,6 @@ function EmptyCard() {
 }
 
 function PageGrid({ pages, isSudo, onEditMeta }: { pages: PageIndexItem[]; isSudo: boolean; onEditMeta: (page: PageIndexItem) => void }) {
-  const { t } = useI18n();
   return (
     <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {pages.map(page => (
@@ -252,16 +250,6 @@ function PageGrid({ pages, isSudo, onEditMeta }: { pages: PageIndexItem[]; isSud
                     +{page.hiddenCount}
                   </span>
                 ) : null}
-                {page.isPrivate ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold text-amber-700 uppercase tracking-wider ring-1 ring-amber-200/60">
-                    <Lock size={10} aria-hidden />
-                    {t('page.indexPrivateBadge')}
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700 uppercase tracking-wider ring-1 ring-emerald-200/60">
-                    {t('page.indexPublicBadge')}
-                  </span>
-                )}
               </div>
             </div>
             <h3
