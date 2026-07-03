@@ -116,7 +116,6 @@ export default async function PageIndex() {
         filename,
         folder: dir.slice(PAGES_PREFIX.length + 1),
         title,
-        isPrivate: false,
         hiddenCount: 0,
         description: meta?.description,
         coverImage: meta?.coverImage,

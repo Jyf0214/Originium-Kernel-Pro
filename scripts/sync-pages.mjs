@@ -816,71 +816,89 @@ async function b2CreateDir(dirPath) {
 }
 
 /**
- * 浅层递归(2 层)收集 B2 `pages/` 下所有 .html/.htm 路径
+ * 列出 B2 `pages/` 下所有 .html/.htm 路径
  *
- * @returns {Promise<string[] | null>} 文件路径列表; 根目录缺失时返回 `null`
+ * B2 是扁平存储，没有真正的文件夹概念，"文件夹"只是路径前缀。
+ * 直接用 prefix 列出所有文件，过滤出 HTML 文件即可。
+ *
+ * @returns {Promise<string[] | null>} 文件路径列表; 根目录不存在时返回 `null`
  */
 async function b2ListHtmlRecursive() {
-  // 列出根目录内容
-  let rootData;
-  try {
-    rootData = await b2ListFiles(`${WEBDAV_PREFIX}/`);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    if (msg.includes('404') || msg.includes('not found')) {
-      return null;
+  const auth = await b2Authorize();
+  const prefix = `${WEBDAV_PREFIX}/`;
+  const allFiles = [];
+  let startFileName = undefined;
+
+  // 分页列出所有文件（B2 单次最多返回 10000 条）
+  while (true) {
+    const body = {
+      bucketId: auth.bucketId,
+      prefix,
+      maxFileCount: 10000,
+    };
+    if (startFileName) body.startFileName = startFileName;
+
+    let resp;
+    try {
+      resp = await fetch(`${auth.apiUrl}/b2api/v3/b2_list_file_names`, {
+        method: 'POST',
+        headers: {
+          Authorization: auth.authorizationToken,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+    } catch (err) {
+      throw new Error(`B2 列出文件网络错误: ${err.message}`);
     }
-    throw new Error(`B2 列出根目录失败: ${msg}`);
+
+    if (resp.status === 401) {
+      b2ClearAuth();
+      const auth2 = await b2Authorize();
+      auth.authorizationToken = auth2.authorizationToken;
+      resp = await fetch(`${auth2.apiUrl}/b2api/v3/b2_list_file_names`, {
+        method: 'POST',
+        headers: {
+          Authorization: auth2.authorizationToken,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+    }
+
+    if (resp.status === 404) {
+      return null; // pages/ 目录不存在
+    }
+
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => '');
+      throw new Error(`B2 列出文件失败(HTTP ${resp.status}): ${text.slice(0, 300)}`);
+    }
+
+    const data = await resp.json();
+    const files = data.files || [];
+    allFiles.push(...files);
+
+    if (data.nextFileName) {
+      startFileName = data.nextFileName;
+    } else {
+      break;
+    }
   }
 
-  // B2 可能返回 { files: [...], folders: [...] } 或 { files: { files: [...], nextFileName: ... } }
-  const rootFiles = rootData.files?.files || rootData.files || [];
-  const rootFolders = rootData.folders || [];
-
-  console.log(`${LOG_PREFIX} B2 根目录: files=${rootFiles.length}, folders=${rootFolders.length}`);
-
-  if (rootFiles.length === 0 && rootFolders.length === 0) {
+  if (allFiles.length === 0) {
     return null; // 空目录视为缺失,触发 bootstrap
   }
 
-  const out = [];
+  // 过滤出 HTML 文件，排除 .keep 等占位文件
+  const out = allFiles
+    .filter((f) => {
+      const name = f.fileName.split('/').pop();
+      return name && name !== '.keep' && /\.html?$/i.test(name);
+    })
+    .map((f) => f.fileName);
 
-  // 处理根级文件（只取 .html/.htm 文件）
-  for (const f of rootFiles) {
-    const name = f.fileName.split('/').pop();
-    if (name && name !== '.keep' && /\.html?$/i.test(name)) {
-      out.push(`${WEBDAV_PREFIX}/${name}`);
-    }
-  }
-
-  // 处理子目录(只下一层)
-  for (const folder of rootFolders) {
-    // folder 可能是 'pages/blog/' 或 'pages/blog'
-    const folderName = folder.replace(`${WEBDAV_PREFIX}/`, '').replace(/\/$/, '');
-    if (!folderName) continue;
-    // 跳过 'pages' 自身
-    if (folderName === 'pages') continue;
-
-    const subPrefix = `${WEBDAV_PREFIX}/${folderName}/`;
-    let subData;
-    try {
-      subData = await b2ListFiles(subPrefix);
-    } catch (err) {
-      console.warn(`${LOG_PREFIX} ⚠️ B2 子目录扫描失败(跳过): ${subPrefix} → ${err.message}`);
-      continue;
-    }
-
-    const subFiles = subData.files?.files || subData.files || [];
-    console.log(`${LOG_PREFIX} B2 子目录 ${folderName}: files=${subFiles.length}`);
-    for (const f of subFiles) {
-      const subName = f.fileName.split('/').pop();
-      if (subName && subName !== '.keep' && /\.html?$/i.test(subName)) {
-        out.push(`${WEBDAV_PREFIX}/${folderName}/${subName}`);
-      }
-    }
-  }
-
-  console.log(`${LOG_PREFIX} B2 扫描完成: ${out.length} 个 HTML 文件`);
+  console.log(`${LOG_PREFIX} B2 扫描完成: ${allFiles.length} 个文件, ${out.length} 个 HTML`);
   return out;
 }
 
