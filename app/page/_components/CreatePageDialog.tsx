@@ -7,6 +7,7 @@
  */
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { modalContentVariants, modalTransition } from '@/components/ui/motion';
 import { X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/ui';
 import { Button } from '@/components/ui/Button';
@@ -211,10 +212,11 @@ export function CreatePageDialog({ open, onClose, onCreated }: CreatePageDialogP
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={submitting || !!successMsg ? undefined : onClose} />
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -16 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            variants={modalContentVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={modalTransition}
             className="relative w-full max-w-sm mx-4 bg-white rounded-2xl shadow-2xl ring-1 ring-zinc-200"
           >
             <DialogHeader onClose={onClose} disabled={submitting || !!successMsg} />

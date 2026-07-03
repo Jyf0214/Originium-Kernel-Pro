@@ -63,8 +63,8 @@ export default function PostsPage() {
   }));
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
-      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12 md:py-20">
+    <div className="min-h-screen flex flex-col bg-white sm:bg-zinc-50 dark:bg-white sm:dark:bg-zinc-900">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 md:py-20">
         {/* 面包屑导航 */}
         <nav className="flex items-center gap-1.5 text-sm text-zinc-400 dark:text-zinc-500 mb-6">
           <Link href="/" className="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">

@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Globe } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
+import { tooltipVariants, tooltipTransition } from '@/components/ui/motion';
 import { useI18n } from '@/hooks/use-i18n';
 import { Button } from '@/components/ui/Button';
 
@@ -57,10 +58,11 @@ export default function LanguageSwitcher() {
                 ? Math.min(wrapperRef.current.getBoundingClientRect().left, window.innerWidth - 170)
                 : 0,
             }}
-            initial={{ opacity: 0, y: -4, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.98 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
+            variants={tooltipVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={tooltipTransition}
           >
             {locales.map(l => (
               <Button

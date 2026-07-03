@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { tooltipVariants, tooltipTransition } from '@/components/ui/motion';
 import { Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, ListMusic, X } from 'lucide-react';
 import { useConfig } from '@/hooks/use-config';
 
@@ -28,10 +29,11 @@ function PlaylistPanel({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-      transition={{ duration: 0.2 }}
+      variants={tooltipVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={tooltipTransition}
       className="w-72 bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl border border-zinc-100 dark:border-zinc-700 overflow-hidden"
     >
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-700">

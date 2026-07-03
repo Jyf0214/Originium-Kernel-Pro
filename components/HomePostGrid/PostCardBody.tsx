@@ -13,7 +13,7 @@ export function PostCardBody({
   locale: string;
 }) {
   return (
-    <div className="px-5 py-4 flex-1 flex flex-col">
+    <div className="px-4 sm:px-5 py-3 sm:py-4 flex-1 flex flex-col">
       {post.pinned && (
         <div className="inline-flex items-center gap-1.5 mb-3 self-start bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700 px-2.5 py-1 rounded-lg">
           <Pin size={10} className="text-amber-400/80" />

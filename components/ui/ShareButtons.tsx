@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { tooltipVariants, tooltipTransition } from '@/components/ui/motion';
 import { Link, Share2, Globe, MessageCircle, Check } from 'lucide-react';
 
 export interface ShareButtonsProps {
@@ -172,10 +173,11 @@ export default function ShareButtons({ title, url, config, locale: _locale }: Sh
               <AnimatePresence>
                 {wechatHintOpen && (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: -4 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: -4 }}
-                    transition={{ duration: 0.15, ease: 'easeOut' }}
+                    variants={tooltipVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    transition={tooltipTransition}
                     className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-20"
                   >
                     {/* 小三角箭头——指向上方 */}
