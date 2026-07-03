@@ -9,8 +9,7 @@ import { PWARegister } from '../components/PWARegister';
 import { TabTitleSwitch } from '../components/TabTitleSwitch';
 import { MusicPlayerWrapper } from '../components/MusicPlayer/MusicPlayerWrapper';
 import { loadConfig } from '@/lib/config';
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/next';
+import { ThirdPartyScripts } from '@/components/ThirdPartyScripts';
 
 export const metadata: Metadata = {
   title: 'Originium Kernel',
@@ -72,8 +71,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
           <MusicPlayerWrapper />
         </Providers>
         <TabTitleSwitch />
-        <Analytics />
-        <SpeedInsights />
+        <ThirdPartyScripts />
         <PWARegister />
       </body>
     </html>
