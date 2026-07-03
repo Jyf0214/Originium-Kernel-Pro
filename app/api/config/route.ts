@@ -109,16 +109,16 @@ async function handleConfigGet() {
   return buildConfigResponse(response);
 }
 
-/** 未认证用户剥离 access 规则、users 映射、githubConfigured 和 _remoteConfig 等内部字段，防止信息泄露 */
+/** 未认证用户剥离 access 规则、githubConfigured 和 _remoteConfig 等内部字段，防止信息泄露 */
 async function buildConfigResponse(config: Record<string, unknown>) {
   const session = await getSession();
   if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
-    const { access: _access, users: _users, githubConfigured: _gc, _remoteConfig: _rc, _remoteConfigStatus: _rs, _remoteConfigError: _re, ...safeConfig } = config;
+    const { access: _access, githubConfigured: _gc, _remoteConfig: _rc, _remoteConfigStatus: _rs, _remoteConfigError: _re, ...safeConfig } = config;
     return NextResponse.json(safeConfig, {
       headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
     });
   }
-  // 管理员响应不得被 CDN 缓存——包含 access 规则、用户映射和远程配置
+  // 管理员响应不得被 CDN 缓存——包含 access 规则和远程配置
   return NextResponse.json(config, {
     headers: { 'Cache-Control': 'private, no-cache, no-store' },
   });
@@ -355,7 +355,6 @@ function mergeAppConfig(
     mainTone: mergeMainTone(base.mainTone, override.mainTone),
     footer: mergeFooter(base.footer, override.footer),
     clerk: override.clerk ?? base.clerk,
-    users: override.users ?? base.users,
   };
 }
 

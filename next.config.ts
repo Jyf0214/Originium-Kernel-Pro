@@ -41,7 +41,6 @@ export type {
   FooterBadge,
   FooterConfig,
   ClerkConfig,
-  UserConfig,
 } from './lib/config-schema';
 
 /**

@@ -64,7 +64,6 @@ export default function ConfigPage() {
     share: { sharejs: { enable: true, sites: 'facebook,twitter,wechat,weibo,qq' }, addtoany: { enable: false, item: 'facebook,twitter,wechat,sina_weibo,email,copy_link' } },
     mainTone: { enable: false, mode: 'api' },
     footer: { owner: { enable: true, since: 2020 }, customText: '', runtime: { enable: false, launchTime: '04/01/2021 00:00:00' } },
-    users: {},
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

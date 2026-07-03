@@ -4,7 +4,6 @@ import type { RemoteConfigData } from './types';
 export interface SyncAvatarChangesArgs {
   githubConfigured: boolean;
   originalAvatar: string;
-  uid: string;
   userName: string;
   syncAvatar: (
     initial: Record<string, unknown>,
@@ -23,7 +22,6 @@ export interface SyncAvatarChangesArgs {
 export async function syncAvatarChanges({
   githubConfigured,
   originalAvatar,
-  uid,
   userName,
   syncAvatar,
   setLoading,
@@ -38,7 +36,7 @@ export async function syncAvatarChanges({
   const remoteRaw = configResData._remoteConfig ?? '';
   setLoading(false);
   syncAvatar(
-    { avatarUrl: originalAvatar, _uid: uid },
+    { avatarUrl: originalAvatar },
     remoteRaw,
     `chore: update avatar for user ${userName}`,
     '',

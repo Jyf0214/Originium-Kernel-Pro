@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import { zAppConfig, type AppConfig, type SiteConfig, type AppearanceConfig, type AccessConfig, type AuthConfig, type UserConfig, type ShareConfig, type MainToneConfig, type FooterConfig, type ClerkConfig, type FooterOwnerConfig, type FooterRuntimeConfig, type SharejsConfig, type AddtoanyConfig, type PostEditConfig, type CopyrightConfig, type TocConfig, type WordCountConfig, type PostMetaConfig, type PostMetaDisplayConfig, type PostMetaPostConfig, type ErrorImgConfig, type CoverConfig, type AuthorStatusConfig, type SocialConfig, type CopyConfig, type HighlightConfig, type MournConfig, type NavConfig, type NavMenuItem, type NavMenuGroup, type RewardConfig, type QRCodeItem } from '@/lib/config-schema';
+import { zAppConfig, type AppConfig, type SiteConfig, type AppearanceConfig, type AccessConfig, type AuthConfig, type ShareConfig, type MainToneConfig, type FooterConfig, type ClerkConfig, type FooterOwnerConfig, type FooterRuntimeConfig, type SharejsConfig, type AddtoanyConfig, type PostEditConfig, type CopyrightConfig, type TocConfig, type WordCountConfig, type PostMetaConfig, type PostMetaDisplayConfig, type PostMetaPostConfig, type ErrorImgConfig, type CoverConfig, type AuthorStatusConfig, type SocialConfig, type CopyConfig, type HighlightConfig, type MournConfig, type NavConfig, type NavMenuItem, type NavMenuGroup, type RewardConfig, type QRCodeItem } from '@/lib/config-schema';
 
 export type {
   AppConfig,
@@ -9,7 +9,6 @@ export type {
   AppearanceConfig,
   AccessConfig,
   AuthConfig,
-  UserConfig,
   ShareConfig,
   MainToneConfig,
   FooterConfig,
@@ -139,30 +138,16 @@ export function filterAccessibleSlugs(
 }
 
 /**
- * 获取用户头像（仅从配置文件读取）
- * 优先级：config.users[uid].avatar > config.users 中 email 匹配 > auth.admin.avatar（仅当用户是管理员）
+ * 获取用户头像（全局唯一，仅从 auth.admin.avatar 读取）
  */
-export function getUserAvatarAsync(uid: string, isAdmin?: boolean, email?: string): Promise<string | null> {
-  return Promise.resolve(getUserAvatar(uid, isAdmin, email));
+export function getUserAvatarAsync(): Promise<string | null> {
+  return Promise.resolve(getUserAvatar());
 }
 
 /**
- * 获取用户头像（同步，仅从配置文件读取）
+ * 获取用户头像（同步，全局唯一）
  */
-export function getUserAvatar(uid: string, isAdmin?: boolean, email?: string): string | null {
+export function getUserAvatar(): string | null {
   const config = loadConfig();
-
-  if (config.users?.[uid]?.avatar) {
-    return config.users[uid].avatar;
-  }
-
-  if (email && config.users?.[email]?.avatar) {
-    return config.users[email].avatar;
-  }
-
-  if (isAdmin && config.auth?.admin?.avatar) {
-    return config.auth.admin.avatar;
-  }
-
-  return null;
+  return config.auth?.admin?.avatar ?? null;
 }

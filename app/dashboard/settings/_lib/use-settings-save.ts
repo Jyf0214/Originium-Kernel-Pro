@@ -43,8 +43,8 @@ export function useSettingsSave({
 
   // 稳定引用，便于 useGitHubConfigSync 内部比较
   const syncCurrentConfig = useMemo(
-    () => ({ avatarUrl: watchedAvatarUrl ?? '', _uid: uid ?? '' }),
-    [watchedAvatarUrl, uid],
+    () => ({ avatarUrl: watchedAvatarUrl ?? '' }),
+    [watchedAvatarUrl],
   );
 
   const handleSyncComplete = useCallback(() => {
@@ -77,7 +77,6 @@ export function useSettingsSave({
         await syncAvatarChanges({
           githubConfigured,
           originalAvatar,
-          uid,
           userName,
           syncAvatar,
           setLoading,
