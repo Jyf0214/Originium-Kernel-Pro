@@ -25,20 +25,20 @@ export const userMenuItems: MenuItem[] = [
   { key: 'sidebar.trash', icon: Trash2, href: '/dashboard/articles?status=pending_deletion', group: 'manage' },
   { key: 'sidebar.diary', icon: FileText, href: '/diary', group: 'personal' },
   { key: 'sidebar.settings', icon: Settings, href: '/dashboard/settings', group: 'account' },
-  { key: 'dashboard.adminConsole', icon: Shield, href: '/dashboard/admin', group: 'admin', roles: ['sudo'] },
+  { key: 'dashboard.adminConsole', icon: Shield, href: '/dashboard/config', group: 'admin', roles: ['sudo'] },
 ];
 
 export const adminMenuItems: MenuItem[] = [
   { key: 'sidebar.dashboard', icon: Home, href: '/dashboard', group: 'overview' },
-  { key: 'sidebar.systemConfig', icon: Settings, href: '/dashboard/admin/config', group: 'admin' },
-  { key: 'sidebar.configPreview', icon: Eye, href: '/dashboard/admin/config/preview', group: 'admin' },
-  { key: 'sidebar.envVariables', icon: Activity, href: '/dashboard/admin/env', group: 'admin' },
-  { key: 'sidebar.userManagement', icon: Users, href: '/dashboard/admin/users', group: 'admin' },
-  { key: 'sidebar.tickets', icon: FileText, href: '/dashboard/admin/tickets', group: 'admin' },
-  { key: 'sidebar.writeArticle', icon: FileText, href: '/dashboard/admin/tickets/new', group: 'admin' },
-  { key: 'sidebar.contentStats', icon: BarChart3, href: '/dashboard/admin/stats', group: 'admin' },
-  { key: 'sidebar.webVitals', icon: Gauge, href: '/dashboard/admin/web-vitals', group: 'admin' },
-  { key: 'sidebar.auditLogs', icon: ScrollText, href: '/dashboard/admin/audit', group: 'admin' },
+  { key: 'sidebar.systemConfig', icon: Settings, href: '/dashboard/config', group: 'admin' },
+  { key: 'sidebar.configPreview', icon: Eye, href: '/dashboard/config/preview', group: 'admin' },
+  { key: 'sidebar.envVariables', icon: Activity, href: '/dashboard/env', group: 'admin' },
+  { key: 'sidebar.userManagement', icon: Users, href: '/dashboard/users', group: 'admin' },
+  { key: 'sidebar.tickets', icon: FileText, href: '/dashboard/tickets', group: 'admin' },
+  { key: 'sidebar.writeArticle', icon: FileText, href: '/dashboard/tickets/new', group: 'admin' },
+  { key: 'sidebar.contentStats', icon: BarChart3, href: '/dashboard/stats', group: 'admin' },
+  { key: 'sidebar.webVitals', icon: Gauge, href: '/dashboard/web-vitals', group: 'admin' },
+  { key: 'sidebar.auditLogs', icon: ScrollText, href: '/dashboard/audit', group: 'admin' },
 ];
 
 export const groupKeys: Record<string, string> = {
