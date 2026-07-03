@@ -30,7 +30,6 @@ export function PostListItem({
   if (compact) {
     return (
       <motion.article
-        layout
         variants={compactCardVariants}
         initial="initial"
         animate="animate"
@@ -71,7 +70,6 @@ export function PostListItem({
 
   return (
     <motion.article
-      layout
       variants={cardVariants}
       initial="initial"
       animate="animate"

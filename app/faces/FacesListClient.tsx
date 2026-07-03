@@ -123,7 +123,6 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
           {filteredFaces.map((face) => (
             <motion.div
               key={face.slug}
-              layout
               variants={cardVariants}
               initial="initial"
               animate="animate"
