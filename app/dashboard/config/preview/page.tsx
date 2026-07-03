@@ -22,7 +22,7 @@ const categories: CategoryItem[] = [
     label: 'Loading Animations',
     labelZh: '加载动画',
     description: '进度条、加载指示器等动画效果',
-    href: '/dashboard/admin/config/preview/loading',
+    href: '/dashboard/config/preview/loading',
     icon: Loader2,
   },
   {
@@ -30,7 +30,7 @@ const categories: CategoryItem[] = [
     label: 'Theme',
     labelZh: '主题配色',
     description: '主题颜色、渐变、阴影等配置',
-    href: '/dashboard/admin/config/preview/theme',
+    href: '/dashboard/config/preview/theme',
     icon: Palette,
   },
 ];

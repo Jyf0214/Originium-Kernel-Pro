@@ -21,10 +21,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return <div className="flex items-center justify-center h-screen bg-zinc-50"><GlobalLoading size="large" /></div>;
   }
 
-  // 根据路径和用户角色决定使用哪个侧边栏变体
-  // admin 功能保留在 dashboard 路由下，但需要 sudo 角色
-  const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/dashboard/admin');
-  const sidebarVariant = isAdminRoute && isSudo ? 'admin' : 'user';
+  // sudo 用户默认显示 admin 侧边栏（可切换到用户视图），普通用户显示 user 侧边栏
+  const sidebarVariant = isSudo ? 'admin' : 'user';
 
   return (
     <div className="flex min-h-screen">
