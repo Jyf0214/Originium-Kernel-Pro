@@ -12,6 +12,8 @@ import {
   BarChart3,
   ScrollText,
   Gauge,
+  Globe,
+  FolderOpen,
 } from 'lucide-react';
 import type { MenuItem } from './types';
 
@@ -20,10 +22,12 @@ export const menuItems: MenuItem[] = [
   { key: 'sidebar.posts', icon: BookOpen, href: '/posts', group: 'content' },
   { key: 'sidebar.faces', icon: Users, href: '/faces', group: 'content' },
   { key: 'sidebar.write', icon: PenLine, href: '/editor', group: 'content' },
+  { key: 'sidebar.customPages', icon: Globe, href: '/page', group: 'content' },
   { key: 'sidebar.articleManagement', icon: Archive, href: '/dashboard/articles', group: 'manage' },
   { key: 'sidebar.trash', icon: Trash2, href: '/dashboard/articles?status=pending_deletion', group: 'manage' },
   { key: 'sidebar.diary', icon: FileText, href: '/diary', group: 'personal' },
   { key: 'sidebar.settings', icon: Settings, href: '/dashboard/settings', group: 'account' },
+  { key: 'sidebar.fileManager', icon: FolderOpen, href: '/dashboard/storage', group: 'storage', roles: ['sudo'] },
   { key: 'sidebar.systemConfig', icon: Settings, href: '/dashboard/config', group: 'admin', roles: ['sudo'] },
   { key: 'sidebar.configPreview', icon: Eye, href: '/dashboard/config/preview', group: 'admin', roles: ['sudo'] },
   { key: 'sidebar.envVariables', icon: Activity, href: '/dashboard/env', group: 'admin', roles: ['sudo'] },
