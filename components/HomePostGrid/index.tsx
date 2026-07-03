@@ -9,7 +9,6 @@ import { HeroSection } from './HeroSection';
 import { PostCard } from './PostCard';
 import { Pagination } from './Pagination';
 import { useHomeFilter } from './use-home-filter';
-import { DEFAULT_CATEGORIES } from './home-constants';
 import type { HomePostGridProps } from './types';
 
 export type { HomePostGridProps, PostItem, CoverConfig } from './types';
@@ -25,8 +24,6 @@ export function HomePostGrid({
   const {
     selectedTag,
     setSelectedTag,
-    selectedCategory,
-    setSelectedCategory,
     currentPage,
     setCurrentPage,
     filteredPosts,
@@ -45,11 +42,8 @@ export function HomePostGrid({
 
       <div className="mb-10 sticky top-[72px] z-30 md:relative md:top-0">
         <CategoryBar
-          categories={DEFAULT_CATEGORIES}
           tags={allTags}
-          selectedCategory={selectedCategory}
           selectedTag={selectedTag}
-          onSelectCategory={setSelectedCategory}
           onSelectTag={setSelectedTag}
         />
       </div>
