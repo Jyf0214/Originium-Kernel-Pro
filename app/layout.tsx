@@ -6,6 +6,7 @@ import { Providers } from './providers';
 import { Navbar } from '../components/Navbar';
 import { RouteTransition } from '../components/RouteTransition';
 import { PWARegister } from '../components/PWARegister';
+import { TabTitleSwitch } from '../components/TabTitleSwitch';
 import { MusicPlayerWrapper } from '../components/MusicPlayer/MusicPlayerWrapper';
 import { loadConfig } from '@/lib/config';
 import { Analytics } from '@vercel/analytics/react';
@@ -59,6 +60,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
           </AuthProvider>
           <MusicPlayerWrapper />
         </Providers>
+        <TabTitleSwitch />
         <Analytics />
         <SpeedInsights />
         <PWARegister />
