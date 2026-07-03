@@ -66,6 +66,10 @@ export const zSiteConfig = z.object({
 
 export const zAppearanceConfig = z.object({
   fontSize: z.number().int().positive().default(16),
+  favicon: z.string().refine(
+    (v) => v === '' || v.startsWith('/'),
+    { message: 'favicon 必须是本地路径(以 / 开头),不支持外部 URL' },
+  ).default(''),
   background: withFullDefault(z.object({
     url: z.string().default(''),
     opacity: z.number().min(0).max(1).default(1),
@@ -462,6 +466,8 @@ export interface SiteConfig {
 export interface AppearanceConfig {
   /** 全局基础字号(px),默认 16,可在网页端配置 */
   fontSize?: number;
+  /** 自定义 favicon 路径,仅允许本地路径(如 /favicon.ico),默认使用浏览器默认 */
+  favicon?: string;
   background: {
     url: string;
     opacity: number;
