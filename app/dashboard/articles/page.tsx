@@ -7,7 +7,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { Plus, Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Input, Tag, Popconfirm, message } from 'antd';
+import { Input, Tag, message } from 'antd';
+import { CuteConfirm } from '@/components/ui/CuteConfirm';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 import ProCard from '@/components/ui/ProCard';
@@ -190,8 +191,9 @@ export default function ArticlesPage() {
                       >
                         {t('common.restore')}
                       </Button>
-                      <Popconfirm
-                        title={t('article.permanentlyDeleteConfirm')}
+                      <CuteConfirm
+                        category="delete"
+                        confirmText="永久删除后无法恢复哦"
                         onConfirm={() => handleDelete(article.id)}
                         okText={t('common.delete')}
                         cancelText={t('common.cancel')}
@@ -200,7 +202,7 @@ export default function ArticlesPage() {
                         <Button disabled={operating === article.id} variant="dangerGhost" size="sm">
                           {t('common.delete')}
                         </Button>
-                      </Popconfirm>
+                      </CuteConfirm>
                     </>
                   ) : (
                     <>
@@ -216,8 +218,8 @@ export default function ArticlesPage() {
                           {t('common.edit')}
                         </Button>
                       </Link>
-                      <Popconfirm
-                        title={t('article.deleteConfirm')}
+                      <CuteConfirm
+                        category="delete"
                         onConfirm={() => handleDelete(article.id)}
                         okText={t('common.delete')}
                         cancelText={t('common.cancel')}
@@ -226,7 +228,7 @@ export default function ArticlesPage() {
                         <Button disabled={operating === article.id} variant="dangerGhost" size="sm">
                           {operating === article.id ? <Loader2 size={12} className="animate-spin" /> : t('common.delete')}
                         </Button>
-                      </Popconfirm>
+                      </CuteConfirm>
                     </>
                   )}
                 </div>

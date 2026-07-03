@@ -8,6 +8,7 @@ import { GlobalLoading } from '@/components/Loading';
 import { X, Clock, FileText, Check, Loader2 } from 'lucide-react';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
+import { CuteConfirm } from '@/components/ui/CuteConfirm';
 
 interface Request {
   id: string;
@@ -168,14 +169,19 @@ export default function RequestsPage() {
                         >
                           {operating === req.id ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
                         </Button>
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          onClick={() => handleReject(req.id)}
-                          disabled={operating === req.id}
+                        <CuteConfirm
+                          category="delete"
+                          confirmText="确定要拒绝这个请求吗？"
+                          onConfirm={() => handleReject(req.id)}
                         >
-                          {operating === req.id ? <Loader2 size={18} className="animate-spin" /> : <X size={18} />}
-                        </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            disabled={operating === req.id}
+                          >
+                            {operating === req.id ? <Loader2 size={18} className="animate-spin" /> : <X size={18} />}
+                          </Button>
+                        </CuteConfirm>
                       </div>
                     )}
                   </td>

@@ -29,7 +29,6 @@ interface Props {
   noPasswordLabel: string;
   setPasswordLabel: string;
   clearPasswordLabel: string;
-  confirmClearTitle: string;
   okLabel: string;
   cancelLabel: string;
   onToggle: (next: boolean) => void;
@@ -54,7 +53,6 @@ export function StorageFolderSettingsPopover({
   noPasswordLabel,
   setPasswordLabel,
   clearPasswordLabel,
-  confirmClearTitle,
   okLabel,
   cancelLabel,
   onToggle,
@@ -95,7 +93,6 @@ export function StorageFolderSettingsPopover({
           noPasswordLabel={noPasswordLabel}
           setPasswordLabel={setPasswordLabel}
           clearPasswordLabel={clearPasswordLabel}
-          confirmClearTitle={confirmClearTitle}
           okLabel={okLabel}
           cancelLabel={cancelLabel}
           disabled={disabled}

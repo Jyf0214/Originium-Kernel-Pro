@@ -4,6 +4,7 @@ import React from 'react';
 import { Calendar, Tag, Eye, X, Loader2, Edit3, Trash2, Pin, History } from 'lucide-react';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { Button } from '@/components/ui/Button';
+import { CuteConfirm } from '@/components/ui/CuteConfirm';
 import { formatShortDate, renderReferenceLinks } from './diary-utils';
 import type { DiaryEntry } from './types';
 import type { WikiLinkMap } from '@/components/MarkdownRenderer/types';
@@ -120,18 +121,24 @@ export function DiaryCard({
               className="text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100"
               icon={<Edit3 size={14} />}
             />
-            <Button
-              variant="dangerGhost"
-              size="sm"
-              iconOnly
-              rounded="sm"
-              onClick={() => onDelete(diary.id)}
+            <CuteConfirm
+              category="delete"
+              confirmText="确定要删除这篇日记吗？"
+              onConfirm={() => onDelete(diary.id)}
               disabled={deleting === diary.id}
-              loading={deleting === diary.id}
-              title="删除"
-              aria-label="删除"
-              icon={<Trash2 size={14} />}
-            />
+            >
+              <Button
+                variant="dangerGhost"
+                size="sm"
+                iconOnly
+                rounded="sm"
+                disabled={deleting === diary.id}
+                loading={deleting === diary.id}
+                title="删除"
+                aria-label="删除"
+                icon={<Trash2 size={14} />}
+              />
+            </CuteConfirm>
             {onVersionHistory && (
               <Button
                 variant="ghost"

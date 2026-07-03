@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Trash2, Loader2, FileText, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { CuteConfirm } from '@/components/ui/CuteConfirm';
 import { showError } from '@/lib/error';
 import { GlobalLoading } from '@/components/Loading';
 import { PageContainer } from '@/components/ui/PageContainer';
@@ -119,17 +120,23 @@ export default function DiaryDraftsPage() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <Button onClick={() => handleContinue(d)} variant="secondary" size="sm" autoLoading={false}>继续</Button>
-                    <Button
-                      onClick={() => handleDelete(d.id)}
+                    <CuteConfirm
+                      category="delete"
+                      confirmText="确定要删除这篇草稿吗？"
+                      onConfirm={() => handleDelete(d.id)}
                       disabled={deleting === d.id}
-                      variant="dangerGhost"
-                      size="sm"
-                      iconOnly
-                      icon={<Trash2 size={14} />}
-                      loading={deleting === d.id}
-                      title="删除草稿"
-                      aria-label="删除草稿"
-                    />
+                    >
+                      <Button
+                        disabled={deleting === d.id}
+                        variant="dangerGhost"
+                        size="sm"
+                        iconOnly
+                        icon={<Trash2 size={14} />}
+                        loading={deleting === d.id}
+                        title="删除草稿"
+                        aria-label="删除草稿"
+                      />
+                    </CuteConfirm>
                   </div>
                 </div>
               </div>

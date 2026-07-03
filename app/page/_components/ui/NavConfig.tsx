@@ -1,5 +1,6 @@
 import React from 'react';
 import Button from '@/components/ui/Button';
+import { CuteConfirm } from '@/components/ui/CuteConfirm';
 import { Plus, Trash2 } from 'lucide-react';
 import FormField from './FormField';
 import ToggleField from './ToggleField';
@@ -112,16 +113,17 @@ export default function NavConfig({ config, onChange }: NavConfigProps) {
                   placeholder="例如：网页、项目"
                 />
               </div>
-              <Button
-                variant="danger"
-                size="sm"
-                iconOnly
-                icon={<Trash2 size={16} />}
-                onClick={() => removeGroup(gi)}
-                autoLoading={false}
-                title="删除分组"
-                className="mt-6"
-              />
+              <CuteConfirm category="delete" confirmText="确定删除这个导航分组吗？" onConfirm={() => removeGroup(gi)}>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  iconOnly
+                  icon={<Trash2 size={16} />}
+                  autoLoading={false}
+                  title="删除分组"
+                  className="mt-6"
+                />
+              </CuteConfirm>
             </div>
 
             <div className="space-y-2">
@@ -150,16 +152,17 @@ export default function NavConfig({ config, onChange }: NavConfigProps) {
                       className="h-9 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400"
                     />
                   </div>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    iconOnly
-                    icon={<Trash2 size={14} />}
-                    onClick={() => removeItem(gi, ii)}
-                    autoLoading={false}
-                    title="删除菜单项"
-                    className="shrink-0"
-                  />
+                  <CuteConfirm category="delete" confirmText="确定删除这个菜单项吗？" onConfirm={() => removeItem(gi, ii)}>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      iconOnly
+                      icon={<Trash2 size={14} />}
+                      autoLoading={false}
+                      title="删除菜单项"
+                      className="shrink-0"
+                    />
+                  </CuteConfirm>
                 </div>
               ))}
               <Button variant="secondary" size="sm" block icon={<Plus size={12} />} onClick={() => addItem(gi)} autoLoading={false} rounded="sm">

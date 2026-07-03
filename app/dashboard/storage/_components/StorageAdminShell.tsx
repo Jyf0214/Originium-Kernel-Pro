@@ -380,7 +380,6 @@ export function StorageAdminShell() {
                   noPasswordLabel={labels.noPassword}
                   setPasswordLabel={labels.setPassword}
                   clearPasswordLabel={labels.clearPassword}
-                  confirmClearTitle={labels.confirmClear}
                   okLabel={labels.confirmClear}
                   cancelLabel={labels.cancel}
                   onToggle={handleTogglePublic}

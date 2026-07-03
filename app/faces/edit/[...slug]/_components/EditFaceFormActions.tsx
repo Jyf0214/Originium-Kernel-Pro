@@ -2,9 +2,8 @@
 
 import Link from 'next/link';
 import { ArrowLeft, Save, Trash2 } from 'lucide-react';
-import { Popconfirm } from 'antd';
-
 import { Button } from '@/components/ui/Button';
+import { CuteConfirm } from '@/components/ui/CuteConfirm';
 
 /** 表单底部操作按钮(返回 / 删除 / 保存) */
 export function EditFaceFormActions({
@@ -34,14 +33,12 @@ export function EditFaceFormActions({
       </Link>
 
       <div className="flex gap-3">
-        <Popconfirm
-          title={t('common.confirm')}
-          description={t('faces.deleteConfirm')}
+        <CuteConfirm
+          category="delete"
           onConfirm={onDelete}
           okText={t('common.confirm')}
           cancelText={t('common.cancel')}
           okButtonProps={{ danger: true }}
-          placement="topRight"
         >
           <Button
             variant="danger"
@@ -51,7 +48,7 @@ export function EditFaceFormActions({
           >
             {t('common.delete')}
           </Button>
-        </Popconfirm>
+        </CuteConfirm>
 
         <Button
           variant="primary"

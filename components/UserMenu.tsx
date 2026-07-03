@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Dropdown, type MenuProps } from 'antd';
 import { SettingOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
+import { showCuteLogoutConfirm } from '@/components/ui/CuteLogout';
 
 export function UserMenu() {
   const { user, userRole, logout } = useAuth();
@@ -18,8 +19,11 @@ export function UserMenu() {
   const displayName = user?.name ?? user?.displayName ?? 'User';
   const avatarUrl = user?.avatar;
 
-  const handleLogout = () => {
-    void logout();
+  const handleLogout = async () => {
+    const confirmed = await showCuteLogoutConfirm();
+    if (confirmed) {
+      void logout();
+    }
   };
 
   const items: MenuProps['items'] = [
@@ -43,7 +47,7 @@ export function UserMenu() {
     if (key === 'settings') {
       router.push('/dashboard/settings');
     } else if (key === 'logout') {
-      handleLogout();
+      void handleLogout();
     }
   };
 
