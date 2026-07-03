@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Link, Share2, Globe, MessageCircle, Check } from 'lucide-react';
 
 export interface ShareButtonsProps {
@@ -167,28 +168,36 @@ export default function ShareButtons({ title, url, config, locale: _locale }: Sh
                 {platform.name}
               </button>
 
-              {/* 微信提示浮层——向下展开，避免短屏幕裁剪 */}
-              {wechatHintOpen && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-20">
-                  {/* 小三角箭头——指向上方 */}
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[6px] border-transparent border-b-zinc-900" />
-                  <div className="bg-zinc-900 text-white text-sm rounded-xl px-4 py-3 shadow-lg whitespace-nowrap">
-                    <p className="mb-2">复制链接到微信分享</p>
-                    <button
-                      type="button"
-                      onClick={handleWechatCopy}
-                      className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors ${
-                        wechatCopied
-                          ? 'bg-green-600 text-white'
-                          : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'
-                      }`}
-                    >
-                      {wechatCopied ? <Check size={12} /> : <Link size={12} />}
-                      {wechatFailed ? '复制失败' : wechatCopied ? '已复制' : '复制链接'}
-                    </button>
-                  </div>
-                </div>
-              )}
+              {/* 微信提示浮层——向下展开，带进出动效 */}
+              <AnimatePresence>
+                {wechatHintOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                    transition={{ duration: 0.15, ease: 'easeOut' }}
+                    className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-20"
+                  >
+                    {/* 小三角箭头——指向上方 */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[6px] border-transparent border-b-zinc-900" />
+                    <div className="bg-zinc-900 text-white text-sm rounded-xl px-4 py-3 shadow-lg whitespace-nowrap">
+                      <p className="mb-2">复制链接到微信分享</p>
+                      <button
+                        type="button"
+                        onClick={handleWechatCopy}
+                        className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors ${
+                          wechatCopied
+                            ? 'bg-green-600 text-white'
+                            : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'
+                        }`}
+                      >
+                        {wechatCopied ? <Check size={12} /> : <Link size={12} />}
+                        {wechatFailed ? '复制失败' : wechatCopied ? '已复制' : '复制链接'}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           );
         }

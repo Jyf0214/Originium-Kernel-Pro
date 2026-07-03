@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useConfig } from '@/hooks/use-config';
 import { useActiveHeading } from '@/hooks/use-active-heading';
 import { slugify } from '@/lib/slugify';
@@ -79,34 +80,41 @@ interface TocPanelProps {
 }
 
 function TocPanel({ open, items, activeId, simple, maxLevel, numberEnabled, isShortScreen, onItemClick, panelRef }: TocPanelProps) {
-  if (!open) return null;
   return (
-    <div
-      ref={panelRef}
-      className={`fixed right-6 z-50 max-h-80 overflow-y-auto bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-zinc-100 dark:border-zinc-700 max-w-[calc(100vw-3rem)] ${
-        isShortScreen ? 'top-20' : 'bottom-20'
-      } ${simple ? 'p-3 w-56' : 'p-4 w-64'}`}
-      role="dialog"
-      aria-label="文章目录"
-    >
-      <h4 className={`font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-3 ${
-        simple ? 'text-[10px]' : 'text-xs'
-      }`}>目录</h4>
-      <nav role="navigation" aria-label="文章目录" className={simple ? 'space-y-0.5' : 'space-y-1'}>
-        {items.map((item, i) => (
-          <TocItemButton
-            key={i}
-            item={item}
-            index={i}
-            activeId={activeId}
-            simple={simple}
-            maxLevel={maxLevel}
-            numberEnabled={numberEnabled}
-            onClick={() => onItemClick(item.id)}
-          />
-        ))}
-      </nav>
-    </div>
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          ref={panelRef}
+          initial={{ opacity: 0, x: 16 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 16 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+          className={`fixed right-6 z-50 max-h-80 overflow-y-auto bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-zinc-100 dark:border-zinc-700 max-w-[calc(100vw-3rem)] ${
+            isShortScreen ? 'top-20' : 'bottom-20'
+          } ${simple ? 'p-3 w-56' : 'p-4 w-64'}`}
+          role="dialog"
+          aria-label="文章目录"
+        >
+          <h4 className={`font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-3 ${
+            simple ? 'text-[10px]' : 'text-xs'
+          }`}>目录</h4>
+          <nav role="navigation" aria-label="文章目录" className={simple ? 'space-y-0.5' : 'space-y-1'}>
+            {items.map((item, i) => (
+              <TocItemButton
+                key={i}
+                item={item}
+                index={i}
+                activeId={activeId}
+                simple={simple}
+                maxLevel={maxLevel}
+                numberEnabled={numberEnabled}
+                onClick={() => onItemClick(item.id)}
+              />
+            ))}
+          </nav>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 

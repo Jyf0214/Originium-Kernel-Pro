@@ -7,6 +7,7 @@
  * 打开时从 API 读取现有 meta.json 填充表单，保存时 PUT 回去。
  */
 import { useState, useEffect, useCallback } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { X, Loader2, Loader } from 'lucide-react';
 import { readPageMeta, writePageMeta } from '@/lib/page-meta';
 import type { PageMeta } from '@/lib/page-source/shared';
@@ -179,79 +180,101 @@ export function EditPageMetaDialog({ open, page, onClose, onSaved }: EditPageMet
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !submitting && !loading) void handleSave();
   }, [submitting, successMsg, loading, onClose, handleSave]);
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" onKeyDown={handleKeyDown}>
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={submitting || !!successMsg ? undefined : onClose} />
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          onKeyDown={handleKeyDown}
+        >
+          <motion.div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            onClick={submitting || !!successMsg ? undefined : onClose}
+          />
 
-      <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl ring-1 ring-zinc-200">
-        <DialogHeader onClose={onClose} disabled={submitting || !!successMsg} />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -16 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl ring-1 ring-zinc-200"
+          >
+            <DialogHeader onClose={onClose} disabled={submitting || !!successMsg} />
 
-        <div className="px-5 pb-4 space-y-4">
-          {loading ? (
-            <div className="flex items-center justify-center py-8 text-zinc-400">
-              <Loader size={20} className="animate-spin mr-2" />
-              <span className="text-sm">加载中...</span>
+            <div className="px-5 pb-4 space-y-4">
+              {loading ? (
+                <div className="flex items-center justify-center py-8 text-zinc-400">
+                  <Loader size={20} className="animate-spin mr-2" />
+                  <span className="text-sm">加载中...</span>
+                </div>
+              ) : (
+                <>
+                  <Input
+                    label="标题"
+                    placeholder="页面标题（可选）"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    size="sm"
+                    disabled={submitting}
+                  />
+
+                  <div>
+                    <label className="block text-xs font-medium text-zinc-700 mb-1">描述</label>
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="页面描述（可选）"
+                      rows={3}
+                      disabled={submitting}
+                      className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400 disabled:opacity-50 resize-none"
+                    />
+                  </div>
+
+                  <Input
+                    label="封面图 URL"
+                    placeholder="https://example.com/image.jpg"
+                    value={coverImage}
+                    onChange={(e) => setCoverImage(e.target.value)}
+                    size="sm"
+                    disabled={submitting}
+                  />
+
+                  <Input
+                    label="标签"
+                    placeholder="用逗号分隔，如: 技术, 日记, 笔记"
+                    value={tagsInput}
+                    onChange={(e) => setTagsInput(e.target.value)}
+                    size="sm"
+                    disabled={submitting}
+                  />
+                  <p className="text-xs text-zinc-400 -mt-2">
+                    用逗号分隔多个标签，最多 20 个
+                  </p>
+                </>
+              )}
+
+              {errorMsg && <ErrorBanner message={errorMsg} />}
+              {successMsg && <SuccessBanner message={successMsg} />}
             </div>
-          ) : (
-            <>
-              <Input
-                label="标题"
-                placeholder="页面标题（可选）"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                size="sm"
-                disabled={submitting}
-              />
 
-              <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">描述</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="页面描述（可选）"
-                  rows={3}
-                  disabled={submitting}
-                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400 disabled:opacity-50 resize-none"
-                />
-              </div>
-
-              <Input
-                label="封面图 URL"
-                placeholder="https://example.com/image.jpg"
-                value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                size="sm"
-                disabled={submitting}
-              />
-
-              <Input
-                label="标签"
-                placeholder="用逗号分隔，如: 技术, 日记, 笔记"
-                value={tagsInput}
-                onChange={(e) => setTagsInput(e.target.value)}
-                size="sm"
-                disabled={submitting}
-              />
-              <p className="text-xs text-zinc-400 -mt-2">
-                用逗号分隔多个标签，最多 20 个
-              </p>
-            </>
-          )}
-
-          {errorMsg && <ErrorBanner message={errorMsg} />}
-          {successMsg && <SuccessBanner message={successMsg} />}
-        </div>
-
-        <DialogFooter
-          onClose={onClose}
-          onSubmit={() => void handleSave()}
-          submitting={submitting}
-          loading={loading}
-        />
-      </div>
-    </div>
+            <DialogFooter
+              onClose={onClose}
+              onSubmit={() => void handleSave()}
+              submitting={submitting}
+              loading={loading}
+            />
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
