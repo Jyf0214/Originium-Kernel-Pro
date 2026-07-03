@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
+import { LazyImage } from '@/components/ui/LazyImage';
 import { ArrowUpRight } from 'lucide-react';
 import type { PostItem, CoverConfig } from './types';
 
@@ -33,11 +33,10 @@ export function PostListItemCover({
         className={`block overflow-hidden bg-zinc-50 relative ${isRowLayout ? 'h-full' : 'aspect-video'}`}
       >
         {post.cover ? (
-          <Image
+          <LazyImage
             src={post.cover}
             alt={post.title}
             fill
-            unoptimized
             className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
