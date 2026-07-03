@@ -31,8 +31,13 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang={config.site.lang} suppressHydrationWarning>
       <head>
-        {config.appearance.favicon && config.appearance.favicon.startsWith('/') && (
+        {config.appearance.favicon?.startsWith('/') ? (
           <link rel="icon" href={config.appearance.favicon} />
+        ) : (
+          <>
+            <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+            <link rel="icon" href="/favicon.ico" sizes="48x48" />
+          </>
         )}
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
