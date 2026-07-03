@@ -2,12 +2,12 @@
 
 import { useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { modalContentVariants, modalTransition } from '@/components/ui/motion';
 import { Button } from '@/components/ui/Button';
 import { ShareModalHeader } from './ShareModalHeader';
 import { ShareModalGrid } from './ShareModalGrid';
 import { ShareModalFooter } from './ShareModalFooter';
 import { useCopyFeedback } from './use-copy-feedback';
-import { MODAL_TRANSITION_EASE } from './share-modal-styles';
 import type { PlatformDef, ShareModalProps } from './types';
 
 /* ============================================================
@@ -195,10 +195,11 @@ export default function ShareModal({
             role="dialog"
             aria-modal="true"
             className="relative w-full max-w-md bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl overflow-hidden"
-            initial={{ opacity: 0, scale: 0.92, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: 20 }}
-            transition={{ duration: 0.25, ease: MODAL_TRANSITION_EASE }}
+            variants={modalContentVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ ...modalTransition, duration: 0.25 }}
             onClick={(e) => e.stopPropagation()}
           >
             <ShareModalHeader onClose={onClose} />

@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
+import { cardVariants } from '@/components/ui/motion';
 import { Search, Users, UserCircle } from 'lucide-react';
 import { Input } from 'antd';
 import { useI18n } from '@/hooks/use-i18n';
@@ -123,11 +124,12 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
             <motion.div
               key={face.slug}
               layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              variants={cardVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
               transition={{ duration: 0.2 }}
-              className="group bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 p-6 overflow-hidden hover:shadow-xl hover:shadow-zinc-200/50 dark:hover:shadow-zinc-900/50 hover:-translate-y-1 transition-all duration-300"
+              className="group bg-white dark:bg-zinc-800 rounded-none sm:rounded-2xl border-b border-zinc-100 sm:border sm:border-zinc-100 dark:border-zinc-700 p-4 sm:p-6 overflow-hidden hover:shadow-xl hover:shadow-zinc-200/50 dark:hover:shadow-zinc-900/50 hover:-translate-y-1 transition-all duration-300"
             >
               <Link href={`/faces${face.slug}`} className="block">
                 {/* 头像 */}

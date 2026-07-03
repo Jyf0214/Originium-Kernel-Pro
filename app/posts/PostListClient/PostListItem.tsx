@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
+import { compactCardVariants, cardVariants, staggerDelay } from '@/components/ui/motion';
 import { Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { Tag } from '@/components/ui/Tag';
@@ -30,11 +31,12 @@ export function PostListItem({
     return (
       <motion.article
         layout
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.3, delay: index * 0.03 }}
-        className="group bg-white rounded-2xl border border-zinc-100 px-5 py-3 hover:border-zinc-300 hover:shadow-lg hover:shadow-zinc-100/60 transition-all duration-300"
+        variants={compactCardVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        transition={{ duration: 0.3, delay: staggerDelay(index) }}
+        className="group bg-white rounded-none sm:rounded-2xl border-b border-zinc-100 sm:border sm:border-zinc-100 px-4 sm:px-5 py-3 hover:border-zinc-300 hover:shadow-lg hover:shadow-zinc-100/60 transition-all duration-300"
       >
         <div className="flex items-center gap-3">
           {post.tags.length > 0 && (
@@ -70,11 +72,12 @@ export function PostListItem({
   return (
     <motion.article
       layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
-      className={`group bg-white rounded-3xl border border-zinc-100 overflow-hidden hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-100/80 transition-all duration-500 ${isRowLayout ? 'flex' : 'flex flex-col'}`}
+      variants={cardVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={{ duration: 0.3, delay: staggerDelay(index, 0.05) }}
+      className={`group bg-white rounded-none sm:rounded-3xl border-b border-zinc-100 sm:border sm:border-zinc-100 overflow-hidden hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-100/80 transition-all duration-500 ${isRowLayout ? 'flex' : 'flex flex-col'}`}
     >
       <PostListItemCover post={post} coverConfig={coverConfig} />
       <PostListItemBody post={post} locale={locale} t={t} />

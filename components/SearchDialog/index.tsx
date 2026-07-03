@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { modalContentVariants, modalTransition } from '@/components/ui/motion';
 
 import { SearchEmpty } from './SearchEmpty';
 import { SearchHistory } from './SearchHistory';
@@ -52,10 +53,11 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
           }}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -16 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            variants={modalContentVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={modalTransition}
             className="relative w-full max-w-2xl mx-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >

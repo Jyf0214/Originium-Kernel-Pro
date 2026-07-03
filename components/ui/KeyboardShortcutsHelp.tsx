@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { modalContentVariants, modalTransition } from '@/components/ui/motion';
 import { X } from 'lucide-react';
 
 export interface KeyboardShortcutsHelpProps {
@@ -63,10 +64,11 @@ export function KeyboardShortcutsHelp({ open, onClose, visibleKeys }: KeyboardSh
           }}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 16 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            variants={modalContentVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={modalTransition}
             className="relative w-full max-w-xs mx-3 mb-3 sm:mb-0 sm:mx-4 sm:max-w-sm max-h-[50vh] sm:max-h-[80vh] overflow-y-auto bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-100 dark:border-zinc-800"
             onClick={(e) => e.stopPropagation()}
           >

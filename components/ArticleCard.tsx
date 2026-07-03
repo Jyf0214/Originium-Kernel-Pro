@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'motion/react';
+import { cardVariants } from '@/components/ui/motion';
 import { Calendar, ArrowUpRight, BookOpen, Clock } from 'lucide-react';
 import { Avatar } from './Avatar';
 import { Tag } from '@/components/ui/Tag';
@@ -187,10 +188,11 @@ export function ArticleCard({ article, wordcount, postMeta, coverConfig }: Artic
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      className={`group bg-white dark:bg-zinc-900 rounded-[2rem] border-2 border-zinc-50 dark:border-zinc-800 overflow-hidden hover:border-zinc-900 dark:hover:border-zinc-600 transition-all duration-500 shadow-sm hover:shadow-2xl hover:shadow-zinc-100 dark:hover:shadow-zinc-900 ${isHorizontal ? 'flex' : 'flex flex-col'}`}
+      variants={cardVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      className={`group bg-white dark:bg-zinc-900 rounded-none sm:rounded-[2rem] border-0 sm:border-2 border-zinc-50 dark:border-zinc-800 overflow-hidden hover:border-zinc-900 dark:hover:border-zinc-600 transition-all duration-500 shadow-none sm:shadow-sm hover:shadow-2xl hover:shadow-zinc-100 dark:hover:shadow-zinc-900 ${isHorizontal ? 'flex' : 'flex flex-col'}`}
     >
       <ArticleCoverSection article={article} coverConfig={coverConfig} />
       <div className="p-8 flex-1 flex flex-col">
