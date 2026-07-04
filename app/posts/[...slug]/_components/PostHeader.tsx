@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 import { motion, type Variants } from 'motion/react';
+import Image from 'next/image';
 import { Calendar, User } from 'lucide-react';
 import { Tag } from '@/components/ui/Tag';
 import { useCoverParallax } from '@/hooks/useCoverParallax';
@@ -64,12 +65,16 @@ export function CoverHero({
           willChange: 'transform',
         }}
       >
-        <div
-          className="absolute inset-0 bg-cover bg-center scale-110"
+        <Image
+          src={coverStr}
+          alt=""
+          fill
+          sizes="100vw"
+          className="absolute inset-0 object-cover scale-110"
           style={{
-            backgroundImage: `url(${coverStr})`,
             filter: fullBleed ? 'blur(8px) brightness(0.55)' : 'blur-sm',
           }}
+          priority
         />
         {/* 渐变遮罩层 — 从底部到顶部的暗度过渡 */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
