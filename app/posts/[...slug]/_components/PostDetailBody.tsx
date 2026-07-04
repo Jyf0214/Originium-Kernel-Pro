@@ -88,6 +88,7 @@ export function PostDetailBody({
       <div className="flex-1 min-w-0 max-w-3xl">
       <PostBreadcrumb slug={fullPath} crumbs={breadcrumbs} t={tPosts} />
 
+      {/* 文章内容容器 */}
       <article>
         {!omitHeader && (
           <PostHeader
@@ -124,22 +125,7 @@ export function PostDetailBody({
         />
       </article>
 
-      <div className="mt-12 max-w-3xl">
-        <LazyLoad rootMargin="300px">
-          <Giscus slug={fullPath} />
-        </LazyLoad>
-      </div>
-
-      {showWordCount && (
-        <div className="mt-12 px-6 py-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-100 dark:border-zinc-700">
-          <div className="text-sm text-zinc-500 dark:text-zinc-400 text-center">
-            <span>{t('posts.wordCountLabel', { count: wordCount.toLocaleString() })}</span>
-            <span className="mx-2 text-zinc-300 dark:text-zinc-600">|</span>
-            <span>{t('posts.readingTimeLabel', { minutes: readingTime })}</span>
-          </div>
-        </div>
-      )}
-
+      {/* 作者信息 — 单独容器 */}
       <div className="mt-12">
         <CopyrightNotice
           author={(file.meta.author as string | undefined) ?? (appConfig.footer?.owner as { author?: string } | undefined)?.author ?? ''}
@@ -150,6 +136,7 @@ export function PostDetailBody({
         />
       </div>
 
+      {/* 分享按钮 — 紧跟作者 */}
       <div className="mt-8 flex flex-wrap items-center gap-2 sm:gap-3">
         <ShareButtons
           title={file.meta.title as string}
@@ -173,6 +160,23 @@ export function PostDetailBody({
         title={file.meta.title as string}
         onClose={() => setQrOpen(false)}
       />
+
+      {/* 评论区 — 最下面 */}
+      <div className="mt-12 max-w-3xl">
+        <LazyLoad rootMargin="300px">
+          <Giscus slug={fullPath} />
+        </LazyLoad>
+      </div>
+
+      {showWordCount && (
+        <div className="mt-12 px-6 py-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-100 dark:border-zinc-700">
+          <div className="text-sm text-zinc-500 dark:text-zinc-400 text-center">
+            <span>{t('posts.wordCountLabel', { count: wordCount.toLocaleString() })}</span>
+            <span className="mx-2 text-zinc-300 dark:text-zinc-600">|</span>
+            <span>{t('posts.readingTimeLabel', { minutes: readingTime })}</span>
+          </div>
+        </div>
+      )}
 
       <PostRelated posts={relatedPosts} />
 
