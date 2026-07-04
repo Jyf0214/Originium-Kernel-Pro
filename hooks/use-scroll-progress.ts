@@ -8,19 +8,30 @@ const STORAGE_KEY_PREFIX = 'reading-progress-';
  * 滚动进度 Hook — 监听页面滚动，返回 0-1 的阅读进度
  * 基于 scrollY / (scrollHeight - clientHeight) 计算
  *
- * 支持持久化：传入 pageKey 时自动保存/恢复阅读位置
+ * 支持持久化：传入 pageKey 时自动保存进度到 localStorage
+ * 不自动恢复——由外部组件（如 ContinueReadingPrompt）读取 savedPosition 后手动恢复
  */
-export function useScrollProgress(pageKey?: string): number {
-  const [progress, setProgress] = useState(() => {
+export function useScrollProgress(pageKey?: string): {
+  progress: number;
+  /** localStorage 中保存的上次阅读位置（0-1），无记录时为 null */
+  savedPosition: number | null;
+  /** 清除已保存的阅读位置（用户选择从头阅读时调用） */
+  clearSavedPosition: () => void;
+} {
+  const [progress, setProgress] = useState(0);
+  const [savedPosition, setSavedPosition] = useState<number | null>(() => {
     if (pageKey && typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem(STORAGE_KEY_PREFIX + pageKey);
-        return saved ? parseFloat(saved) : 0;
+        if (saved) {
+          const pct = parseFloat(saved);
+          if (pct > 0.05 && pct < 0.85) return pct;
+        }
       } catch {
-        return 0;
+        // 静默忽略
       }
     }
-    return 0;
+    return null;
   });
 
   const handleScroll = useCallback(() => {
@@ -34,6 +45,16 @@ export function useScrollProgress(pageKey?: string): number {
     setProgress(next);
   }, []);
 
+  const clearSavedPosition = useCallback(() => {
+    if (!pageKey) return;
+    try {
+      localStorage.removeItem(STORAGE_KEY_PREFIX + pageKey);
+    } catch {
+      // 静默忽略
+    }
+    setSavedPosition(null);
+  }, [pageKey]);
+
   // 保存进度到 localStorage
   const saveProgress = useCallback(() => {
     if (!pageKey) return;
@@ -42,33 +63,12 @@ export function useScrollProgress(pageKey?: string): number {
       const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
       if (scrollHeight <= 0) return;
       const pct = scrollTop / scrollHeight;
-      // 仅保存超过 5% 的进度，避免误触
-      if (pct > 0.05) {
+      // 仅保存 5%~85% 范围内的进度
+      if (pct > 0.05 && pct < 0.85) {
         localStorage.setItem(STORAGE_KEY_PREFIX + pageKey, String(pct));
       }
     } catch {
       // localStorage 不可用时静默忽略
-    }
-  }, [pageKey]);
-
-  // 恢复滚动位置
-  useEffect(() => {
-    if (!pageKey || typeof window === 'undefined') return;
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_PREFIX + pageKey);
-      if (saved) {
-        const pct = parseFloat(saved);
-        // 仅在 5%~85% 范围内恢复，避免跳到文章末尾（>85% 视为已读完）
-        if (pct > 0.05 && pct < 0.85) {
-          // 延迟恢复，等 DOM 渲染完成
-          requestAnimationFrame(() => {
-            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            window.scrollTo(0, scrollHeight * pct);
-          });
-        }
-      }
-    } catch {
-      // 静默忽略
     }
   }, [pageKey]);
 
@@ -85,5 +85,5 @@ export function useScrollProgress(pageKey?: string): number {
     };
   }, [handleScroll, saveProgress]);
 
-  return progress;
+  return { progress, savedPosition, clearSavedPosition };
 }
