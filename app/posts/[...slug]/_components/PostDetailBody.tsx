@@ -88,8 +88,8 @@ export function PostDetailBody({
       <div className="flex-1 min-w-0 max-w-3xl">
       <PostBreadcrumb slug={fullPath} crumbs={breadcrumbs} t={tPosts} />
 
-      {/* 文章内容容器 */}
-      <article>
+      {/* 文章内容容器 — 卡片样式 */}
+      <article className="bg-white dark:bg-zinc-800 rounded-3xl shadow-xl shadow-zinc-200/50 dark:shadow-zinc-900/50 border border-zinc-100 dark:border-zinc-700 p-6 sm:p-8 md:p-10 lg:p-12 animate-card-slidein">
         {!omitHeader && (
           <PostHeader
             type={file.meta.type}
