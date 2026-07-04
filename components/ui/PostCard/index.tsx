@@ -81,11 +81,8 @@ export function PostCard({
       transition={{ duration: 0.3, delay: staggerDelay(index, 0.05) }}
       className={`group bg-white dark:bg-zinc-900 rounded-none sm:rounded-[2rem] border-0 sm:border-2 border-zinc-50 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-zinc-600 transition-all duration-500 shadow-none sm:shadow-sm hover:shadow-2xl hover:shadow-zinc-100 dark:hover:shadow-zinc-900 ui-interactive ${isRowLayout ? 'flex' : 'flex flex-col'}`}
     >
-      {/* 内层包装：overflow-hidden 裁剪子元素到圆角边界，同时不阻止外层 hover 缩放 */}
-      <div className={`overflow-hidden ${isRowLayout ? 'flex' : 'flex flex-col'} ${isRowLayout ? '' : 'h-full'}`}>
-        <PostCardCover post={post} coverConfig={coverConfig} defaultCover={defaultCover} />
-        <PostCardBody post={post} locale={locale} t={t} position={coverConfig?.position} />
-      </div>
+      <PostCardCover post={post} coverConfig={coverConfig} defaultCover={defaultCover} />
+      <PostCardBody post={post} locale={locale} t={t} position={coverConfig?.position} />
     </motion.article>
   );
 }
