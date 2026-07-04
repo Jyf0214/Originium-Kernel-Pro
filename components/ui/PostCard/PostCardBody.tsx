@@ -48,20 +48,15 @@ export function PostCardBody({
   post,
   locale,
   t,
-  position,
+  position: _position,
 }: {
   post: PostItem;
   locale: string;
   t: (key: string) => string;
   position?: string;
 }) {
-  const bodyRoundClass =
-    position === 'right' ? 'rounded-l-[2rem]' :
-    position === 'left' ? 'rounded-r-[2rem]' :
-    'rounded-b-[2rem]';
-
   return (
-    <div className={`px-4 sm:px-5 py-3 sm:py-4 flex-1 flex flex-col overflow-hidden ${bodyRoundClass}`}>
+    <div className="px-4 sm:px-5 py-3 sm:py-4 flex-1 flex flex-col overflow-hidden">
       {post.pinned && (
         <div className="inline-flex items-center gap-1.5 mb-3 self-start bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700 px-2.5 py-1 rounded-lg">
           <Pin size={10} className="text-amber-400/80" />
