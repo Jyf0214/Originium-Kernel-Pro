@@ -81,11 +81,11 @@ export default async function PostDetailPage({ params }: PageProps) {
             tags={file.meta.tags}
             cover={file.meta.cover}
           />
-          {/* 占位：封面绝对定位 -top-16 上移4rem，占位高度需减去4rem补偿 */}
-          <div className="h-[56.25vw] max-h-[80vh] min-h-[300px]" />
+          {/* 占位：封面绝对定位不占文档流，需要手动撑开高度（含 -top-16 补偿） */}
+          <div className="h-[calc(56.25vw+4rem)] max-h-[calc(80vh+4rem)] min-h-[calc(300px+4rem)]" />
         </>
       )}
-      <main className={`flex-1 max-w-6xl 2xl:max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-16 ${file.meta.cover ? '' : 'pt-8'}`}>
+      <main className={`flex-1 max-w-6xl 2xl:max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-16 ${file.meta.cover ? '-mt-32 relative z-10' : 'pt-8'}`}>
         <div className="lg:flex lg:gap-8 items-start">
           <div className="flex-1 min-w-0 bg-white dark:bg-zinc-800 rounded-3xl shadow-xl shadow-zinc-200/50 dark:shadow-zinc-900/50 border border-zinc-100 dark:border-zinc-700 p-6 sm:p-8 md:p-10 lg:p-12">
             <PostDetailBody {...viewModel} omitHeader={!!file.meta.cover} />
