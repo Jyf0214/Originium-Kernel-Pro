@@ -45,6 +45,7 @@ export function PostDetailBody({
   backlinks,
   outgoingRefs,
   translations,
+  omitHeader,
 }: {
   file: { content: string; meta: Record<string, unknown> };
   fullPath: string;
@@ -61,6 +62,8 @@ export function PostDetailBody({
   backlinks?: BacklinkInfo[];
   outgoingRefs?: RegistryEntry[];
   translations?: Record<string, string>;
+  /** 有封面时跳过 PostHeader（封面已在卡片外单独渲染） */
+  omitHeader?: boolean;
 }) {
   const [qrOpen, setQrOpen] = useState(false);
   const { t } = useI18n();
@@ -83,14 +86,16 @@ export function PostDetailBody({
       <PostBreadcrumb slug={fullPath} crumbs={breadcrumbs} t={tPosts} />
 
       <article>
-        <PostHeader
-          type={file.meta.type}
-          tags={file.meta.tags}
-          title={file.meta.title}
-          author={file.meta.author}
-          date={file.meta.date}
-          cover={file.meta.cover}
-        />
+        {!omitHeader && (
+          <PostHeader
+            type={file.meta.type}
+            tags={file.meta.tags}
+            title={file.meta.title}
+            author={file.meta.author}
+            date={file.meta.date}
+            cover={file.meta.cover}
+          />
+        )}
 
         {/* 多语言版本切换 */}
         {translations && Object.keys(translations).length > 0 && (
