@@ -70,25 +70,22 @@ function DrawerLink({
 /* ── 抽屉底部工具栏 ── */
 
 function DrawerToolbar({
-  onSearch,
   onShortcuts,
+  allowRegistration,
+  clerkAvailable,
+  t,
+  onClose,
 }: {
-  onSearch: () => void;
   onShortcuts: () => void;
+  allowRegistration: boolean;
+  clerkAvailable: boolean;
+  t: (key: string) => string;
+  onClose: () => void;
 }) {
+  const { user } = useAuth();
   return (
     <div className="flex items-center gap-2">
       <LanguageSwitcher />
-      <Button
-        onClick={onSearch}
-        variant="ghost"
-        size="sm"
-        autoLoading={false}
-        iconOnly
-        icon={<Search size={18} />}
-        aria-label="搜索"
-        title="搜索 (/)"
-      />
       <Button
         onClick={onShortcuts}
         variant="ghost"
@@ -99,48 +96,31 @@ function DrawerToolbar({
         aria-label="快捷键帮助"
         title="快捷键 (?)"
       />
-    </div>
-  );
-}
-
-/* ── 抽屉认证区 ── */
-
-function DrawerAuth({
-  allowRegistration,
-  clerkAvailable,
-  t,
-  onClose,
-}: {
-  allowRegistration: boolean;
-  clerkAvailable: boolean;
-  t: (key: string) => string;
-  onClose: () => void;
-}) {
-  const { user } = useAuth();
-  if (user) return <UserMenu />;
-  return (
-    <>
-      <div className="flex items-center gap-2">
-        <Link href="/login" onClick={onClose}>
-          <Button variant="default" size="sm" autoLoading={false}>
-            {t('auth.login')}
-          </Button>
-        </Link>
-        {allowRegistration && (
+      {user ? (
+        <UserMenu />
+      ) : (
+        <>
           <Link href="/login" onClick={onClose}>
-            <Button variant="primary" size="sm" autoLoading={false}>
-              <LoginOutlined />
-              <span>{t('auth.register')}</span>
+            <Button variant="default" size="sm" autoLoading={false}>
+              {t('auth.login')}
             </Button>
           </Link>
-        )}
-      </div>
-      {clerkAvailable && allowRegistration && (
+          {allowRegistration && (
+            <Link href="/login" onClick={onClose}>
+              <Button variant="primary" size="sm" autoLoading={false}>
+                <LoginOutlined />
+                <span>{t('auth.register')}</span>
+              </Button>
+            </Link>
+          )}
+        </>
+      )}
+      {clerkAvailable && allowRegistration && !user && (
         <ClerkAuthProvider>
           <ClerkLoginSection variant="compact" />
         </ClerkAuthProvider>
       )}
-    </>
+    </div>
   );
 }
 
@@ -154,7 +134,6 @@ function DrawerContent({
   clerkAvailable,
   t,
   closeDrawer,
-  setSearchOpen,
   setShortcutsOpen,
 }: {
   pathname: string;
@@ -164,7 +143,6 @@ function DrawerContent({
   clerkAvailable: boolean;
   t: (key: string) => string;
   closeDrawer: () => void;
-  setSearchOpen: (v: boolean) => void;
   setShortcutsOpen: (v: boolean) => void;
 }) {
   const menuItems = navConfig?.enable && navConfig.menu
@@ -230,10 +208,7 @@ function DrawerContent({
           </div>
         )}
         <DrawerToolbar
-          onSearch={() => { closeDrawer(); setSearchOpen(true); }}
           onShortcuts={() => { closeDrawer(); setShortcutsOpen(true); }}
-        />
-        <DrawerAuth
           allowRegistration={allowRegistration}
           clerkAvailable={clerkAvailable}
           t={t}
@@ -341,6 +316,17 @@ export function Navbar({ navConfig: navConfigProp }: NavbarProps) {
 
   return (
     <>
+      {/* 搜索按钮 — 深色模式左侧 */}
+      <button
+        type="button"
+        onClick={() => state.setSearchOpen(true)}
+        className="fixed top-3 right-[52px] z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+        aria-label="搜索"
+        title="搜索 (/)"
+      >
+        <Search size={22} />
+      </button>
+
       {/* 深色模式切换 — 汉堡按钮左侧 */}
       <button
         type="button"
@@ -384,7 +370,6 @@ export function Navbar({ navConfig: navConfigProp }: NavbarProps) {
           clerkAvailable={clerkAvailable}
           t={t}
           closeDrawer={state.closeDrawer}
-          setSearchOpen={state.setSearchOpen}
           setShortcutsOpen={state.setShortcutsOpen}
         />
       </div>
