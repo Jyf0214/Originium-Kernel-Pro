@@ -150,7 +150,7 @@ export function PostDetailBody({
         />
       </div>
 
-      <div className="mt-8 grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-3">
+      <div className="mt-8 flex flex-wrap items-center gap-2 sm:gap-3">
         <ShareButtons
           title={file.meta.title as string}
           url={fullUrl}
