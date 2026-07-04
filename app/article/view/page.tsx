@@ -153,7 +153,7 @@ function ArticleViewContent() {
                 src={articleData.coverImage ?? articleData.cover ?? ''}
                 alt={articleData.title ?? ''}
                 fill
-                className="object-cover hover:scale-105 transition-transform duration-1000"
+                className="object-cover ui-interactive transition-transform duration-1000"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
                 unoptimized
               />

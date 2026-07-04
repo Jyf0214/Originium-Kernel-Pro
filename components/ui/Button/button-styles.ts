@@ -34,7 +34,7 @@ export const roundedStyles: Record<ButtonRounded, string> = {
 };
 
 export const BASE_BUTTON_CLASSES =
-  'inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 active:scale-[0.97] ' +
+  'inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 ui-press ' +
   'overflow-hidden min-w-0 ' +
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-1 ' +
   'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none';

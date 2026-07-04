@@ -88,7 +88,7 @@ export function CategoryBar({
           rounded="full"
           icon={<ChevronRight size={16} className="text-zinc-500" />}
           aria-label="向右滚动"
-          className="pointer-events-auto mr-1.5 shadow-sm active:scale-95"
+          className="pointer-events-auto mr-1.5 shadow-sm ui-press"
         />
       </div>
     </div>

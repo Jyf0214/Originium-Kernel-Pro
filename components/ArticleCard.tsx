@@ -51,7 +51,7 @@ function calcWordCount(text: string): { chars: number; readingTime: number } {
 
 function ArticleCover({ article, horizontal, defaultCover }: { article: Article; horizontal?: boolean; defaultCover?: string }) {
   return (
-    <Link href={`/user/${article.id}`} className={`block overflow-hidden bg-zinc-50 dark:bg-zinc-800 relative ${horizontal ? 'h-full' : 'aspect-[16/10]'}`}>
+    <Link href={`/user/${article.id}`} className={`block overflow-hidden bg-zinc-50 dark:bg-zinc-800 relative ui-interactive ${horizontal ? 'h-full' : 'aspect-[16/10]'}`}>
       {article.coverImage || defaultCover ? (
         <Image
           src={article.coverImage ?? defaultCover!}

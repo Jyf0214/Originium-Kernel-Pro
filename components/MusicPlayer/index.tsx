@@ -155,7 +155,7 @@ function PlayerControls({
     <>
       <button
         onClick={onTogglePlay}
-        className="w-10 h-10 rounded-full bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center shrink-0 hover:scale-105 transition-transform"
+        className="w-10 h-10 rounded-full bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center shrink-0 ui-interactive transition-transform"
       >
         {playing ? (
           <Pause size={16} className="text-white dark:text-zinc-900" />
@@ -310,7 +310,7 @@ export function MusicPlayer() {
       >
         <button
           onClick={togglePlay}
-          className="w-10 h-10 rounded-full bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center shrink-0 hover:scale-105 transition-transform"
+          className="w-10 h-10 rounded-full bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center shrink-0 ui-interactive transition-transform"
         >
           {playing ? (
             <Pause size={16} className="text-white dark:text-zinc-900" />
