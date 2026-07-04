@@ -6,16 +6,16 @@ import { LazyImage } from '@/components/ui/LazyImage';
 import type { PostItem, CoverConfig } from './types';
 
 function getCoverPositionClass(position: string | undefined): string {
-  if (position === 'right') return 'order-last w-2/5 shrink-0 sm:rounded-r-[2rem] overflow-hidden';
-  if (position === 'left') return 'w-2/5 shrink-0 sm:rounded-l-[2rem] overflow-hidden';
-  return 'sm:rounded-t-[2rem] overflow-hidden';
+  if (position === 'right') return 'order-last w-2/5 shrink-0 rounded-r-2xl sm:rounded-r-[2rem] overflow-hidden';
+  if (position === 'left') return 'w-2/5 shrink-0 rounded-l-2xl sm:rounded-l-[2rem] overflow-hidden';
+  return 'rounded-t-2xl sm:rounded-t-[2rem] overflow-hidden';
 }
 
 function PostCardImage({ post, defaultCover, position }: { post: PostItem; defaultCover?: string; position?: string }) {
   const imageRoundClass =
-    position === 'right' ? 'sm:rounded-r-[2rem]' :
-    position === 'left' ? 'sm:rounded-l-[2rem]' :
-    'sm:rounded-t-[2rem]';
+    position === 'right' ? 'rounded-r-2xl sm:rounded-r-[2rem]' :
+    position === 'left' ? 'rounded-l-2xl sm:rounded-l-[2rem]' :
+    'rounded-t-2xl sm:rounded-t-[2rem]';
 
   if (post.cover || defaultCover) {
     return (
@@ -54,9 +54,9 @@ export function PostCardCover({
   const isRowLayout = position === 'left' || position === 'right';
 
   const linkRoundClass =
-    position === 'right' ? 'sm:rounded-r-[2rem]' :
-    position === 'left' ? 'sm:rounded-l-[2rem]' :
-    'sm:rounded-t-[2rem]';
+    position === 'right' ? 'rounded-r-2xl sm:rounded-r-[2rem]' :
+    position === 'left' ? 'rounded-l-2xl sm:rounded-l-[2rem]' :
+    'rounded-t-2xl sm:rounded-t-[2rem]';
 
   return (
     <div className={`${getCoverPositionClass(position)} relative`}>
