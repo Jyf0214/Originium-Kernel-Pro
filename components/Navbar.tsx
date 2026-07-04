@@ -15,7 +15,8 @@ import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { Clock, MapPin, Search, Sun, Moon, Monitor, Keyboard } from 'lucide-react';
 import { useThemeMode } from '@/hooks/use-theme-mode';
 import { usePathname } from 'next/navigation';
-import { useScrollPosition } from '@/hooks/useScrollPosition';
+import { useScrollDirection } from '@/hooks/useScrollDirection';
+import { usePostPage } from '@/contexts/PostPageContext';
 import LanguageSwitcher from '@/components/LanguageSwitcher/index';
 import type { NavConfig } from '@/lib/config-schema';
 
@@ -110,7 +111,8 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
   const { mode, cycle } = useThemeMode();
   const pathname = usePathname();
   const isHome = pathname === '/';
-  const scrollY = useScrollPosition();
+  const { scrollY, direction, pastThreshold } = useScrollDirection();
+  const { postTitle } = usePostPage();
 
   // 帖子详情页沉浸式导航：仅在 /posts/[...] 路径下激活
   const isPostDetail = pathname.startsWith('/posts/') && pathname !== '/posts';
@@ -118,6 +120,10 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
   const isNavSolid = !isPostDetail || scrollY >= 400;
   // 帖子页有封面时：导航栏绝对定位悬浮在封面上方；其他页面：sticky 固定
   const isAbsoluteNav = isPostDetail && !isNavSolid;
+  // 导航栏隐藏/显示：帖子页滚动超过阈值时，向下滚动隐藏、向上滚动显示
+  const isNavHidden = isPostDetail && pastThreshold && direction === 'down';
+  // 显示文章标题：帖子页滚动超过封面后
+  const showPostTitle = isPostDetail && pastThreshold && postTitle;
 
   // 优先使用服务端传入的配置，无则初始化为 null（降级 fetch 填充）
   const [navConfig, setNavConfig] = useState<NavConfig | null>(navConfigProp ?? null);
@@ -192,7 +198,7 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
         isNavSolid
           ? 'bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200/60 dark:border-zinc-700/60'
           : 'bg-transparent border-b border-transparent'
-      }`}
+      } ${isNavHidden ? '-translate-y-full' : 'translate-y-0'}`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
@@ -205,10 +211,16 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
               }`}>
                 <span className="font-bold text-lg leading-none text-white">O</span>
               </div>
-              <span className={`font-display font-bold text-xl tracking-tight hidden sm:inline ${
+              <span className={`font-display font-bold text-xl tracking-tight hidden sm:inline transition-opacity duration-300 ${
                 isNavSolid ? 'text-zinc-900 dark:text-zinc-100' : 'text-white'
-              }`}>{t('sidebar.originiumKernel')}</span>
+              } ${showPostTitle ? 'opacity-0' : 'opacity-100'}`}>{t('sidebar.originiumKernel')}</span>
             </Link>
+            {/* 文章标题（滚动超过封面后显示在导航栏中间） */}
+            {showPostTitle && (
+              <span className="hidden md:block absolute left-1/2 -translate-x-1/2 text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate max-w-[40%] transition-opacity duration-300">
+                {postTitle}
+              </span>
+            )}
             <NavMenuGroupComponent config={navConfig} isNavSolid={isNavSolid} />
           </div>
           <div className="flex items-center gap-3 shrink-0">

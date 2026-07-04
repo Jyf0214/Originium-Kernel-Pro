@@ -27,6 +27,7 @@ import { buildCopyrightConfig, buildShareConfig } from '../_lib/post-page-config
 import { tPosts } from '../_lib/post-i18n';
 import { useI18n } from '@/hooks/use-i18n';
 import { useContinueReading } from '@/hooks/useContinueReading';
+import { useSetPostTitle } from '@/contexts/PostPageContext';
 
 // eslint-disable-next-line complexity
 export function PostDetailBody({
@@ -68,6 +69,8 @@ export function PostDetailBody({
   const [qrOpen, setQrOpen] = useState(false);
   const { t } = useI18n();
   const { savedData, setSavedData, handleRestore, handleDismiss } = useContinueReading();
+  const titleStr = typeof file.meta.title === 'string' ? file.meta.title : '';
+  useSetPostTitle(titleStr);
 
   return (
     <>

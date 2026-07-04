@@ -55,28 +55,40 @@ export function CoverHero({
 
   return (
     <header className={`relative overflow-hidden ${fullBleed ? 'aspect-video mb-0' : '-m-6 sm:-m-8 md:-m-10 lg:-m-12 mb-12 rounded-t-3xl'}`}>
-      {/* 封面图片层 — 视差变换 */}
+      {/* 封面图片层 — 艺术化处理：旋转 + 模糊 + 暗化 + 缩放视差 */}
       <div
         ref={coverRef}
         className="absolute inset-0"
         style={{
-          transform: `scale(${parallax.scale}) translateY(${parallax.translateY}px)`,
+          transform: `scale(${parallax.scale}) translateY(${parallax.translateY}px) rotate(${fullBleed ? '3deg' : '0deg'})`,
           willChange: 'transform',
         }}
       >
         <div
-          className="absolute inset-0 bg-cover bg-center scale-105 blur-sm dark:post-cover-dim"
-          style={{ backgroundImage: `url(${coverStr})` }}
+          className="absolute inset-0 bg-cover bg-center scale-110"
+          style={{
+            backgroundImage: `url(${coverStr})`,
+            filter: fullBleed ? 'blur(8px) brightness(0.55)' : 'blur-sm',
+          }}
         />
         {/* 渐变遮罩层 — 从底部到顶部的暗度过渡 */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
         {/* 暗角效果 — 四周渐暗，聚焦中心 */}
         <div
           className="absolute inset-0 md:block hidden"
           style={{
-            background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.5) 100%)',
+            background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%)',
           }}
         />
+        {/* inset box-shadow 光晕 — 模拟 Anzhiyu 主题色光晕效果 */}
+        {fullBleed && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              boxShadow: 'inset 80px -100px 250px 50px rgba(99, 102, 241, 0.15)',
+            }}
+          />
+        )}
         {/* 暗色模式氛围层 — 额外压暗 */}
         <div className="absolute inset-0 bg-black/0 dark:bg-black/20 transition-colors duration-300" />
       </div>
