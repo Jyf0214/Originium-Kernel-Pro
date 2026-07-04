@@ -31,7 +31,7 @@ export function PostCoverSection({
   if (!coverStr) return null;
 
   return (
-    <div className="absolute top-0 left-0 w-screen h-[56.25vw] max-h-[80vh] min-h-[300px] z-0">
+    <div className="absolute -top-16 left-0 w-screen h-[calc(56.25vw+4rem)] max-h-[calc(80vh+4rem)] min-h-[calc(300px+4rem)] z-0">
       <CoverHero
         titleStr={titleStr}
         authorStr={authorStr}
