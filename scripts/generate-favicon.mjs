@@ -1,8 +1,8 @@
 /**
  * 生成默认 favicon（SVG → ICO + PNG）
  *
- * 设计：嵌套菱形 + 渐变，呼应 "Originium Kernel" 主题
- * 无字母，纯几何图形
+ * 设计：扁平化 "O" 字母，简洁现代
+ * 无渐变，无阴影，纯色块
  *
  * 缓存策略：计算 SVG 内容 hash，与 .next/.favicon-hash 比对，
  * 相同则跳过 sharp 生成（sharp 是耗时操作）
@@ -13,25 +13,9 @@ import { join } from 'path';
 import { createHash } from 'crypto';
 
 const SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#27272a"/>
-      <stop offset="100%" stop-color="#18181b"/>
-    </linearGradient>
-    <linearGradient id="h" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#a1a1aa"/>
-      <stop offset="100%" stop-color="#71717a"/>
-    </linearGradient>
-  </defs>
-  <!-- 外层圆角菱形 -->
-  <rect x="96" y="96" width="320" height="320" rx="48" ry="48"
-        transform="rotate(45 256 256)" fill="url(#g)"/>
-  <!-- 中层圆角菱形 -->
-  <rect x="144" y="144" width="224" height="224" rx="32" ry="32"
-        transform="rotate(45 256 256)" fill="none" stroke="url(#h)" stroke-width="12"/>
-  <!-- 内层实心菱形 -->
-  <rect x="192" y="192" width="128" height="128" rx="16" ry="16"
-        transform="rotate(45 256 256)" fill="url(#h)" opacity="0.9"/>
+  <!-- 扁平化 O 字母 -->
+  <rect width="512" height="512" rx="96" fill="#18181b"/>
+  <circle cx="256" cy="256" r="140" fill="none" stroke="#fafafa" stroke-width="48" stroke-linecap="round"/>
 </svg>`;
 
 const outDir = join(process.cwd(), 'public');
