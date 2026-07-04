@@ -6,9 +6,9 @@ import { LazyImage } from '@/components/ui/LazyImage';
 import type { PostItem, CoverConfig } from './types';
 
 function getCoverPositionClass(position: string | undefined): string {
-  if (position === 'right') return 'order-last w-2/5 shrink-0 rounded-r-[2rem] overflow-hidden';
-  if (position === 'left') return 'w-2/5 shrink-0 rounded-l-[2rem] overflow-hidden';
-  return 'rounded-t-[2rem] overflow-hidden';
+  if (position === 'right') return 'order-last w-2/5 shrink-0 sm:rounded-r-[2rem] overflow-hidden';
+  if (position === 'left') return 'w-2/5 shrink-0 sm:rounded-l-[2rem] overflow-hidden';
+  return 'sm:rounded-t-[2rem] overflow-hidden';
 }
 
 function PostCardImage({ post, defaultCover }: { post: PostItem; defaultCover?: string }) {

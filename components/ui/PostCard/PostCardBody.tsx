@@ -56,9 +56,9 @@ export function PostCardBody({
   position?: string;
 }) {
   const bodyRoundClass =
-    position === 'right' ? 'rounded-l-[2rem]' :
-    position === 'left' ? 'rounded-r-[2rem]' :
-    'rounded-b-[2rem]';
+    position === 'right' ? 'sm:rounded-l-[2rem]' :
+    position === 'left' ? 'sm:rounded-r-[2rem]' :
+    'sm:rounded-b-[2rem]';
 
   return (
     <div className={`px-4 sm:px-5 py-3 sm:py-4 flex-1 flex flex-col overflow-hidden ${bodyRoundClass}`}>
