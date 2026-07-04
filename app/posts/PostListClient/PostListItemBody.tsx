@@ -43,13 +43,20 @@ export function PostListItemBody({
   post,
   locale,
   t,
+  position,
 }: {
   post: PostItem;
   locale: string;
   t: (key: string) => string;
+  position?: string;
 }) {
+  const bodyRoundClass =
+    position === 'right' ? 'rounded-l-[2rem]' :
+    position === 'left' ? 'rounded-r-[2rem]' :
+    'rounded-b-[2rem]';
+
   return (
-    <div className="px-5 py-4 flex-1 flex flex-col">
+    <div className={`px-5 py-4 flex-1 flex flex-col overflow-hidden ${bodyRoundClass}`}>
       {post.tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-3">
           {post.tags.slice(0, 3).map((tag) => (

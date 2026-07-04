@@ -75,10 +75,10 @@ export function PostListItem({
       animate="animate"
       exit="exit"
       transition={{ duration: 0.3, delay: staggerDelay(index, 0.05) }}
-      className={`group bg-white rounded-[2rem] border-b border-zinc-100 sm:border sm:border-zinc-100 overflow-hidden hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-100/80 transition-all duration-500 ${isRowLayout ? 'flex' : 'flex flex-col'}`}
+      className={`group bg-white rounded-[2rem] border-b border-zinc-100 sm:border sm:border-zinc-100 hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-100/80 transition-all duration-500 ${isRowLayout ? 'flex' : 'flex flex-col'}`}
     >
       <PostListItemCover post={post} coverConfig={coverConfig} />
-      <PostListItemBody post={post} locale={locale} t={t} />
+      <PostListItemBody post={post} locale={locale} t={t} position={coverConfig?.position} />
     </motion.article>
   );
 }
