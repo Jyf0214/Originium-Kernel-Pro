@@ -121,14 +121,14 @@ function DrawerAuth({
   return (
     <>
       <div className="flex items-center gap-2">
-        <Link href="/login" className="flex-1" onClick={onClose}>
-          <Button variant="default" size="sm" autoLoading={false} className="w-full">
+        <Link href="/login" onClick={onClose}>
+          <Button variant="default" size="sm" autoLoading={false}>
             {t('auth.login')}
           </Button>
         </Link>
         {allowRegistration && (
-          <Link href="/login" className="flex-1" onClick={onClose}>
-            <Button variant="primary" size="sm" autoLoading={false} className="w-full">
+          <Link href="/login" onClick={onClose}>
+            <Button variant="primary" size="sm" autoLoading={false}>
               <LoginOutlined />
               <span>{t('auth.register')}</span>
             </Button>
