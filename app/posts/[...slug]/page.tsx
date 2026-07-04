@@ -57,7 +57,9 @@ export default async function PostDetailPage({ params }: PageProps) {
   const viewModel = buildViewModel(slug, fullPath, file.content, file.meta);
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
+    <div className="min-h-screen flex flex-col">
+      {/* 固定背景画布层 — 滚动时背景不动，营造"锚定感" */}
+      <div className="fixed inset-0 -z-10 bg-zinc-50 dark:bg-zinc-900" aria-hidden="true" />
       <JsonLd
         title={file.meta.title}
         description={file.meta.description}

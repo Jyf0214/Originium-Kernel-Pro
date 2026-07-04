@@ -15,6 +15,7 @@ import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { Clock, MapPin, Search, Sun, Moon, Monitor, Keyboard } from 'lucide-react';
 import { useThemeMode } from '@/hooks/use-theme-mode';
 import { usePathname } from 'next/navigation';
+import { useScrollPosition } from '@/hooks/useScrollPosition';
 import LanguageSwitcher from '@/components/LanguageSwitcher/index';
 import type { NavConfig } from '@/lib/config-schema';
 
@@ -36,7 +37,7 @@ interface NavbarProps {
   siteTitle?: string;
 }
 
-function NavMenuGroupComponent({ config }: { config: NavConfig | null }) {
+function NavMenuGroupComponent({ config, isNavSolid }: { config: NavConfig | null; isNavSolid: boolean }) {
   if (!config?.enable || !config.menu?.length) return null;
   return (
     <div className="hidden md:flex items-center gap-1 ml-8">
@@ -44,7 +45,7 @@ function NavMenuGroupComponent({ config }: { config: NavConfig | null }) {
         <React.Fragment key={gi}>
           {group.item.map((item, ii) => (
             <Link key={`${gi}-${ii}`} href={item.link}>
-              <Button variant="ghost" size="sm" autoLoading={false} className="text-zinc-500 dark:text-zinc-400">
+              <Button variant="ghost" size="sm" autoLoading={false} className={isNavSolid ? 'text-zinc-500 dark:text-zinc-400' : 'text-white/70 hover:text-white'}>
                 {item.icon && <img src={item.icon} alt="" className="w-4 h-4" />}
                 {item.name}
               </Button>
@@ -56,17 +57,17 @@ function NavMenuGroupComponent({ config }: { config: NavConfig | null }) {
   );
 }
 
-function NavClock({ travelling, clock, time }: { travelling?: boolean; clock?: boolean; time: string }) {
+function NavClock({ travelling, clock, time, isNavSolid }: { travelling?: boolean; clock?: boolean; time: string; isNavSolid: boolean }) {
   return (
     <>
       {travelling && (
-        <span className="hidden md:flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
+        <span className={`hidden md:flex items-center gap-1 text-xs px-2.5 py-1 rounded-full ${isNavSolid ? 'text-amber-600 bg-amber-50' : 'text-amber-200 bg-white/10'}`}>
           <MapPin size={12} />
           旅行中
         </span>
       )}
       {clock && time && (
-        <span className="hidden md:flex items-center gap-1 text-xs text-zinc-400 font-mono">
+        <span className={`hidden md:flex items-center gap-1 text-xs font-mono ${isNavSolid ? 'text-zinc-400' : 'text-white/50'}`}>
           <Clock size={12} />
           {time}
         </span>
@@ -75,12 +76,12 @@ function NavClock({ travelling, clock, time }: { travelling?: boolean; clock?: b
   );
 }
 
-function NavAuthSection({ user, allowRegistration, clerkAvailable, t }: { user: unknown; allowRegistration: boolean; clerkAvailable: boolean; t: (key: string) => string }) {
+function NavAuthSection({ user, allowRegistration, clerkAvailable, t, isNavSolid }: { user: unknown; allowRegistration: boolean; clerkAvailable: boolean; t: (key: string) => string; isNavSolid: boolean }) {
   if (user) return <UserMenu />;
   return (
     <div className="flex items-center gap-1.5 whitespace-nowrap">
       <Link href="/login">
-        <Button variant="default" size="sm" autoLoading={false} className="text-zinc-600">
+        <Button variant="default" size="sm" autoLoading={false} className={isNavSolid ? 'text-zinc-600' : 'bg-white/10 text-white border-white/20 hover:bg-white/20'}>
           {t('auth.login')}
         </Button>
       </Link>
@@ -101,6 +102,7 @@ function NavAuthSection({ user, allowRegistration, clerkAvailable, t }: { user: 
   );
 }
 
+// eslint-disable-next-line complexity
 export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: NavbarProps) {
   const { user, clerkAvailable } = useAuth();
   const { t } = useI18n();
@@ -108,6 +110,13 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
   const { mode, cycle } = useThemeMode();
   const pathname = usePathname();
   const isHome = pathname === '/';
+  const scrollY = useScrollPosition();
+
+  // 帖子详情页沉浸式导航：仅在 /posts/[...] 路径下激活
+  const isPostDetail = pathname.startsWith('/posts/') && pathname !== '/posts';
+  // 封面高度阈值（约 400px），超过后切换为实体导航栏
+  const isNavSolid = !isPostDetail || scrollY >= 400;
+
   // 优先使用服务端传入的配置，无则初始化为 null（降级 fetch 填充）
   const [navConfig, setNavConfig] = useState<NavConfig | null>(navConfigProp ?? null);
   const [time, setTime] = useState('');
@@ -175,17 +184,30 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
 
   return (
     <>
-    <nav aria-label="主导航" className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200/60 dark:border-zinc-700/60">
+    <nav
+      aria-label="主导航"
+      className={`sticky top-0 z-50 transition-all duration-500 ${
+        isNavSolid
+          ? 'bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200/60 dark:border-zinc-700/60'
+          : 'bg-transparent border-b border-transparent'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center min-w-0">
             <Link href="/" className="flex items-center gap-3 shrink-0">
-              <div className="w-9 h-9 bg-gradient-to-br from-zinc-900 to-zinc-700 rounded-xl flex items-center justify-center shadow-sm">
-                <span className="text-white font-bold text-lg leading-none">O</span>
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-sm ${
+                isNavSolid
+                  ? 'bg-gradient-to-br from-zinc-900 to-zinc-700'
+                  : 'bg-white/20 backdrop-blur-sm'
+              }`}>
+                <span className="font-bold text-lg leading-none text-white">O</span>
               </div>
-              <span className="font-display font-bold text-xl tracking-tight text-zinc-900 dark:text-zinc-100 hidden sm:inline">{t('sidebar.originiumKernel')}</span>
+              <span className={`font-display font-bold text-xl tracking-tight hidden sm:inline ${
+                isNavSolid ? 'text-zinc-900 dark:text-zinc-100' : 'text-white'
+              }`}>{t('sidebar.originiumKernel')}</span>
             </Link>
-            <NavMenuGroupComponent config={navConfig} />
+            <NavMenuGroupComponent config={navConfig} isNavSolid={isNavSolid} />
           </div>
           <div className="flex items-center gap-3 shrink-0">
             {/* 深色模式切换按钮 */}
@@ -198,9 +220,12 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
               icon={mode === 'light' ? <Sun size={18} /> : mode === 'dark' ? <Moon size={18} /> : <Monitor size={18} />}
               aria-label={mode === 'light' ? '浅色模式' : mode === 'dark' ? '深色模式' : '跟随系统'}
               title={mode === 'light' ? '浅色模式' : mode === 'dark' ? '深色模式' : '跟随系统'}
+              className={isNavSolid ? '' : 'text-white/70 hover:text-white'}
             />
             {/* 语言切换器 */}
-            <LanguageSwitcher />
+            <div className={isNavSolid ? '' : '[&_*]:text-white/70 [&_*]:hover:text-white'}>
+              <LanguageSwitcher />
+            </div>
             {/* 搜索按钮 */}
             <Button
               onClick={() => setSearchOpen(true)}
@@ -211,6 +236,7 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
               icon={<Search size={18} />}
               aria-label="搜索"
               title="搜索 (/)"
+              className={isNavSolid ? '' : 'text-white/70 hover:text-white'}
             />
             {/* 快捷键帮助按钮——手机端隐藏，节省空间 */}
             <Button
@@ -222,10 +248,10 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
               icon={<Keyboard size={18} />}
               aria-label="快捷键帮助"
               title="快捷键 (?)"
-              className="hidden sm:inline-flex"
+              className={`hidden sm:inline-flex ${isNavSolid ? '' : 'text-white/70 hover:text-white'}`}
             />
-            {!isHome && <NavClock travelling={navConfig?.travelling} clock={navConfig?.clock} time={time} />}
-            <NavAuthSection user={user} allowRegistration={allowRegistration} clerkAvailable={clerkAvailable} t={t} />
+            {!isHome && <NavClock travelling={navConfig?.travelling} clock={navConfig?.clock} time={time} isNavSolid={isNavSolid} />}
+            <NavAuthSection user={user} allowRegistration={allowRegistration} clerkAvailable={clerkAvailable} t={t} isNavSolid={isNavSolid} />
           </div>
         </div>
       </div>
