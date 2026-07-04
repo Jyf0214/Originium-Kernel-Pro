@@ -76,18 +76,8 @@ function DrawerToolbar({
   onSearch: () => void;
   onShortcuts: () => void;
 }) {
-  const { mode, cycle } = useThemeMode();
   return (
     <div className="flex items-center gap-2">
-      <Button
-        onClick={cycle}
-        variant="ghost"
-        size="sm"
-        autoLoading={false}
-        iconOnly
-        icon={mode === 'light' ? <Sun size={18} /> : mode === 'dark' ? <Moon size={18} /> : <Monitor size={18} />}
-        aria-label={mode === 'light' ? '浅色模式' : mode === 'dark' ? '深色模式' : '跟随系统'}
-      />
       <LanguageSwitcher />
       <Button
         onClick={onSearch}
@@ -341,6 +331,7 @@ export function Navbar({ navConfig: navConfigProp }: NavbarProps) {
   const { config: siteConfig } = useConfig();
   const { clerkAvailable } = useAuth();
   const pathname = usePathname();
+  const { mode, cycle } = useThemeMode();
   const state = useNavbarState(navConfigProp);
 
   const isAdminPage = ADMIN_PREFIXES.some((prefix) => pathname.startsWith(prefix));
@@ -350,6 +341,17 @@ export function Navbar({ navConfig: navConfigProp }: NavbarProps) {
 
   return (
     <>
+      {/* 深色模式切换 — 汉堡按钮左侧 */}
+      <button
+        type="button"
+        onClick={cycle}
+        className="fixed top-3 right-14 z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+        aria-label={mode === 'light' ? '浅色模式' : mode === 'dark' ? '深色模式' : '跟随系统'}
+        title={mode === 'light' ? '浅色模式' : mode === 'dark' ? '深色模式' : '跟随系统'}
+      >
+        {mode === 'light' ? <Sun size={22} /> : mode === 'dark' ? <Moon size={22} /> : <Monitor size={22} />}
+      </button>
+
       {/* 汉堡按钮 */}
       <button
         type="button"
