@@ -26,10 +26,10 @@ export function PostCard({
       initial="initial"
       animate="animate"
       exit="exit"
-      className={`group bg-white dark:bg-zinc-900 rounded-none sm:rounded-[2rem] border-0 sm:border-2 border-zinc-50 dark:border-zinc-800 overflow-hidden hover:border-zinc-900 dark:hover:border-zinc-600 transition-all duration-500 shadow-none sm:shadow-sm hover:shadow-2xl hover:shadow-zinc-100 dark:hover:shadow-zinc-900 ${isSide ? 'flex' : 'flex flex-col'}`}
+      className={`group bg-white dark:bg-zinc-900 rounded-none sm:rounded-[2rem] border-0 sm:border-2 border-zinc-50 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-zinc-600 transition-all duration-500 shadow-none sm:shadow-sm hover:shadow-2xl hover:shadow-zinc-100 dark:hover:shadow-zinc-900 ${isSide ? 'flex' : 'flex flex-col'}`}
     >
       <PostCardCover post={post} coverConfig={coverConfig} defaultCover={defaultCover} />
-      <PostCardBody post={post} t={t} locale={locale} />
+      <PostCardBody post={post} t={t} locale={locale} position={coverConfig?.position} />
     </motion.div>
   );
 }

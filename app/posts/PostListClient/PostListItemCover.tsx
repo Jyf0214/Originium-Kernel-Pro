@@ -19,10 +19,10 @@ export function PostListItemCover({
   const isRowLayout = position === 'left' || position === 'right';
 
   const coverClassMap: Record<string, string> = {
-    right: 'order-last w-2/5 shrink-0',
-    left: 'w-2/5 shrink-0',
+    right: 'order-last w-2/5 shrink-0 rounded-r-[2rem] overflow-hidden',
+    left: 'w-2/5 shrink-0 rounded-l-[2rem] overflow-hidden',
   };
-  const coverClassName = coverClassMap[position ?? ''] ?? '';
+  const coverClassName = coverClassMap[position ?? ''] ?? 'rounded-t-[2rem] overflow-hidden';
 
   if (!coverVisible) return null;
 

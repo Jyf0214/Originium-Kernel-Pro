@@ -17,7 +17,6 @@ function PostCardImage({ post, defaultCover }: { post: PostItem; defaultCover?: 
         alt={post.title}
         fill
         className="group-hover:scale-110 transition-transform duration-700"
-        style={{ clipPath: 'inset(0 round 2rem)' }}
       />
     );
   }
