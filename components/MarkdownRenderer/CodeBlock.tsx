@@ -51,7 +51,7 @@ function CodeToolbar({
             iconOnly
             autoLoading={false}
             icon={copied ? <Check size={14} /> : <Copy size={14} />}
-            className="text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700"
+            className="text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700 ui-press"
             onClick={onCopy}
             title="复制代码"
             aria-label="复制代码"
@@ -77,7 +77,7 @@ function CodeToolbar({
             iconOnly
             autoLoading={false}
             icon={collapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
-            className="text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700"
+            className="text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700 ui-press"
             onClick={onToggleCollapse}
             title={collapsed ? '展开' : '折叠'}
             aria-label={collapsed ? '展开代码' : '折叠代码'}

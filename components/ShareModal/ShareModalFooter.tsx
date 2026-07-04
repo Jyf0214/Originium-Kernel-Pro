@@ -17,7 +17,7 @@ export function ShareModalFooter({ shareUrl, copied, onCopy }: ShareModalFooterP
         <button
           type="button"
           onClick={onCopy}
-          className="shrink-0 flex items-center gap-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
+          className="shrink-0 flex items-center gap-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors ui-press"
         >
           {copied ? (
             <>

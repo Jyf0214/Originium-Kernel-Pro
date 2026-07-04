@@ -38,7 +38,7 @@ export default function ShareButtonItem({
     <button
       type="button"
       onClick={handleClick}
-      className="group relative flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 focus:outline-none"
+      className="group relative flex items-center justify-center transition-all duration-200 ui-interactive focus:outline-none"
       style={{ width: `${dim * 4}px`, height: `${dim * 4}px` }}
       title={platform.name}
     >

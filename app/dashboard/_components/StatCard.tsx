@@ -26,7 +26,7 @@ export function StatCard({ card }: { card: StatCardData }) {
   const trendColor = card.trend && card.trend.rate >= 50 ? 'text-emerald-600' : 'text-zinc-500';
 
   return (
-    <div className="bg-white rounded-2xl border border-zinc-100 p-5 hover:shadow-lg hover:shadow-zinc-100 transition-all duration-300 group">
+    <div className="bg-white rounded-2xl border border-zinc-100 p-5 hover:shadow-lg hover:shadow-zinc-100 transition-all duration-300 group ui-interactive">
       <div className="flex items-start justify-between mb-4">
         <div className={`w-10 h-10 ${card.color} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
           <Icon size={18} className={card.textColor} />

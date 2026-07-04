@@ -11,7 +11,7 @@ export interface FilterPillProps {
 }
 
 const baseStyles =
-  'shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 active:scale-95 whitespace-nowrap';
+  'shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ui-press whitespace-nowrap';
 
 export function FilterPill({
   selected,

@@ -22,7 +22,7 @@ function TocButton({ simple, onClick, expanded }: { simple?: boolean; onClick: (
   return (
     <button
       onClick={onClick}
-      className={`fixed bottom-6 right-6 z-50 w-12 h-12 bg-white dark:bg-zinc-800 rounded-2xl shadow-lg border border-zinc-100 dark:border-zinc-700 flex items-center justify-center transition-all ${
+      className={`fixed bottom-6 right-6 z-50 w-12 h-12 bg-white dark:bg-zinc-800 rounded-2xl shadow-lg border border-zinc-100 dark:border-zinc-700 flex items-center justify-center transition-all ui-interactive ${
         simple
           ? 'text-zinc-300 hover:text-zinc-500 shadow-sm'
           : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:shadow-xl'

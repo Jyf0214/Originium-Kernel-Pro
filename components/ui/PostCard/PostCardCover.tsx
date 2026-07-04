@@ -52,7 +52,7 @@ export function PostCardCover({
     <div className={getCoverPositionClass(position)}>
       <Link
         href={`/posts${post.slug}`}
-        className={`block overflow-hidden bg-zinc-50 dark:bg-zinc-800 relative ${isRowLayout ? 'h-full' : 'aspect-video'}`}
+        className={`block overflow-hidden bg-zinc-50 dark:bg-zinc-800 relative ui-interactive ${isRowLayout ? 'h-full' : 'aspect-video'}`}
       >
         <PostCardImage post={post} defaultCover={defaultCover} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

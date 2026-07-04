@@ -65,7 +65,7 @@ export function HeroBanner({
         {/* 按钮 */}
         <Link
           href={link}
-          className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-white text-sm font-medium hover:bg-white/20 hover:border-white/20 active:scale-[0.97] transition-all self-start md:self-center"
+          className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-white text-sm font-medium hover:bg-white/20 hover:border-white/20 ui-interactive transition-all self-start md:self-center"
         >
           {linkText}
           <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />

@@ -106,7 +106,7 @@ export default function TagsPage() {
                   <Link
                     key={name}
                     href={`/tags/${encodeURIComponent(name)}`}
-                    className="inline-flex items-center gap-1.5 hover:scale-105 transition-transform duration-200"
+                    className="inline-flex items-center gap-1.5 ui-interactive transition-transform duration-200"
                   >
                     <Tag variant={style.variant} className={`!px-4 !py-1.5`} style={{ fontSize: style.fontSize }}>
                       {name}

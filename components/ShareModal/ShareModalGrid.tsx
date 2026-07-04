@@ -16,7 +16,7 @@ export function ShareModalGrid({ platforms, onShare }: ShareModalGridProps) {
             key={p.id}
             type="button"
             onClick={() => onShare(p)}
-            className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-zinc-50 transition-colors group"
+            className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-zinc-50 transition-colors group ui-interactive"
           >
             <span
               className="flex items-center justify-center w-14 h-14 rounded-2xl text-white transition-transform duration-200 group-hover:scale-110 group-active:scale-95"
