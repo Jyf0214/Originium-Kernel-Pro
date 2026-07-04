@@ -2,7 +2,6 @@
 
 import React, { useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
-import { ChevronRight } from 'lucide-react';
 
 interface CategoryBarProps {
   tags?: string[];
@@ -28,14 +27,8 @@ export function CategoryBar({
     }
   }, []);
 
-  const scrollRight = useCallback(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
-    }
-  }, []);
-
   return (
-    <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm p-1.5 relative">
+    <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm p-1.5">
       <div
         ref={scrollRef}
         onWheel={handleWheel}
@@ -75,21 +68,6 @@ export function CategoryBar({
             ))}
           </>
         )}
-      </div>
-
-      {/* 右侧渐变遮罩 + "更多"箭头按钮 */}
-      <div className="absolute right-0 top-0 bottom-0 w-[72px] pointer-events-none flex items-center justify-end rounded-r-xl bg-gradient-to-l from-white dark:from-zinc-800 via-white/95 dark:via-zinc-800/95 to-transparent">
-        <Button
-          onClick={scrollRight}
-          variant="default"
-          size="sm"
-          autoLoading={false}
-          iconOnly
-          rounded="full"
-          icon={<ChevronRight size={16} className="text-zinc-500" />}
-          aria-label="向右滚动"
-          className="pointer-events-auto mr-1.5 shadow-sm ui-press"
-        />
       </div>
     </div>
   );
