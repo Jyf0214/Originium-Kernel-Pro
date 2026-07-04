@@ -48,11 +48,16 @@ export function PostCardCover({
   const position = coverConfig?.position;
   const isRowLayout = position === 'left' || position === 'right';
 
+  const linkRoundClass =
+    position === 'right' ? 'sm:rounded-r-[2rem]' :
+    position === 'left' ? 'sm:rounded-l-[2rem]' :
+    'sm:rounded-t-[2rem]';
+
   return (
     <div className={getCoverPositionClass(position)}>
       <Link
         href={`/posts${post.slug}`}
-        className={`block bg-zinc-50 dark:bg-zinc-800 relative ui-interactive rounded-none ${isRowLayout ? 'h-full' : 'aspect-video'}`}
+        className={`block overflow-hidden bg-zinc-50 dark:bg-zinc-800 relative ui-interactive ${linkRoundClass} ${isRowLayout ? 'h-full' : 'aspect-video'}`}
       >
         <PostCardImage post={post} defaultCover={defaultCover} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
