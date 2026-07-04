@@ -3,7 +3,9 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { tooltipVariants, tooltipTransition } from '@/components/ui/motion';
-import { Link, Share2, Globe, MessageCircle, Check } from 'lucide-react';
+import { Link, Check } from 'lucide-react';
+import { FaTwitter, FaWeibo, FaQq } from 'react-icons/fa';
+import { SiWechat } from 'react-icons/si';
 
 export interface ShareButtonsProps {
   /** 文章标题 */
@@ -34,25 +36,25 @@ function buildPlatforms(title: string, url: string): Record<string, PlatformDef>
     twitter: {
       id: 'twitter',
       name: 'Twitter',
-      icon: <Share2 size={16} />,
+      icon: <FaTwitter size={16} />,
       shareUrl: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
     },
     weibo: {
       id: 'weibo',
       name: '微博',
-      icon: <Globe size={16} />,
+      icon: <FaWeibo size={16} />,
       shareUrl: `https://service.weibo.com/share/share.php?title=${encodedTitle}&url=${encodedUrl}`,
     },
     qq: {
       id: 'qq',
       name: 'QQ',
-      icon: <Globe size={16} />,
+      icon: <FaQq size={16} />,
       shareUrl: `https://connect.qq.com/widget/shareqq/index.html?title=${encodedTitle}&url=${encodedUrl}`,
     },
     wechat: {
       id: 'wechat',
       name: '微信',
-      icon: <MessageCircle size={16} />,
+      icon: <SiWechat size={16} />,
       shareUrl: '',
     },
   };
