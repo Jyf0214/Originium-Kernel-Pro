@@ -3,10 +3,14 @@
  *
  * 设计：嵌套菱形 + 渐变，呼应 "Originium Kernel" 主题
  * 无字母，纯几何图形
+ *
+ * 缓存策略：计算 SVG 内容 hash，与 .next/.favicon-hash 比对，
+ * 相同则跳过 sharp 生成（sharp 是耗时操作）
  */
 import sharp from 'sharp';
-import { mkdir } from 'fs/promises';
+import { mkdir, readFile, writeFile, access } from 'fs/promises';
 import { join } from 'path';
+import { createHash } from 'crypto';
 
 const SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
@@ -33,6 +37,19 @@ const SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
 const outDir = join(process.cwd(), 'public');
 await mkdir(outDir, { recursive: true });
 
+// 缓存检查：SVG 内容不变则跳过 sharp 生成
+const svgHash = createHash('sha256').update(SVG).digest('hex').slice(0, 16);
+const hashCachePath = join(process.cwd(), '.next', '.favicon-hash');
+try {
+  const cached = await readFile(hashCachePath, 'utf-8');
+  if (cached.trim() === svgHash) {
+    console.log('[favicon] SVG 未变化，跳过生成');
+    process.exit(0);
+  }
+} catch {
+  // 缓存文件不存在，继续生成
+}
+
 // 生成多尺寸 PNG
 const sizes = [16, 32, 48, 192, 512];
 const pngBuffers = await Promise.all(
@@ -54,7 +71,6 @@ await sharp(pngBuffers[4])
   .toFile(join(outDir, 'icon-512.png'));
 
 // 生成 SVG favicon（现代浏览器支持）
-const { writeFile } = await import('fs/promises');
 await writeFile(join(outDir, 'favicon.svg'), SVG);
 
 console.log('[favicon] 已生成:');
@@ -62,3 +78,7 @@ console.log('  favicon.ico   (多尺寸)');
 console.log('  favicon.svg   (矢量)');
 console.log('  icon-192.png  (Apple Touch)');
 console.log('  icon-512.png  (PWA)');
+
+// 写入 hash 缓存
+await mkdir(join(process.cwd(), '.next'), { recursive: true }).catch(() => {});
+await writeFile(hashCachePath, svgHash, 'utf-8');
