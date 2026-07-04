@@ -70,13 +70,11 @@ function DrawerLink({
 /* ── 抽屉底部工具栏 ── */
 
 function DrawerToolbar({
-  onShortcuts,
   allowRegistration,
   clerkAvailable,
   t,
   onClose,
 }: {
-  onShortcuts: () => void;
   allowRegistration: boolean;
   clerkAvailable: boolean;
   t: (key: string) => string;
@@ -86,16 +84,6 @@ function DrawerToolbar({
   return (
     <div className="flex items-center gap-2">
       <LanguageSwitcher />
-      <Button
-        onClick={onShortcuts}
-        variant="ghost"
-        size="sm"
-        autoLoading={false}
-        iconOnly
-        icon={<Keyboard size={18} />}
-        aria-label="快捷键帮助"
-        title="快捷键 (?)"
-      />
       {user ? (
         <UserMenu />
       ) : (
@@ -134,7 +122,6 @@ function DrawerContent({
   clerkAvailable,
   t,
   closeDrawer,
-  setShortcutsOpen,
 }: {
   pathname: string;
   navConfig: NavConfig | null;
@@ -143,7 +130,6 @@ function DrawerContent({
   clerkAvailable: boolean;
   t: (key: string) => string;
   closeDrawer: () => void;
-  setShortcutsOpen: (v: boolean) => void;
 }) {
   const menuItems = navConfig?.enable && navConfig.menu
     ? navConfig.menu.flatMap((group) => group.item)
@@ -208,7 +194,6 @@ function DrawerContent({
           </div>
         )}
         <DrawerToolbar
-          onShortcuts={() => { closeDrawer(); setShortcutsOpen(true); }}
           allowRegistration={allowRegistration}
           clerkAvailable={clerkAvailable}
           t={t}
@@ -316,29 +301,7 @@ export function Navbar({ navConfig: navConfigProp }: NavbarProps) {
 
   return (
     <>
-      {/* 搜索按钮 — 深色模式左侧 */}
-      <button
-        type="button"
-        onClick={() => state.setSearchOpen(true)}
-        className="fixed top-3 right-[52px] z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-        aria-label="搜索"
-        title="搜索 (/)"
-      >
-        <Search size={22} />
-      </button>
-
-      {/* 深色模式切换 — 汉堡按钮左侧 */}
-      <button
-        type="button"
-        onClick={cycle}
-        className="fixed top-3 right-14 z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-        aria-label={mode === 'light' ? '浅色模式' : mode === 'dark' ? '深色模式' : '跟随系统'}
-        title={mode === 'light' ? '浅色模式' : mode === 'dark' ? '深色模式' : '跟随系统'}
-      >
-        {mode === 'light' ? <Sun size={22} /> : mode === 'dark' ? <Moon size={22} /> : <Monitor size={22} />}
-      </button>
-
-      {/* 汉堡按钮 */}
+      {/* 汉堡按钮 — 最右 */}
       <button
         type="button"
         onClick={() => state.setDrawerOpen(true)}
@@ -346,6 +309,39 @@ export function Navbar({ navConfig: navConfigProp }: NavbarProps) {
         aria-label="打开菜单"
       >
         <Menu size={22} />
+      </button>
+
+      {/* 快捷键按钮 — 汉堡左侧，仅 PC 端 */}
+      <button
+        type="button"
+        onClick={() => state.setShortcutsOpen(true)}
+        className="fixed top-3 right-[48px] z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors hidden md:block"
+        aria-label="快捷键帮助"
+        title="快捷键 (?)"
+      >
+        <Keyboard size={22} />
+      </button>
+
+      {/* 深色模式切换 — 快捷键左侧 */}
+      <button
+        type="button"
+        onClick={cycle}
+        className="fixed top-3 right-[48px] md:right-[84px] z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+        aria-label={mode === 'light' ? '浅色模式' : mode === 'dark' ? '深色模式' : '跟随系统'}
+        title={mode === 'light' ? '浅色模式' : mode === 'dark' ? '深色模式' : '跟随系统'}
+      >
+        {mode === 'light' ? <Sun size={22} /> : mode === 'dark' ? <Moon size={22} /> : <Monitor size={22} />}
+      </button>
+
+      {/* 搜索按钮 — 最左侧 */}
+      <button
+        type="button"
+        onClick={() => state.setSearchOpen(true)}
+        className="fixed top-3 right-[84px] md:right-[120px] z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+        aria-label="搜索"
+        title="搜索 (/)"
+      >
+        <Search size={22} />
       </button>
 
       {/* 遮罩 */}
@@ -370,7 +366,6 @@ export function Navbar({ navConfig: navConfigProp }: NavbarProps) {
           clerkAvailable={clerkAvailable}
           t={t}
           closeDrawer={state.closeDrawer}
-          setShortcutsOpen={state.setShortcutsOpen}
         />
       </div>
 
