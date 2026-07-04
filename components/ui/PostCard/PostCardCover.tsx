@@ -6,9 +6,9 @@ import { LazyImage } from '@/components/ui/LazyImage';
 import type { PostItem, CoverConfig } from './types';
 
 function getCoverPositionClass(position: string | undefined): string {
-  if (position === 'right') return 'order-last w-2/5 shrink-0';
-  if (position === 'left') return 'w-2/5 shrink-0';
-  return '';
+  if (position === 'right') return 'order-last w-2/5 shrink-0 sm:rounded-r-[2rem] overflow-hidden';
+  if (position === 'left') return 'w-2/5 shrink-0 sm:rounded-l-[2rem] overflow-hidden';
+  return 'sm:rounded-t-[2rem] overflow-hidden';
 }
 
 function PostCardImage({ post, defaultCover }: { post: PostItem; defaultCover?: string }) {
@@ -18,13 +18,13 @@ function PostCardImage({ post, defaultCover }: { post: PostItem; defaultCover?: 
         src={post.cover ?? defaultCover!}
         alt={post.title}
         fill
-        className="object-cover group-hover:scale-110 transition-transform duration-700 rounded-none"
+        className="object-cover group-hover:scale-110 transition-transform duration-700"
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       />
     );
   }
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-50 via-zinc-100 to-zinc-50 dark:from-zinc-700 dark:to-zinc-800 select-none rounded-none">
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-50 via-zinc-100 to-zinc-50 dark:from-zinc-700 dark:to-zinc-800 select-none">
       <span className="text-5xl font-black text-zinc-200 dark:text-zinc-500 group-hover:text-zinc-300 dark:group-hover:text-zinc-400 transition-colors duration-500">
         {post.title.charAt(0)}
       </span>
