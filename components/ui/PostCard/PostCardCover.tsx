@@ -54,7 +54,7 @@ export function PostCardCover({
     'sm:rounded-t-[2rem]';
 
   return (
-    <div className={getCoverPositionClass(position)}>
+    <div className={`${getCoverPositionClass(position)} relative`}>
       <Link
         href={`/posts${post.slug}`}
         className={`block overflow-hidden bg-zinc-50 dark:bg-zinc-800 relative ui-interactive ${linkRoundClass} ${isRowLayout ? 'h-full' : 'aspect-video'}`}

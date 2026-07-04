@@ -88,7 +88,7 @@ export function LazyImage({
 
   if (status === 'error') {
     return (
-      <div className={`bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-700 dark:to-zinc-800 flex flex-col items-center justify-center gap-2 rounded-[inherit] ${className ?? ''}`} style={containerStyle}>
+      <div className={`bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-700 dark:to-zinc-800 flex flex-col items-center justify-center gap-2 rounded-xl ${className ?? ''}`} style={containerStyle}>
         <ImageOff size={28} className="text-zinc-300 dark:text-zinc-500" />
         <span className="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium">图片加载失败</span>
       </div>
@@ -98,7 +98,7 @@ export function LazyImage({
   return (
     <div ref={containerRef} className="relative" style={containerStyle} onClick={onClick}>
       {status === 'idle' && (
-        <div className={`absolute inset-0 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-[inherit] ${className ?? ''}`} />
+        <div className={`absolute inset-0 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-xl ${className ?? ''}`} />
       )}
       {isInView && (
         <Image
