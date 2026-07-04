@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 interface AvatarProps {
@@ -19,6 +19,10 @@ export function Avatar({ name, avatarUrl, size = 32, fallbackImg }: AvatarProps)
   const [imgError, setImgError] = useState(false);
   const [fallbackError, setFallbackError] = useState(false);
   const initials = name ? name.charAt(0).toUpperCase() : '?';
+
+  // avatarUrl 变化时重置错误状态，允许重新加载
+  useEffect(() => { setImgError(false); }, [avatarUrl]);
+  useEffect(() => { setFallbackError(false); }, [fallbackImg]);
 
   const showFallback = imgError && fallbackImg && !fallbackError;
 
