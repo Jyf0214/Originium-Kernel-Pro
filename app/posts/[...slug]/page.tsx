@@ -58,7 +58,7 @@ export default async function PostDetailPage({ params }: PageProps) {
   const viewModel = buildViewModel(slug, fullPath, file.content, file.meta);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="relative min-h-screen flex flex-col">
       {/* 固定背景画布层 — 滚动时背景不动，营造"锚定感" */}
       <div className="fixed inset-0 -z-10 bg-zinc-50 dark:bg-zinc-900" aria-hidden="true" />
       <JsonLd
@@ -70,18 +70,22 @@ export default async function PostDetailPage({ params }: PageProps) {
         slug={fullPath}
         wordCount={viewModel.wordCount}
       />
-      {/* 全屏宽封面 — 左右撑满视口，向上顶到导航栏下方 */}
+      {/* 全屏宽封面 — 绝对定位，覆盖在导航栏正后方 */}
       {file.meta.cover && (
-        <PostCoverSection
-          title={file.meta.title}
-          author={file.meta.author}
-          date={file.meta.date}
-          type={file.meta.type}
-          tags={file.meta.tags}
-          cover={file.meta.cover}
-        />
+        <>
+          <PostCoverSection
+            title={file.meta.title}
+            author={file.meta.author}
+            date={file.meta.date}
+            type={file.meta.type}
+            tags={file.meta.tags}
+            cover={file.meta.cover}
+          />
+          {/* 占位：封面绝对定位不占文档流，需要手动撑开高度 */}
+          <div className="h-[56.25vw] max-h-[80vh] min-h-[300px]" />
+        </>
       )}
-      <main className="flex-1 max-w-6xl 2xl:max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-8 pb-16">
+      <main className={`flex-1 max-w-6xl 2xl:max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-16 ${file.meta.cover ? '' : 'pt-8'}`}>
         <div className="lg:flex lg:gap-8 items-start">
           <div className="flex-1 min-w-0 bg-white dark:bg-zinc-800 rounded-3xl shadow-xl shadow-zinc-200/50 dark:shadow-zinc-900/50 border border-zinc-100 dark:border-zinc-700 p-6 sm:p-8 md:p-10 lg:p-12">
             <PostDetailBody {...viewModel} omitHeader={!!file.meta.cover} />
