@@ -11,6 +11,7 @@ import { isPrivateSlug } from './_lib/post-utils';
 import { getRelatedPosts } from './_lib/related-posts';
 import { buildTocConfig, computeWordStats } from './_lib/post-page-config';
 import { PostDetailBody } from './_components/PostDetailBody';
+import { PostCoverSection } from './_components/PostCoverSection';
 import { PostSidebar } from './_components/PostSidebar';
 import { JsonLd } from '@/components/JsonLd';
 import type { Crumb } from './_components/PostBreadcrumb';
@@ -69,10 +70,21 @@ export default async function PostDetailPage({ params }: PageProps) {
         slug={fullPath}
         wordCount={viewModel.wordCount}
       />
+      {/* 全屏宽封面 — 左右撑满视口，向上顶到导航栏下方 */}
+      {file.meta.cover && (
+        <PostCoverSection
+          title={file.meta.title}
+          author={file.meta.author}
+          date={file.meta.date}
+          type={file.meta.type}
+          tags={file.meta.tags}
+          cover={file.meta.cover}
+        />
+      )}
       <main className="flex-1 max-w-6xl 2xl:max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-8 pb-16">
         <div className="lg:flex lg:gap-8 items-start">
           <div className="flex-1 min-w-0 bg-white dark:bg-zinc-800 rounded-3xl shadow-xl shadow-zinc-200/50 dark:shadow-zinc-900/50 border border-zinc-100 dark:border-zinc-700 p-6 sm:p-8 md:p-10 lg:p-12">
-            <PostDetailBody {...viewModel} />
+            <PostDetailBody {...viewModel} omitHeader={!!file.meta.cover} />
           </div>
           <PostSidebar
             content={file.content}

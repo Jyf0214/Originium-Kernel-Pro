@@ -32,13 +32,14 @@ const itemVariants: Variants = {
 
 /* ── 封面 Hero ── */
 
-function CoverHero({
+export function CoverHero({
   titleStr,
   authorStr,
   dateStr,
   typeStr,
   tagsArr,
   coverStr,
+  fullBleed = false,
 }: {
   titleStr: string;
   authorStr?: string;
@@ -46,12 +47,14 @@ function CoverHero({
   typeStr?: string;
   tagsArr: string[];
   coverStr: string;
+  /** 全屏宽模式：去掉负 margin 和圆角，封面撑满视口 */
+  fullBleed?: boolean;
 }) {
   const coverRef = useRef<HTMLDivElement>(null);
   const parallax = useCoverParallax(coverRef);
 
   return (
-    <header className="relative -m-6 sm:-m-8 md:-m-10 lg:-m-12 mb-12 rounded-t-3xl overflow-hidden">
+    <header className={`relative overflow-hidden ${fullBleed ? 'aspect-video mb-0' : '-m-6 sm:-m-8 md:-m-10 lg:-m-12 mb-12 rounded-t-3xl'}`}>
       {/* 封面图片层 — 视差变换 */}
       <div
         ref={coverRef}
