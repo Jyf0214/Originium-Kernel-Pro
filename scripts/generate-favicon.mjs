@@ -1,8 +1,8 @@
 /**
  * 生成默认 favicon（SVG → ICO + PNG）
  *
- * 设计：扁平化 "O" 字母，简洁现代
- * 无渐变，无阴影，纯色块
+ * 设计：简洁几何图形——圆角方形 + 小圆点
+ * 扁平化，无渐变，无阴影
  *
  * 缓存策略：计算 SVG 内容 hash，与 .next/.favicon-hash 比对，
  * 相同则跳过 sharp 生成（sharp 是耗时操作）
@@ -13,9 +13,8 @@ import { join } from 'path';
 import { createHash } from 'crypto';
 
 const SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- 扁平化 O 字母 -->
-  <rect width="512" height="512" rx="96" fill="#18181b"/>
-  <circle cx="256" cy="256" r="140" fill="none" stroke="#fafafa" stroke-width="48" stroke-linecap="round"/>
+  <rect width="512" height="512" rx="128" fill="#18181b"/>
+  <circle cx="256" cy="256" r="80" fill="#fafafa"/>
 </svg>`;
 
 const outDir = join(process.cwd(), 'public');

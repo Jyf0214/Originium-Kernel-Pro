@@ -1,5 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- 扁平化 O 字母 -->
-  <rect width="512" height="512" rx="96" fill="#18181b"/>
-  <circle cx="256" cy="256" r="140" fill="none" stroke="#fafafa" stroke-width="48" stroke-linecap="round"/>
+  <rect width="512" height="512" rx="128" fill="#18181b"/>
+  <circle cx="256" cy="256" r="80" fill="#fafafa"/>
 </svg>
