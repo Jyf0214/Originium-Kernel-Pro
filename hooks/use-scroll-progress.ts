@@ -58,7 +58,8 @@ export function useScrollProgress(pageKey?: string): number {
       const saved = localStorage.getItem(STORAGE_KEY_PREFIX + pageKey);
       if (saved) {
         const pct = parseFloat(saved);
-        if (pct > 0 && pct < 1) {
+        // 仅在 5%~85% 范围内恢复，避免跳到文章末尾（>85% 视为已读完）
+        if (pct > 0.05 && pct < 0.85) {
           // 延迟恢复，等 DOM 渲染完成
           requestAnimationFrame(() => {
             const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
