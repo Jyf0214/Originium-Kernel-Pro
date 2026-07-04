@@ -34,7 +34,7 @@ function CoverHero({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
       </div>
-      <div className="relative z-10 flex flex-col justify-end min-h-[320px] sm:min-h-[400px] p-8 sm:p-10">
+      <div className="relative z-10 flex flex-col justify-end aspect-video p-8 sm:p-10">
         {typeStr && (
           <div className="mb-4">
             <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm ${
