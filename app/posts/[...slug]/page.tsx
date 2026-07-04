@@ -83,14 +83,16 @@ export default async function PostDetailPage({ params }: PageProps) {
       )}
       <main className={`flex-1 max-w-6xl 2xl:max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-16 ${file.meta.cover ? '' : 'pt-8'}`}>
         <div className="lg:flex lg:gap-8 items-start">
-          <div className="flex-1 min-w-0 bg-white dark:bg-zinc-800 rounded-3xl shadow-xl shadow-zinc-200/50 dark:shadow-zinc-900/50 border border-zinc-100 dark:border-zinc-700 p-6 sm:p-8 md:p-10 lg:p-12">
+          <div className="flex-1 min-w-0 bg-white dark:bg-zinc-800 rounded-3xl shadow-xl shadow-zinc-200/50 dark:shadow-zinc-900/50 border border-zinc-100 dark:border-zinc-700 p-6 sm:p-8 md:p-10 lg:p-12 animate-card-slidein">
             <PostDetailBody {...viewModel} omitHeader={!!file.meta.cover} />
           </div>
-          <PostSidebar
-            content={file.content}
-            headingCount={viewModel.headingCount}
-            tocConfig={viewModel.tocConfig}
-          />
+          <div className="animate-sidebar-slidein">
+            <PostSidebar
+              content={file.content}
+              headingCount={viewModel.headingCount}
+              tocConfig={viewModel.tocConfig}
+            />
+          </div>
         </div>
       </main>
       <Footer />

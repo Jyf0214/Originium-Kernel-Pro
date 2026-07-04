@@ -5,6 +5,7 @@ import { CustomHead } from '../components/CustomHead';
 import { Providers } from './providers';
 import { Navbar } from '../components/Navbar';
 import { RouteTransition } from '../components/RouteTransition';
+import { PostPageProvider } from '@/contexts/PostPageContext';
 import { PWARegister } from '../components/PWARegister';
 import { TabTitleSwitch } from '../components/TabTitleSwitch';
 import { MusicPlayerWrapper } from '../components/MusicPlayer/MusicPlayerWrapper';
@@ -63,10 +64,12 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         </a>
         <Providers>
           <AuthProvider>
-            <Navbar navConfig={config.nav} siteTitle={config.site.title} />
-            <div id="main-content" tabIndex={-1}>
-              <RouteTransition>{children}</RouteTransition>
-            </div>
+            <PostPageProvider>
+              <Navbar navConfig={config.nav} siteTitle={config.site.title} />
+              <div id="main-content" tabIndex={-1}>
+                <RouteTransition>{children}</RouteTransition>
+              </div>
+            </PostPageProvider>
           </AuthProvider>
           <MusicPlayerWrapper />
         </Providers>

@@ -31,7 +31,7 @@ export function PostCoverSection({
   if (!coverStr) return null;
 
   return (
-    <div className="w-full">
+    <div className="w-full animate-cover-fadein">
       <CoverHero
         titleStr={titleStr}
         authorStr={authorStr}
