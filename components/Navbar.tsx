@@ -354,10 +354,10 @@ export function Navbar({ navConfig: navConfigProp }: NavbarProps) {
       <button
         type="button"
         onClick={() => state.setDrawerOpen(true)}
-        className="fixed top-4 right-4 z-[60] w-11 h-11 rounded-xl bg-white/80 dark:bg-zinc-800/80 backdrop-blur-md border border-zinc-200/60 dark:border-zinc-700/60 shadow-lg flex items-center justify-center text-zinc-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700 transition-colors"
+        className="fixed top-3 right-3 z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
         aria-label="打开菜单"
       >
-        <Menu size={20} />
+        <Menu size={22} />
       </button>
 
       {/* 遮罩 */}
