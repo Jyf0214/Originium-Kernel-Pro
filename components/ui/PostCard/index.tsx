@@ -6,13 +6,16 @@ import { Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { Tag } from '@/components/ui/Tag';
 import type { PostItem, CoverConfig } from './types';
-import { PostListItemCover } from './PostListItemCover';
-import { PostListItemBody } from './PostListItemBody';
+import { PostCardCover } from './PostCardCover';
+import { PostCardBody } from './PostCardBody';
 
-export function PostListItem({
+export type { PostItem, CoverConfig } from './types';
+
+export function PostCard({
   post,
   index,
   coverConfig,
+  defaultCover,
   locale,
   t,
   compact,
@@ -20,6 +23,7 @@ export function PostListItem({
   post: PostItem;
   index: number;
   coverConfig?: CoverConfig;
+  defaultCover?: string;
   locale: string;
   t: (key: string) => string;
   compact?: boolean;
@@ -35,7 +39,7 @@ export function PostListItem({
         animate="animate"
         exit="exit"
         transition={{ duration: 0.3, delay: staggerDelay(index) }}
-        className="group bg-white rounded-none sm:rounded-2xl border-b border-zinc-100 sm:border sm:border-zinc-100 px-4 sm:px-5 py-3 hover:border-zinc-300 hover:shadow-lg hover:shadow-zinc-100/60 transition-all duration-300"
+        className="group bg-white dark:bg-zinc-900 rounded-none sm:rounded-2xl border-b border-zinc-100 dark:border-zinc-800 sm:border sm:border-zinc-100 dark:sm:border-zinc-800 px-4 sm:px-5 py-3 hover:border-zinc-300 dark:hover:border-zinc-600 hover:shadow-lg hover:shadow-zinc-100 dark:hover:shadow-zinc-900 transition-all duration-300"
       >
         <div className="flex items-center gap-3">
           {post.tags.length > 0 && (
@@ -48,12 +52,12 @@ export function PostListItem({
             </div>
           )}
           <Link href={`/posts${post.slug}`} className="flex-1 min-w-0 group/title">
-            <h2 className="text-sm font-bold text-zinc-900 truncate group-hover/title:text-zinc-600 transition-colors duration-200">
+            <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover/title:text-zinc-600 dark:group-hover/title:text-zinc-300 transition-colors duration-200">
               {post.title}
             </h2>
           </Link>
           {post.date && (
-            <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 flex-shrink-0">
+            <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 dark:text-zinc-500 flex-shrink-0">
               <Calendar size={12} />
               <span>
                 {new Date(post.date).toLocaleDateString(locale, {
@@ -75,10 +79,10 @@ export function PostListItem({
       animate="animate"
       exit="exit"
       transition={{ duration: 0.3, delay: staggerDelay(index, 0.05) }}
-      className={`group bg-white rounded-[2rem] border-b border-zinc-100 sm:border sm:border-zinc-100 hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-100/80 transition-all duration-500 ${isRowLayout ? 'flex' : 'flex flex-col'}`}
+      className={`group bg-white dark:bg-zinc-900 rounded-none sm:rounded-[2rem] border-0 sm:border-2 border-zinc-50 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-zinc-600 transition-all duration-500 shadow-none sm:shadow-sm hover:shadow-2xl hover:shadow-zinc-100 dark:hover:shadow-zinc-900 ${isRowLayout ? 'flex' : 'flex flex-col'}`}
     >
-      <PostListItemCover post={post} coverConfig={coverConfig} />
-      <PostListItemBody post={post} locale={locale} t={t} position={coverConfig?.position} />
+      <PostCardCover post={post} coverConfig={coverConfig} defaultCover={defaultCover} />
+      <PostCardBody post={post} locale={locale} t={t} position={coverConfig?.position} />
     </motion.article>
   );
 }

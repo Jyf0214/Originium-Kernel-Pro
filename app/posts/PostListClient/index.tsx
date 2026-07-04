@@ -6,12 +6,14 @@ import { LayoutGrid, List, AlignJustify } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
 import { PostListHeader } from './PostListHeader';
 import { GroupTabs } from './GroupTabs';
-import { PostListItem } from './PostListItem';
+import { PostCard } from '@/components/ui/PostCard';
 import { PostListEmptyState } from './PostListEmptyState';
 import { usePostFilter } from './use-post-filter';
 import type { PostListClientProps } from './types';
 
-export type { PostItem, GroupItem, CoverConfig, PostListClientProps } from './types';
+export type { PostListClientProps } from './types';
+export type { GroupItem } from './types';
+export type { PostItem, CoverConfig } from '@/components/ui/PostCard';
 
 type LayoutMode = 'grid' | 'list' | 'compact';
 
@@ -111,7 +113,7 @@ export function PostListClient({ posts, groups, coverConfig }: PostListClientPro
       <div className={layoutClassName}>
         <AnimatePresence mode="popLayout">
           {filteredPosts.map((post, index) => (
-            <PostListItem
+            <PostCard
               key={post.slug}
               post={post}
               index={index}
