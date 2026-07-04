@@ -142,10 +142,7 @@ const nextConfig: NextConfig = {
     ],
   },
   output: 'standalone',
-  // 跳过 build 中的 TypeScript 检查——已在 check 步骤中通过 tsc --noEmit 完成，避免重复执行（省 ~18s）
-  typescript: { ignoreBuildErrors: true },
-  // transpilePackages 已移除：antd v6 原生支持 ESM tree-shaking，
-  // optimizePackageImports 足以处理按需加载，transpilePackages 会强制 Turbopack 重编译巨型包
+  transpilePackages: ['antd', 'antd-style', '@ant-design/icons', 'motion'],
   experimental: {
     optimizePackageImports: ['antd', '@ant-design/icons', 'lucide-react', 'motion'],
   },
