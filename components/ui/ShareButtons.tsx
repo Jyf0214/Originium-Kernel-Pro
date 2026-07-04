@@ -135,10 +135,10 @@ export default function ShareButtons({ title, url, config, locale: _locale }: Sh
     .filter((p): p is PlatformDef => p !== undefined);
 
   const btnBaseClass =
-    'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500 transition-colors text-sm text-zinc-600 dark:text-zinc-400';
+    'inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500 transition-colors text-sm text-zinc-600 dark:text-zinc-400 whitespace-nowrap';
 
   return (
-    <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+    <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
       {/* 复制链接 */}
       <button
         type="button"
