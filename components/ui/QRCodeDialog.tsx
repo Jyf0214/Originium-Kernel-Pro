@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Modal } from 'antd';
 import { Copy, Check, ExternalLink, QrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useI18n } from '@/hooks/use-i18n';
 
 export interface QRCodeDialogProps {
@@ -43,9 +44,6 @@ export default function QRCodeDialog({ open, url, title, onClose }: QRCodeDialog
     }
   }, [url]);
 
-  const encodedUrl = encodeURIComponent(url);
-  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodedUrl}`;
-
   return (
     <Modal
       open={open}
@@ -62,13 +60,16 @@ export default function QRCodeDialog({ open, url, title, onClose }: QRCodeDialog
       }
     >
       <div className="flex flex-col items-center gap-5 pt-2 pb-2">
-        {/* 二维码图片 */}
+        {/* 二维码图片 — 本地生成，无需外部 API */}
         <div className="p-4 bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
-          <img
-            src={qrSrc}
-            alt={title ? `${title} 的二维码` : t('posts.shareQR')}
-            className="w-[200px] h-[200px] block"
-            loading="lazy"
+          <QRCodeSVG
+            value={url}
+            size={200}
+            level="M"
+            includeMargin={false}
+            bgColor="white"
+            fgColor="#18181b"
+            className="block"
           />
         </div>
 
