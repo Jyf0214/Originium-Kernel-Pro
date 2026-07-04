@@ -50,6 +50,7 @@
     "octokit": "^5.0.5",
     "otplib": "^13.4.1",
     "postcss": "^8.5.15",
+    "qrcode.react": "^4.2.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "react-markdown": "^10.1.0",
