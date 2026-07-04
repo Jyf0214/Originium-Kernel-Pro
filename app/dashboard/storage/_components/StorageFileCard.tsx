@@ -9,6 +9,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Eye, Copy, Download, FileText, Folder, FolderInput, Image as ImageIcon, Pencil, Trash2 } from 'lucide-react';
 import { message, Tooltip } from 'antd';
 import type { WebDavEntry } from '@/lib/storage/types';
@@ -60,7 +61,7 @@ function CardThumbnail({
   return (
     <div className="aspect-square bg-zinc-50 flex items-center justify-center overflow-hidden">
       {showImage && !imgError ? (
-        <img src={publicUrl} alt={entry.filename} className="w-full h-full object-cover" loading="lazy" onError={() => setImgError(true)} />
+        <Image src={publicUrl} alt={entry.filename} width={200} height={200} unoptimized className="w-full h-full object-cover" onError={() => setImgError(true)} />
       ) : (
         <Icon size={entry.isDirectory ? 48 : 40} className={entry.isDirectory ? 'text-amber-500' : 'text-zinc-300'} />
       )}

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useConfig } from '@/hooks/use-config';
 
 interface ArticleCopyrightProps {
@@ -20,11 +21,11 @@ export default function ArticleCopyright({ authorName, authorUrl }: ArticleCopyr
       <div className="bg-zinc-50 dark:bg-zinc-800 rounded-2xl p-6 space-y-3 text-sm text-zinc-500 dark:text-zinc-400">
         <div className="flex items-center gap-3">
           {cfg.authorImgFront && (
-            <img src={cfg.authorImgFront} alt="" className={`w-8 h-8 ${cfg.avatarSinks ? 'rounded-full' : 'rounded-xl'} object-cover`} />
+            <Image src={cfg.authorImgFront} alt="" width={32} height={32} unoptimized className={`w-8 h-8 ${cfg.avatarSinks ? 'rounded-full' : 'rounded-xl'} object-cover`} />
           )}
           <span className="font-bold text-zinc-700 dark:text-zinc-200">本文作者</span>
           {cfg.authorImgBack && (
-            <img src={cfg.authorImgBack} alt="" className={`w-8 h-8 ${cfg.avatarSinks ? 'rounded-full' : 'rounded-xl'} object-cover`} />
+            <Image src={cfg.authorImgBack} alt="" width={32} height={32} unoptimized className={`w-8 h-8 ${cfg.avatarSinks ? 'rounded-full' : 'rounded-xl'} object-cover`} />
           )}
         </div>
         <div className="space-y-1">

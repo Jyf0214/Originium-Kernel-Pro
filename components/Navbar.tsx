@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { UserMenu } from '@/components/UserMenu';
 import { ClerkAuthProvider } from '@/components/ClerkAuthProvider';
@@ -165,7 +166,7 @@ function DrawerContent({
             key={i}
             href={item.link}
             pathname={pathname}
-            icon={item.icon ? <img src={item.icon} alt="" className="w-4 h-4" /> : <FileText size={18} />}
+            icon={item.icon ? <Image src={item.icon} alt="" width={16} height={16} unoptimized className="w-4 h-4" /> : <FileText size={18} />}
             label={item.name}
             onClick={closeDrawer}
           />
