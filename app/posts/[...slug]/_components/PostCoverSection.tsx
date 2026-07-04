@@ -3,8 +3,8 @@
 import { CoverHero } from './PostHeader';
 
 /**
- * 全屏宽封面区域 — 绝对定位突破父容器，真正撑满视口宽度
- * 覆盖在导航栏正后方，导航栏透明时封面直接透出
+ * 全屏宽封面区域 — 正常文档流，撑满视口宽度
+ * 导航栏绝对定位叠加在封面上方，透明渐变
  */
 export function PostCoverSection({
   title,
@@ -31,7 +31,7 @@ export function PostCoverSection({
   if (!coverStr) return null;
 
   return (
-    <div className="absolute -top-16 left-0 w-screen h-[calc(56.25vw+4rem)] max-h-[calc(80vh+4rem)] min-h-[calc(300px+4rem)] z-0">
+    <div className="w-full">
       <CoverHero
         titleStr={titleStr}
         authorStr={authorStr}

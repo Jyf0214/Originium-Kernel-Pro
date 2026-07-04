@@ -116,6 +116,8 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
   const isPostDetail = pathname.startsWith('/posts/') && pathname !== '/posts';
   // 封面高度阈值（约 400px），超过后切换为实体导航栏
   const isNavSolid = !isPostDetail || scrollY >= 400;
+  // 帖子页有封面时：导航栏绝对定位悬浮在封面上方；其他页面：sticky 固定
+  const isAbsoluteNav = isPostDetail && !isNavSolid;
 
   // 优先使用服务端传入的配置，无则初始化为 null（降级 fetch 填充）
   const [navConfig, setNavConfig] = useState<NavConfig | null>(navConfigProp ?? null);
@@ -186,7 +188,7 @@ export function Navbar({ navConfig: navConfigProp, siteTitle: _siteTitle }: Navb
     <>
     <nav
       aria-label="主导航"
-      className={`sticky top-0 z-50 transition-all duration-500 ${
+      className={`${isAbsoluteNav ? 'absolute top-0 w-full' : 'sticky top-0'} z-50 transition-all duration-500 ${
         isNavSolid
           ? 'bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200/60 dark:border-zinc-700/60'
           : 'bg-transparent border-b border-transparent'
