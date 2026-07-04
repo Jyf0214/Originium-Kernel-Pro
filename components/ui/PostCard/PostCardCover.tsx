@@ -6,9 +6,9 @@ import { LazyImage } from '@/components/ui/LazyImage';
 import type { PostItem, CoverConfig } from './types';
 
 function getCoverPositionClass(position: string | undefined): string {
-  if (position === 'right') return 'order-last w-2/5 shrink-0 sm:rounded-r-[2rem] overflow-hidden';
-  if (position === 'left') return 'w-2/5 shrink-0 sm:rounded-l-[2rem] overflow-hidden';
-  return 'sm:rounded-t-[2rem] overflow-hidden';
+  if (position === 'right') return 'order-last w-2/5 shrink-0';
+  if (position === 'left') return 'w-2/5 shrink-0';
+  return '';
 }
 
 function PostCardImage({ post, defaultCover }: { post: PostItem; defaultCover?: string }) {
@@ -18,13 +18,13 @@ function PostCardImage({ post, defaultCover }: { post: PostItem; defaultCover?: 
         src={post.cover ?? defaultCover!}
         alt={post.title}
         fill
-        className="object-cover group-hover:scale-110 transition-transform duration-700"
+        className="object-cover group-hover:scale-110 transition-transform duration-700 rounded-none"
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       />
     );
   }
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-50 via-zinc-100 to-zinc-50 dark:from-zinc-700 dark:to-zinc-800 select-none">
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-50 via-zinc-100 to-zinc-50 dark:from-zinc-700 dark:to-zinc-800 select-none rounded-none">
       <span className="text-5xl font-black text-zinc-200 dark:text-zinc-500 group-hover:text-zinc-300 dark:group-hover:text-zinc-400 transition-colors duration-500">
         {post.title.charAt(0)}
       </span>
@@ -52,7 +52,7 @@ export function PostCardCover({
     <div className={getCoverPositionClass(position)}>
       <Link
         href={`/posts${post.slug}`}
-        className={`block overflow-hidden bg-zinc-50 dark:bg-zinc-800 relative ui-interactive ${isRowLayout ? 'h-full' : 'aspect-video'}`}
+        className={`block bg-zinc-50 dark:bg-zinc-800 relative ui-interactive rounded-none ${isRowLayout ? 'h-full' : 'aspect-video'}`}
       >
         <PostCardImage post={post} defaultCover={defaultCover} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
