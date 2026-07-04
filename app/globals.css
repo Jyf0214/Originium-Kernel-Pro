@@ -146,6 +146,11 @@ pre:hover .code-copy-btn {
   transition: opacity 0.3s ease-in-out;
 }
 
+/* 暗色模式封面图片压暗 */
+.dark .post-cover-dim {
+  filter: brightness(0.7);
+}
+
 /* === Markdown 渲染增强 === */
 
 /* 任务列表 */
