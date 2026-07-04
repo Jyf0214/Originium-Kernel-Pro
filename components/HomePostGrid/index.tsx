@@ -6,12 +6,13 @@ import Link from 'next/link';
 import { useI18n } from '@/hooks/use-i18n';
 import { CategoryBar } from '@/components/CategoryBar';
 import { HeroSection } from './HeroSection';
-import { PostCard } from './PostCard';
+import { PostCard } from '@/components/ui/PostCard';
 import { Pagination } from './Pagination';
 import { useHomeFilter } from './use-home-filter';
 import type { HomePostGridProps } from './types';
 
-export type { HomePostGridProps, PostItem, CoverConfig } from './types';
+export type { HomePostGridProps } from './types';
+export type { PostItem, CoverConfig } from '@/components/ui/PostCard';
 
 export function HomePostGrid({
   posts,
@@ -61,10 +62,11 @@ export function HomePostGrid({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <AnimatePresence mode="popLayout">
             {filteredPosts.length > 0
-              ? paginatedPosts.map((post) => (
+              ? paginatedPosts.map((post, idx) => (
                   <PostCard
                     key={post.slug}
                     post={post}
+                    index={idx}
                     coverConfig={coverConfig}
                     defaultCover={defaultCover}
                     t={t}

@@ -1,13 +1,6 @@
-export interface PostItem {
-  slug: string;
-  title: string;
-  date?: string;
-  author?: string;
-  tags: string[];
-  cover?: string;
-  description?: string;
-  pinned?: boolean;
-}
+import type { PostItem, CoverConfig } from '@/components/ui/PostCard';
+
+export type { PostItem, CoverConfig } from '@/components/ui/PostCard';
 
 export interface GroupItem {
   slug: string;
@@ -15,12 +8,6 @@ export interface GroupItem {
   description?: string;
   public: boolean;
   groupName?: string;
-}
-
-export interface CoverConfig {
-  indexEnable?: boolean;
-  asideEnable: boolean;
-  position: string;
 }
 
 export interface PostListClientProps {
