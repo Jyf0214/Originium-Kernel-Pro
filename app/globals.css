@@ -267,6 +267,12 @@ pre:hover .code-copy-btn {
   transform: translateY(0) scale(0.98);
 }
 
+/* 继续阅读提示条入场动画 */
+@keyframes slideUp {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
 /* 轻量级：仅缩放，不位移 */
 .ui-press {
   transition: transform 0.15s ease;

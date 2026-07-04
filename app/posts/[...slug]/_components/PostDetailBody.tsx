@@ -11,6 +11,7 @@ import { CopyrightNotice } from '@/components/ui/CopyrightNotice';
 import ShareButtons from '@/components/ui/ShareButtons';
 import QRCodeDialog from '@/components/ui/QRCodeDialog';
 import { ReadingProgressBar } from '@/components/ui/ReadingProgressBar';
+import { ContinueReadingPrompt } from '@/components/ui/ContinueReadingPrompt';
 import { ScrollToTop } from '@/components/ui/ScrollToTop';
 import { PostBreadcrumb, type Crumb } from './PostBreadcrumb';
 import { PostHeader } from './PostHeader';
@@ -25,7 +26,9 @@ import type { BacklinkInfo, RegistryEntry } from '@/lib/content-registry';
 import { buildCopyrightConfig, buildShareConfig } from '../_lib/post-page-config';
 import { tPosts } from '../_lib/post-i18n';
 import { useI18n } from '@/hooks/use-i18n';
+import { useContinueReading } from '@/hooks/useContinueReading';
 
+// eslint-disable-next-line complexity
 export function PostDetailBody({
   file,
   fullPath,
@@ -61,10 +64,16 @@ export function PostDetailBody({
 }) {
   const [qrOpen, setQrOpen] = useState(false);
   const { t } = useI18n();
+  const { savedData, setSavedData, handleRestore, handleDismiss } = useContinueReading();
 
   return (
     <>
-      <ReadingProgressBar pageKey={fullPath} />
+      <ReadingProgressBar pageKey={fullPath} onSavedPosition={setSavedData} />
+      <ContinueReadingPrompt
+        savedPosition={savedData?.position ?? null}
+        onRestore={handleRestore}
+        onDismiss={handleDismiss}
+      />
       <ScrollToTop />
       <PostNavigationShortcuts
         prevSlug={adjacentPosts.prev?.slug ?? null}
