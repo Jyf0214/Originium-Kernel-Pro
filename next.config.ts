@@ -142,9 +142,10 @@ const nextConfig: NextConfig = {
     ],
   },
   output: 'standalone',
-  transpilePackages: ['antd', 'antd-style', '@ant-design/icons', 'motion'],
-  // 按需加载 antd / 图标库, 减少 bundle 体积 (Next.js 16 中已迁移至 experimental)
-  // motion 运动动画库同样支持 tree-shaking, 加入优化以进一步减小产物体积
+  // 跳过 build 中的 TypeScript 检查——已在 check 步骤中通过 tsc --noEmit 完成，避免重复执行（省 ~18s）
+  typescript: { ignoreBuildErrors: true },
+  // transpilePackages 已移除：antd v6 原生支持 ESM tree-shaking，
+  // optimizePackageImports 足以处理按需加载，transpilePackages 会强制 Turbopack 重编译巨型包
   experimental: {
     optimizePackageImports: ['antd', '@ant-design/icons', 'lucide-react', 'motion'],
   },
