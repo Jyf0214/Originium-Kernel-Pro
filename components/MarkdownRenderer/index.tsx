@@ -3,6 +3,9 @@
 import { useState, useRef, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import { useMarkdownConfig } from './use-markdown-config';
 import { buildComponents } from './renderer-config';
 import { Lightbox } from '@/components/ui/Lightbox';
@@ -95,7 +98,11 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap }: MarkdownRe
       prose-img:rounded-2xl prose-img:border prose-img:border-zinc-100 dark:prose-img:border-zinc-700
       prose-hr:border-zinc-100 dark:prose-hr:border-zinc-700 prose-hr:my-12
     ">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ ...components, img: imgComponent as never }}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+        components={{ ...components, img: imgComponent as never }}
+      >
         {processedContent}
       </ReactMarkdown>
       <Lightbox
