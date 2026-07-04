@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, type ComponentType, type ReactNode } from 'react';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Info, AlertTriangle, Lightbulb, Flame } from 'lucide-react';
 import type { CodeProps, HighlightConfig, HighlighterInstance } from './types';
 import { createHeading } from './HeadingAnchor';
 import { CodeBlock } from './CodeBlock';
@@ -71,6 +71,83 @@ function UnhighlightedCodeBlock({
   );
 }
 
+/* ── Callout/Alert 提示框 ── */
+
+const CALLOUT_STYLES: Record<string, { icon: ReactNode; bg: string; border: string; iconColor: string }> = {
+  note:    { icon: <Info size={18} />,              bg: 'bg-blue-50 dark:bg-blue-950/30',    border: 'border-blue-200 dark:border-blue-800',    iconColor: 'text-blue-600 dark:text-blue-400' },
+  tip:     { icon: <Lightbulb size={18} />,          bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-200 dark:border-emerald-800', iconColor: 'text-emerald-600 dark:text-emerald-400' },
+  warning: { icon: <AlertTriangle size={18} />,      bg: 'bg-amber-50 dark:bg-amber-950/30',  border: 'border-amber-200 dark:border-amber-800',  iconColor: 'text-amber-600 dark:text-amber-400' },
+  danger:  { icon: <Flame size={18} />,              bg: 'bg-red-50 dark:bg-red-950/30',      border: 'border-red-200 dark:border-red-800',      iconColor: 'text-red-600 dark:text-red-400' },
+};
+
+const CALLOUT_DEFAULT = CALLOUT_STYLES.note;
+
+/** 解析 > [!NOTE] 语法的 blockquote → callout 提示框 */
+function CalloutBlock({ children }: { children: ReactNode }) {
+  // 从 children 中提取文本，匹配 > [!type] 模式
+  const text = extractPlainText(children);
+  const match = /^\[!(note|tip|warning|danger)\]\s*/i.exec(text);
+  if (!match) {
+    // 非 callout 语法，保持原始 blockquote 样式
+    return <blockquote>{children}</blockquote>;
+  }
+
+  const type = (match[1] ?? 'note').toLowerCase();
+  const style = (CALLOUT_STYLES[type] ?? CALLOUT_DEFAULT) as { icon: ReactNode; bg: string; border: string; iconColor: string };
+  // 移除 [!TYPE] 前缀后的纯内容
+  const content = text.replace(/^\[!(?:note|tip|warning|danger)\]\s*/i, '');
+
+  return (
+    <div className={`my-6 flex gap-3 rounded-xl border ${style.border} ${style.bg} p-4`}>
+      <div className={`mt-0.5 shrink-0 ${style.iconColor}`}>{style.icon}</div>
+      <div className="min-w-0 text-sm leading-relaxed">{content}</div>
+    </div>
+  );
+}
+
+/** 从 ReactNode 中递归提取纯文本 */
+function extractPlainText(node: ReactNode): string {
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(extractPlainText).join('');
+  if (node && typeof node === 'object' && 'props' in node) {
+    return extractPlainText((node as { props: { children?: ReactNode } }).props.children);
+  }
+  return '';
+}
+
+/* ── 视频/音频嵌入 ── */
+
+/** 匹配视频/音频 URL 的正则 */
+const MEDIA_URL_RE = /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/i;
+
+/** 媒体嵌入组件：根据文件类型渲染 <video> 或 <audio> */
+function MediaEmbed({ href, children }: { href?: string; children?: ReactNode }) {
+  if (!href || !MEDIA_URL_RE.test(href)) return <a href={href}>{children}</a>;
+
+  const ext = href.match(/\.(\w+)(\?.*)?$/)?.[1]?.toLowerCase() ?? '';
+  const isAudio = ['mp3', 'ogg', 'wav', 'flac', 'aac'].includes(ext);
+
+  if (isAudio) {
+    return (
+      <div className="my-6">
+        <audio controls preload="metadata" className="w-full rounded-xl">
+          <source src={href} />
+          您的浏览器不支持音频播放。
+        </audio>
+      </div>
+    );
+  }
+
+  return (
+    <div className="my-6">
+      <video controls preload="metadata" className="w-full rounded-xl" playsInline>
+        <source src={href} />
+        您的浏览器不支持视频播放。
+      </video>
+    </div>
+  );
+}
+
 /** 构建 react-markdown 的 components 映射表 */
 export function buildComponents(
   cfg: HighlightConfig,
@@ -87,6 +164,26 @@ export function buildComponents(
         <div className="overflow-x-auto my-6 rounded-xl border border-zinc-100">
           <table>{children}</table>
         </div>
+      );
+    },
+    blockquote({ children }: { children: ReactNode }) {
+      return <CalloutBlock>{children}</CalloutBlock>;
+    },
+    a({ href, children, ...props }: { href?: string; children?: ReactNode; [key: string]: unknown }) {
+      // 外部链接安全处理 + 视频/音频嵌入
+      const isExternal = href && (href.startsWith('http://') || href.startsWith('https://'));
+      const isMedia = href && MEDIA_URL_RE.test(href);
+      if (isMedia) {
+        return <MediaEmbed href={href}>{children}</MediaEmbed>;
+      }
+      return (
+        <a
+          href={href}
+          {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          {...props}
+        >
+          {children}
+        </a>
       );
     },
     code({ inline, className, children, ...props }: CodeProps) {

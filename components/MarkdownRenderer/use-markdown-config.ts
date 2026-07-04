@@ -26,6 +26,7 @@ export function useMarkdownConfig(
     shrink: false,
     heightLimit: 330,
     wordWrap: true,
+    lineNumbers: false,
     ...highlightProp,
   };
 

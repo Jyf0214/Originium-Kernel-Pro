@@ -115,6 +115,8 @@ function HighlightedCodeBlock({
   onToggleCollapse: () => void;
   onToggleWrap: () => void;
 }) {
+  const lineCount = cfg.lineNumbers ? children.replace(/\n$/, '').split('\n').length : 0;
+
   return (
     <div className={`relative group my-8 ${collapsed ? 'max-h-40 overflow-hidden' : ''}`}>
       <CodeToolbar
@@ -130,12 +132,19 @@ function HighlightedCodeBlock({
         onToggleCollapse={onToggleCollapse}
         onToggleWrap={onToggleWrap}
       />
-      <div className={`${wrap ? '' : 'overflow-x-auto'} rounded-b-2xl border border-zinc-800 border-t-0`}>
+      <div className={`${wrap ? '' : 'overflow-x-auto'} rounded-b-2xl border border-zinc-800 border-t-0 flex`}>
+        {cfg.lineNumbers && (
+          <div className="shrink-0 select-none py-4 pl-4 pr-2 text-right text-xs leading-[1.6] text-zinc-600 border-r border-zinc-700/50">
+            {Array.from({ length: lineCount }, (_, i) => (
+              <div key={i}>{i + 1}</div>
+            ))}
+          </div>
+        )}
         <highlighter.Component
           style={highlighter.style}
           language={language}
           PreTag="div"
-          className="!p-4 !m-0 !bg-transparent"
+          className={`!p-4 !m-0 !bg-transparent ${cfg.lineNumbers ? '!flex-1 !min-w-0' : ''}`}
           {...(wrap ? { wrapLines: true, lineProps: { style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' } } } : {})}
         >
           {children.replace(/\n$/, '')}
@@ -166,6 +175,9 @@ function PlainCodeBlock({
   onCopy: () => void;
   onToggleCollapse: () => void;
 }) {
+  const codeText = children.replace(/\n$/, '');
+  const lineCount = cfg.lineNumbers ? codeText.split('\n').length : 0;
+
   return (
     <div className={`relative group my-8 ${collapsed ? 'max-h-40 overflow-hidden' : ''}`}>
       <CodeToolbar
@@ -181,9 +193,18 @@ function PlainCodeBlock({
         onToggleCollapse={onToggleCollapse}
         onToggleWrap={() => undefined}
       />
-      <pre className="bg-zinc-900 rounded-b-2xl p-4 text-sm text-zinc-300 border border-zinc-800 border-t-0 overflow-x-auto">
-        <code>{children.replace(/\n$/, '')}</code>
-      </pre>
+      <div className="bg-zinc-900 rounded-b-2xl border border-zinc-800 border-t-0 overflow-x-auto flex">
+        {cfg.lineNumbers && (
+          <div className="shrink-0 select-none py-4 pl-4 pr-2 text-right text-xs leading-[1.6] text-zinc-600 border-r border-zinc-700/50">
+            {Array.from({ length: lineCount }, (_, i) => (
+              <div key={i}>{i + 1}</div>
+            ))}
+          </div>
+        )}
+        <pre className="p-4 text-sm text-zinc-300 m-0 flex-1 min-w-0">
+          <code>{codeText}</code>
+        </pre>
+      </div>
     </div>
   );
 }

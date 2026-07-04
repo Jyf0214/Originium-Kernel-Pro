@@ -8,6 +8,7 @@ export interface HighlightConfig {
   shrink: boolean;
   heightLimit: number;
   wordWrap: boolean;
+  lineNumbers?: boolean;
 }
 
 /** Wiki-link 标题解析映射（小写标题 → URL） */
