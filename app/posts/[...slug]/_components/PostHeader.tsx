@@ -60,7 +60,7 @@ export function CoverHero({
         ref={coverRef}
         className="absolute inset-0"
         style={{
-          transform: `scale(${parallax.scale}) translateY(${parallax.translateY}px) rotate(${fullBleed ? '3deg' : '0deg'})`,
+          transform: `scale(${parallax.scale}) translateY(${parallax.translateY}px)`,
           willChange: 'transform',
         }}
       >
