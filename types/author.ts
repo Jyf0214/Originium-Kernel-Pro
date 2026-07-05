@@ -10,4 +10,10 @@ export interface AuthorInfo {
   location?: string;
   /** 简短留言/签名 */
   bio?: string;
+  /** 是否启用作者状态卡片 */
+  enable?: boolean;
+  /** 状态图片 URL */
+  statusImg?: string;
+  /** 技能标签列表 */
+  skills?: string[];
 }

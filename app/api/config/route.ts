@@ -223,14 +223,6 @@ function mergeSocial(
   return { ...(base ?? {}), ...overrideSocial } as SocialConfig;
 }
 
-function mergeAuthorStatus(
-  base: AppConfig['authorStatus'],
-  overrideAuthorStatus: Partial<AppConfig['authorStatus']> | undefined,
-): AppConfig['authorStatus'] | undefined {
-  if (!overrideAuthorStatus) return base;
-  return { ...(base ?? { enable: false, statusImg: '', skills: [] }), ...overrideAuthorStatus };
-}
-
 function mergeCover(
   base: AppConfig['cover'],
   overrideCover: Partial<AppConfig['cover']> | undefined,
@@ -283,7 +275,7 @@ function mergeCopyright(
   overrideCopyright: Partial<AppConfig['copyright']> | undefined,
 ): AppConfig['copyright'] | undefined {
   if (!overrideCopyright) return base;
-  return { ...(base ?? { enable: true, decode: false, authorHref: '', location: '中国', license: 'CC BY-NC-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/', authorLink: '/' }), ...overrideCopyright };
+  return { ...(base ?? { enable: true, decode: false, authorHref: '', license: 'CC BY-NC-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/', authorLink: '/' }), ...overrideCopyright };
 }
 
 function mergeReward(
@@ -343,7 +335,6 @@ function mergeAppConfig(
     highlight: mergeHighlight(base.highlight, override.highlight),
     copy: mergeCopy(base.copy, override.copy),
     social: mergeSocial(base.social, override.social),
-    authorStatus: mergeAuthorStatus(base.authorStatus, override.authorStatus),
     cover: mergeCover(base.cover, override.cover),
     errorImg: mergeErrorImg(base.errorImg, override.errorImg),
     postMeta: mergePostMeta(base.postMeta, override.postMeta),

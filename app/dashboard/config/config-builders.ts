@@ -63,7 +63,6 @@ export interface ConfigState {
   highlight: { theme: string; copy: boolean; lang: boolean; shrink: boolean; heightLimit: number; wordWrap: boolean };
   copy: { enable: boolean; copyright: { enable: boolean; limitCount: number } };
   social: Record<string, string>;
-  authorStatus: { enable: boolean; statusImg: string; skills: string[] };
   cover: { indexEnable: boolean; asideEnable: boolean; archivesEnable: boolean; position: 'left' | 'right' | 'both'; defaultCover: string[] };
   errorImg: { flink: string; postPage: string };
   share: { sharejs: { enable: boolean; sites: string }; addtoany: { enable: boolean; item: string } };
@@ -84,7 +83,7 @@ export interface ConfigState {
   };
   wordcount: { enable: boolean; postWordcount: boolean; min2read: boolean; totalWordcount: boolean };
   toc: { post: boolean; page: boolean; number: boolean; expand: boolean; styleSimple: boolean };
-  copyright: { enable: boolean; decode: boolean; authorHref: string; location: string; license: string; licenseUrl: string; authorLink: string };
+  copyright: { enable: boolean; decode: boolean; authorHref: string; license: string; licenseUrl: string; authorLink: string };
   reward: { enable: boolean; qrCodes: { img: string; link: string; text: string }[] };
   postEdit: { enable: boolean; github: string | false };
   clerk: { enable: boolean };
@@ -175,15 +174,6 @@ export function buildSocialConfig(data: Record<string, unknown>): ConfigState['s
   return (data.social as Record<string, string>) ?? {};
 }
 
-export function buildAuthorStatusConfig(data: Record<string, unknown>): ConfigState['authorStatus'] {
-  const d = data.authorStatus as Record<string, unknown> | undefined;
-  return {
-    enable: (d?.enable as boolean) ?? false,
-    statusImg: (d?.statusImg as string) ?? '',
-    skills: (d?.skills as string[]) ?? [],
-  };
-}
-
 export function buildCoverConfig(data: Record<string, unknown>): ConfigState['cover'] {
   const d = data.cover as Record<string, unknown> | undefined;
   return {
@@ -257,7 +247,6 @@ const COPYRIGHT_DEFAULTS: ConfigState['copyright'] = {
   enable: false,
   decode: false,
   authorHref: '',
-  location: '中国',
   license: 'CC BY-NC-SA 4.0',
   licenseUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
   authorLink: '/',
@@ -370,7 +359,6 @@ export function buildConfigState(data: Record<string, unknown>): ConfigState {
     highlight: buildHighlightConfig(data),
     copy: buildCopyConfig(data),
     social: buildSocialConfig(data),
-    authorStatus: buildAuthorStatusConfig(data),
     cover: buildCoverConfig(data),
     errorImg: buildErrorImgConfig(data),
     postMeta: buildPostMetaConfig(data),

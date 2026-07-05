@@ -17,7 +17,6 @@ export type {
   HighlightConfig,
   CopyConfig,
   SocialConfig,
-  AuthorStatusConfig,
   CoverConfig,
   ErrorImgConfig,
   PostMetaDisplayConfig,

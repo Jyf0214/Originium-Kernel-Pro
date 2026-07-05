@@ -3,16 +3,20 @@
 import { useEffect } from 'react';
 import { useConfig } from '@/hooks/use-config';
 import { message } from 'antd';
+import type { AuthorInfo } from '@/types/author';
 
 interface CopyInterceptorProps {
   articleRef: React.RefObject<HTMLDivElement | null>;
   authorName?: string;
+  /** 作者列表数据 — 用于来源地信息 */
+  authorInfo?: AuthorInfo | null;
 }
 
-export default function CopyInterceptor({ articleRef, authorName }: CopyInterceptorProps) {
+export default function CopyInterceptor({ articleRef, authorName, authorInfo }: CopyInterceptorProps) {
   const { config } = useConfig();
   const cfg = config?.copy;
   const copyrightCfg = config?.copyright;
+  const location = authorInfo?.location;
 
   useEffect(() => {
     const el = articleRef.current;
@@ -37,8 +41,8 @@ export default function CopyInterceptor({ articleRef, authorName }: CopyIntercep
             copyrightText += ` (${copyrightCfg.licenseUrl})`;
           }
         }
-        if (copyrightCfg.location) {
-          copyrightText += `\n来源: ${copyrightCfg.location}`;
+        if (location) {
+          copyrightText += `\n来源: ${location}`;
         }
 
         e.clipboardData?.setData('text/plain', selectedText + copyrightText);
@@ -48,7 +52,7 @@ export default function CopyInterceptor({ articleRef, authorName }: CopyIntercep
 
     el.addEventListener('copy', handleCopy);
     return () => el.removeEventListener('copy', handleCopy);
-  }, [cfg, copyrightCfg, articleRef, authorName]);
+  }, [cfg, copyrightCfg, articleRef, authorName, location]);
 
   return null;
 }

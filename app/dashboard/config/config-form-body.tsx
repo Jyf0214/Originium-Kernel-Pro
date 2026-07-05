@@ -12,7 +12,6 @@ import {
   Highlighter,
   Copy,
   Share2,
-  User,
   Image,
   TriangleAlert,
   FileText,
@@ -41,7 +40,6 @@ import MournConfig from '@/components/ui/MournConfig';
 import CodeBlockConfig from '@/components/ui/CodeBlockConfig';
 import CopyConfig from '@/components/ui/CopyConfig';
 import SocialConfig from '@/components/ui/SocialConfig';
-import AuthorStatusConfig from '@/components/ui/AuthorStatusConfig';
 import CoverConfig from '@/components/ui/CoverConfig';
 import ErrorImgConfig from '@/components/ui/ErrorImgConfig';
 import PostMetaConfig from '@/components/ui/PostMetaConfig';
@@ -244,7 +242,6 @@ export default function ConfigFormBody({
   const handleHighlightChange = (v: ConfigState['highlight']) => onConfigChange({ ...config, highlight: v });
   const handleCopyChange = (v: ConfigState['copy']) => onConfigChange({ ...config, copy: v });
   const handleSocialChange = (v: ConfigState['social']) => onConfigChange({ ...config, social: v });
-  const handleAuthorStatusChange = (v: ConfigState['authorStatus']) => onConfigChange({ ...config, authorStatus: v });
   const handleCoverChange = (v: ConfigState['cover']) => onConfigChange({ ...config, cover: v });
   const handleErrorImgChange = (v: ConfigState['errorImg']) => onConfigChange({ ...config, errorImg: v });
   const handlePostMetaChange = (v: ConfigState['postMeta']) => onConfigChange({ ...config, postMeta: v });
@@ -268,7 +265,6 @@ export default function ConfigFormBody({
     { id: 'section-highlight', title: ft('config.highlight', '代码高亮'), icon: Highlighter, color: 'bg-emerald-600', children: <CodeBlockConfig config={config.highlight} onChange={handleHighlightChange} /> },
     { id: 'section-copy', title: ft('config.copy', '复制设置'), icon: Copy, color: 'bg-cyan-600', children: <CopyConfig config={config.copy} onChange={handleCopyChange} /> },
     { id: 'section-social', title: ft('config.social', '社交链接'), icon: Share2, color: 'bg-pink-500', children: <SocialConfig config={config.social} onChange={handleSocialChange} /> },
-    { id: 'section-author', title: ft('config.authorStatus', '作者卡片'), icon: User, color: 'bg-rose-500', children: <AuthorStatusConfig config={config.authorStatus} onChange={handleAuthorStatusChange} /> },
     { id: 'section-cover', title: ft('config.cover', '封面设置'), icon: Image, color: 'bg-teal-500', children: <CoverConfig config={config.cover} onChange={handleCoverChange} /> },
     { id: 'section-error', title: ft('config.errorImg', '错误图片'), icon: TriangleAlert, color: 'bg-red-500', children: <ErrorImgConfig config={config.errorImg} onChange={handleErrorImgChange} /> },
     { id: 'section-postmeta', title: ft('config.postMeta', '文章元信息'), icon: FileText, color: 'bg-violet-500', children: <PostMetaConfig config={config.postMeta} onChange={handlePostMetaChange} /> },

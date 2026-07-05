@@ -184,16 +184,6 @@ export const zCopyConfig = z.object({
 export const zSocialConfig = z.record(z.string(), z.string());
 
 // ============================================================================
-// AuthorStatusConfig
-// ============================================================================
-
-export const zAuthorStatusConfig = z.object({
-  enable: z.boolean().default(false),
-  statusImg: z.string().default(''),
-  skills: z.array(z.string()).default([]),
-});
-
-// ============================================================================
 // CoverConfig
 // ============================================================================
 
@@ -271,7 +261,6 @@ export const zCopyrightConfig = z.object({
   enable: z.boolean().default(true),
   decode: z.boolean().default(false),
   authorHref: z.string().default(''),
-  location: z.string().default('中国'),
   license: z.string().default('CC BY-NC-SA 4.0'),
   licenseUrl: z.string().default('https://creativecommons.org/licenses/by-nc-sa/4.0/'),
   authorLink: z.string().default('/'),
@@ -421,7 +410,6 @@ export const zAppConfig = z.object({
   highlight: withFullDefault(zHighlightConfig),
   copy: withFullDefault(zCopyConfig),
   social: zSocialConfig.default({}),
-  authorStatus: withFullDefault(zAuthorStatusConfig),
   cover: withFullDefault(zCoverConfig),
   errorImg: withFullDefault(zErrorImgConfig),
   postMeta: withFullDefault(zPostMetaConfig),
@@ -546,12 +534,6 @@ export interface CopyConfig {
 
 export type SocialConfig = Record<string, string>;
 
-export interface AuthorStatusConfig {
-  enable: boolean;
-  statusImg: string;
-  skills: string[];
-}
-
 export interface CoverConfig {
   indexEnable: boolean;
   asideEnable: boolean;
@@ -601,7 +583,6 @@ export interface CopyrightConfig {
   enable: boolean;
   decode: boolean;
   authorHref: string;
-  location: string;
   license: string;
   licenseUrl: string;
   authorLink: string;
@@ -713,7 +694,6 @@ export interface AppConfig {
   highlight?: HighlightConfig;
   copy?: CopyConfig;
   social?: SocialConfig;
-  authorStatus?: AuthorStatusConfig;
   cover?: CoverConfig;
   errorImg?: ErrorImgConfig;
   postMeta?: PostMetaConfig;

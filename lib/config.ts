@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import { zAppConfig, type AppConfig, type SiteConfig, type AppearanceConfig, type AccessConfig, type AuthConfig, type AvatarConfig, type ShareConfig, type MainToneConfig, type FooterConfig, type ClerkConfig, type FooterOwnerConfig, type FooterRuntimeConfig, type SharejsConfig, type AddtoanyConfig, type PostEditConfig, type CopyrightConfig, type TocConfig, type WordCountConfig, type PostMetaConfig, type PostMetaDisplayConfig, type PostMetaPostConfig, type ErrorImgConfig, type CoverConfig, type AuthorStatusConfig, type SocialConfig, type CopyConfig, type HighlightConfig, type MournConfig, type NavConfig, type NavMenuItem, type NavMenuGroup, type RewardConfig, type QRCodeItem } from '@/lib/config-schema';
+import { zAppConfig, type AppConfig, type SiteConfig, type AppearanceConfig, type AccessConfig, type AuthConfig, type AvatarConfig, type ShareConfig, type MainToneConfig, type FooterConfig, type ClerkConfig, type FooterOwnerConfig, type FooterRuntimeConfig, type SharejsConfig, type AddtoanyConfig, type PostEditConfig, type CopyrightConfig, type TocConfig, type WordCountConfig, type PostMetaConfig, type PostMetaDisplayConfig, type PostMetaPostConfig, type ErrorImgConfig, type CoverConfig, type SocialConfig, type CopyConfig, type HighlightConfig, type MournConfig, type NavConfig, type NavMenuItem, type NavMenuGroup, type RewardConfig, type QRCodeItem } from '@/lib/config-schema';
 
 export type {
   AppConfig,
@@ -27,7 +27,6 @@ export type {
   PostMetaPostConfig,
   ErrorImgConfig,
   CoverConfig,
-  AuthorStatusConfig,
   SocialConfig,
   CopyConfig,
   HighlightConfig,
