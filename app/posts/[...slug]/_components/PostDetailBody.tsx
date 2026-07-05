@@ -25,6 +25,7 @@ import { PostNavigationShortcuts } from '@/components/PostNavigationShortcuts';
 import { TranslationSwitcher } from '@/components/TranslationSwitcher';
 import { PostSidebarCard } from '@/components/PostSidebarCard';
 import { ArticleExpiredBanner } from '@/components/ArticleExpiredBanner';
+import { Hitokoto } from '@/components/Hitokoto';
 import type { RelatedPost } from '../_lib/related-posts';
 import type { FrontendConfig } from '@/hooks/use-config';
 import type { WikiLinkMap } from '@/components/MarkdownRenderer/types';
@@ -228,6 +229,11 @@ export function PostDetailBody({
           二维码
         </button>
         <PostLikeButton slug={fullPath} />
+      </div>
+
+      {/* 一言 — 文章底部 */}
+      <div className="mt-10">
+        <Hitokoto />
       </div>
 
       <QRCodeDialog

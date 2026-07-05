@@ -5,6 +5,7 @@ import type { TOCProps, TocHeading, TocNode } from './toc-types';
 import { useTocActive } from './use-toc-active';
 import { TocItem } from './TocItem';
 import { slugify } from '@/lib/slugify';
+import { Hitokoto } from '@/components/Hitokoto';
 
 export type { TOCConfig, TOCProps, TocHeading, TocNode, TocItemProps } from './toc-types';
 
@@ -97,6 +98,9 @@ export function TOC({ content, config, locale }: TOCProps) {
           numbering={config?.number}
           onLinkClick={handleLinkClick}
         />
+        <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800 px-1">
+          <Hitokoto />
+        </div>
       </nav>
 
       {/* 移动端：折叠面板 */}
@@ -137,6 +141,9 @@ export function TOC({ content, config, locale }: TOCProps) {
               numbering={config?.number}
               onLinkClick={handleLinkClick}
             />
+            <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-700">
+              <Hitokoto />
+            </div>
           </div>
         </details>
       </div>

@@ -195,6 +195,7 @@ function DrawerContent({
             )}
           </div>
         )}
+        <Hitokoto />
         <DrawerToolbar
           allowRegistration={allowRegistration}
           clerkAvailable={clerkAvailable}
@@ -345,11 +346,6 @@ export function Navbar({ navConfig: navConfigProp }: NavbarProps) {
       >
         <Search size={22} />
       </button>
-
-      {/* 一言横幅 — 居中显示在顶部按钮下方 */}
-      <div className="fixed top-14 left-1/2 -translate-x-1/2 z-[55] max-w-[80vw] md:max-w-md">
-        <Hitokoto />
-      </div>
 
       {/* 遮罩 */}
       {state.drawerOpen && (
