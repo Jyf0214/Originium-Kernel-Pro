@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { UserMenu } from '@/components/UserMenu';
+import { Hitokoto } from '@/components/Hitokoto';
 import { ClerkAuthProvider } from '@/components/ClerkAuthProvider';
 import { ClerkLoginSection } from '@/components/ClerkLoginSection';
 import { LoginOutlined } from '@ant-design/icons';
@@ -344,6 +345,11 @@ export function Navbar({ navConfig: navConfigProp }: NavbarProps) {
       >
         <Search size={22} />
       </button>
+
+      {/* 一言横幅 — 居中显示在顶部按钮下方 */}
+      <div className="fixed top-14 left-1/2 -translate-x-1/2 z-[55] max-w-[80vw] md:max-w-md">
+        <Hitokoto />
+      </div>
 
       {/* 遮罩 */}
       {state.drawerOpen && (
