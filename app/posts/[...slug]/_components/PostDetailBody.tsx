@@ -19,6 +19,8 @@ import { PostRelated } from './PostRelated';
 import { PostAdjacent } from './PostAdjacent';
 import { PostNavigationShortcuts } from '@/components/PostNavigationShortcuts';
 import { TranslationSwitcher } from '@/components/TranslationSwitcher';
+import { PostSidebarCard } from '@/components/PostSidebarCard';
+import { ArticleExpiredBanner } from '@/components/ArticleExpiredBanner';
 import type { RelatedPost } from '../_lib/related-posts';
 import type { FrontendConfig } from '@/hooks/use-config';
 import type { WikiLinkMap } from '@/components/MarkdownRenderer/types';
@@ -92,6 +94,7 @@ export function PostDetailBody({
       <PostBreadcrumb slug={fullPath} crumbs={breadcrumbs} t={tPosts} />
 
       {/* 文章内容容器 — 卡片样式 */}
+      <div className="relative">
       <article className="bg-white dark:bg-zinc-800 rounded-3xl border border-zinc-100 dark:border-zinc-700 p-6 sm:p-8 md:p-10 lg:p-12 animate-card-slidein">
         {!omitHeader && (
           <PostHeader
@@ -116,6 +119,11 @@ export function PostDetailBody({
 
         <div className="h-px bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-700 to-transparent mb-12" />
 
+        {/* 文章过期提示 — 超过180天的文章显示提示横幅 */}
+        {typeof file.meta.date === 'string' && (
+          <ArticleExpiredBanner date={file.meta.date} slug={fullPath} />
+        )}
+
         <div>
           <MarkdownRenderer content={file.content} highlight={highlight} wikiLinkMap={wikiLinkMap} />
         </div>
@@ -128,6 +136,21 @@ export function PostDetailBody({
           initialOutgoing={outgoingRefs}
         />
       </article>
+
+      {/* 浮动信息卡片 — 桌面端右侧 */}
+      <div className="hidden 2xl:block absolute top-0 w-52" style={{ left: 'calc(100% + 1.5rem)' }}>
+        <div className="sticky top-24">
+          <PostSidebarCard
+            authorInfo={authorInfo}
+            wordCount={wordCount}
+            readingTime={readingTime}
+            date={typeof file.meta.date === 'string' ? file.meta.date : undefined}
+            tags={Array.isArray(file.meta.tags) ? file.meta.tags : undefined}
+            onScrollToTop={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          />
+        </div>
+      </div>
+      </div>
 
       {/* 作者信息 — 单独容器 */}
       <div className="mt-12">
