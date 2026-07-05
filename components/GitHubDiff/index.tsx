@@ -68,31 +68,37 @@ export function GitHubDiffModal({
       title={null}
       open={open}
       onCancel={onCancel}
-      width="min(800px, 92vw)"
+      width="min(760px, 94vw)"
       footer={null}
       centered
       destroyOnClose
+      className="github-diff-modal"
+      styles={{ body: { padding: 0 } }}
     >
-      <div className="p-4">
-        <div className="flex items-center gap-3 mb-4 pb-4 border-b border-zinc-200">
-          <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center">
-            <Github size={18} className="text-white" />
+      {/* 标题栏 */}
+      <div className="px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center shrink-0">
+            <Github size={15} className="text-white" />
           </div>
-          <div>
-            <h2 className="text-lg font-bold text-zinc-900">GitHub 配置变更确认</h2>
-            <p className="text-sm text-zinc-500">
-              仓库: <span className="font-mono">{repo}</span> · 文件: <span className="font-mono">{filePath}</span>
+          <div className="min-w-0">
+            <h2 className="text-base font-bold text-zinc-900 leading-tight">确认配置变更</h2>
+            <p className="text-xs text-zinc-400 mt-0.5 truncate">
+              <span className="font-mono">{filePath}</span>
+              {repo && <span className="ml-1.5 opacity-50">· {repo}</span>}
             </p>
           </div>
         </div>
+      </div>
 
-        <div className="bg-zinc-900 rounded-xl max-h-96 overflow-auto font-mono text-sm leading-5">
+      {/* Diff 内容区 */}
+      <div className="mx-3 sm:mx-4 bg-zinc-900 rounded-lg max-h-[50vh] sm:max-h-80 overflow-auto">
+        <div className="font-mono text-xs sm:text-sm leading-5">
           {hunks.length === 0 && (
-            <div className="text-zinc-500 text-center py-4">无变更</div>
+            <div className="text-zinc-500 text-center py-6">无变更</div>
           )}
           {hunks.map((hunk, hi) => (
             <div key={hi}>
-              {hi > 0 && <div className="h-px bg-zinc-700 mx-4" />}
               {hunk.lines.map((line, li) => {
                 let bg = '';
                 let fg = 'text-zinc-400';
@@ -100,8 +106,8 @@ export function GitHubDiffModal({
                 if (line.type === 'add') { bg = 'bg-green-900/30'; fg = 'text-green-300'; prefix = '+'; }
                 if (line.type === 'del') { bg = 'bg-red-900/30'; fg = 'text-red-300'; prefix = '-'; }
                 return (
-                  <div key={li} className={`${bg} ${fg} px-4 whitespace-pre-wrap`}>
-                    <span className="select-none w-4 inline-block text-center mr-3 opacity-60">{prefix}</span>
+                  <div key={li} className={`${bg} ${fg} px-3 sm:px-4 whitespace-pre-wrap break-all`}>
+                    <span className="select-none w-4 inline-block text-center mr-2 sm:mr-3 opacity-50 text-[10px] sm:text-xs">{prefix}</span>
                     {line.text}
                   </div>
                 );
@@ -109,20 +115,22 @@ export function GitHubDiffModal({
             </div>
           ))}
         </div>
+      </div>
 
-        <div className="flex justify-end gap-3 mt-6">
-          <Button onClick={onCancel} disabled={loading} variant="default" autoLoading={false}>
-            取消
-          </Button>
-          <Button
-            variant="primary"
-            loading={loading}
-            onClick={onConfirm}
-            icon={<CheckCircle2 size={14} />}
-          >
-            确认提交
-          </Button>
-        </div>
+      {/* 底部操作栏 */}
+      <div className="flex items-center justify-end gap-2 px-4 py-3 sm:px-5 sm:py-4">
+        <Button onClick={onCancel} disabled={loading} variant="default" size="sm" autoLoading={false}>
+          取消
+        </Button>
+        <Button
+          variant="primary"
+          size="sm"
+          loading={loading}
+          onClick={onConfirm}
+          icon={<CheckCircle2 size={14} />}
+        >
+          确认提交
+        </Button>
       </div>
     </Modal>
   );
