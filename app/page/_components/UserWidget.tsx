@@ -14,7 +14,6 @@
 import Link from 'next/link';
 import { LogIn, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import { useConfig } from '@/hooks/use-config';
 import { useI18n } from '@/hooks/use-i18n';
 import { Avatar } from '@/components/Avatar';
 
@@ -32,7 +31,6 @@ function WidgetSkeleton() {
 
 export function UserWidget() {
   const { user, loading } = useAuth();
-  const { config } = useConfig();
   const { t } = useI18n();
 
   if (loading) {
@@ -55,7 +53,7 @@ export function UserWidget() {
         >
           <Avatar
             name={user.name ?? user.displayName ?? '?'}
-            avatarUrl={config?.auth?.admin?.avatar}
+            avatarUrl={user.avatar}
             size={36}
           />
           <span className="hidden text-sm font-medium text-zinc-700 sm:inline">

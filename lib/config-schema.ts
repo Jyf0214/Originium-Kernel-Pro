@@ -398,27 +398,23 @@ export const zMusicConfig = z.object({
   autoPlay: z.boolean().default(false),
   songs: z.array(zMusicItem).default([]),
 });
+// ============================================================================
+// UserConfig / Users & Root AppConfig
+// ============================================================================
 
-// ============================================================================
-// Root AppConfig
-// ============================================================================
+export const zUserConfig = z.object({ avatar: z.string().optional() });
 
 /**
- * 根 schema:在解析时启用 .strict() 拒绝根级未知 key
- * (例如之前出现过的 _testField 等遗留字段,会立即被 Zod 报错)
- *
- * 子 schema 走 Zod 默认的 strip 模式:未声明的子键会被自动丢弃,
- * 既能容忍部分配置,又不会把未知键混入最终结果。
- *
- * 所有顶层字段均通过 withFullDefault 包一层,确保:
- * - 字段缺失时使用"按 field defaults 跑过一遍 parse 的完整对象"作兜底
- * - 这样 zAppConfig.parse({}) 能得到一个全字段填好的默认配置
+ * 根 schema:在解析时启用 .strict() 拒绝根级未知 key。
+ * 子 schema 走 Zod 默认的 strip 模式,未声明的子键会被自动丢弃。
+ * 所有顶层字段均通过 withFullDefault 包一层,确保 zAppConfig.parse({}) 能得到全字段默认配置。
  */
 export const zAppConfig = z.object({
   site: withFullDefault(zSiteConfig),
   appearance: withFullDefault(zAppearanceConfig),
   access: withFullDefault(zAccessConfig),
   auth: withFullDefault(zAuthConfig),
+  users: z.record(z.string(), zUserConfig).default({}),
   nav: withFullDefault(zNavConfig),
   mourn: withFullDefault(zMournConfig),
   highlight: withFullDefault(zHighlightConfig),
@@ -504,6 +500,10 @@ export interface AuthConfig {
   admin?: {
     avatar?: string;
   };
+}
+
+export interface UserConfig {
+  avatar?: string;
 }
 
 export interface NavMenuItem {
@@ -713,6 +713,7 @@ export interface AppConfig {
   appearance: AppearanceConfig;
   access: AccessConfig;
   auth: AuthConfig;
+  users?: Record<string, UserConfig>;
   nav?: NavConfig;
   mourn?: MournConfig;
   highlight?: HighlightConfig;

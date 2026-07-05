@@ -2,7 +2,6 @@
 
 import { Avatar } from '@/components/Avatar';
 import { useAuth } from '@/hooks/use-auth';
-import { useConfig } from '@/hooks/use-config';
 import { useI18n } from '@/hooks/use-i18n';
 import { Button } from '@/components/ui/Button';
 import { Dropdown, type MenuProps } from 'antd';
@@ -12,14 +11,13 @@ import { showCuteLogoutConfirm } from '@/components/ui/CuteLogout';
 
 export function UserMenu() {
   const { user, userRole, logout } = useAuth();
-  const { config } = useConfig();
   const { t } = useI18n();
   const router = useRouter();
 
   const isSudo = userRole === 'sudo' || userRole === 'admin';
   const userUid = user?.uid ?? '';
   const displayName = user?.name ?? user?.displayName ?? 'User';
-  const avatarUrl = config?.auth?.admin?.avatar;
+  const avatarUrl = user?.avatar;
 
   const handleLogout = async () => {
     const confirmed = await showCuteLogoutConfirm();
