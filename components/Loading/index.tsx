@@ -3,8 +3,9 @@
 import React, { useMemo } from 'react';
 import { Spin } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
+import { ProgressBar } from './ProgressBar';
 
-type LoadingType = 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
+type LoadingType = 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd' | 'progress';
 type LoadingPosition = 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
 interface LoadingConfig {
@@ -242,6 +243,8 @@ function LoadingRenderer({ finalType, finalColor, finalPosition, size, tip }: {
       return <LoadingWaves tip={tip} color={finalColor} />;
     case 'antd':
       return <LoadingAntIcon size={size} tip={tip} color={finalColor} position={finalPosition} />;
+    case 'progress':
+      return <ProgressBar color={finalColor} />;
     default:
       return <LoadingSpinner size={size} tip={tip} position={finalPosition} />;
   }
