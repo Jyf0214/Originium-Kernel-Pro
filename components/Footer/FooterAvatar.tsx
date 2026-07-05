@@ -4,7 +4,6 @@
 'use client';
 
 import React, { useCallback } from 'react';
-import Image from 'next/image';
 import { Globe } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
@@ -36,12 +35,11 @@ export function FooterAvatar({ avatarUrl, hasSiblings = false }: FooterAvatarPro
       onClick={handleScrollTop}
     >
       {avatarUrl ? (
-        <Image
+        <img
           src={avatarUrl}
           alt="Logo"
           width={64}
           height={64}
-          unoptimized
           className="w-16 h-16 rounded-full border-2 border-zinc-200 object-cover hover:border-zinc-400 transition-colors duration-300"
         />
       ) : (
