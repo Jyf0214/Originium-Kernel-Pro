@@ -5,7 +5,6 @@ import { useI18n } from '@/hooks/use-i18n';
 import { GlobalLoading } from '@/components/Loading';
 import ConfigSection from '@/components/ui/ConfigSection';
 import { SettingsPageHeader } from './SettingsPageHeader';
-import { UserCard } from './UserCard';
 import { SettingsForm } from './SettingsForm';
 import { ApiKeyCard } from './ApiKeyCard';
 import { useConfigData } from '../_lib/use-config-data';
@@ -20,7 +19,7 @@ export function SettingsPageContent() {
   const { t } = useI18n();
 
   const { configData, configLoaded, githubConfigured } = useConfigData();
-  const { form, watchedAvatarUrl, originalAvatar, pageReady } = useSettingsForm({
+  const { form, originalAvatar, pageReady } = useSettingsForm({
     user,
     configData,
     configLoaded,
@@ -29,7 +28,6 @@ export function SettingsPageContent() {
     uid: user?.uid,
     originalAvatar,
     githubConfigured,
-    watchedAvatarUrl,
     userName: user?.name ?? user?.uid ?? '',
   });
 
@@ -43,11 +41,6 @@ export function SettingsPageContent() {
         <SettingsPageHeader
           title={t('settings.title')}
           subtitle={t('settings.subtitle')}
-        />
-        <UserCard
-          displayName={user?.displayName ?? user?.name ?? '用户'}
-          email={user?.email ?? ''}
-          avatarUrl={watchedAvatarUrl ?? ''}
         />
         <ConfigSection title={t('settings.title')} color="bg-zinc-500">
           <SettingsForm form={form} loading={loading} onSubmit={handleSave} />
