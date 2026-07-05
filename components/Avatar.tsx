@@ -10,11 +10,6 @@ interface AvatarProps {
   fallbackImg?: string;
 }
 
-/** 自定义 loader：直接返回原始 URL，不做域名限制 */
-function avatarLoader({ src }: { src: string }) {
-  return src;
-}
-
 export function Avatar({ name, avatarUrl, size = 32, fallbackImg }: AvatarProps) {
   const [imgError, setImgError] = useState(false);
   const [fallbackError, setFallbackError] = useState(false);
@@ -36,7 +31,6 @@ export function Avatar({ name, avatarUrl, size = 32, fallbackImg }: AvatarProps)
           alt={name}
           width={size}
           height={size}
-          loader={avatarLoader}
           unoptimized
           className="w-full h-full object-cover"
           onError={() => setImgError(true)}
@@ -56,8 +50,8 @@ export function Avatar({ name, avatarUrl, size = 32, fallbackImg }: AvatarProps)
           alt={name}
           width={size}
           height={size}
-          loader={avatarLoader}
           unoptimized
+          className="w-full h-full object-cover"
           onError={() => setFallbackError(true)}
         />
       </div>
