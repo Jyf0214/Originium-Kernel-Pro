@@ -31,6 +31,7 @@ export default function ConfigPage() {
         navigation: { type: 'antd', color: '#c084fc' },
         slogans: [],
       },
+      effects: { mouseClick: false, backgroundParticles: false, confetti: false },
     },
     access: {
       posts: { public: ['*'], private: [] },
