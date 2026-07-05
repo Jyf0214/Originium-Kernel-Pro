@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { AppearanceConfig } from '@/lib/config-schema';
 
 interface SharejsConfig {
   enable: boolean;
@@ -62,6 +63,7 @@ export interface FrontendConfig {
   auth?: { allowRegistration: boolean };
   avatar?: { url?: string };
   music?: { enable: boolean; autoPlay: boolean; songs: { name: string; artist: string; url: string }[] };
+  appearance?: AppearanceConfig;
 }
 
 let cachedConfig: FrontendConfig | null = null;

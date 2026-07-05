@@ -16,6 +16,19 @@ import { SearchTags } from './SearchTags';
 import { useSearch } from './use-search';
 import type { SearchDialogProps } from './types';
 
+// 结果列表 stagger 进场动画变体
+const listVariants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.04 },
+  },
+} as const;
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' as const } },
+} as const;
+
 export function SearchDialog({ open, onClose }: SearchDialogProps) {
   const {
     query,

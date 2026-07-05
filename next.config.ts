@@ -104,6 +104,13 @@ const nextConfig: NextConfig = {
             "base-uri 'self'",
             "form-action 'self'",
           ].join('; ') },
+          // 跨域安全增强头
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+          // 注意：未添加 Cross-Origin-Embedder-Policy: require-corp
+          // 该头会阻止加载未设置 CORS 的跨域图片（如 picsum.photos、GitHub 头像等），
+          // 导致站内图片加载失败，因此在此省略。
         ],
       },
     ];

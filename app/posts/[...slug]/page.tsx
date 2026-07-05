@@ -125,6 +125,12 @@ function buildViewModel(
   const authorName = typeof meta.author === 'string' ? meta.author : '';
   const authorInfo = getAuthorByName(authorName);
 
+  // 文章加密：读取 frontmatter 中的 password 字段（SHA-256 哈希值）
+  const passwordHash = typeof meta.password === 'string' ? meta.password : '';
+  const isEncrypted = !!passwordHash;
+  // 文章隐藏：读取 frontmatter 中的 hidden 字段
+  const isHidden = meta.hidden === true;
+
   return {
     file: { content, meta },
     fullPath,
@@ -143,6 +149,9 @@ function buildViewModel(
     backlinks,
     outgoingRefs,
     authorInfo,
+    isEncrypted,
+    isHidden,
+    passwordHash,
     // 多语言翻译映射（从 frontmatter translations 字段读取）
     translations: (meta.translations && typeof meta.translations === 'object')
       ? meta.translations as Record<string, string>
