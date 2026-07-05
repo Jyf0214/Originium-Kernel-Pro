@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Settings, Save } from 'lucide-react';
-import GitHubStatus from '@/components/ui/GitHubStatus';
+import ConfigSection from '@/components/ui/ConfigSection';
+import { Settings, Save, Github, CheckCircle, XCircle } from 'lucide-react';
 import ConfigFormBody from './config-form-body';
 import type { ConfigState } from './config-builders';
 import { cn } from '@/lib/ui';
@@ -216,15 +216,31 @@ export default function ConfigEditor({
 
       {/* 主内容区：左侧留出导航空间 */}
       <div className="p-6 lg:pl-56 max-w-4xl mx-auto space-y-4">
-        {/* 顶部工具栏：标题 + 保存按钮 */}
-        <div className="flex items-center justify-between">
-          <ConfigPageHeader t={t} />
-          <div className="flex items-center gap-3">
-            <GitHubStatus
-              configured={githubConfigured}
-              configuredText="已配置"
-              notConfiguredText="未配置"
-            />
+        {/* 顶部工具栏：标题 */}
+        <ConfigPageHeader t={t} />
+
+        {remoteFetchFailed && (
+          <RemoteFetchErrorAlert error={remoteConfigError} />
+        )}
+
+        <ConfigFormBody config={config} onConfigChange={onConfigChange} t={t} />
+
+        {/* 底部：GitHub 同步状态 + 保存按钮 */}
+        <ConfigSection title="GitHub 同步" icon={Github} color="bg-zinc-500">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div
+              className="px-4 py-3 rounded-xl flex items-center gap-3"
+              style={{ background: githubConfigured ? '#f6ffed' : '#fff7e6' }}
+            >
+              {githubConfigured ? (
+                <CheckCircle size={20} style={{ color: '#52c41a' }} />
+              ) : (
+                <XCircle size={20} style={{ color: '#faad14' }} />
+              )}
+              <span className="font-medium text-sm">
+                {githubConfigured ? 'GitHub 已配置，可同步配置文件' : 'GitHub 未配置，仅保存本地'}
+              </span>
+            </div>
             <Button
               variant="primary"
               size="md"
@@ -236,13 +252,7 @@ export default function ConfigEditor({
               保存配置
             </Button>
           </div>
-        </div>
-
-        {remoteFetchFailed && (
-          <RemoteFetchErrorAlert error={remoteConfigError} />
-        )}
-
-        <ConfigFormBody config={config} onConfigChange={onConfigChange} t={t} />
+        </ConfigSection>
 
         {DiffModal}
       </div>
