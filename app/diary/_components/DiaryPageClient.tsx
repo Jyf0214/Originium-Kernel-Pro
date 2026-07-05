@@ -5,7 +5,6 @@ import { Plus, Settings, ShieldAlert, FileText, Loader2 } from 'lucide-react';
 import { GlobalLoading } from '@/components/Loading';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { HeroBanner } from '@/components/ui/HeroBanner';
 import { Button } from '@/components/ui/Button';
 import { useDiaryState } from './use-diary-state';
 import { DiaryFilters, GroupTabs } from './DiaryFilters';
@@ -27,24 +26,16 @@ export function DiaryPageClient() {
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
       <PageContainer maxWidth="4xl" padding="compact">
-        <HeroBanner
-          title="日记"
-          description="安全 · 隐私 · 加密存储"
-          tips="管理员"
-          align="left"
-          size="compact"
-          buttons={[
-            {
-              label: '新建日记',
-              variant: 'primary',
-              icon: <Plus size={16} />,
-              onClick: () => s.router.push('/diary/new'),
-            },
-          ]}
-          className="mb-6 sm:mb-8"
-        />
-
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
+          <Button
+            variant="primary"
+            size="md"
+            autoLoading={false}
+            onClick={() => s.router.push('/diary/new')}
+            icon={<Plus size={14} />}
+          >
+            <span className="hidden sm:inline">新建日记</span>
+          </Button>
           <Button
             variant={showSettings ? 'primary' : 'secondary'}
             size="md"
