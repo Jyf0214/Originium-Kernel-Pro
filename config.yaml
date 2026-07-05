@@ -51,7 +51,7 @@ access:
 auth:
   allowRegistration: false
 avatar:
-  url: https://avatar.vercel.sh/jyf0214?size=128&background=030712&color=fafafaf9
+  url: https://github.com/Jyf0214.png
 nav:
   enable: true
   travelling: true
