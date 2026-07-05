@@ -10,8 +10,8 @@ import { useEditActions } from './_lib/use-edit-actions';
 import { EditFaceBreadcrumb } from './_components/EditFaceBreadcrumb';
 import { EditFaceForm } from './_components/EditFaceForm';
 import { EditFaceHeader } from './_components/EditFaceHeader';
-import { EditFaceLoading } from './_components/EditFaceLoading';
-import { EditFaceShell } from './_components/EditFaceShell';
+import { GlobalLoading } from '@/components/Loading';
+import { PageContainer } from '@/components/ui/PageContainer';
 
 export default function EditFacePage() {
   const params = useParams();
@@ -21,11 +21,12 @@ export default function EditFacePage() {
   const { form, file, groups, loading } = useFaceData(fullPath);
   const { submitting, deleting, submit, remove } = useEditActions({ filePath });
 
-  if (loading || authLoading) return <EditFaceLoading />;
+  if (loading || authLoading) return <div className="min-h-screen flex flex-col bg-zinc-50"><div className="flex-1 flex items-center justify-center"><GlobalLoading size="large" /></div></div>;
   if (!isSudo || !file) return null;
 
   return (
-    <EditFaceShell>
+    <div className="min-h-screen flex flex-col bg-zinc-50">
+      <PageContainer maxWidth="4xl">
       <EditFaceBreadcrumb fullPath={fullPath} title={file.meta.title} t={t} />
       <EditFaceHeader title={file.meta.title} />
       <EditFaceForm
@@ -39,6 +40,7 @@ export default function EditFacePage() {
         onDelete={remove}
         t={t}
       />
-    </EditFaceShell>
+      </PageContainer>
+    </div>
   );
 }

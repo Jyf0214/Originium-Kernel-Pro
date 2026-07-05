@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { PostItem } from './types';
-import { PAGE_SIZE } from './home-constants';
+const PAGE_SIZE = 8;
 
 export interface UseHomeFilterResult {
   selectedTag: string | null;

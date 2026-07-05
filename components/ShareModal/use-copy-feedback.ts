@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { TOAST_DURATION_MS, COPY_FEEDBACK_DURATION_MS } from './share-modal-styles';
+const TOAST_DURATION_MS = 2500;
+const COPY_FEEDBACK_DURATION_MS = 2000;
 
 /* ============================================================
    复制反馈 hook

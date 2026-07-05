@@ -8,7 +8,7 @@ import { useI18n } from '@/hooks/use-i18n';
 import { DashboardHeader } from './_components/DashboardHeader';
 import { QuickActions } from './_components/QuickActions';
 import { RecentArticlesCard } from './_components/RecentArticlesCard';
-import { StatCardGrid } from './_components/StatCardGrid';
+import { StatCard } from './_components/StatCard';
 import { useDashboardData } from './_lib/use-dashboard-data';
 import { useQuickActions } from './_lib/use-quick-actions';
 import { useStatCards } from './_lib/use-stat-cards';
@@ -32,7 +32,11 @@ export default function DashboardPage() {
   return (
     <PageContainer maxWidth="6xl">
       <DashboardHeader user={user} t={t} />
-      <StatCardGrid cards={statCards} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-10">
+        {statCards.map((card, index) => (
+          <StatCard key={index} card={card} />
+        ))}
+      </div>
       <QuickActions actions={quickActions} t={t} />
       <RecentArticlesCard articles={recentArticles} t={t} locale={locale} />
     </PageContainer>
