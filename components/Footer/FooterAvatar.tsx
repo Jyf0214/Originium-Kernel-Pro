@@ -38,8 +38,6 @@ export function FooterAvatar({ avatarUrl, hasSiblings = false }: FooterAvatarPro
         <img
           src={avatarUrl}
           alt="Logo"
-          width={64}
-          height={64}
           className="w-16 h-16 rounded-full border-2 border-zinc-200 object-cover hover:border-zinc-400 transition-colors duration-300"
         />
       ) : (

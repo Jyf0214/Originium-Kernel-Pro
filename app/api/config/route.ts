@@ -337,6 +337,7 @@ function mergeAppConfig(
     appearance: mergeAppearance(base.appearance, override.appearance),
     access: mergeAccess(base.access, override.access),
     auth: mergeAuth(base.auth, override.auth),
+    users: override.users ?? base.users,
     nav: mergeNav(base.nav, override.nav),
     mourn: mergeMourn(base.mourn, override.mourn),
     highlight: mergeHighlight(base.highlight, override.highlight),

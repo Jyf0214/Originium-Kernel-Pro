@@ -1,6 +1,5 @@
 import { LogOut } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
-import { useConfig } from '@/hooks/use-config';
 import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/ui/Button';
 import type { SidebarUser } from './types';
@@ -13,8 +12,7 @@ interface SidebarUserMenuProps {
 
 export default function SidebarUserMenu({ user, onLogout, collapsed }: SidebarUserMenuProps) {
   const { t } = useI18n();
-  const { config } = useConfig();
-  const avatarUrl = config?.auth?.admin?.avatar;
+  const avatarUrl = user?.avatar;
 
   if (collapsed) {
     return (

@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ requires2FA: true });
     }
 
-    const avatar = await getUserAvatarAsync();
+    const avatar = await getUserAvatarAsync(user.uid, user.role === 'admin' || user.role === 'sudo');
 
     const validRoles = ['user', 'admin', 'sudo'] as const;
     const role = validRoles.includes(user.role as 'user' | 'admin' | 'sudo') ? user.role as SessionPayload['role'] : 'user';
