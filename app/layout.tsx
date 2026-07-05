@@ -55,7 +55,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         {/* 构建时注入全局头像 URL，客户端直接读取，无需 API 请求 */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.__AVATAR_URL__=${JSON.stringify(config.auth?.admin?.avatar ?? '')}`,
+            __html: `window.__AVATAR_URL__=${JSON.stringify(config.avatar?.url ?? '')}`,
           }}
         />
       </head>

@@ -55,8 +55,8 @@ export interface ConfigState {
   };
   auth: {
     allowRegistration: boolean;
-    admin?: { avatar?: string };
   };
+  avatar: { url: string };
   nav: NavConfigData;
   mourn: { enable: boolean; days: string[] };
   highlight: { theme: string; copy: boolean; lang: boolean; shrink: boolean; heightLimit: number; wordWrap: boolean };
@@ -74,7 +74,7 @@ export interface ConfigState {
   };
   wordcount: { enable: boolean; postWordcount: boolean; min2read: boolean; totalWordcount: boolean };
   toc: { post: boolean; page: boolean; number: boolean; expand: boolean; styleSimple: boolean };
-  copyright: { enable: boolean; decode: boolean; authorHref: string; location: string; license: string; licenseUrl: string; avatarSinks: boolean; authorImgBack: string; authorImgFront: string; authorLink: string };
+  copyright: { enable: boolean; decode: boolean; authorHref: string; location: string; license: string; licenseUrl: string; authorLink: string };
   reward: { enable: boolean; qrCodes: { img: string; link: string; text: string }[] };
   postEdit: { enable: boolean; github: string | false };
 }
@@ -247,9 +247,6 @@ const COPYRIGHT_DEFAULTS: ConfigState['copyright'] = {
   location: '中国',
   license: 'CC BY-NC-SA 4.0',
   licenseUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
-  avatarSinks: true,
-  authorImgBack: '',
-  authorImgFront: '',
   authorLink: '/',
 };
 
@@ -322,6 +319,7 @@ export function buildConfigState(data: Record<string, unknown>): ConfigState {
     appearance: buildAppearanceConfig(data),
     access: buildAccessConfig(data),
     auth: buildAuthConfig(data),
+    avatar: { url: ((data.avatar as Record<string, unknown>)?.url as string) ?? '' },
     nav: buildNavConfig(data),
     mourn: buildMournConfig(data),
     highlight: buildHighlightConfig(data),

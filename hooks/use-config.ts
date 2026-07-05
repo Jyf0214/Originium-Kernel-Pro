@@ -54,14 +54,14 @@ export interface FrontendConfig {
   copy?: { enable: boolean; copyright: { enable: boolean; limitCount: number } };
   copyright?: {
     enable: boolean; decode: boolean; authorHref: string; location: string;
-    license: string; licenseUrl: string; avatarSinks: boolean;
-    authorImgBack: string; authorImgFront: string; authorLink: string;
+    license: string; licenseUrl: string; authorLink: string;
   };
   reward?: { enable: boolean; qrCodes: { img: string; link: string; text: string }[] };
   authorStatus?: { enable: boolean; statusImg: string; skills: string[] };
   postEdit?: { enable: boolean; github: string | false };
   site?: { title: string; description: string; lang: string };
-  auth?: { allowRegistration: boolean; admin?: { avatar?: string } };
+  auth?: { allowRegistration: boolean };
+  avatar?: { url?: string };
   music?: { enable: boolean; autoPlay: boolean; songs: { name: string; artist: string; url: string }[] };
 }
 
