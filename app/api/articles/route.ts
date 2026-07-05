@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { loadConfig, canAccess, hasDatabase } from '@/lib/config';
+import { getContentFiles } from '@/lib/content';
 import { getDraft, saveDraft } from '@/lib/draft-storage';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
@@ -31,6 +32,44 @@ async function getDraftsFromDb() {
   return drafts;
 }
 
+/** 将文件索引映射为已发布文章对象 */
+function mapPublishedFiles(
+  files: ReturnType<typeof getContentFiles>,
+  authorAvatar?: string,
+) {
+  return files.map((f) => ({
+    id: f.slug,
+    slug: f.slug,
+    title: f.meta.title,
+    author: f.meta.author,
+    authorAvatar,
+    date: f.meta.date,
+    tags: f.meta.tags ?? [],
+    cover: f.meta.cover,
+    description: f.meta.description,
+    status: 'published',
+  }));
+}
+
+/** 加载并过滤草稿 */
+async function loadDrafts(
+  session: Awaited<ReturnType<typeof getSession>>,
+  authorFilter: string | null,
+) {
+  const allDrafts = await getDraftsFromDb();
+  const isAdmin = session?.role === 'sudo' || session?.role === 'admin';
+  let drafts = isAdmin ? allDrafts : allDrafts.filter((d) => d.authorId === session?.uid);
+  if (authorFilter) {
+    drafts = drafts.filter((d) => d.authorId === authorFilter);
+  }
+  for (const draft of drafts) {
+    if (draft.status === 'draft' && !draft.content) {
+      draft.content = (await getDraft(draft.id)) ?? '';
+    }
+  }
+  return drafts;
+}
+
 export async function GET(req: NextRequest) {
   try {
     logger.info('GET', '获取文章列表');
@@ -42,46 +81,19 @@ export async function GET(req: NextRequest) {
     const isAuthenticated = !!session;
     const config = loadConfig();
     const dbAvailable = hasDatabase();
-    const { getContentFiles } = await import('@/lib/content');
     const publishedFiles = getContentFiles('posts').filter((f) =>
       canAccess('posts', f.slug, isAuthenticated, dbAvailable, config)
     );
-    let published = publishedFiles.map((f) => ({
-      id: f.slug,
-      slug: f.slug,
-      title: f.meta.title,
-      author: f.meta.author,
-      date: f.meta.date,
-      tags: f.meta.tags ?? [],
-      cover: f.meta.cover,
-      description: f.meta.description,
-      status: 'published',
-    }));
+    const authorAvatar = config.auth?.admin?.avatar ?? undefined;
+    let published = mapPublishedFiles(publishedFiles, authorAvatar);
 
     // 按 author 参数过滤已发布文章
     if (authorFilter) {
-      published = published.filter((p) => p.author === authorFilter);
+      published = published.filter((p: { author?: string }) => p.author === authorFilter);
     }
 
-  // 草稿：仅已登录用户可查看，非 sudo/admin 只能看到自己的草稿
-  let drafts: Awaited<ReturnType<typeof getDraftsFromDb>> = [];
-  if (isAuthenticated) {
-    const allDrafts = await getDraftsFromDb();
-    drafts = session?.role === 'sudo' || session?.role === 'admin'
-      ? allDrafts
-      : allDrafts.filter((d) => d.authorId === session?.uid);
-
-    // 按 author 参数过滤草稿（草稿中 authorId 对应 author）
-    if (authorFilter) {
-      drafts = drafts.filter((d) => d.authorId === authorFilter);
-    }
-    for (const draft of drafts) {
-      if (draft.status === 'draft' && !draft.content) {
-        const fileContent = await getDraft(draft.id);
-        draft.content = fileContent ?? '';
-      }
-    }
-  }
+    // 草稿：仅已登录用户可查看，非 sudo/admin 只能看到自己的草稿
+    const drafts = isAuthenticated ? await loadDrafts(session, authorFilter) : [];
 
     // 合并，按日期降序
     const all = [
