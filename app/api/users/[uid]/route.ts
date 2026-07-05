@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { loadConfig } from '@/lib/config';
+import { getUserAvatar } from '@/lib/config';
 import type { UserRole } from '@/lib/user';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler, getParam } from '@/lib/api-handler';
@@ -50,8 +50,7 @@ export const GET = apiHandler('GET', { label: '获取用户信息', requireAdmin
   } catch {
     return NextResponse.json({ error: '用户数据损坏' }, { status: 500 });
   }
-  const config = loadConfig();
-  const avatar = config.auth?.admin?.avatar ?? null;
+  const avatar = getUserAvatar();
 
   logger.info('GET', '获取用户信息成功', { uid });
   return NextResponse.json({

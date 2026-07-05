@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { loadConfig, canAccess, hasDatabase } from '@/lib/config';
+import { loadConfig, canAccess, hasDatabase, getUserAvatar } from '@/lib/config';
 import { getContentFiles } from '@/lib/content';
 import { getDraft, saveDraft } from '@/lib/draft-storage';
 import { createApiLogger } from '@/lib/api-logger';
@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
     const publishedFiles = getContentFiles('posts').filter((f) =>
       canAccess('posts', f.slug, isAuthenticated, dbAvailable, config)
     );
-    const authorAvatar = config.auth?.admin?.avatar ?? undefined;
+    const authorAvatar = getUserAvatar() ?? undefined;
     let published = mapPublishedFiles(publishedFiles, authorAvatar);
 
     // 按 author 参数过滤已发布文章
