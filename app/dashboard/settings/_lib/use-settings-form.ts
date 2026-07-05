@@ -7,7 +7,6 @@ import type { RemoteConfigData, SettingsFormValues } from './types';
 
 export interface UseSettingsFormResult {
   form: FormInstance<SettingsFormValues>;
-  watchedAvatarUrl: string | undefined;
   originalAvatar: string;
   pageReady: boolean;
 }
@@ -30,7 +29,6 @@ export function useSettingsForm({
   const [form] = Form.useForm<SettingsFormValues>();
   const [originalAvatar, setOriginalAvatar] = useState('');
   const [pageReady, setPageReady] = useState(false);
-  const watchedAvatarUrl = Form.useWatch('avatarUrl', form);
 
   useEffect(() => {
     if (user && configLoaded) {
@@ -46,5 +44,5 @@ export function useSettingsForm({
     }
   }, [user, configLoaded, configData, form]);
 
-  return { form, watchedAvatarUrl, originalAvatar, pageReady };
+  return { form, originalAvatar, pageReady };
 }

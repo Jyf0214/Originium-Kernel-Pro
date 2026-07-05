@@ -21,7 +21,6 @@ interface UseSettingsSaveArgs {
   uid: string | undefined;
   originalAvatar: string;
   githubConfigured: boolean;
-  watchedAvatarUrl: string | undefined;
   userName: string;
 }
 
@@ -34,7 +33,6 @@ export function useSettingsSave({
   uid,
   originalAvatar,
   githubConfigured,
-  watchedAvatarUrl,
   userName,
 }: UseSettingsSaveArgs): UseSettingsSaveResult {
   const { refresh } = useAuth();
@@ -43,8 +41,8 @@ export function useSettingsSave({
 
   // 稳定引用，便于 useGitHubConfigSync 内部比较
   const syncCurrentConfig = useMemo(
-    () => ({ avatarUrl: watchedAvatarUrl ?? '' }),
-    [watchedAvatarUrl],
+    () => ({ avatarUrl: originalAvatar }),
+    [originalAvatar],
   );
 
   const handleSyncComplete = useCallback(() => {
