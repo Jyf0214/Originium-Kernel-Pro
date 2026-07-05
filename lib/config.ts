@@ -139,26 +139,16 @@ export function filterAccessibleSlugs(
 }
 
 /**
- * 获取用户头像（仅从配置文件读取）
- * 优先级：config.users[uid].avatar > auth.admin.avatar（仅当用户是管理员）
+ * 获取用户头像（全局统一，始终返回 auth.admin.avatar）
  */
-export function getUserAvatarAsync(uid: string, isAdmin?: boolean): Promise<string | null> {
-  return Promise.resolve(getUserAvatar(uid, isAdmin));
+export function getUserAvatarAsync(): Promise<string | null> {
+  return Promise.resolve(getUserAvatar());
 }
 
 /**
- * 获取用户头像（同步，仅从配置文件读取）
+ * 获取用户头像（同步，全局统一）
  */
-export function getUserAvatar(uid: string, isAdmin?: boolean): string | null {
+export function getUserAvatar(): string | null {
   const config = loadConfig();
-
-  if (config.users?.[uid]?.avatar) {
-    return config.users[uid].avatar;
-  }
-
-  if (isAdmin && config.auth?.admin?.avatar) {
-    return config.auth.admin.avatar;
-  }
-
-  return null;
+  return config.auth?.admin?.avatar ?? null;
 }

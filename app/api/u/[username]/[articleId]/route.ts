@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getDb, storage } from '@/lib/db';
-import { loadConfig, type AppConfig } from '@/lib/config';
+import { getUserAvatar } from '@/lib/config';
 import { createApiLogger } from '@/lib/api-logger';
 
 const logger = createApiLogger('/api/u/[username]/[articleId]');
@@ -24,10 +24,6 @@ async function findArticleUser(
   }
 }
 
-function getUserAvatar(config: AppConfig): string | null {
-  return config.auth?.admin?.avatar ?? null;
-}
-
 async function getRawMarkdownContent(articleId: string): Promise<string> {
   try {
     const raw = await storage.getFile(`articles/${articleId}.md`);
@@ -45,7 +41,6 @@ export async function GET(
     const { username, articleId } = await params;
     logger.info('GET', '读取用户文章', { username, articleId });
     const db = getDb();
-    const config = loadConfig();
 
     const user = await findArticleUser(db, username);
     if (!user) {
@@ -53,7 +48,7 @@ export async function GET(
       return NextResponse.json({ error: '用户不存在' }, { status: 404 });
     }
 
-    const avatar = getUserAvatar(config);
+    const avatar = getUserAvatar();
 
     const articleStr = await db.get(`article:data:${articleId}`);
     if (!articleStr) {
