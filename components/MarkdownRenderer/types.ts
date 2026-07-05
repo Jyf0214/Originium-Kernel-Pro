@@ -20,6 +20,8 @@ export interface MarkdownRendererProps {
   highlight?: HighlightConfig;
   /** 可选：wiki-link 标题解析映射，启用后 [[标题]] 会转为可点击链接 */
   wikiLinkMap?: WikiLinkMap;
+  /** 可选：图片水印文字，传入后每张图片右下角显示半透明水印 */
+  watermark?: string;
 }
 
 /** react-syntax-highlighter 组件接收的 props */

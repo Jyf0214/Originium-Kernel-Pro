@@ -5,7 +5,6 @@
 import React, { useEffect, useRef } from 'react';
 import { BookOpen, FileText } from 'lucide-react';
 import Link from 'next/link';
-import { motion } from 'motion/react';
 
 import { ProCard } from '@/components/ui/ProCard';
 import { Tag } from '@/components/ui/Tag';

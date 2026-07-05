@@ -61,6 +61,16 @@ export const zSiteConfig = z.object({
 });
 
 // ============================================================================
+// EffectsConfig
+// ============================================================================
+
+export const zEffectsConfig = z.object({
+  mouseClick: z.boolean().default(false),
+  backgroundParticles: z.boolean().default(false),
+  confetti: z.boolean().default(false),
+});
+
+// ============================================================================
 // AppearanceConfig
 // ============================================================================
 
@@ -88,6 +98,7 @@ export const zAppearanceConfig = z.object({
     })),
     slogans: z.array(z.string()).default([]),
   })),
+  effects: withFullDefault(zEffectsConfig),
 });
 
 // ============================================================================
@@ -388,6 +399,17 @@ export const zMusicConfig = z.object({
   autoPlay: z.boolean().default(false),
   songs: z.array(zMusicItem).default([]),
 });
+
+// ============================================================================
+// EffectsConfig
+// ============================================================================
+
+export const zEffectsConfig = z.object({
+  mouseClick: z.boolean().default(false),
+  backgroundParticles: z.boolean().default(false),
+  confetti: z.boolean().default(false),
+});
+
 // ============================================================================
 // UserConfig / Users & Root AppConfig
 // ============================================================================
@@ -681,6 +703,12 @@ export interface MusicConfig {
   enable: boolean;
   autoPlay: boolean;
   songs: MusicItem[];
+}
+
+export interface EffectsConfig {
+  mouseClick: boolean;
+  backgroundParticles: boolean;
+  confetti: boolean;
 }
 
 export interface AppConfig {

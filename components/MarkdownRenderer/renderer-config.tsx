@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect, useCallback, type ComponentType, type ReactNode } from 'react';
-import { Copy, Check, Info, AlertTriangle, Lightbulb, Flame } from 'lucide-react';
+import { Copy, Check, Info, AlertTriangle, Lightbulb, Flame, ExternalLink } from 'lucide-react';
 import type { CodeProps, HighlightConfig, HighlighterInstance } from './types';
 import { createHeading } from './HeadingAnchor';
 import { CodeBlock } from './CodeBlock';
 import { MermaidBlock } from './MermaidBlock';
+import { VideoEmbed } from './video-embed';
 
 /** 主题名映射：配置项 → react-syntax-highlighter 内置样式 */
 const themeMap: Record<string, string> = {
@@ -170,19 +171,31 @@ export function buildComponents(
       return <CalloutBlock>{children}</CalloutBlock>;
     },
     a({ href, children, ...props }: { href?: string; children?: ReactNode; [key: string]: unknown }) {
-      // 外部链接安全处理 + 视频/音频嵌入
-      const isExternal = href && (href.startsWith('http://') || href.startsWith('https://'));
+      // 媒体文件（mp4/webm/ogg 等）→ 原生播放器
       const isMedia = href && MEDIA_URL_RE.test(href);
       if (isMedia) {
         return <MediaEmbed href={href}>{children}</MediaEmbed>;
       }
+
+      // YouTube / Bilibili 视频链接 → iframe 嵌入播放器
+      if (href) {
+        const videoEmbed = <VideoEmbed href={href} />;
+        if (videoEmbed) return videoEmbed;
+      }
+
+      // 外部链接（http/https）→ 新窗口打开 + ExternalLink 图标
+      const isOutbound = href && (href.startsWith('http://') || href.startsWith('https://'));
+
       return (
         <a
           href={href}
-          {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          {...(isOutbound ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
           {...props}
         >
           {children}
+          {isOutbound && (
+            <ExternalLink className="inline-block w-3 h-3 ml-0.5 text-zinc-400" />
+          )}
         </a>
       );
     },
