@@ -401,16 +401,6 @@ export const zMusicConfig = z.object({
 });
 
 // ============================================================================
-// EffectsConfig
-// ============================================================================
-
-export const zEffectsConfig = z.object({
-  mouseClick: z.boolean().default(false),
-  backgroundParticles: z.boolean().default(false),
-  confetti: z.boolean().default(false),
-});
-
-// ============================================================================
 // UserConfig / Users & Root AppConfig
 // ============================================================================
 
@@ -493,6 +483,7 @@ export interface AppearanceConfig {
     };
     slogans?: string[];
   };
+  effects?: EffectsConfig;
 }
 
 export interface AccessSection {
