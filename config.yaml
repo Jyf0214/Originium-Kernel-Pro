@@ -51,7 +51,7 @@ access:
 auth:
   allowRegistration: false
 avatar:
-  url: https://github.com/Jyf0214.png
+  url: https://avatars.githubusercontent.com/u/169313142?v=4
 nav:
   enable: true
   travelling: true
