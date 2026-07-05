@@ -29,7 +29,6 @@ export function buildCopyrightConfig(appConfig: FrontendConfig) {
     licenseUrl: appConfig.copyright?.licenseUrl ?? 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
     authorLink: appConfig.copyright?.authorLink ?? '/',
     authorImgFront: appConfig.avatar?.url,
-    location: appConfig.copyright?.location,
     decode: appConfig.copyright?.decode,
   };
 }

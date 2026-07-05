@@ -53,11 +53,10 @@ export interface FrontendConfig {
   toc?: { post: boolean; page: boolean; number: boolean; expand: boolean; styleSimple: boolean };
   copy?: { enable: boolean; copyright: { enable: boolean; limitCount: number } };
   copyright?: {
-    enable: boolean; decode: boolean; authorHref: string; location: string;
+    enable: boolean; decode: boolean; authorHref: string;
     license: string; licenseUrl: string; authorLink: string;
   };
   reward?: { enable: boolean; qrCodes: { img: string; link: string; text: string }[] };
-  authorStatus?: { enable: boolean; statusImg: string; skills: string[] };
   postEdit?: { enable: boolean; github: string | false };
   site?: { title: string; description: string; lang: string };
   auth?: { allowRegistration: boolean };

@@ -11,6 +11,7 @@ import { Avatar } from '@/components/Avatar';
 import Footer from '@/components/Footer';
 import AuthorCard from '@/components/AuthorCard';
 import { useConfig } from '@/hooks/use-config';
+import { useAuthorByName } from '@/hooks/use-author';
 import { showError } from '@/lib/error';
 import { Calendar, Mail, BookOpen } from 'lucide-react';
 import Link from 'next/link';
@@ -30,6 +31,7 @@ function UserProfileContent() {
 
   const { config: siteConfig } = useConfig();
   const [user, setUser] = useState<UserProfile | null>(null);
+  const authorInfo = useAuthorByName(user?.name);
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -120,6 +122,7 @@ function UserProfileContent() {
           authorName={user.name}
           authorAvatar={user.avatar ?? undefined}
           authorUrl={`/${username}`}
+          authorInfo={authorInfo}
         />
 
         {/* Articles Grid */}

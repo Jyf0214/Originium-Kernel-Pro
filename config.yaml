@@ -89,10 +89,6 @@ copy:
     limitCount: 50
 social:
   Github: https://github.com/Jyf0214
-authorStatus:
-  enable: false
-  statusImg: ''
-  skills: []
 cover:
   indexEnable: true
   asideEnable: true
@@ -132,7 +128,6 @@ copyright:
   enable: true
   decode: false
   authorHref: ''
-  location: 中国
   license: CC BY-NC-SA 4.0
   licenseUrl: https://creativecommons.org/licenses/by-nc-sa/4.0/
   authorLink: /

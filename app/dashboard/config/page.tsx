@@ -51,7 +51,6 @@ export default function ConfigPage() {
     highlight: { theme: 'light', copy: true, lang: true, shrink: false, heightLimit: 330, wordWrap: true },
     copy: { enable: true, copyright: { enable: false, limitCount: 50 } },
     social: {},
-    authorStatus: { enable: false, statusImg: '', skills: [] },
     cover: { indexEnable: true, asideEnable: true, archivesEnable: true, position: 'left', defaultCover: [] },
     errorImg: { flink: '/img/friend_404.gif', postPage: '/img/404.jpg' },
     postMeta: {
@@ -60,7 +59,7 @@ export default function ConfigPage() {
     },
     wordcount: { enable: false, postWordcount: false, min2read: true, totalWordcount: false },
     toc: { post: true, page: false, number: true, expand: false, styleSimple: false },
-    copyright: { enable: true, decode: false, authorHref: '', location: '中国', license: 'CC BY-NC-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/', authorLink: '/' },
+    copyright: { enable: true, decode: false, authorHref: '', license: 'CC BY-NC-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/', authorLink: '/' },
     reward: { enable: true, qrCodes: [] },
     postEdit: { enable: false, github: false },
     share: { sharejs: { enable: true, sites: 'facebook,twitter,wechat,weibo,qq' }, addtoany: { enable: false, item: 'facebook,twitter,wechat,sina_weibo,email,copy_link' } },
@@ -82,7 +81,7 @@ export default function ConfigPage() {
     githubConfigured,
     remoteConfig,
     currentConfig: config as unknown as Record<string, unknown>,
-    managedFields: ['site', 'appearance', 'access', 'auth', 'avatar', 'nav', 'mourn', 'highlight', 'copy', 'social', 'authorStatus', 'cover', 'errorImg', 'postMeta', 'wordcount', 'toc', 'copyright', 'reward', 'postEdit', 'share', 'mainTone', 'footer', 'clerk', 'music'],
+    managedFields: ['site', 'appearance', 'access', 'auth', 'avatar', 'nav', 'mourn', 'highlight', 'copy', 'social', 'cover', 'errorImg', 'postMeta', 'wordcount', 'toc', 'copyright', 'reward', 'postEdit', 'share', 'mainTone', 'footer', 'clerk', 'music'],
     onSyncStart: () => setSaving(true),
     onSyncComplete: (yamlContent) => {
       setRemoteConfig(yamlContent);

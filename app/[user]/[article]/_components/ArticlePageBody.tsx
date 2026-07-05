@@ -12,7 +12,8 @@ import PostEditLink from '@/components/PostEditLink';
 import TableOfContents from '@/components/TableOfContents';
 import CopyInterceptor from '@/components/CopyInterceptor';
 import { PageContainer } from '@/components/ui/PageContainer';
-import type { FrontendConfig } from '@/hooks/use-config';
+import { type FrontendConfig } from '@/hooks/use-config';
+import { useAuthorByName } from '@/hooks/use-author';
 import { ArticleHeader } from './ArticleHeader';
 import { ArticleCoverImage } from './ArticleCoverImage';
 import { ArticleContentSection } from './ArticleContentSection';
@@ -45,6 +46,7 @@ export function ArticlePageBody({
 }) {
   const shareConfig = siteConfig?.share;
   const showShare = shareConfig && (shareConfig.sharejs.enable || shareConfig.addtoany.enable);
+  const authorInfo = useAuthorByName(articleData.authorName);
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
@@ -92,16 +94,17 @@ export function ArticlePageBody({
             {showShare && <ShareButtons config={shareConfig} title={articleData.title} variant="horizontal" />}
           </div>
 
-          <ArticleCopyright authorName={articleData.authorName} />
+          <ArticleCopyright authorName={articleData.authorName} authorInfo={authorInfo} />
           <RewardArea />
           <AuthorCard
             authorName={articleData.authorName}
             authorAvatar={userData?.avatar}
             authorUrl={`/${username}`}
+            authorInfo={authorInfo}
           />
         </article>
 
-        <CopyInterceptor articleRef={articleRef} authorName={articleData.authorName} />
+        <CopyInterceptor articleRef={articleRef} authorName={articleData.authorName} authorInfo={authorInfo} />
         <TableOfContents content={rawContent || articleData.content} />
       </PageContainer>
       <Footer />

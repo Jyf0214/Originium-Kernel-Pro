@@ -37,6 +37,9 @@ export function getAuthors(): AuthorInfo[] {
       avatar: typeof item.avatar === 'string' ? item.avatar : undefined,
       location: typeof item.location === 'string' ? item.location : undefined,
       bio: typeof item.bio === 'string' ? item.bio : undefined,
+      enable: typeof item.enable === 'boolean' ? item.enable : undefined,
+      statusImg: typeof item.statusImg === 'string' ? item.statusImg : undefined,
+      skills: Array.isArray(item.skills) ? item.skills.filter((s): s is string => typeof s === 'string') : undefined,
     }));
 
   return cachedAuthors;

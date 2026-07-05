@@ -6,7 +6,6 @@ interface CopyrightConfigData {
   enable: boolean;
   decode: boolean;
   authorHref: string;
-  location: string;
   license: string;
   licenseUrl: string;
   authorLink: string;
@@ -28,10 +27,9 @@ export default function CopyrightConfig({ config, onChange }: CopyrightConfigPro
         <FormField label="作者地址" value={config.authorHref} onChange={v => onChange({ ...config, authorHref: v })} placeholder="https://" />
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <FormField label="所在地" value={config.location} onChange={v => onChange({ ...config, location: v })} placeholder="中国" />
         <FormField label="许可证" value={config.license} onChange={v => onChange({ ...config, license: v })} placeholder="CC BY-NC-SA 4.0" />
+        <FormField label="许可证链接" value={config.licenseUrl} onChange={v => onChange({ ...config, licenseUrl: v })} placeholder="https://creativecommons.org/licenses/by-nc-sa/4.0/" />
       </div>
-      <FormField label="许可证链接" value={config.licenseUrl} onChange={v => onChange({ ...config, licenseUrl: v })} placeholder="https://creativecommons.org/licenses/by-nc-sa/4.0/" />
     </div>
   );
 }
