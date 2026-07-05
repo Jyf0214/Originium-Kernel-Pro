@@ -48,8 +48,9 @@ function walkArray(
   key: string,
 ): void {
   for (let i = 0; i < arr.length; i++) {
-    if (isAstNode(arr[i])) {
-      walkNode(arr[i], callback, parent, key, i);
+    const item = arr[i];
+    if (isAstNode(item)) {
+      walkNode(item, callback, parent, key, i);
     }
   }
 }

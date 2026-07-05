@@ -341,7 +341,7 @@ export function Navbar({ navConfig: navConfigProp }: NavbarProps) {
         onClick={() => state.setSearchOpen(true)}
         className="fixed top-3 right-[84px] md:right-[120px] z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
         aria-label="搜索"
-        title="搜索 (/)"
+        title={typeof navigator !== 'undefined' && navigator.platform?.includes('Mac') ? '搜索 (⌘K)' : '搜索 (Ctrl+K)'}
       >
         <Search size={22} />
       </button>

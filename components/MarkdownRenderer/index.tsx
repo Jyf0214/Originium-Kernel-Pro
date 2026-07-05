@@ -8,6 +8,7 @@ import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { useMarkdownConfig } from './use-markdown-config';
 import { buildComponents } from './renderer-config';
+import { remarkFootnotes } from './remark-footnotes';
 import { Lightbox } from '@/components/ui/Lightbox';
 import { LazyImage } from '@/components/ui/LazyImage';
 import type { MarkdownRendererProps, WikiLinkMap } from './types';
@@ -35,22 +36,19 @@ function preprocessWikiLinks(content: string, map?: WikiLinkMap): string {
 interface LightboxState {
   open: boolean;
   images: string[];
-  alts: string[];
   index: number;
 }
 
-export function MarkdownRenderer({ content, highlight, wikiLinkMap }: MarkdownRendererProps) {
+export function MarkdownRenderer({ content, highlight, wikiLinkMap, watermark }: MarkdownRendererProps) {
   const { cfg, highlighter } = useMarkdownConfig(highlight);
   const [lightbox, setLightbox] = useState<LightboxState>({
     open: false,
     images: [],
-    alts: [],
     index: 0,
   });
 
   // 每次渲染时重置，img 组件按顺序 push 构建完整数组
   const imagesRef = useRef<string[]>([]);
-  const altsRef = useRef<string[]>([]);
 
   const components = useMemo(() => buildComponents(cfg, highlighter), [cfg, highlighter]);
 
@@ -66,24 +64,30 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap }: MarkdownRe
     const alt = typeof props.alt === 'string' ? props.alt : '';
     const index = imagesRef.current.length;
     imagesRef.current.push(src);
-    altsRef.current.push(alt);
 
     return (
       <div
         className="cursor-pointer hover:opacity-80 transition-opacity"
         onClick={() => {
           // 快照而非引用，防止后续 ref 重置影响 lightbox 图片列表
-          setLightbox({ open: true, images: [...imagesRef.current], alts: [...altsRef.current], index });
+          setLightbox({ open: true, images: [...imagesRef.current], index });
         }}
       >
-        <LazyImage src={src} alt={alt} />
+        <div className="relative">
+          <LazyImage src={src} alt={alt} />
+          {/* 图片水印：仅在传入 watermark 时显示 */}
+          {watermark && (
+            <span className="absolute bottom-2 right-2 text-[10px] text-white/30 dark:text-white/20 pointer-events-none select-none">
+              {watermark}
+            </span>
+          )}
+        </div>
       </div>
     );
   };
 
   // 每次渲染前重置 ref
   imagesRef.current = [];
-  altsRef.current = [];
 
   return (
     <div className="markdown-content prose prose-zinc dark:prose-invert max-w-none overflow-x-auto
@@ -104,7 +108,7 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap }: MarkdownRe
       prose-hr:border-zinc-100 dark:prose-hr:border-zinc-700 prose-hr:my-12
     ">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath]}
+        remarkPlugins={[remarkGfm, remarkMath, remarkFootnotes]}
         rehypePlugins={[rehypeKatex]}
         components={{ ...components, img: imgComponent as never }}
       >
@@ -112,7 +116,6 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap }: MarkdownRe
       </ReactMarkdown>
       <Lightbox
         images={lightbox.images}
-        alts={lightbox.alts}
         initialIndex={lightbox.index}
         isOpen={lightbox.open}
         onClose={() => setLightbox((s) => ({ ...s, open: false }))}
