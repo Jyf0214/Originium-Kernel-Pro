@@ -1,10 +1,12 @@
 'use client';
 
 import { Globe } from 'lucide-react';
+import { ProgressBar } from '@/components/Loading/ProgressBar';
 
 export default function PageIndexLoading() {
   return (
     <div className="flex min-h-screen">
+      <ProgressBar />
       <div className="hidden md:block w-[280px] bg-white border-r border-zinc-100" />
       <div className="flex-1 flex flex-col md:ml-[280px] min-h-screen bg-zinc-50">
         <div className="h-16 bg-white border-b border-zinc-100" />

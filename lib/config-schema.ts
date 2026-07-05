@@ -41,7 +41,7 @@ const withFullDefault = <T extends z.ZodObject>(s: T): z.ZodDefault<T> =>
 // 基础枚举
 // ============================================================================
 
-const zLoadingType = z.enum(['spinner', 'text', 'dots', 'glow', 'waves', 'antd']);
+const zLoadingType = z.enum(['spinner', 'text', 'dots', 'glow', 'waves', 'antd', 'progress']);
 const zLoadingPosition = z.enum(['center', 'top-left', 'top-right', 'bottom-left', 'bottom-right']);
 const zDateType = z.enum(['created', 'updated', 'both']);
 const zDateFormat = z.enum(['date', 'relative', 'simple']);
@@ -473,12 +473,12 @@ export interface AppearanceConfig {
   customHead: string;
   loading?: {
     page?: {
-      type: 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
+      type: 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd' | 'progress';
       color?: string;
       position?: 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
     };
     navigation?: {
-      type: 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
+      type: 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd' | 'progress';
       color?: string;
     };
     slogans?: string[];

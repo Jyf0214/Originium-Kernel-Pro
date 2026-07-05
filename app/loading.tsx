@@ -1,11 +1,13 @@
 import { PostCardSkeleton } from '@/components/HomePostGrid/PostCardSkeleton';
+import { ProgressBar } from '@/components/Loading/ProgressBar';
 
 /**
- * 首页路由加载态骨架屏 — 在文章数据加载前显示 4 个骨架卡片
+ * 首页路由加载态 — 顶部进度条 + 骨架屏
  */
 export default function Loading() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-900">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
+      <ProgressBar />
       <main className="max-w-7xl mx-auto w-full px-6 py-12 md:py-20">
         {/* Hero 区域占位 */}
         <div className="mb-12 text-center">

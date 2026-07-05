@@ -6,7 +6,7 @@ import { useI18n } from '@/hooks/use-i18n';
 import type { Color } from 'antd/es/color-picker';
 
 /** 加载动画类型 */
-export type LoadingType = 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
+export type LoadingType = 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd' | 'progress';
 
 /** 加载动画位置 */
 export type LoadingPosition = 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
@@ -50,6 +50,7 @@ const loadingTypeOptions = [
   { value: 'dots', label: '三色弹跳 (dots)' },
   { value: 'glow', label: '光晕渐变 (glow)' },
   { value: 'waves', label: '波浪动画 (waves)' },
+  { value: 'progress', label: '顶部进度条 (progress)' },
 ];
 
 /** 位置选项 */

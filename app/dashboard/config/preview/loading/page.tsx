@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useI18n } from '@/hooks/use-i18n';
 import { GlobalLoading } from '@/components/Loading';
 import { Card, ColorPicker, Select } from 'antd';
-import { Loader2, CircleDot, Sparkles, Orbit, Waves, ArrowLeft } from 'lucide-react';
+import { Loader2, CircleDot, Sparkles, Orbit, Waves, ArrowLeft, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import type { Color } from 'antd/es/color-picker';
 import { Tag } from '@/components/ui/Tag';
@@ -12,7 +12,7 @@ import { Tag } from '@/components/ui/Tag';
 type LoadingPosition = 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
 interface LoadingType {
-  type: 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd';
+  type: 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd' | 'progress';
   label: string;
   labelZh: string;
   description: string;
@@ -69,6 +69,13 @@ const loadingTypes: LoadingType[] = [
     labelZh: '波浪动画',
     description: '多条波浪依次动画（Discord 风格）',
     icon: Waves,
+  },
+  {
+    type: 'progress',
+    label: 'Progress',
+    labelZh: '顶部进度条',
+    description: '从顶部滑入的进度条，兼容所有页面',
+    icon: TrendingUp,
   },
 ];
 
