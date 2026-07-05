@@ -52,6 +52,12 @@ bun.lockb
 /pages/
 *.md
 
+# 构建期下载产物(由 npm run download-avatar 生成)
+/avatar/*.jpg
+/avatar/*.jpeg
+/avatar/*.png
+/avatar/*.webp
+
 # 保留项目说明文件
 !README.md
 !**/README.md
