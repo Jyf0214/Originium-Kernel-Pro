@@ -4,12 +4,14 @@ import type { RemoteConfigData } from './types';
 export interface SyncAvatarChangesArgs {
   githubConfigured: boolean;
   originalAvatar: string;
+  newAvatar: string;
   userName: string;
   syncAvatar: (
     initial: Record<string, unknown>,
     remote: string,
     commitMessage: string,
     repo: string,
+    currentConfigOverride?: Record<string, unknown>,
   ) => void;
   setLoading: (loading: boolean) => void;
 }
@@ -22,6 +24,7 @@ export interface SyncAvatarChangesArgs {
 export async function syncAvatarChanges({
   githubConfigured,
   originalAvatar,
+  newAvatar,
   userName,
   syncAvatar,
   setLoading,
@@ -40,5 +43,6 @@ export async function syncAvatarChanges({
     remoteRaw,
     `chore: update avatar for user ${userName}`,
     '',
+    { avatarUrl: newAvatar },
   );
 }

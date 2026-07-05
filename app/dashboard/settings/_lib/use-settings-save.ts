@@ -75,6 +75,7 @@ export function useSettingsSave({
         await syncAvatarChanges({
           githubConfigured,
           originalAvatar,
+          newAvatar,
           userName,
           syncAvatar,
           setLoading,

@@ -48,7 +48,7 @@ export function useGitHubConfigSync({
    * @param commitMessage 可选：自定义 Git 提交信息
    * @param repoOverride 可选：运行时覆盖 repo，用于 settings 页等场景
    */
-  const handleSave = useCallback((initialConfig: Record<string, unknown>, remoteConfigOverride?: string, commitMessage?: string, repoOverride?: string) => {
+  const handleSave = useCallback((initialConfig: Record<string, unknown>, remoteConfigOverride?: string, commitMessage?: string, repoOverride?: string, currentConfigOverride?: Record<string, unknown>) => {
     const effectiveRepo = repoOverride ?? repo;
     if (!effectiveRepo && !githubConfigured) {
       message.error('GitHub 未配置');
@@ -58,7 +58,8 @@ export function useGitHubConfigSync({
       message.error('初始配置未加载');
       return;
     }
-    if (JSON.stringify(initialConfig) === JSON.stringify(currentConfig)) {
+    const effectiveConfig = currentConfigOverride ?? currentConfig;
+    if (JSON.stringify(initialConfig) === JSON.stringify(effectiveConfig)) {
       message.info('没有需要保存的变更');
       return;
     }
@@ -76,12 +77,12 @@ export function useGitHubConfigSync({
 
     let merged: Record<string, unknown>;
     if (customTransform) {
-      merged = customTransform(remoteObj, currentConfig);
+      merged = customTransform(remoteObj, effectiveConfig);
     } else {
       merged = { ...remoteObj };
       for (const key of managedFields) {
-        if (key in currentConfig) {
-          merged[key] = currentConfig[key];
+        if (key in effectiveConfig) {
+          merged[key] = effectiveConfig[key];
         }
       }
     }
