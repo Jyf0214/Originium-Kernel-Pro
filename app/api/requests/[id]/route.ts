@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
 import { unlink } from 'fs/promises';
 import { join, resolve } from 'path';
@@ -33,6 +33,11 @@ export async function PATCH(
       return authResult;
     }
 
+    const db = getDb();
+    if (!db.prisma) {
+      return NextResponse.json({ error: 'Database not available' }, { status: 503 });
+    }
+
     const { id } = await params;
     const body = await request.json();
     const { action } = body;
@@ -47,7 +52,7 @@ export async function PATCH(
 
     logger.info('PATCH', '处理申请', { id, action });
 
-    const requestRecord = await prisma.request.findUnique({
+    const requestRecord = await db.prisma.request.findUnique({
       where: { id }
     });
 
@@ -68,7 +73,7 @@ export async function PATCH(
     }
 
     // 先更新 DB 状态，再删除文件——避免文件删除后 DB 失败导致数据丢失
-    await prisma.request.update({
+    await db.prisma.request.update({
       where: { id },
       data: {
         status: action === 'approve' ? 'approved' : 'rejected'

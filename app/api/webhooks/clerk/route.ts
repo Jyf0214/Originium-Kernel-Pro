@@ -131,14 +131,15 @@ async function handleUserDeleted(
       await db.del(`clerk:id:${clerkId}`);
     }
     logger.info('POST', '清理 Clerk 绑定关系', { clerkId, boundUid });
-    try {
-      const { prisma } = await import('@/lib/db');
-      await prisma.user.updateMany({
-        where: { clerkId },
-        data: { clerkId: null, clerkLinkedAt: null },
-      });
-    } catch {
-      logger.warn('POST', '清除 Prisma clerkId 失败', { clerkId });
+    if (db.prisma) {
+      try {
+        await db.prisma.user.updateMany({
+          where: { clerkId },
+          data: { clerkId: null, clerkLinkedAt: null },
+        });
+      } catch {
+        logger.warn('POST', '清除 Prisma clerkId 失败', { clerkId });
+      }
     }
   }
 }

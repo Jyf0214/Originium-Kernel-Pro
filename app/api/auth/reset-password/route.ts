@@ -120,6 +120,9 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: '重置链接已过期' }, { status: 400 });
     }
 
+    // 原子消费令牌：验证通过后立即删除，防止并发请求重复使用同一令牌
+    await db.del(`reset:${token}`);
+
     const userStr = await db.get(`user:uid:${uid}`);
     if (!userStr) {
       logger.warn('PUT', '用户不存在', { uid });
@@ -135,8 +138,6 @@ export async function PUT(req: NextRequest) {
     const currentSv = await db.get(`user:sv:${uid}`);
     const newSv = (currentSv !== null && currentSv !== undefined ? Number(currentSv) : 0) + 1;
     await db.set(`user:sv:${uid}`, String(newSv));
-
-    await db.del(`reset:${token}`);
 
     // 密码重置后吊销所有 API 密钥，防止泄漏的密钥继续有效
     if (db.prisma) {

@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getDb } from '@/lib/db';
-import nodemailer from 'nodemailer';
+import { isSmtpConfigured, sendMail } from '@/lib/mail';
 import { createApiLogger } from '@/lib/api-logger';
 import { checkRateLimit } from '@/lib/rate-limit';
 
@@ -34,12 +34,7 @@ export async function POST(req: NextRequest) {
     const db = getDb();
 
     // 先检查 SMTP 是否可用，避免泄露邮箱是否存在
-    const smtpHost = process.env.SMTP_HOST;
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass = process.env.SMTP_PASS;
-    const smtpPort = process.env.SMTP_PORT;
-
-    if (!smtpHost || !smtpUser || !smtpPass) {
+    if (!isSmtpConfigured()) {
       // SMTP 未配置时返回通用成功消息（对已注册和未注册邮箱一致）
       return NextResponse.json({ success: true, message: '验证码已发送' });
     }
@@ -61,18 +56,7 @@ export async function POST(req: NextRequest) {
 
     // 尝试发送邮件
     try {
-      const transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: parseInt(smtpPort ?? '587'),
-        secure: smtpPort === '465',
-        auth: { user: smtpUser, pass: smtpPass },
-      });
-
-      await transporter.sendMail({
-        from: smtpUser,
-        to: email,
-        subject: 'Originium Kernel - 账户绑定验证码',
-        html: `
+      const mailHtml = `
           <div style="max-width:480px;margin:0 auto;padding:40px 20px;font-family:-apple-system,BlinkMacSystemFont,sans-serif">
             <h1 style="color:#18181b;font-size:24px;margin-bottom:8px">账户绑定验证</h1>
             <p style="color:#71717a;font-size:14px;margin-bottom:24px">你正在将 Clerk 账户绑定到 Originium Kernel 账户。请输入以下验证码完成绑定：</p>
@@ -81,8 +65,17 @@ export async function POST(req: NextRequest) {
             </div>
             <p style="color:#a1a1aa;font-size:12px">验证码 5 分钟内有效。如非本人操作，请忽略此邮件。</p>
           </div>
-        `,
+        `;
+
+      const sent = await sendMail({
+        to: email,
+        subject: 'Originium Kernel - 账户绑定验证码',
+        html: mailHtml,
       });
+
+      if (!sent) {
+        throw new Error('sendMail 返回 false');
+      }
     } catch (mailErr) {
       logger.error('POST', 'SMTP 发送失败', { error: mailErr instanceof Error ? mailErr.message : String(mailErr) });
       return NextResponse.json({ error: '验证码发送失败' }, { status: 500 });

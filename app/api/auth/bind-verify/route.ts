@@ -26,6 +26,25 @@ async function authenticateClerkUser(_req: NextRequest): Promise<{ userId: strin
 
 const MASK_EMAIL = (e: string) => e.includes('@') ? `${e[0]}***@${e.split('@')[1]}` : '***';
 
+/** 基于 Promise 的互斥锁，防止同一 key 的并发读-改-写竞态 */
+const rateLimitLocks = new Map<string, Promise<void>>();
+
+async function withRateLimitLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  // 等待同 key 的上一把锁释放
+  while (rateLimitLocks.has(key)) {
+    await rateLimitLocks.get(key);
+  }
+  let resolve: () => void;
+  const promise = new Promise<void>((r) => { resolve = r; });
+  rateLimitLocks.set(key, promise);
+  try {
+    return await fn();
+  } finally {
+    rateLimitLocks.delete(key);
+    resolve!();
+  }
+}
+
 async function checkRateLimit(db: ReturnType<typeof getDb>, email: string): Promise<NextResponse | null> {
   const key = `bind:attempts:${email}`;
   const raw = await db.get(key);
@@ -48,6 +67,79 @@ async function verifyCode(db: ReturnType<typeof getDb>, email: string, code: str
   return null;
 }
 
+const VALID_ROLES = ['user', 'admin', 'sudo'] as const;
+
+/** 运行时验证 role 值，防止无效角色传递到 session */
+function sanitizeRole(raw: string): typeof VALID_ROLES[number] {
+  return VALID_ROLES.includes(raw as typeof VALID_ROLES[number]) ? raw as typeof VALID_ROLES[number] : 'user';
+}
+
+/** 同步 Clerk 账户绑定到 Prisma（尽力而为，失败不阻塞） */
+async function syncClerkBinding(db: ReturnType<typeof getDb>, uid: string, userId: string): Promise<void> {
+  if (!db.prisma) return;
+  try {
+    await db.prisma.user.update({
+      where: { uid },
+      data: { clerkId: userId, clerkLinkedAt: new Date() },
+    });
+  } catch {
+    // Prisma 更新失败不阻塞（KV 已存储）
+  }
+}
+
+/**
+ * 查找用户、建立双向绑定关系、创建 session 或触发 2FA
+ */
+async function completeBinding(
+  db: ReturnType<typeof getDb>,
+  userId: string,
+  email: string,
+): Promise<NextResponse> {
+  const uid = await db.get(`user:email:${email}`);
+  if (!uid) {
+    logger.warn('POST', '用户不存在', { email: MASK_EMAIL(email) });
+    return NextResponse.json({ error: '用户不存在' }, { status: 404 });
+  }
+
+  const userStr = await db.get(`user:uid:${uid}`);
+  if (!userStr) {
+    logger.error('POST', '用户数据异常', { uid });
+    return NextResponse.json({ error: '用户数据异常' }, { status: 500 });
+  }
+
+  const user = JSON.parse(userStr);
+
+  const existingBinding = await db.get(`clerk:user:${userId}`);
+  if (existingBinding && existingBinding !== uid) {
+    logger.warn('POST', 'Clerk 账户已绑定其他用户', { userId });
+    return NextResponse.json({ error: '该 Clerk 账户已绑定其他用户' }, { status: 409 });
+  }
+
+  await db.set(`clerk:user:${userId}`, uid);
+  await db.set(`user:clerk:${uid}`, userId);
+  await syncClerkBinding(db, uid, userId);
+  await db.del(`bind:code:${email}`);
+
+  if (user.twoFactorEnabled) {
+    await createTempToken(user.uid);
+    logger.info('POST', '绑定用户需要 2FA 验证', { uid: user.uid });
+    return NextResponse.json({ requires2FA: true });
+  }
+
+  await createSession({
+    uid: user.uid,
+    email: user.email,
+    role: sanitizeRole(user.role),
+    userGroup: user.userGroup,
+  });
+
+  logger.info('POST', '账户绑定成功', { uid: user.uid, email });
+  return NextResponse.json({
+    success: true,
+    user: { uid: user.uid, email: user.email, name: user.name },
+  });
+}
+
 /**
  * 验证绑定验证码并完成账户绑定
  */
@@ -65,80 +157,13 @@ export async function POST(req: NextRequest) {
 
     const db = getDb();
 
-    const rateLimitErr = await checkRateLimit(db, email);
+    const rateLimitErr = await withRateLimitLock(email, () => checkRateLimit(db, email));
     if (rateLimitErr) { logger.warn('POST', '验证码尝试次数过多', { email: MASK_EMAIL(email) }); return rateLimitErr; }
 
     const codeErr = await verifyCode(db, email, code);
     if (codeErr) { logger.warn('POST', '验证码错误或已过期'); return codeErr; }
 
-    // 查找用户
-    const uid = await db.get(`user:email:${email}`);
-    if (!uid) {
-      logger.warn('POST', '用户不存在', { email: MASK_EMAIL(email) });
-      return NextResponse.json({ error: '用户不存在' }, { status: 404 });
-    }
-
-    // 获取用户信息
-    const userStr = await db.get(`user:uid:${uid}`);
-    if (!userStr) {
-      logger.error('POST', '用户数据异常', { uid });
-      return NextResponse.json({ error: '用户数据异常' }, { status: 500 });
-    }
-
-    const user = JSON.parse(userStr);
-
-    // 检查是否已被其他 Clerk 账户绑定
-    const existingBinding = await db.get(`clerk:user:${userId}`);
-    if (existingBinding && existingBinding !== uid) {
-      logger.warn('POST', 'Clerk 账户已绑定其他用户', { userId });
-      return NextResponse.json({ error: '该 Clerk 账户已绑定其他用户' }, { status: 409 });
-    }
-
-    // 建立绑定关系（双向）
-    await db.set(`clerk:user:${userId}`, uid);
-    await db.set(`user:clerk:${uid}`, userId);
-
-    // 更新用户记录的 clerkId（如果使用 Prisma）
-    try {
-      const { prisma } = await import('@/lib/db');
-      await prisma.user.update({
-        where: { uid },
-        data: {
-          clerkId: userId,
-          clerkLinkedAt: new Date(),
-        },
-      });
-    } catch {
-      // Prisma 更新失败不阻塞（KV 已存储）
-    }
-
-    // 删除验证码
-    await db.del(`bind:code:${email}`);
-
-    // 运行时验证 role 值，防止无效角色传递到 session
-    const validRoles = ['user', 'admin', 'sudo'] as const;
-    const safeRole = validRoles.includes(user.role as typeof validRoles[number]) ? user.role as typeof validRoles[number] : 'user';
-
-    // 检查是否启用了 2FA — 不得绕过双因素认证
-    if (user.twoFactorEnabled) {
-      await createTempToken(user.uid);
-      logger.info('POST', '绑定用户需要 2FA 验证', { uid: user.uid });
-      return NextResponse.json({ requires2FA: true });
-    }
-
-    // 创建 JWT session
-    await createSession({
-      uid: user.uid,
-      email: user.email,
-      role: safeRole,
-      userGroup: user.userGroup,
-    });
-
-    logger.info('POST', '账户绑定成功', { uid: user.uid, email });
-    return NextResponse.json({
-      success: true,
-      user: { uid: user.uid, email: user.email, name: user.name },
-    });
+    return await completeBinding(db, userId, email);
   } catch (error) {
     logger.error('POST', '绑定失败', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: '绑定失败' }, { status: 500 });

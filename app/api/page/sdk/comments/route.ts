@@ -36,6 +36,24 @@ function commentFilePath(pagePath: string): string {
   return `comments/${safe}.json`
 }
 
+/** 写入互斥锁：同一时间只允许一个写操作执行，防止并发读-改-写导致评论丢失 */
+let writeLock: Promise<void> | null = null;
+
+async function withWriteLock<T>(fn: () => Promise<T>): Promise<T> {
+  while (writeLock) {
+    await writeLock;
+  }
+  let resolve: () => void;
+  const promise = new Promise<void>((r) => { resolve = r; });
+  writeLock = promise;
+  try {
+    return await fn();
+  } finally {
+    writeLock = null;
+    resolve!();
+  }
+}
+
 /** 读取评论文件 */
 async function readComments(pagePath: string): Promise<Comment[]> {
   if (!isStorageConfigured()) return []
@@ -142,10 +160,12 @@ export const POST = apiHandler('POST', { label: 'page-sdk.comments.post' }, asyn
     createdAt: new Date().toISOString(),
   }
 
-  const comments = await readComments(pagePath)
-  comments.push(comment)
-
-  const ok = await writeComments(pagePath, comments)
+  // 使用写锁序列化读-改-写操作，防止并发请求导致评论丢失
+  const ok = await withWriteLock(async () => {
+    const comments = await readComments(pagePath)
+    comments.push(comment)
+    return await writeComments(pagePath, comments)
+  })
   if (!ok) {
     return NextResponse.json({ error: '评论保存失败' }, { status: 500 })
   }
@@ -169,22 +189,34 @@ export const DELETE = apiHandler('DELETE', { label: 'page-sdk.comments.delete' }
     return NextResponse.json({ error: '未登录' }, { status: 401 })
   }
 
-  const comments = await readComments(pagePath)
-  const comment = comments.find((c) => c.id === id)
-  if (!comment) {
-    return NextResponse.json({ error: '评论不存在' }, { status: 404 })
-  }
+  // 使用写锁序列化读-改-写操作，防止并发请求导致评论丢失
+  const deleteResult = await withWriteLock(async () => {
+    const comments = await readComments(pagePath)
+    const comment = comments.find((c) => c.id === id)
+    if (!comment) {
+      return { error: '评论不存在' as const }
+    }
 
-  // 只能删自己的评论（管理员可删全部）
-  if (comment.userId !== session.uid && session.role !== 'admin' && session.role !== 'sudo') {
-    return NextResponse.json({ error: '无权删除此评论' }, { status: 403 })
-  }
+    // 只能删自己的评论（管理员可删全部）
+    if (comment.userId !== session.uid && session.role !== 'admin' && session.role !== 'sudo') {
+      return { error: '无权删除此评论' as const }
+    }
 
-  const idx = comments.indexOf(comment)
-  comments.splice(idx, 1)
-  const ok = await writeComments(pagePath, comments)
-  if (!ok) {
-    return NextResponse.json({ error: '删除失败' }, { status: 500 })
+    const idx = comments.indexOf(comment)
+    comments.splice(idx, 1)
+    const ok = await writeComments(pagePath, comments)
+    if (!ok) {
+      return { error: '删除失败' as const }
+    }
+
+    return { ok: true }
+  })
+
+  if ('error' in deleteResult) {
+    const status = deleteResult.error === '评论不存在' ? 404
+      : deleteResult.error === '无权删除此评论' ? 403
+      : 500
+    return NextResponse.json({ error: deleteResult.error }, { status })
   }
 
   return NextResponse.json({ ok: true })

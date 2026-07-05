@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
 
@@ -12,11 +12,16 @@ export async function GET(request: NextRequest) {
       return authResult;
     }
 
+    const db = getDb();
+    if (!db.prisma) {
+      return NextResponse.json({ error: 'Database not available' }, { status: 503 });
+    }
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') ?? 'pending';
 
     logger.info('GET', '获取申请列表', { status });
-    const requests = await prisma.request.findMany({
+    const requests = await db.prisma.request.findMany({
       where: { status },
       orderBy: { createdAt: 'desc' }
     });

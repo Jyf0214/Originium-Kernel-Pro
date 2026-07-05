@@ -51,6 +51,13 @@ interface ScanContext {
   results: SearchResult[]
   fileCount: { value: number }
   truncated: { value: boolean }
+  /* DoS 防护字段 */
+  startTime: number
+  filesProcessed: number
+  totalBytes: number
+  maxFiles: number
+  maxBytes: number
+  timeoutMs: number
 }
 
 /* ---------- 缓存机制 ---------- */
@@ -65,6 +72,34 @@ const CACHE_TTL_MS = 2 * 60 * 1000 // 2 分钟
 const MAX_RESULTS = 50
 const MAX_DEPTH = 5
 const SNIPPET_PADDING = 50
+
+/* ---------- DoS 防护常量 ---------- */
+
+/** 单次扫描最多处理文件数 */
+const MAX_FILES = 1000
+/** 单次扫描最大累计字节数（50MB） */
+const MAX_BYTES = 50 * 1024 * 1024
+/** 单次扫描超时时间（8 秒） */
+const TIMEOUT_MS = 8000
+
+/* ---------- 并发锁（确保同时只有一个遍历在执行） ---------- */
+
+let traversalLock: Promise<void> | null = null
+
+async function withTraversalLock<T>(fn: () => Promise<T>): Promise<T> {
+  while (traversalLock) {
+    await traversalLock
+  }
+  let resolve: () => void
+  const promise = new Promise<void>((r) => { resolve = r })
+  traversalLock = promise
+  try {
+    return await fn()
+  } finally {
+    traversalLock = null
+    resolve!()
+  }
+}
 
 let cache: CacheEntry | null = null
 
@@ -123,10 +158,49 @@ function contentToString(raw: string | Buffer | ArrayBuffer | { data: string | B
   return ''
 }
 
+/* ---------- DoS 防护检查 ---------- */
+
+/** 检查扫描是否超出限制，超限则标记 truncated 并返回 true */
+function checkScanLimits(ctx: ScanContext): boolean {
+  if (ctx.filesProcessed >= ctx.maxFiles || ctx.totalBytes >= ctx.maxBytes) {
+    ctx.truncated.value = true
+    return true
+  }
+  if (Date.now() - ctx.startTime > ctx.timeoutMs) {
+    ctx.truncated.value = true
+    return true
+  }
+  return false
+}
+
 /* ---------- 递归扫描 ---------- */
 
+/** 处理单个文件的搜索逻辑，返回是否应终止扫描 */
+async function processFileEntry(ctx: ScanContext, relativePath: string, filename: string): Promise<boolean> {
+  const raw = await ctx.getContent(relativePath)
+  const content = contentToString(raw)
+  if (!content) return false
+
+  ctx.filesProcessed += 1
+  ctx.totalBytes += Buffer.byteLength(content, 'utf-8')
+
+  if (checkScanLimits(ctx)) return true
+
+  const matches = extractMatches(content, ctx.keyword)
+  if (matches.length > 0) {
+    ctx.fileCount.value += 1
+    ctx.results.push({ path: relativePath, filename, matches })
+    if (ctx.results.length >= MAX_RESULTS) {
+      ctx.truncated.value = true
+    }
+  }
+  return false
+}
+
 async function scanDir(ctx: ScanContext, dirPath: string, depth: number): Promise<void> {
-  if (depth > MAX_DEPTH || ctx.truncated.value) return
+  if (depth > MAX_DEPTH) return
+  if (ctx.truncated.value) return
+  if (checkScanLimits(ctx)) return
 
   let entries: { filename: string; type: string }[]
   try {
@@ -148,18 +222,8 @@ async function scanDir(ctx: ScanContext, dirPath: string, depth: number): Promis
 
     const relativePath = dirPath ? `${dirPath}/${entry.filename}` : entry.filename
     try {
-      const raw = await ctx.getContent(relativePath)
-      const content = contentToString(raw)
-      if (!content) continue
-
-      const matches = extractMatches(content, ctx.keyword)
-      if (matches.length > 0) {
-        ctx.fileCount.value += 1
-        ctx.results.push({ path: relativePath, filename: entry.filename, matches })
-        if (ctx.results.length >= MAX_RESULTS) {
-          ctx.truncated.value = true
-        }
-      }
+      const shouldStop = await processFileEntry(ctx, relativePath, entry.filename)
+      if (shouldStop) return
     } catch {
       // 单个文件读取失败，跳过
     }
@@ -205,9 +269,15 @@ export const GET = apiHandler(
         results: [],
         fileCount: { value: 0 },
         truncated: { value: false },
+        startTime: Date.now(),
+        filesProcessed: 0,
+        totalBytes: 0,
+        maxFiles: MAX_FILES,
+        maxBytes: MAX_BYTES,
+        timeoutMs: TIMEOUT_MS,
       }
 
-      await scanDir(ctx, '', 0)
+      await withTraversalLock(() => scanDir(ctx, '', 0))
 
       const response: SearchResponse = {
         query,

@@ -72,6 +72,45 @@ const CACHE_TTL_MS = 5 * 60 * 1000 // 5 分钟
 let cachedResult: StorageStatsResult | null = null
 let cacheTimestamp = 0
 
+/* ---------- DoS 防护常量 ---------- */
+
+/** 单次扫描最多处理文件数 */
+const MAX_FILES = 1000
+/** 单次扫描最大累计字节数（50MB） */
+const MAX_BYTES = 50 * 1024 * 1024
+/** 单次扫描超时时间（8 秒） */
+const TIMEOUT_MS = 8000
+
+/* ---------- 并发锁（确保同时只有一个遍历在执行） ---------- */
+
+let traversalLock: Promise<void> | null = null
+
+async function withTraversalLock<T>(fn: () => Promise<T>): Promise<T> {
+  while (traversalLock) {
+    await traversalLock
+  }
+  let resolve: () => void
+  const promise = new Promise<void>((r) => { resolve = r })
+  traversalLock = promise
+  try {
+    return await fn()
+  } finally {
+    traversalLock = null
+    resolve!()
+  }
+}
+
+/** 扫描限制上下文 */
+interface ScanContext {
+  startTime: number
+  filesProcessed: number
+  totalBytes: number
+  maxFiles: number
+  maxBytes: number
+  timeoutMs: number
+  timedOut: boolean
+}
+
 /* ---------- 工具函数 ---------- */
 
 /** 最大递归深度限制 */
@@ -119,14 +158,26 @@ function getTopLevelFolder(filePath: string): string {
  * @param dirPath 当前目录路径
  * @param depth 当前递归深度
  * @param files 收集到的文件列表
+ * @param scanCtx DoS 防护上下文
  */
 async function scanDirectory(
   provider: { listDirectory: (path: string) => Promise<{ filename: string; basename: string; type: string; size: number; mime?: string }[]> },
   dirPath: string,
   depth: number,
   files: FileItem[],
+  scanCtx: ScanContext,
 ): Promise<void> {
   if (depth > MAX_DEPTH) return
+
+  /* DoS 防护：文件数、字节数、超时检查 */
+  if (scanCtx.filesProcessed >= scanCtx.maxFiles || scanCtx.totalBytes >= scanCtx.maxBytes) {
+    scanCtx.timedOut = true
+    return
+  }
+  if (Date.now() - scanCtx.startTime > scanCtx.timeoutMs) {
+    scanCtx.timedOut = true
+    return
+  }
 
   let entries: { filename: string; basename: string; type: string; size: number; mime?: string }[]
   try {
@@ -141,7 +192,8 @@ async function scanDirectory(
     if (entry.type === 'directory') {
       // 递归进入子目录
       const subPath = dirPath ? `${dirPath}/${entry.filename}` : entry.filename
-      await scanDirectory(provider, subPath, depth + 1, files)
+      await scanDirectory(provider, subPath, depth + 1, files, scanCtx)
+      if (scanCtx.timedOut) return
     } else {
       // 记录文件信息
       const relativePath = dirPath ? `${dirPath}/${entry.filename}` : entry.filename
@@ -151,6 +203,18 @@ async function scanDirectory(
         size: entry.size,
         mimeType: entry.mime ?? null,
       })
+      scanCtx.filesProcessed += 1
+      scanCtx.totalBytes += entry.size
+
+      /* DoS 防护：处理每个文件后检查限制 */
+      if (scanCtx.filesProcessed >= scanCtx.maxFiles || scanCtx.totalBytes >= scanCtx.maxBytes) {
+        scanCtx.timedOut = true
+        return
+      }
+      if (Date.now() - scanCtx.startTime > scanCtx.timeoutMs) {
+        scanCtx.timedOut = true
+        return
+      }
     }
   }
 }
@@ -161,9 +225,20 @@ async function scanDirectory(
 async function collectStats(): Promise<StorageStatsResult> {
   const provider = await getStorageProvider()
 
+  /* DoS 防护上下文 */
+  const scanCtx: ScanContext = {
+    startTime: Date.now(),
+    filesProcessed: 0,
+    totalBytes: 0,
+    maxFiles: MAX_FILES,
+    maxBytes: MAX_BYTES,
+    timeoutMs: TIMEOUT_MS,
+    timedOut: false,
+  }
+
   // 从根目录开始递归扫描
   const allFiles: FileItem[] = []
-  await scanDirectory(provider, '', 0, allFiles)
+  await scanDirectory(provider, '', 0, allFiles, scanCtx)
 
   // 汇总统计
   let totalSize = 0
@@ -238,7 +313,7 @@ export const GET = apiHandler(
     }
 
     try {
-      const result = await collectStats()
+      const result = await withTraversalLock(() => collectStats())
 
       // 更新缓存
       cachedResult = result

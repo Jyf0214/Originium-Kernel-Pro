@@ -194,43 +194,56 @@ function processSearchFile(
 
 // ─── Search Functions ──────────────────────────────────────────────────────
 
-/**
- * 降级方案：递归扫描 posts 目录，搜索匹配的文章
- * 仅在构建时索引文件缺失时使用（运行时每次请求都会读取文件系统）
- */
-function searchPostsDirectoryLegacy(
-  dir: string,
-  baseDir: string,
-  query: string,
+/** 递归扫描状态上下文（减少函数参数数量） */
+interface LegacyScanState {
+  dir: string;
+  baseDir: string;
+  query: string;
   options: {
     isAuthenticated: boolean;
     dbAvailable: boolean;
     tagFilter?: string;
-  },
-): SearchResult[] {
+  };
+  maxDepth: number;
+  depth: number;
+  startTime: number;
+  fileCount: { value: number };
+}
+
+/** 检查 DoS 防护限制是否已触发 */
+function isLimitExceeded(fileCount: { value: number }, startTime: number): boolean {
+  return fileCount.value >= 1000 || Date.now() - startTime > 8000;
+}
+
+/**
+ * 降级方案：递归扫描 posts 目录，搜索匹配的文章
+ * 仅在构建时索引文件缺失时使用（运行时每次请求都会读取文件系统）
+ *
+ * 安全限制：最大递归深度 10 层、最多扫描 1000 个文件、超时 8 秒
+ */
+function searchPostsDirectoryLegacy(state: LegacyScanState): SearchResult[] {
   const results: SearchResult[] = [];
 
-  if (!fs.existsSync(dir)) return results;
+  if (state.depth >= state.maxDepth) return results;
+  if (isLimitExceeded(state.fileCount, state.startTime)) return results;
 
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  if (!fs.existsSync(state.dir)) return results;
+
+  const entries = fs.readdirSync(state.dir, { withFileTypes: true });
 
   for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
+    if (isLimitExceeded(state.fileCount, state.startTime)) break;
+
+    const fullPath = path.join(state.dir, entry.name);
 
     if (entry.isDirectory()) {
       results.push(
-        ...searchPostsDirectoryLegacy(fullPath, baseDir, query, options),
+        ...searchPostsDirectoryLegacy({ ...state, dir: fullPath, depth: state.depth + 1 }),
       );
     } else if (entry.isFile() && entry.name.endsWith('.md')) {
-      const result = processSearchFile(
-        fullPath,
-        baseDir,
-        query,
-        options,
-      );
-      if (result) {
-        results.push(result);
-      }
+      state.fileCount.value += 1;
+      const result = processSearchFile(fullPath, state.baseDir, state.query, state.options);
+      if (result) results.push(result);
     }
   }
 
@@ -311,7 +324,10 @@ function searchPostsDirectory(
     return searchFromIndex(index, query, options);
   }
   // 降级：原有的实时扫描逻辑
-  return searchPostsDirectoryLegacy(dir, baseDir, query, options);
+  return searchPostsDirectoryLegacy({
+    dir, baseDir, query, options,
+    maxDepth: 10, depth: 0, startTime: Date.now(), fileCount: { value: 0 },
+  });
 }
 
 /**
