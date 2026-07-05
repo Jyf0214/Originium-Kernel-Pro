@@ -18,7 +18,6 @@ function avatarLoader({ src }: { src: string }) {
 export function Avatar({ name, avatarUrl, size = 32, fallbackImg }: AvatarProps) {
   const [imgError, setImgError] = useState(false);
   const [fallbackError, setFallbackError] = useState(false);
-  const initials = name ? name.charAt(0).toUpperCase() : '?';
 
   // avatarUrl 变化时重置错误状态，允许重新加载
   useEffect(() => { setImgError(false); }, [avatarUrl]);
@@ -67,10 +66,8 @@ export function Avatar({ name, avatarUrl, size = 32, fallbackImg }: AvatarProps)
 
   return (
     <div
-      className="flex items-center justify-center rounded-xl bg-zinc-900 text-white font-bold shrink-0 max-w-full"
+      className="flex items-center justify-center rounded-xl bg-zinc-100 shrink-0 max-w-full"
       style={{ width: size, height: size }}
-    >
-      <span style={{ fontSize: size * 0.4 }}>{initials}</span>
-    </div>
+    />
   );
 }
