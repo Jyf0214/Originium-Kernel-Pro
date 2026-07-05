@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useI18n } from '@/hooks/use-i18n';
-import { ToggleField } from '@/components/ui';
+import ToggleField from '@/components/ui/ToggleField';
 import type { AccessConfig } from '@/next.config';
 
 /** 访问控制模块类型 */
