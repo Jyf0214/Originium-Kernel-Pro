@@ -402,3 +402,23 @@ pre:hover .code-copy-btn {
 .animate-sidebar-slidein {
   animation: fadeInUp 0.5s ease-out 0.3s both;
 }
+
+/* 移动端弹窗防撑宽 */
+@media (max-width: 640px) {
+  .ant-modal-wrap {
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ant-modal {
+    max-width: calc(100vw - 32px) !important;
+    margin: 0 auto;
+    padding: 0;
+  }
+  .ant-modal-content {
+    overflow: hidden;
+    max-width: 100%;
+  }
+  .github-diff-modal .ant-modal-body {
+    overflow: hidden;
+  }
+}
