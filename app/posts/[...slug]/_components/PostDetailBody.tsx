@@ -15,6 +15,8 @@ import { ReadingProgressBar } from '@/components/ui/ReadingProgressBar';
 import { ContinueReadingPrompt } from '@/components/ui/ContinueReadingPrompt';
 import { ScrollToTop } from '@/components/ui/ScrollToTop';
 import { Tag } from '@/components/ui/Tag';
+import { PostLikeButton } from '@/components/PostLikeButton';
+import { SeriesNavigation } from '@/components/SeriesNavigation';
 import { PostBreadcrumb, type Crumb } from './PostBreadcrumb';
 import { PostHeader } from './PostHeader';
 import { PostRelated } from './PostRelated';
@@ -56,6 +58,7 @@ export function PostDetailBody({
   isEncrypted,
   isHidden,
   passwordHash,
+  seriesInfo,
 }: {
   file: { content: string; meta: Record<string, unknown> };
   fullPath: string;
@@ -81,6 +84,8 @@ export function PostDetailBody({
   isHidden?: boolean;
   /** 密码哈希值（SHA-256） */
   passwordHash?: string;
+  /** 系列文章导航信息 */
+  seriesInfo?: { seriesName: string; articles: { slug: string; title: string; isCurrent: boolean }[] };
 }) {
   const [qrOpen, setQrOpen] = useState(false);
   const [decrypted, setDecrypted] = useState<string | null>(null);
@@ -140,6 +145,14 @@ export function PostDetailBody({
 
         <div className="h-px bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-700 to-transparent mb-12" />
 
+        {/* 系列文章导航 — 在文章正文前显示 */}
+        {seriesInfo && seriesInfo.articles.length > 1 && (
+          <SeriesNavigation
+            seriesName={seriesInfo.seriesName}
+            articles={seriesInfo.articles}
+          />
+        )}
+
         {/* 文章过期提示 — 超过180天的文章显示提示横幅 */}
         {typeof file.meta.date === 'string' && (
           <ArticleExpiredBanner date={file.meta.date} slug={fullPath} />
@@ -198,7 +211,7 @@ export function PostDetailBody({
         />
       </div>
 
-      {/* 分享按钮 — 紧跟作者 */}
+      {/* 分享按钮 + 点赞 — 紧跟作者 */}
       <div className="mt-8 flex flex-wrap items-center gap-2 sm:gap-3">
         <ShareButtons
           title={file.meta.title as string}
@@ -214,6 +227,7 @@ export function PostDetailBody({
           <QrCode size={16} />
           二维码
         </button>
+        <PostLikeButton slug={fullPath} />
       </div>
 
       <QRCodeDialog

@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 
-import { getContentFile, getAllSlugs, getAdjacentPosts } from '@/lib/content';
+import { getContentFile, getContentFiles, getAllSlugs, getAdjacentPosts } from '@/lib/content';
 import { buildWikiLinkMap, getBacklinks, getOutgoingReferences } from '@/lib/content-registry';
 import { getSession } from '@/lib/auth';
 import { loadConfig } from '@/lib/config';
@@ -131,6 +131,27 @@ function buildViewModel(
   // 文章隐藏：读取 frontmatter 中的 hidden 字段
   const isHidden = meta.hidden === true;
 
+  // 系列文章导航：读取 frontmatter 中的 series 字段
+  const seriesName = typeof meta.series === 'string' ? meta.series : '';
+  let seriesInfo: { seriesName: string; articles: { slug: string; title: string; isCurrent: boolean }[] } | undefined;
+  if (seriesName) {
+    const allFiles = getContentFiles('posts');
+    const seriesArticles = allFiles
+      .filter((f) => typeof f.meta.series === 'string' && f.meta.series === seriesName)
+      .sort((a, b) => {
+        // 按日期升序排列（系列内从旧到新）
+        const dateA = a.meta.date ? new Date(a.meta.date).getTime() : 0;
+        const dateB = b.meta.date ? new Date(b.meta.date).getTime() : 0;
+        return dateA - dateB;
+      })
+      .map((f) => ({
+        slug: f.slug,
+        title: f.meta.title,
+        isCurrent: f.slug === fullPath,
+      }));
+    seriesInfo = { seriesName, articles: seriesArticles };
+  }
+
   return {
     file: { content, meta },
     fullPath,
@@ -156,6 +177,8 @@ function buildViewModel(
     translations: (meta.translations && typeof meta.translations === 'object')
       ? meta.translations as Record<string, string>
       : undefined,
+    // 系列文章导航信息
+    seriesInfo,
   };
 }
 
