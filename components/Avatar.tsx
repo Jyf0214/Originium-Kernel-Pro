@@ -1,7 +1,15 @@
 'use client';
 
+/**
+ * Avatar 组件 —— 仅渲染 <img>，不做任何自定义回退
+ *
+ * ⚠️ 严禁设计约束（不可违反）：
+ * - 禁止显示用户姓名首字母（initials）作为头像替代
+ * - 禁止显示灰色占位块作为头像替代
+ * - 图片加载失败时，由浏览器原生显示 broken image 图标
+ * - 首字母回退和灰色占位块均已被视为严重漏洞并全部移除
+ */
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
 
 interface AvatarProps {
   name: string;
@@ -10,68 +18,31 @@ interface AvatarProps {
   fallbackImg?: string;
 }
 
-/** 自定义 loader：直接返回原始 URL，不做域名限制 */
-function avatarLoader({ src }: { src: string }) {
-  return src;
-}
-
 export function Avatar({ name, avatarUrl, size = 32, fallbackImg }: AvatarProps) {
   const [imgError, setImgError] = useState(false);
   const [fallbackError, setFallbackError] = useState(false);
-  const initials = name ? name.charAt(0).toUpperCase() : '?';
 
   // avatarUrl 变化时重置错误状态，允许重新加载
   useEffect(() => { setImgError(false); }, [avatarUrl]);
   useEffect(() => { setFallbackError(false); }, [fallbackImg]);
 
   const showFallback = imgError && fallbackImg && !fallbackError;
+  const src = showFallback ? fallbackImg : avatarUrl;
 
-  if (avatarUrl && !imgError) {
-    return (
-      <div
-        className="flex items-center justify-center rounded-xl bg-zinc-100 overflow-hidden shrink-0 max-w-full"
-        style={{ width: size, height: size }}
-      >
-        <Image
-          src={avatarUrl}
-          alt={name}
-          width={size}
-          height={size}
-          loader={avatarLoader}
-          unoptimized
-          className="w-full h-full object-cover"
-          onError={() => setImgError(true)}
-        />
-      </div>
-    );
-  }
-
-  if (showFallback) {
-    return (
-      <div
-        className="flex items-center justify-center rounded-xl bg-zinc-100 overflow-hidden shrink-0 max-w-full"
-        style={{ width: size, height: size }}
-      >
-        <Image
-          src={fallbackImg}
-          alt={name}
-          width={size}
-          height={size}
-          loader={avatarLoader}
-          unoptimized
-          className="w-full h-full object-cover"
-          onError={() => setFallbackError(true)}
-        />
-      </div>
-    );
-  }
+  if (!src) return null;
 
   return (
-    <div
-      className="flex items-center justify-center rounded-xl bg-zinc-900 text-white font-bold shrink-0 max-w-full"
+    <img
+      src={src}
+      alt={name}
+      width={size}
+      height={size}
+      className="rounded-xl object-cover shrink-0 max-w-full"
       style={{ width: size, height: size }}
-    >
-      <span style={{ fontSize: size * 0.4 }}>{initials}</span>
-    </div>
+      onError={() => {
+        if (showFallback) setFallbackError(true);
+        else setImgError(true);
+      }}
+    />
   );
 }

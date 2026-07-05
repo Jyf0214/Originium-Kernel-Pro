@@ -52,6 +52,12 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
             __html: `(function(){try{var m=localStorage.getItem('theme-mode');var d=m==='dark'||(m!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches);if(d)document.documentElement.classList.add('dark')}catch(e){}})()`,
           }}
         />
+        {/* 构建时注入全局头像 URL，客户端直接读取，无需 API 请求 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.__AVATAR_URL__=${JSON.stringify(config.auth?.admin?.avatar ?? '')}`,
+          }}
+        />
       </head>
       <body>
         <CustomHead />
