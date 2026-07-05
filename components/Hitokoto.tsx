@@ -27,12 +27,15 @@ export function Hitokoto({ className }: HitokotoProps) {
   const fetchHitokoto = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('https://v1.hitokoto.cn');
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch('https://v1.hitokoto.cn', { signal: controller.signal });
+      clearTimeout(timer);
       if (!res.ok) return;
       const json = (await res.json()) as HitokotoData;
       setData(json);
     } catch {
-      // 静默处理错误，不显示错误信息
+      // API 不可达时静默处理，不显示任何内容
     } finally {
       setLoading(false);
     }
@@ -44,6 +47,9 @@ export function Hitokoto({ className }: HitokotoProps) {
 
   const displayText = data?.hitokoto ?? '';
   const sourceText = data?.from_who ? `${data.from_who} —— ${data.from}` : data?.from ?? '';
+
+  // API 不可达时不渲染任何内容
+  if (!loading && !data) return null;
 
   return (
     <button
