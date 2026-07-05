@@ -34,8 +34,8 @@ export function useSettingsForm({
 
   useEffect(() => {
     if (user && configLoaded) {
-      // 全局头像统一从 auth.admin.avatar 读取
-      const effectiveAvatar = configData?.auth?.admin?.avatar ?? user.avatar ?? '';
+      // 头像始终使用构建时下载到 public/avatar.jpg 的本地文件，不依赖外部 URL
+      const effectiveAvatar = '/avatar.jpg';
       setOriginalAvatar(effectiveAvatar);
       form.setFieldsValue({
         avatarUrl: effectiveAvatar,
