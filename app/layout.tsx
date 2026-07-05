@@ -52,10 +52,10 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
             __html: `(function(){try{var m=localStorage.getItem('theme-mode');var d=m==='dark'||(m!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches);if(d)document.documentElement.classList.add('dark')}catch(e){}})()`,
           }}
         />
-        {/* 构建时注入全局头像 URL，客户端直接读取，无需 API 请求 */}
+        {/* 构建时注入固定头像路径 /avatar.jpg（由 prebuild 脚本下载），运行时不依赖外部 URL */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.__AVATAR_URL__=${JSON.stringify(config.avatar?.url ?? '')}`,
+            __html: `window.__AVATAR_URL__="/avatar.jpg"`,
           }}
         />
       </head>
