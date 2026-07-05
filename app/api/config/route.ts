@@ -160,6 +160,7 @@ function mergeAppearance(
     customCSS: overrideAppearance.customCSS ?? base.customCSS,
     customHead: overrideAppearance.customHead ?? base.customHead,
     loading,
+    effects: overrideAppearance.effects ?? base.effects,
   };
 }
 

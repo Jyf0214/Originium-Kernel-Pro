@@ -26,6 +26,7 @@ import {
   Loader2,
   Lock,
   Music,
+  Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 import ConfigSection from '@/components/ui/ConfigSection';
@@ -329,6 +330,38 @@ export default function ConfigFormBody({
             placeholder="15"
           />
           <p className="text-xs text-zinc-400 -mt-2">设置 10-30 之间的值，默认 15。保存后刷新页面生效。</p>
+        </div>
+      </ConfigSection>
+
+      <ConfigSection id="section-effects" title="页面特效" icon={Sparkles} color="bg-rose-500">
+        <div className="space-y-3">
+          <ToggleField
+            label="鼠标点击特效"
+            description="点击页面任意位置时，显示爱心/星星飘散动画"
+            checked={config.appearance.effects.mouseClick}
+            onChange={v => onConfigChange({
+              ...config,
+              appearance: { ...config.appearance, effects: { ...config.appearance.effects, mouseClick: v } },
+            })}
+          />
+          <ToggleField
+            label="背景粒子效果"
+            description="页面背景显示浮动的半透明粒子圆点"
+            checked={config.appearance.effects.backgroundParticles}
+            onChange={v => onConfigChange({
+              ...config,
+              appearance: { ...config.appearance, effects: { ...config.appearance.effects, backgroundParticles: v } },
+            })}
+          />
+          <ToggleField
+            label="彩带礼花效果"
+            description="组件挂载时触发彩色纸片从顶部下落"
+            checked={config.appearance.effects.confetti}
+            onChange={v => onConfigChange({
+              ...config,
+              appearance: { ...config.appearance, effects: { ...config.appearance.effects, confetti: v } },
+            })}
+          />
         </div>
       </ConfigSection>
 

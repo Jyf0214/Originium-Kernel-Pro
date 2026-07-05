@@ -48,6 +48,11 @@ export interface ConfigState {
       };
       slogans?: string[];
     };
+    effects: {
+      mouseClick: boolean;
+      backgroundParticles: boolean;
+      confetti: boolean;
+    };
   };
   access: {
     posts: { public: string[]; private: string[] };
@@ -103,6 +108,7 @@ export function buildSiteConfig(data: Record<string, unknown>): ConfigState['sit
 
 export function buildAppearanceConfig(data: Record<string, unknown>): ConfigState['appearance'] {
   const appearanceData = data.appearance as Record<string, unknown> | undefined;
+  const effectsData = appearanceData?.effects as Record<string, unknown> | undefined;
   return {
     fontSize: (appearanceData?.fontSize as number) ?? 15,
     favicon: (appearanceData?.favicon as string) ?? '',
@@ -112,6 +118,11 @@ export function buildAppearanceConfig(data: Record<string, unknown>): ConfigStat
     loading: (appearanceData?.loading as ConfigState['appearance']['loading']) ?? {
       page: { type: 'waves', color: '#c084fc', position: 'center' },
       navigation: { type: 'antd', color: '#c084fc' },
+    },
+    effects: {
+      mouseClick: (effectsData?.mouseClick as boolean) ?? false,
+      backgroundParticles: (effectsData?.backgroundParticles as boolean) ?? false,
+      confetti: (effectsData?.confetti as boolean) ?? false,
     },
   };
 }

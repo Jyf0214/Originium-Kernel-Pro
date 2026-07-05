@@ -7,6 +7,8 @@ import React from 'react';
 import { Loader2, Search, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { cn } from '@/lib/ui';
 
 interface SearchInputProps {
   value: string;
@@ -29,13 +31,19 @@ export function SearchInput({
         size={20}
         className="text-zinc-400 dark:text-zinc-500 shrink-0"
       />
-      <input
+      <Input
         ref={inputRef}
         type="text"
         placeholder="搜索文章、日记、标签..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="flex-1 text-base sm:text-lg outline-none border-none bg-transparent text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-300 dark:placeholder:text-zinc-600 leading-relaxed"
+        size="lg"
+        rounded="none"
+        className={cn(
+          'flex-1 border-none bg-transparent text-base sm:text-lg leading-relaxed',
+          'placeholder:text-zinc-300 dark:placeholder:text-zinc-600',
+          'focus:border-none focus:ring-0 focus:ring-offset-0',
+        )}
       />
       {loading && (
         <Loader2

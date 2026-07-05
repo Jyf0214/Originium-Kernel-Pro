@@ -5,8 +5,11 @@
 import React, { useEffect, useRef } from 'react';
 import { BookOpen, FileText } from 'lucide-react';
 import Link from 'next/link';
+import { motion } from 'motion/react';
 
+import { ProCard } from '@/components/ui/ProCard';
 import { Tag } from '@/components/ui/Tag';
+import { cn } from '@/lib/ui';
 
 import type { SearchResult } from './types';
 
@@ -61,7 +64,7 @@ interface SearchResultItemProps {
   flatIndex?: number;
 }
 
-/** 单条搜索结果项 */
+/** 单条搜索结果项 — 使用 ProCard 包裹实现卡片化悬停效果 */
 function SearchResultItem({
   result,
   query,
@@ -82,49 +85,54 @@ function SearchResultItem({
   }, [isSelected]);
 
   return (
-    <Link
-      ref={ref}
-      href={href}
-      onClick={onClose}
-      data-result-index={flatIndex}
-      className={`flex items-start gap-4 px-6 py-3.5 transition-colors rounded-lg mx-2 group ${
-        isSelected
-          ? 'bg-zinc-100 dark:bg-zinc-800'
-          : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
-      }`}
+    <ProCard
+      hoverable
+      bordered={false}
+      padding="p-0"
+      className={cn(
+        'mx-2',
+        isSelected && 'bg-zinc-100 dark:bg-zinc-800',
+      )}
     >
-      {/* 左侧图标 */}
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-        isSelected ? 'bg-zinc-200 dark:bg-zinc-700' : 'bg-zinc-50 group-hover:bg-zinc-100'
-      }`}>
-        {result.type === 'diary' ? (
-          <BookOpen size={18} className={isSelected ? 'text-zinc-600 dark:text-zinc-300' : 'text-zinc-400'} />
-        ) : (
-          <FileText size={18} className={isSelected ? 'text-zinc-600 dark:text-zinc-300' : 'text-zinc-400'} />
-        )}
-      </div>
+      <Link
+        ref={ref}
+        href={href}
+        onClick={onClose}
+        data-result-index={flatIndex}
+        className="flex items-start gap-4 px-6 py-3.5 group"
+      >
+        {/* 左侧图标 */}
+        <div className={cn(
+          'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors',
+          isSelected ? 'bg-zinc-200 dark:bg-zinc-700' : 'bg-zinc-50 group-hover:bg-zinc-100',
+        )}>
+          {result.type === 'diary' ? (
+            <BookOpen size={18} className={isSelected ? 'text-zinc-600 dark:text-zinc-300' : 'text-zinc-400'} />
+          ) : (
+            <FileText size={18} className={isSelected ? 'text-zinc-600 dark:text-zinc-300' : 'text-zinc-400'} />
+          )}
+        </div>
 
-      {/* 右侧内容 */}
-      <div className="flex-1 min-w-0">
-        <h4 className={`text-sm font-semibold truncate leading-snug ${
-          isSelected ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-900 dark:text-zinc-100'
-        }`}>
-          <HighlightText text={result.title} query={query} />
-        </h4>
-        {result.matchPreview && (
-          <p className="text-sm text-zinc-400 mt-0.5 line-clamp-1 leading-relaxed">
-            <HighlightText text={result.matchPreview} query={query} />
-          </p>
-        )}
-        {result.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-1.5">
-            {result.tags.slice(0, 3).map((tag) => (
-              <Tag key={tag} variant="light" size="sm">{tag}</Tag>
-            ))}
-          </div>
-        )}
-      </div>
-    </Link>
+        {/* 右侧内容 */}
+        <div className="flex-1 min-w-0">
+          <h4 className="text-sm font-semibold truncate leading-snug text-zinc-900 dark:text-zinc-100">
+            <HighlightText text={result.title} query={query} />
+          </h4>
+          {result.matchPreview && (
+            <p className="text-sm text-zinc-400 mt-0.5 line-clamp-1 leading-relaxed">
+              <HighlightText text={result.matchPreview} query={query} />
+            </p>
+          )}
+          {result.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-1.5">
+              {result.tags.slice(0, 3).map((tag) => (
+                <Tag key={tag} variant="light" size="sm">{tag}</Tag>
+              ))}
+            </div>
+          )}
+        </div>
+      </Link>
+    </ProCard>
   );
 }
 

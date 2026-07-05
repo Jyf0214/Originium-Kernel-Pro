@@ -5,12 +5,14 @@ import { CustomHead } from '../components/CustomHead';
 import { Providers } from './providers';
 import { Navbar } from '../components/Navbar';
 import { RouteTransition } from '../components/RouteTransition';
+import { PageTransition } from '../components/PageTransition';
 import { PostPageProvider } from '@/contexts/PostPageContext';
 import { PWARegister } from '../components/PWARegister';
 import { TabTitleSwitch } from '../components/TabTitleSwitch';
 import { MusicPlayerWrapper } from '../components/MusicPlayer/MusicPlayerWrapper';
 import { loadConfig } from '@/lib/config';
 import { ThirdPartyScripts } from '@/components/ThirdPartyScripts';
+import { EffectsManager } from '@/components/effects';
 
 export const metadata: Metadata = {
   title: 'Originium Kernel',
@@ -73,7 +75,9 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
             <PostPageProvider>
               <Navbar navConfig={config.nav} siteTitle={config.site.title} />
               <div id="main-content" tabIndex={-1}>
-                <RouteTransition>{children}</RouteTransition>
+                <RouteTransition>
+                  <PageTransition>{children}</PageTransition>
+                </RouteTransition>
               </div>
             </PostPageProvider>
           </AuthProvider>
@@ -81,6 +85,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         </Providers>
         <TabTitleSwitch />
         <ThirdPartyScripts />
+        <EffectsManager />
         <PWARegister />
       </body>
     </html>
