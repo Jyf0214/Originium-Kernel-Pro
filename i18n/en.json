@@ -831,7 +831,7 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "indexTitle": "Custom Pages",
-    "indexSubtitle": "Driven by the storage backend's `pages/` directory (WebDAV or B2). Private pages are marked with a lock and require a password on first visit.",
+    "indexSubtitle": "Driven by the storage backend's `pages/` directory (WebDAV or B2).",
     "indexEmpty": "No custom pages yet",
     "indexEmptyHint": "Place `.html` files under the `pages/` directory in your configured storage backend (WebDAV or B2) and they will appear here automatically.",
     "indexFolder": "Folder",

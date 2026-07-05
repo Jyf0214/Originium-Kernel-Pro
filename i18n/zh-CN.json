@@ -831,7 +831,7 @@
     "showPassword": "显示密码",
     "hidePassword": "隐藏密码",
     "indexTitle": "自定义页面",
-    "indexSubtitle": "由远程存储后端 `pages/` 目录驱动（WebDAV 或 B2）。私有页面会带锁标,首次访问需要密码。",
+    "indexSubtitle": "由远程存储后端 `pages/` 目录驱动（WebDAV 或 B2）。",
     "indexEmpty": "暂无可用页面",
     "indexEmptyHint": "在存储后端（WebDAV 或 B2）`pages/` 目录下放置 `.html` 文件后会自动列出。",
     "indexFolder": "目录",
