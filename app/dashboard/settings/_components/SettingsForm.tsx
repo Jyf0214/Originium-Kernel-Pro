@@ -29,7 +29,6 @@ export function SettingsForm({ form, loading, onSubmit }: SettingsFormProps) {
       form={form}
       layout="vertical"
       onFinish={onSubmit}
-      initialValues={{ avatarUrl: '', username: '', displayName: '' }}
       requiredMark={false}
       className="w-full max-w-md mx-auto"
     >

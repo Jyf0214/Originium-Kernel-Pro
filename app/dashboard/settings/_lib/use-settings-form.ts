@@ -34,8 +34,8 @@ export function useSettingsForm({
 
   useEffect(() => {
     if (user && configLoaded) {
-      // 头像始终使用构建时下载到 public/avatar.jpg 的本地文件，不依赖外部 URL
-      const effectiveAvatar = '/avatar.jpg';
+      // 头像从 configData.avatar.url 读取（远程配置中的全局头像 URL）
+      const effectiveAvatar = configData?.avatar?.url ?? user.avatar ?? '/avatar.jpg';
       setOriginalAvatar(effectiveAvatar);
       form.setFieldsValue({
         avatarUrl: effectiveAvatar,
