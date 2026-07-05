@@ -29,6 +29,7 @@ export interface ConfigState {
   };
   appearance: {
     fontSize?: number;
+    favicon?: string;
     background: {
       url: string;
       opacity: number;
@@ -67,7 +68,16 @@ export interface ConfigState {
   errorImg: { flink: string; postPage: string };
   share: { sharejs: { enable: boolean; sites: string }; addtoany: { enable: boolean; item: string } };
   mainTone: { enable: boolean; mode: 'cdn' | 'api' | 'both' };
-  footer: { owner: { enable: boolean; since: number }; customText: string; runtime: { enable: boolean; launchTime: string } };
+  footer: {
+    owner: { enable: boolean; since: number; author?: string };
+    customText: string;
+    runtime: { enable: boolean; launchTime: string };
+    socialLinks?: { name: string; icon: string }[];
+    links?: { group: string; items: { name: string; url: string }[] }[];
+    badges?: { name: string; url: string }[];
+    typedTextPrefix?: string;
+    typedText?: string[];
+  };
   postMeta: {
     page: { dateType: string; dateFormat: string; categories: boolean; tags: boolean; label: boolean };
     post: { dateType: string; dateFormat: string; categories: boolean; tags: boolean; label: boolean; unread: boolean };
@@ -77,6 +87,8 @@ export interface ConfigState {
   copyright: { enable: boolean; decode: boolean; authorHref: string; location: string; license: string; licenseUrl: string; authorLink: string };
   reward: { enable: boolean; qrCodes: { img: string; link: string; text: string }[] };
   postEdit: { enable: boolean; github: string | false };
+  clerk: { enable: boolean };
+  music: { enable: boolean; autoPlay: boolean; songs: { name: string; artist: string; url: string }[] };
 }
 
 export function buildSiteConfig(data: Record<string, unknown>): ConfigState['site'] {
@@ -94,6 +106,7 @@ export function buildAppearanceConfig(data: Record<string, unknown>): ConfigStat
   const appearanceData = data.appearance as Record<string, unknown> | undefined;
   return {
     fontSize: (appearanceData?.fontSize as number) ?? 15,
+    favicon: (appearanceData?.favicon as string) ?? '',
     background: (appearanceData?.background as ConfigState['appearance']['background']) ?? { url: '', opacity: 0.8 },
     customCSS: (appearanceData?.customCSS as string) ?? '',
     customHead: (appearanceData?.customHead as string) ?? '',
@@ -296,20 +309,52 @@ export function buildMainToneConfig(data: Record<string, unknown>): ConfigState[
   };
 }
 
+const FOOTER_DEFAULTS = {
+  owner: { enable: false, since: 2020, author: '' },
+  customText: '',
+  runtime: { enable: false, launchTime: '04/01/2021 00:00:00' },
+  socialLinks: [] as { name: string; icon: string }[],
+  links: [] as { group: string; items: { name: string; url: string }[] }[],
+  badges: [] as { name: string; url: string }[],
+  typedTextPrefix: '',
+  typedText: [] as string[],
+} satisfies ConfigState['footer'];
+
 export function buildFooterConfig(data: Record<string, unknown>): ConfigState['footer'] {
-  const d = data.footer as Record<string, unknown> | undefined;
-  const owner = d?.owner as Record<string, unknown> | undefined;
-  const runtime = d?.runtime as Record<string, unknown> | undefined;
+  const d = (data.footer ?? {}) as Record<string, unknown>;
+  const owner = (d.owner ?? {}) as Record<string, unknown>;
+  const runtime = (d.runtime ?? {}) as Record<string, unknown>;
   return {
+    ...FOOTER_DEFAULTS,
     owner: {
-      enable: (owner?.enable as boolean) ?? false,
-      since: (owner?.since as number) ?? 2020,
+      enable: (owner.enable as boolean) ?? FOOTER_DEFAULTS.owner.enable,
+      since: (owner.since as number) ?? FOOTER_DEFAULTS.owner.since,
+      author: (owner.author as string) ?? FOOTER_DEFAULTS.owner.author,
     },
-    customText: (d?.customText as string) ?? '',
+    customText: (d.customText as string) ?? FOOTER_DEFAULTS.customText,
     runtime: {
-      enable: (runtime?.enable as boolean) ?? false,
-      launchTime: (runtime?.launchTime as string) ?? '04/01/2021 00:00:00',
+      enable: (runtime.enable as boolean) ?? FOOTER_DEFAULTS.runtime.enable,
+      launchTime: (runtime.launchTime as string) ?? FOOTER_DEFAULTS.runtime.launchTime,
     },
+    socialLinks: (d.socialLinks as { name: string; icon: string }[]) ?? FOOTER_DEFAULTS.socialLinks,
+    links: (d.links as { group: string; items: { name: string; url: string }[] }[]) ?? FOOTER_DEFAULTS.links,
+    badges: (d.badges as { name: string; url: string }[]) ?? FOOTER_DEFAULTS.badges,
+    typedTextPrefix: (d.typedTextPrefix as string) ?? FOOTER_DEFAULTS.typedTextPrefix,
+    typedText: (d.typedText as string[]) ?? FOOTER_DEFAULTS.typedText,
+  };
+}
+
+export function buildClerkConfig(data: Record<string, unknown>): ConfigState['clerk'] {
+  const d = data.clerk as Record<string, unknown> | undefined;
+  return { enable: (d?.enable as boolean) ?? false };
+}
+
+export function buildMusicConfig(data: Record<string, unknown>): ConfigState['music'] {
+  const d = data.music as Record<string, unknown> | undefined;
+  return {
+    enable: (d?.enable as boolean) ?? false,
+    autoPlay: (d?.autoPlay as boolean) ?? false,
+    songs: (d?.songs as { name: string; artist: string; url: string }[]) ?? [],
   };
 }
 
@@ -337,5 +382,7 @@ export function buildConfigState(data: Record<string, unknown>): ConfigState {
     share: buildShareConfig(data),
     mainTone: buildMainToneConfig(data),
     footer: buildFooterConfig(data),
+    clerk: buildClerkConfig(data),
+    music: buildMusicConfig(data),
   };
 }

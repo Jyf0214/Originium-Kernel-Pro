@@ -22,6 +22,7 @@ export default function ConfigPage() {
     },
     appearance: {
       background: { url: '', opacity: 0.8 },
+      favicon: '',
       customCSS: '',
       customHead: '',
       fontSize: 15,
@@ -64,7 +65,9 @@ export default function ConfigPage() {
     postEdit: { enable: false, github: false },
     share: { sharejs: { enable: true, sites: 'facebook,twitter,wechat,weibo,qq' }, addtoany: { enable: false, item: 'facebook,twitter,wechat,sina_weibo,email,copy_link' } },
     mainTone: { enable: false, mode: 'api' },
-    footer: { owner: { enable: true, since: 2020 }, customText: '', runtime: { enable: false, launchTime: '04/01/2021 00:00:00' } },
+    footer: { owner: { enable: true, since: 2020, author: '' }, customText: '', runtime: { enable: false, launchTime: '04/01/2021 00:00:00' }, socialLinks: [], links: [], badges: [], typedTextPrefix: '', typedText: [] },
+    clerk: { enable: false },
+    music: { enable: false, autoPlay: false, songs: [] },
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -79,7 +82,7 @@ export default function ConfigPage() {
     githubConfigured,
     remoteConfig,
     currentConfig: config as unknown as Record<string, unknown>,
-    managedFields: ['site', 'appearance', 'access', 'auth', 'nav', 'mourn', 'highlight', 'copy', 'social', 'authorStatus', 'cover', 'errorImg', 'postMeta', 'wordcount', 'toc', 'copyright', 'reward', 'postEdit', 'share', 'mainTone', 'footer'],
+    managedFields: ['site', 'appearance', 'access', 'auth', 'avatar', 'nav', 'mourn', 'highlight', 'copy', 'social', 'authorStatus', 'cover', 'errorImg', 'postMeta', 'wordcount', 'toc', 'copyright', 'reward', 'postEdit', 'share', 'mainTone', 'footer', 'clerk', 'music'],
     onSyncStart: () => setSaving(true),
     onSyncComplete: (yamlContent) => {
       setRemoteConfig(yamlContent);

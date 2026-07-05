@@ -25,6 +25,8 @@ import {
   Pipette,
   PanelBottom,
   Loader2,
+  Lock,
+  Music,
   type LucideIcon,
 } from 'lucide-react';
 import ConfigSection from '@/components/ui/ConfigSection';
@@ -312,7 +314,17 @@ export default function ConfigFormBody({
           urlLabel={t('config.backgroundUrl')}
           opacityLabel={t('config.overlayOpacity')}
         />
-        <div className="mt-4 pt-4 border-t border-zinc-100">
+        <div className="mt-4 pt-4 border-t border-zinc-100 space-y-4">
+          <FormField
+            label="自定义 Favicon 路径"
+            value={config.appearance.favicon ?? ''}
+            onChange={v => onConfigChange({
+              ...config,
+              appearance: { ...config.appearance, favicon: v },
+            })}
+            placeholder="/img/custom-favicon.ico"
+          />
+          <p className="text-xs text-zinc-400 -mt-2">填写 public 目录下的路径（如 /img/favicon.ico），留空使用默认。</p>
           <FormField
             label="全局基础字号（px）"
             value={String(config.appearance.fontSize ?? 15)}
@@ -320,7 +332,7 @@ export default function ConfigFormBody({
             type="text"
             placeholder="15"
           />
-          <p className="text-xs text-zinc-400 mt-1">设置 10-30 之间的值，默认 15。保存后刷新页面生效。</p>
+          <p className="text-xs text-zinc-400 -mt-2">设置 10-30 之间的值，默认 15。保存后刷新页面生效。</p>
         </div>
       </ConfigSection>
 
@@ -332,6 +344,47 @@ export default function ConfigFormBody({
         onNavLoadingChange={handleNavLoadingChange}
         onSlogansChange={handleSlogansChange}
       />
+
+      <ConfigSection id="section-clerk" title="Clerk 认证" icon={Lock} color="bg-violet-600">
+        <ToggleField
+          label="启用 Clerk"
+          description="使用 Clerk 作为第三方认证服务"
+          checked={config.clerk.enable}
+          onChange={v => onConfigChange({ ...config, clerk: { enable: v } })}
+        />
+      </ConfigSection>
+
+      <ConfigSection id="section-music" title="背景音乐" icon={Music} color="bg-fuchsia-500">
+        <ToggleField
+          label="启用背景音乐"
+          checked={config.music.enable}
+          onChange={v => onConfigChange({ ...config, music: { ...config.music, enable: v } })}
+        />
+        {config.music.enable && (
+          <div className="mt-4 pt-4 border-t border-zinc-100 space-y-4">
+            <ToggleField
+              label="自动播放"
+              checked={config.music.autoPlay}
+              onChange={v => onConfigChange({ ...config, music: { ...config.music, autoPlay: v } })}
+            />
+            <FormField
+              label="歌曲列表（JSON 格式）"
+              value={JSON.stringify(config.music.songs, null, 2)}
+              onChange={v => {
+                try {
+                  const parsed = JSON.parse(v) as ConfigState['music']['songs'];
+                  onConfigChange({ ...config, music: { ...config.music, songs: parsed } });
+                } catch {
+                  // JSON 不合法时忽略，等用户修正
+                }
+              }}
+              type="textarea"
+              rows={6}
+              placeholder='[{"name":"歌名","artist":"歌手","url":"https://..."}]'
+            />
+          </div>
+        )}
+      </ConfigSection>
     </>
   );
 }
