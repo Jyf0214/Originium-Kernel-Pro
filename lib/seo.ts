@@ -7,12 +7,12 @@ const DEFAULT_SITE_TITLE = 'Originium Kernel';
 
 /** 获取站点 URL（构建时从环境变量读取，运行时也支持） */
 function getSiteUrl(siteUrl?: string): string {
-  return siteUrl || process.env.APP_URL || DEFAULT_SITE_URL;
+  return siteUrl ?? process.env.APP_URL ?? DEFAULT_SITE_URL;
 }
 
 /** 获取站点标题 */
 function getSiteTitle(siteTitle?: string): string {
-  return siteTitle || DEFAULT_SITE_TITLE;
+  return siteTitle ?? DEFAULT_SITE_TITLE;
 }
 
 /** 生成帖子页面的完整 SEO Metadata */
@@ -30,7 +30,7 @@ export function buildPostMetadata(opts: {
   const siteUrl = getSiteUrl(opts.siteUrl);
   const siteTitle = getSiteTitle(opts.siteTitle);
   const fullTitle = opts.title ? `${opts.title} - ${siteTitle}` : siteTitle;
-  const description = opts.description || `${opts.title} - ${siteTitle}`;
+  const description = opts.description ?? `${opts.title} - ${siteTitle}`;
   const canonical = `${siteUrl}/posts/${opts.slug}`;
 
   const openGraph: Metadata['openGraph'] = {

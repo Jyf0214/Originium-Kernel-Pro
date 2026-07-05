@@ -106,9 +106,18 @@ export function buildSiteConfig(data: Record<string, unknown>): ConfigState['sit
   };
 }
 
+/** 解析页面特效配置 */
+function buildEffectsConfig(appearanceData: Record<string, unknown> | undefined) {
+  const effectsData = appearanceData?.effects as Record<string, unknown> | undefined;
+  return {
+    mouseClick: (effectsData?.mouseClick as boolean) ?? false,
+    backgroundParticles: (effectsData?.backgroundParticles as boolean) ?? false,
+    confetti: (effectsData?.confetti as boolean) ?? false,
+  };
+}
+
 export function buildAppearanceConfig(data: Record<string, unknown>): ConfigState['appearance'] {
   const appearanceData = data.appearance as Record<string, unknown> | undefined;
-  const effectsData = appearanceData?.effects as Record<string, unknown> | undefined;
   return {
     fontSize: (appearanceData?.fontSize as number) ?? 15,
     favicon: (appearanceData?.favicon as string) ?? '',
@@ -119,11 +128,7 @@ export function buildAppearanceConfig(data: Record<string, unknown>): ConfigStat
       page: { type: 'waves', color: '#c084fc', position: 'center' },
       navigation: { type: 'antd', color: '#c084fc' },
     },
-    effects: {
-      mouseClick: (effectsData?.mouseClick as boolean) ?? false,
-      backgroundParticles: (effectsData?.backgroundParticles as boolean) ?? false,
-      confetti: (effectsData?.confetti as boolean) ?? false,
-    },
+    effects: buildEffectsConfig(appearanceData),
   };
 }
 

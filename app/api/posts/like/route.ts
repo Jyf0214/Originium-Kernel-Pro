@@ -1,5 +1,4 @@
-import type { NextRequest} from 'next/server';
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
 /**
  * 文章点赞 API
@@ -14,7 +13,7 @@ import { NextResponse } from 'next/server';
 // 内存计数存储：slug → 点赞数
 const likeCounts = new Map<string, number>();
 
-export async function GET(req: NextRequest) {
+export function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get('slug');
   if (!slug) {
     return NextResponse.json({ error: '缺少 slug 参数' }, { status: 400 });
