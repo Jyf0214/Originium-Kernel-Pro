@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ArrowLeft, QrCode } from 'lucide-react';
 import Link from 'next/link';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
+import { ArticleEncryption } from '@/components/ArticleEncryption';
 import { BacklinkPanel } from '@/components/BacklinkPanel';
 import { Giscus } from '@/components/Comments/Giscus';
 import { LazyLoad } from '@/components/ui/LazyLoad';
@@ -13,6 +14,7 @@ import QRCodeDialog from '@/components/ui/QRCodeDialog';
 import { ReadingProgressBar } from '@/components/ui/ReadingProgressBar';
 import { ContinueReadingPrompt } from '@/components/ui/ContinueReadingPrompt';
 import { ScrollToTop } from '@/components/ui/ScrollToTop';
+import { Tag } from '@/components/ui/Tag';
 import { PostBreadcrumb, type Crumb } from './PostBreadcrumb';
 import { PostHeader } from './PostHeader';
 import { PostRelated } from './PostRelated';
@@ -51,6 +53,9 @@ export function PostDetailBody({
   translations,
   omitHeader,
   authorInfo,
+  isEncrypted,
+  isHidden,
+  passwordHash,
 }: {
   file: { content: string; meta: Record<string, unknown> };
   fullPath: string;
@@ -70,8 +75,15 @@ export function PostDetailBody({
   /** 有封面时跳过 PostHeader（封面已在卡片外单独渲染） */
   omitHeader?: boolean;
   authorInfo?: AuthorInfo | null;
+  /** 文章是否加密（需要密码才能查看内容） */
+  isEncrypted?: boolean;
+  /** 文章是否隐藏（不在列表中显示，但可通过 URL 直接访问） */
+  isHidden?: boolean;
+  /** 密码哈希值（SHA-256） */
+  passwordHash?: string;
 }) {
   const [qrOpen, setQrOpen] = useState(false);
+  const [decrypted, setDecrypted] = useState<string | null>(null);
   const { t } = useI18n();
   const { savedData, setSavedData, handleRestore, handleDismiss } = useContinueReading();
   const titleStr = typeof file.meta.title === 'string' ? file.meta.title : '';
@@ -108,6 +120,15 @@ export function PostDetailBody({
           />
         )}
 
+        {/* 隐藏文章标识 — 仅展示标签 */}
+        {isHidden && (
+          <div className="mb-6">
+            <Tag variant="amber" size="sm">
+              仅展示
+            </Tag>
+          </div>
+        )}
+
         {/* 多语言版本切换 */}
         {translations && Object.keys(translations).length > 0 && (
           <TranslationSwitcher
@@ -125,7 +146,20 @@ export function PostDetailBody({
         )}
 
         <div>
-          <MarkdownRenderer content={file.content} highlight={highlight} wikiLinkMap={wikiLinkMap} />
+          {/* 加密文章：显示密码验证界面；验证成功后显示内容 */}
+          {isEncrypted && decrypted === null ? (
+            <ArticleEncryption
+              passwordHash={passwordHash ?? ''}
+              encryptedContent={file.content}
+              onDecrypted={setDecrypted}
+            />
+          ) : (
+            <MarkdownRenderer
+              content={isEncrypted ? (decrypted ?? '') : file.content}
+              highlight={highlight}
+              wikiLinkMap={wikiLinkMap}
+            />
+          )}
         </div>
 
         {/* 关联引用面板 */}

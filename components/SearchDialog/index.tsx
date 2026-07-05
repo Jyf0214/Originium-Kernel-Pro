@@ -133,20 +133,24 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
                         </h3>
                       </div>
 
-                      {/* 分组结果列表 */}
-                      {group.results.map((result, idx) => {
-                        const item = (
-                          <SearchResultItem
-                            key={result.id}
-                            result={result}
-                            query={query}
-                            onClose={onClose}
-                            isSelected={selectedIndex === groupOffset + idx}
-                            flatIndex={groupOffset + idx}
-                          />
-                        );
-                        return item;
-                      })}
+                      {/* 分组结果列表 — stagger 进场动画 */}
+                      <motion.div
+                        variants={listVariants}
+                        initial="hidden"
+                        animate="visible"
+                      >
+                        {group.results.map((result, idx) => (
+                          <motion.div key={result.id} variants={itemVariants}>
+                            <SearchResultItem
+                              result={result}
+                              query={query}
+                              onClose={onClose}
+                              isSelected={selectedIndex === groupOffset + idx}
+                              flatIndex={groupOffset + idx}
+                            />
+                          </motion.div>
+                        ))}
+                      </motion.div>
                       {/* 更新偏移量 */}
                       {(() => { flatOffset += group.results.length; return null; })()}
                     </div>
