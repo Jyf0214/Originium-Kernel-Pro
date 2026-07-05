@@ -61,7 +61,7 @@ export interface FrontendConfig {
   authorStatus?: { enable: boolean; statusImg: string; skills: string[] };
   postEdit?: { enable: boolean; github: string | false };
   site?: { title: string; description: string; lang: string };
-  auth?: { allowRegistration: boolean };
+  auth?: { allowRegistration: boolean; admin?: { avatar?: string } };
   music?: { enable: boolean; autoPlay: boolean; songs: { name: string; artist: string; url: string }[] };
 }
 
