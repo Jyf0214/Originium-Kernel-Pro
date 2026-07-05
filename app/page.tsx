@@ -1,5 +1,6 @@
 import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { loadConfig } from '@/lib/config';
+import { getAuthorByName } from '@/lib/authors';
 import { estimateReadingTime } from '@/lib/reading-time';
 import { HomePostGrid } from '@/components/HomePostGrid';
 import Footer from '@/components/Footer';
@@ -30,17 +31,23 @@ export default function HomePage() {
     return isPublic;
   });
 
-  const posts = publicPosts.map((f) => ({
-    slug: f.slug,
-    title: f.meta.title,
-    date: f.meta.date,
-    author: f.meta.author,
-    tags: f.meta.tags ?? [],
-    cover: f.meta.cover,
-    description: f.meta.description,
-    pinned: f.meta.pinned === true,
-    readingTime: f.content ? estimateReadingTime(f.content) : undefined,
-  }));
+  const posts = publicPosts.map((f) => {
+    const authorName = typeof f.meta.author === 'string' ? f.meta.author : '';
+    const authorInfo = getAuthorByName(authorName);
+    return {
+      slug: f.slug,
+      title: f.meta.title,
+      date: f.meta.date,
+      author: f.meta.author,
+      authorAvatar: authorInfo?.avatar,
+      authorNickname: authorInfo?.nickname,
+      tags: f.meta.tags ?? [],
+      cover: f.meta.cover,
+      description: f.meta.description,
+      pinned: f.meta.pinned === true,
+      readingTime: f.content ? estimateReadingTime(f.content) : undefined,
+    };
+  });
 
   // 哀悼日检测
   const today = new Date();

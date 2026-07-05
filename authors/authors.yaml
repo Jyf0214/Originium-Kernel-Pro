@@ -1,0 +1,13 @@
+# 作者列表
+# name: 唯一标识，与帖子 frontmatter 中的 author 字段匹配
+# nickname: 显示昵称（可选，默认使用 name）
+# avatar: 头像路径，如 /avatar.jpg 或 https://...（可选）
+# location: 所在地（可选）
+# bio: 简短留言/签名（可选）
+
+# 示例（取消注释并修改即可使用）：
+# - name: "Jyf0214"
+#   nickname: "Jyf"
+#   avatar: "/avatar.jpg"
+#   location: "Shanghai"
+#   bio: "写代码的，偶尔写点东西。"

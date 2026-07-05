@@ -5,6 +5,7 @@ import { getContentFile, getAllSlugs, getAdjacentPosts } from '@/lib/content';
 import { buildWikiLinkMap, getBacklinks, getOutgoingReferences } from '@/lib/content-registry';
 import { getSession } from '@/lib/auth';
 import { loadConfig } from '@/lib/config';
+import { getAuthorByName } from '@/lib/authors';
 import { getSiteUrl } from '@/const/url';
 
 import { isPrivateSlug } from './_lib/post-utils';
@@ -79,6 +80,7 @@ export default async function PostDetailPage({ params }: PageProps) {
           type={file.meta.type}
           tags={file.meta.tags}
           cover={file.meta.cover}
+          authorInfo={viewModel.authorInfo}
         />
       )}
       <main className={`flex-1 max-w-6xl 2xl:max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-16 ${file.meta.cover ? '' : 'pt-8'}`}>
@@ -120,6 +122,8 @@ function buildViewModel(
   const wikiLinkMap = buildWikiLinkMap();
   const backlinks = getBacklinks('posts', fullPath);
   const outgoingRefs = getOutgoingReferences('posts', fullPath);
+  const authorName = typeof meta.author === 'string' ? meta.author : '';
+  const authorInfo = getAuthorByName(authorName);
 
   return {
     file: { content, meta },
@@ -138,6 +142,7 @@ function buildViewModel(
     wikiLinkMap,
     backlinks,
     outgoingRefs,
+    authorInfo,
     // 多语言翻译映射（从 frontmatter translations 字段读取）
     translations: (meta.translations && typeof meta.translations === 'object')
       ? meta.translations as Record<string, string>

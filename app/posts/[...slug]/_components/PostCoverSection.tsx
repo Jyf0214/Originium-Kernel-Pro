@@ -1,6 +1,7 @@
 'use client';
 
 import { CoverHero } from './PostHeader';
+import type { AuthorInfo } from '@/types/author';
 
 /**
  * 全屏宽封面区域 — 正常文档流，撑满视口宽度
@@ -13,6 +14,7 @@ export function PostCoverSection({
   type,
   tags,
   cover,
+  authorInfo,
 }: {
   title: unknown;
   author?: unknown;
@@ -20,6 +22,7 @@ export function PostCoverSection({
   type?: unknown;
   tags?: unknown;
   cover: unknown;
+  authorInfo?: AuthorInfo | null;
 }) {
   const typeStr = typeof type === 'string' && (type === 'original' || type === 'reprint') ? type : undefined;
   const titleStr = typeof title === 'string' ? title : '';
@@ -40,6 +43,7 @@ export function PostCoverSection({
         tagsArr={tagsArr}
         coverStr={coverStr}
         fullBleed
+        authorInfo={authorInfo}
       />
     </div>
   );
