@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { cn } from '@/lib/ui';
+import type { AuthorInfo } from '@/types/author';
 
 export interface CopyrightNoticeProps {
   author: string;
@@ -18,6 +19,8 @@ export interface CopyrightNoticeProps {
     decode?: boolean;
   };
   locale?: string;
+  /** 作者列表数据 — 优先级高于 config 中的静态字段 */
+  authorInfo?: AuthorInfo | null;
 }
 
 function decodeHtml(text: string): string {
@@ -27,26 +30,26 @@ function decodeHtml(text: string): string {
   return el.textContent ?? text;
 }
 
-export function CopyrightNotice({
-  author,
-  title,
-  slug: _slug,
-  type = 'original',
-  config,
-  locale,
-}: CopyrightNoticeProps) {
-  if (!config.enable) return null;
-
-  const displayAuthor = config.decode ? decodeHtml(author) : author;
-  const displayTitle = config.decode ? decodeHtml(title) : title;
-
+/** 作者信息行：头像 + 昵称 + 地点 + 签名 */
+function AuthorInfoRow({
+  displayAvatar,
+  displayAuthor,
+  displayLocation,
+  bio,
+  authorLink,
+}: {
+  displayAvatar?: string;
+  displayAuthor: string;
+  displayLocation?: string;
+  bio?: string;
+  authorLink: string;
+}) {
   return (
-    <div className="bg-zinc-50 dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 p-6">
-      {/* 作者信息行 */}
+    <>
       <div className="flex items-center gap-3 mb-4">
-        {config.authorImgFront ? (
+        {displayAvatar ? (
           <img
-            src={config.authorImgFront}
+            src={displayAvatar}
             alt={displayAuthor}
             className="rounded-full w-10 h-10 object-cover"
           />
@@ -56,16 +59,91 @@ export function CopyrightNotice({
         )}
         <div className="flex items-center gap-2 min-w-0">
           <Link
-            href={config.authorLink}
+            href={authorLink}
             className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors truncate"
           >
             {displayAuthor}
           </Link>
-          {config.location && (
-            <span className="text-xs text-zinc-400 dark:text-zinc-500 shrink-0">{config.location}</span>
+          {displayLocation && (
+            <span className="text-xs text-zinc-400 dark:text-zinc-500 shrink-0">{displayLocation}</span>
           )}
         </div>
       </div>
+      {bio && (
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 italic mb-4 -mt-1">{bio}</p>
+      )}
+    </>
+  );
+}
+
+/** 许可证链接 */
+function LicenseLink({ license, licenseUrl }: { license: string; licenseUrl: string }) {
+  return (
+    <a
+      href={licenseUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-xs text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors underline underline-offset-2 decoration-zinc-300 dark:decoration-zinc-600"
+    >
+      {license}
+    </a>
+  );
+}
+
+/** 版权声明文本 */
+function CopyrightText({
+  type,
+  locale,
+  license,
+  licenseUrl,
+}: {
+  type: 'original' | 'reprint';
+  locale?: string;
+  license: string;
+  licenseUrl: string;
+}) {
+  if (locale === 'en') {
+    return (
+      <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+        Licensed under <LicenseLink license={license} licenseUrl={licenseUrl} />. All rights reserved.
+      </p>
+    );
+  }
+  return (
+    <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+      采用 <LicenseLink license={license} licenseUrl={licenseUrl} />
+      {type === 'original'
+        ? ' 许可协议。版权归作者所有，未经授权禁止转载。'
+        : '，版权归原作者所有。'}
+    </p>
+  );
+}
+
+export function CopyrightNotice({
+  author,
+  title,
+  slug: _slug,
+  type = 'original',
+  config,
+  locale,
+  authorInfo,
+}: CopyrightNoticeProps) {
+  if (!config.enable) return null;
+
+  const displayAuthor = authorInfo?.nickname ?? (config.decode ? decodeHtml(author) : author);
+  const displayTitle = config.decode ? decodeHtml(title) : title;
+  const displayAvatar = authorInfo?.avatar ?? config.authorImgFront;
+  const displayLocation = authorInfo?.location ?? config.location;
+
+  return (
+    <div className="bg-zinc-50 dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 p-6">
+      <AuthorInfoRow
+        displayAvatar={displayAvatar}
+        displayAuthor={displayAuthor}
+        displayLocation={displayLocation}
+        bio={authorInfo?.bio}
+        authorLink={config.authorLink}
+      />
 
       {/* 文章标题 + 原创/转载标识（移动端隐藏，避免与顶部标题重复） */}
       <div className="hidden sm:flex items-start gap-2 mb-3">
@@ -87,49 +165,12 @@ export function CopyrightNotice({
       {/* 许可证信息 */}
       {config.license && (
         <div className="mb-3">
-          <a
-            href={config.licenseUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors underline underline-offset-2 decoration-zinc-300 dark:decoration-zinc-600"
-          >
-            {config.license}
-          </a>
+          <LicenseLink license={config.license} licenseUrl={config.licenseUrl} />
         </div>
       )}
 
       {/* 版权声明文本 */}
-      <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-        {locale === 'en' ? (
-          <>
-            Licensed under{' '}
-            <a
-              href={config.licenseUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 underline underline-offset-2 decoration-zinc-300 dark:decoration-zinc-600 transition-colors"
-            >
-              {config.license}
-            </a>
-            . All rights reserved.
-          </>
-        ) : (
-          <>
-            采用{' '}
-            <a
-              href={config.licenseUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 underline underline-offset-2 decoration-zinc-300 dark:decoration-zinc-600 transition-colors"
-            >
-              {config.license}
-            </a>
-            {type === 'original'
-              ? ' 许可协议。版权归作者所有，未经授权禁止转载。'
-              : '，版权归原作者所有。'}
-          </>
-        )}
-      </p>
+      <CopyrightText type={type} locale={locale} license={config.license} licenseUrl={config.licenseUrl} />
     </div>
   );
 }

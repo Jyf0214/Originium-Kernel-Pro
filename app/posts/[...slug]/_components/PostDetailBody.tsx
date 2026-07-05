@@ -23,6 +23,7 @@ import type { RelatedPost } from '../_lib/related-posts';
 import type { FrontendConfig } from '@/hooks/use-config';
 import type { WikiLinkMap } from '@/components/MarkdownRenderer/types';
 import type { BacklinkInfo, RegistryEntry } from '@/lib/content-registry';
+import type { AuthorInfo } from '@/types/author';
 import { buildCopyrightConfig, buildShareConfig } from '../_lib/post-page-config';
 import { tPosts } from '../_lib/post-i18n';
 import { useI18n } from '@/hooks/use-i18n';
@@ -47,6 +48,7 @@ export function PostDetailBody({
   outgoingRefs,
   translations,
   omitHeader,
+  authorInfo,
 }: {
   file: { content: string; meta: Record<string, unknown> };
   fullPath: string;
@@ -65,6 +67,7 @@ export function PostDetailBody({
   translations?: Record<string, string>;
   /** 有封面时跳过 PostHeader（封面已在卡片外单独渲染） */
   omitHeader?: boolean;
+  authorInfo?: AuthorInfo | null;
 }) {
   const [qrOpen, setQrOpen] = useState(false);
   const { t } = useI18n();
@@ -98,6 +101,7 @@ export function PostDetailBody({
             author={file.meta.author}
             date={file.meta.date}
             cover={file.meta.cover}
+            authorInfo={authorInfo}
           />
         )}
 
@@ -133,6 +137,7 @@ export function PostDetailBody({
           slug={fullPath}
           type={file.meta.type as 'original' | 'reprint' | undefined}
           config={buildCopyrightConfig(appConfig)}
+          authorInfo={authorInfo}
         />
       </div>
 

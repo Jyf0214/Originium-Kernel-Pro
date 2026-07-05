@@ -3,6 +3,10 @@ export interface PostItem {
   title: string;
   date?: string;
   author?: string;
+  /** 作者头像（来自 authors.yaml） */
+  authorAvatar?: string;
+  /** 作者昵称（来自 authors.yaml） */
+  authorNickname?: string;
   tags: string[];
   cover?: string;
   description?: string;

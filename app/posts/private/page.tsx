@@ -1,5 +1,6 @@
 import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { getSession } from '@/lib/auth';
+import { getAuthorByName } from '@/lib/authors';
 import { PostListClient } from '../PostListClient';
 import Footer from '@/components/Footer';
 import { redirect } from 'next/navigation';
@@ -32,15 +33,21 @@ export default async function PrivatePostsPage() {
 
   const privateIndexes = indexes.filter((idx) => !idx.public);
 
-  const posts = privateFiles.map((f) => ({
-    slug: f.slug,
-    title: f.meta.title,
-    date: f.meta.date,
-    author: f.meta.author,
-    tags: f.meta.tags ?? [],
-    cover: f.meta.cover,
-    description: f.meta.description,
-  }));
+  const posts = privateFiles.map((f) => {
+    const authorName = typeof f.meta.author === 'string' ? f.meta.author : '';
+    const authorInfo = getAuthorByName(authorName);
+    return {
+      slug: f.slug,
+      title: f.meta.title,
+      date: f.meta.date,
+      author: f.meta.author,
+      authorAvatar: authorInfo?.avatar,
+      authorNickname: authorInfo?.nickname,
+      tags: f.meta.tags ?? [],
+      cover: f.meta.cover,
+      description: f.meta.description,
+    };
+  });
 
   const groups = privateIndexes.map((idx) => ({
     slug: idx.slug,

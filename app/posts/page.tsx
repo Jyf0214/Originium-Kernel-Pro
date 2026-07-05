@@ -1,5 +1,6 @@
 import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { loadConfig } from '@/lib/config';
+import { getAuthorByName } from '@/lib/authors';
 import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import { PostListClient } from './PostListClient';
@@ -32,16 +33,22 @@ export default function PostsPage() {
 
   const publicIndexes = indexes.filter((idx) => idx.public);
 
-  const posts = publicFiles.map((f) => ({
-    slug: f.slug,
-    title: f.meta.title,
-    date: f.meta.date,
-    author: f.meta.author,
-    tags: f.meta.tags ?? [],
-    cover: f.meta.cover,
-    description: f.meta.description,
-    pinned: f.meta.pinned === true,
-  }));
+  const posts = publicFiles.map((f) => {
+    const authorName = typeof f.meta.author === 'string' ? f.meta.author : '';
+    const authorInfo = getAuthorByName(authorName);
+    return {
+      slug: f.slug,
+      title: f.meta.title,
+      date: f.meta.date,
+      author: f.meta.author,
+      authorAvatar: authorInfo?.avatar,
+      authorNickname: authorInfo?.nickname,
+      tags: f.meta.tags ?? [],
+      cover: f.meta.cover,
+      description: f.meta.description,
+      pinned: f.meta.pinned === true,
+    };
+  });
 
   const groups = publicIndexes.map((idx) => ({
     slug: idx.slug,

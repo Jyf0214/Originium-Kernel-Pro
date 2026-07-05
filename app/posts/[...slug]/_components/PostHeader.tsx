@@ -7,6 +7,40 @@ import { Calendar, User } from 'lucide-react';
 import { Tag } from '@/components/ui/Tag';
 import { useCoverParallax } from '@/hooks/useCoverParallax';
 import { EASE_STANDARD } from '@/components/ui/motion';
+import type { AuthorInfo } from '@/types/author';
+
+/** 作者头像：有 avatar 显示图片，否则显示占位图标 */
+function AuthorAvatar({
+  authorInfo,
+  name,
+  size = 8,
+  ringClass = '',
+  fallbackBg = 'bg-white/20 backdrop-blur-sm',
+  fallbackIconClass = 'text-white/80',
+}: {
+  authorInfo?: AuthorInfo | null;
+  name: string;
+  size?: number;
+  ringClass?: string;
+  fallbackBg?: string;
+  fallbackIconClass?: string;
+}) {
+  const px = `w-${size} h-${size}`;
+  if (authorInfo?.avatar) {
+    return (
+      <img
+        src={authorInfo.avatar}
+        alt={authorInfo.nickname ?? name}
+        className={`${px} rounded-full object-cover ${ringClass}`}
+      />
+    );
+  }
+  return (
+    <div className={`${px} ${fallbackBg} rounded-full flex items-center justify-center`}>
+      <User size={14} className={fallbackIconClass} />
+    </div>
+  );
+}
 
 interface PostHeaderProps {
   type?: unknown;
@@ -15,6 +49,7 @@ interface PostHeaderProps {
   author?: unknown;
   date?: unknown;
   cover?: unknown;
+  authorInfo?: AuthorInfo | null;
 }
 
 /* ── 入场动画变体 ── */
@@ -41,6 +76,7 @@ export function CoverHero({
   tagsArr,
   coverStr,
   fullBleed = false,
+  authorInfo,
 }: {
   titleStr: string;
   authorStr?: string;
@@ -50,6 +86,7 @@ export function CoverHero({
   coverStr: string;
   /** 全屏宽模式：去掉负 margin 和圆角，封面撑满视口 */
   fullBleed?: boolean;
+  authorInfo?: AuthorInfo | null;
 }) {
   const coverRef = useRef<HTMLDivElement>(null);
   const parallax = useCoverParallax(coverRef);
@@ -138,10 +175,12 @@ export function CoverHero({
           <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-4 text-sm text-white/70">
             {authorStr && (
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                  <User size={14} className="text-white/80" />
-                </div>
-                <span className="font-medium text-white/90">{authorStr}</span>
+                <AuthorAvatar
+                  authorInfo={authorInfo}
+                  name={authorStr}
+                  ringClass="ring-2 ring-white/20"
+                />
+                <span className="font-medium text-white/90">{authorInfo?.nickname ?? authorStr}</span>
               </div>
             )}
             {dateStr && (
@@ -169,12 +208,14 @@ function SimpleHeader({
   dateStr,
   typeStr,
   tagsArr,
+  authorInfo,
 }: {
   titleStr: string;
   authorStr?: string;
   dateStr?: string;
   typeStr?: string;
   tagsArr: string[];
+  authorInfo?: AuthorInfo | null;
 }) {
   return (
     <motion.header
@@ -213,10 +254,14 @@ function SimpleHeader({
         <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-4 text-sm">
           {authorStr && (
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-zinc-100 dark:bg-zinc-700 rounded-full flex items-center justify-center">
-                <User size={14} className="text-zinc-500 dark:text-zinc-400" />
-              </div>
-              <span className="font-semibold text-zinc-700 dark:text-zinc-300">{authorStr}</span>
+              <AuthorAvatar
+                authorInfo={authorInfo}
+                name={authorStr}
+                ringClass="ring-2 ring-zinc-200 dark:ring-zinc-600"
+                fallbackBg="bg-zinc-100 dark:bg-zinc-700"
+                fallbackIconClass="text-zinc-500 dark:text-zinc-400"
+              />
+              <span className="font-semibold text-zinc-700 dark:text-zinc-300">{authorInfo?.nickname ?? authorStr}</span>
             </div>
           )}
           {dateStr && (
@@ -235,7 +280,7 @@ function SimpleHeader({
   );
 }
 
-export function PostHeader({ type, tags, title, author, date, cover }: PostHeaderProps) {
+export function PostHeader({ type, tags, title, author, date, cover, authorInfo }: PostHeaderProps) {
   const typeStr = typeof type === 'string' && (type === 'original' || type === 'reprint') ? type : undefined;
   const titleStr = typeof title === 'string' ? title : '';
   const authorStr = typeof author === 'string' ? author : undefined;
@@ -244,8 +289,8 @@ export function PostHeader({ type, tags, title, author, date, cover }: PostHeade
   const tagsArr: string[] = Array.isArray(tags) ? tags.filter((t): t is string => typeof t === 'string') : [];
 
   if (coverStr) {
-    return <CoverHero titleStr={titleStr} authorStr={authorStr} dateStr={dateStr} typeStr={typeStr} tagsArr={tagsArr} coverStr={coverStr} />;
+    return <CoverHero titleStr={titleStr} authorStr={authorStr} dateStr={dateStr} typeStr={typeStr} tagsArr={tagsArr} coverStr={coverStr} authorInfo={authorInfo} />;
   }
 
-  return <SimpleHeader titleStr={titleStr} authorStr={authorStr} dateStr={dateStr} typeStr={typeStr} tagsArr={tagsArr} />;
+  return <SimpleHeader titleStr={titleStr} authorStr={authorStr} dateStr={dateStr} typeStr={typeStr} tagsArr={tagsArr} authorInfo={authorInfo} />;
 }
