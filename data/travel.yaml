@@ -1,0 +1,14 @@
+# 旅行足迹数据
+places:
+  - name: "北京"
+    country: "中国"
+    date: "2024-10"
+    description: "故宫、长城"
+    coordinates: [39.9, 116.4]
+    emoji: "🏯"
+  - name: "东京"
+    country: "日本"
+    date: "2024-12"
+    description: "浅草寺、涩谷"
+    coordinates: [35.68, 139.69]
+    emoji: "🗼"
