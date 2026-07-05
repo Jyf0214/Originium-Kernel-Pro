@@ -68,12 +68,14 @@ export function GitHubDiffModal({
       title={null}
       open={open}
       onCancel={onCancel}
-      width="min(760px, 94vw)"
       footer={null}
       centered
       destroyOnClose
       className="github-diff-modal"
-      styles={{ body: { padding: 0 } }}
+      width="min(760px, calc(100vw - 32px))"
+      styles={{
+        body: { padding: 0, overflow: 'hidden', maxHeight: 'calc(100vh - 80px)' },
+      }}
     >
       {/* 标题栏 */}
       <div className="px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4">
@@ -91,29 +93,31 @@ export function GitHubDiffModal({
         </div>
       </div>
 
-      {/* Diff 内容区 */}
-      <div className="mx-3 sm:mx-4 bg-zinc-900 rounded-lg max-h-[50vh] sm:max-h-80 overflow-auto">
-        <div className="font-mono text-xs sm:text-sm leading-5">
-          {hunks.length === 0 && (
-            <div className="text-zinc-500 text-center py-6">无变更</div>
-          )}
-          {hunks.map((hunk, hi) => (
-            <div key={hi}>
-              {hunk.lines.map((line, li) => {
-                let bg = '';
-                let fg = 'text-zinc-400';
-                let prefix = ' ';
-                if (line.type === 'add') { bg = 'bg-green-900/30'; fg = 'text-green-300'; prefix = '+'; }
-                if (line.type === 'del') { bg = 'bg-red-900/30'; fg = 'text-red-300'; prefix = '-'; }
-                return (
-                  <div key={li} className={`${bg} ${fg} px-3 sm:px-4 whitespace-pre-wrap break-all`}>
-                    <span className="select-none w-4 inline-block text-center mr-2 sm:mr-3 opacity-50 text-[10px] sm:text-xs">{prefix}</span>
-                    {line.text}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+      {/* Diff 内容区 — 关键：overflow-x-hidden 防止长行撑宽 */}
+      <div className="mx-3 sm:mx-4 bg-zinc-900 rounded-lg overflow-hidden">
+        <div className="max-h-[45vh] sm:max-h-80 overflow-y-auto overflow-x-hidden">
+          <div className="font-mono text-xs sm:text-sm leading-5 min-w-0">
+            {hunks.length === 0 && (
+              <div className="text-zinc-500 text-center py-6">无变更</div>
+            )}
+            {hunks.map((hunk, hi) => (
+              <div key={hi}>
+                {hunk.lines.map((line, li) => {
+                  let bg = '';
+                  let fg = 'text-zinc-400';
+                  let prefix = ' ';
+                  if (line.type === 'add') { bg = 'bg-green-900/30'; fg = 'text-green-300'; prefix = '+'; }
+                  if (line.type === 'del') { bg = 'bg-red-900/30'; fg = 'text-red-300'; prefix = '-'; }
+                  return (
+                    <div key={li} className={`${bg} ${fg} px-3 sm:px-4`}>
+                      <span className="select-none w-4 inline-block text-center mr-2 sm:mr-3 opacity-50 text-[10px] sm:text-xs">{prefix}</span>
+                      <span className="break-all">{line.text}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
