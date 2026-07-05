@@ -14,6 +14,7 @@
 import Link from 'next/link';
 import { LogIn, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
+import { useBuildTimeAvatar } from '@/hooks/use-build-time-avatar';
 import { useI18n } from '@/hooks/use-i18n';
 import { Avatar } from '@/components/Avatar';
 
@@ -31,6 +32,7 @@ function WidgetSkeleton() {
 
 export function UserWidget() {
   const { user, loading } = useAuth();
+  const avatarUrl = useBuildTimeAvatar();
   const { t } = useI18n();
 
   if (loading) {
@@ -53,7 +55,7 @@ export function UserWidget() {
         >
           <Avatar
             name={user.name ?? user.displayName ?? '?'}
-            avatarUrl={user.avatar}
+            avatarUrl={avatarUrl}
             size={36}
           />
           <span className="hidden text-sm font-medium text-zinc-700 sm:inline">

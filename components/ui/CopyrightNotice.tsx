@@ -51,9 +51,8 @@ export function CopyrightNotice({
             className="rounded-full w-10 h-10 object-cover"
           />
         ) : (
-          <div className="rounded-full w-10 h-10 bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-zinc-500 dark:text-zinc-400 font-medium text-sm shrink-0">
-            {displayAuthor.charAt(0)}
-          </div>
+          /* ⚠️ 禁止显示首字母 — 灰色占位块 */
+          <div className="rounded-full w-10 h-10 bg-zinc-200 dark:bg-zinc-700 shrink-0" aria-hidden />
         )}
         <div className="flex items-center gap-2 min-w-0">
           <Link

@@ -38,9 +38,8 @@ export function ArticleCoverImage({
           onError={() => setFallbackImgError(true)}
         />
       ) : imgError || fallbackImgError ? (
-        <div className="w-full h-full flex items-center justify-center text-zinc-200 font-black text-6xl select-none">
-          {title.charAt(0)}
-        </div>
+        /* ⚠️ 禁止显示首字母 — 灰色占位块 */
+        <div className="w-full h-full bg-zinc-200 dark:bg-zinc-700" aria-hidden />
       ) : (
         <Image
           src={src}

@@ -28,13 +28,8 @@ function PostCardImage({ post, defaultCover, position }: { post: PostItem; defau
       />
     );
   }
-  return (
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-50 via-zinc-100 to-zinc-50 dark:from-zinc-700 dark:to-zinc-800 select-none">
-      <span className="text-5xl font-black text-zinc-200 dark:text-zinc-500 group-hover:text-zinc-300 dark:group-hover:text-zinc-400 transition-colors duration-500">
-        {post.title.charAt(0)}
-      </span>
-    </div>
-  );
+  /* ⚠️ 无封面时不做任何自定义回退，由浏览器处理 */
+  return null;
 }
 
 export function PostCardCover({
