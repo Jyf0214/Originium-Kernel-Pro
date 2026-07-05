@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 import { getDb } from '@/lib/db';
 import { createSession, createTempToken } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
@@ -36,7 +37,10 @@ async function checkRateLimit(db: ReturnType<typeof getDb>, email: string): Prom
 
 async function verifyCode(db: ReturnType<typeof getDb>, email: string, code: string): Promise<NextResponse | null> {
   const storedCode = await db.get(`bind:code:${email}`);
-  if (!storedCode || storedCode !== code) {
+  // 使用常量时间比较防止时序侧信道攻击
+  const codesMatch = storedCode?.length === code.length &&
+    timingSafeEqual(Buffer.from(storedCode), Buffer.from(code));
+  if (!codesMatch) {
     return NextResponse.json({ error: '验证码错误或已过期' }, { status: 400 });
   }
   await db.del(`bind:code:${email}`);

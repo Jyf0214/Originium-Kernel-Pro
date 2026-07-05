@@ -94,12 +94,19 @@ function buildRegistry(): Registry {
     }
   }
 
+  // 预建 slug → file 查找表，避免 O(n²) 的 find() 扫描
+  const fileBySlug = new Map<string, { content: string }>();
+  for (const section of sections) {
+    for (const file of getContentFiles(section)) {
+      fileBySlug.set(`${section}:${file.slug}`, file);
+    }
+  }
+
   // 构建后向链接索引
   const backlinkIndex = new Map<string, BacklinkInfo[]>();
 
   for (const entry of entries) {
-    const files = getContentFiles(entry.section);
-    const file = files.find((f) => f.slug === entry.slug);
+    const file = fileBySlug.get(`${entry.section}:${entry.slug}`);
     if (!file) continue;
 
     const refTitles = extractWikiLinks(file.content);

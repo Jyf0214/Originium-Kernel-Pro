@@ -30,23 +30,28 @@ function cleanup(now: number): void {
 
 /**
  * 从请求头中提取客户端真实 IP
- * 优先使用 x-forwarded-for（Vercel/反向代理场景），其次 x-real-ip，最后回退 127.0.0.1
+ * 优先使用 x-forwarded-for（Vercel/反向代理场景），其次 x-real-ip，最后回退到匿名标识
  *
  * 安全说明：x-forwarded-for 和 x-real-ip 均为客户端可控请求头，在没有可信反向代理
  * （如 Vercel Edge Network、Nginx real_ip 模块）的场景下可被伪造，导致频率限制
  * 被绕过。在 Vercel 部署环境中，边缘网络会覆写这些头部，风险可控；若自建部署，
  * 应在反向代理层配置 trusted upstream 并剥离客户端传入的伪造头部。
+ *
+ * 加固措施：仅接受合法 IPv4/IPv6 格式，拒绝伪造值；使用固定 fallback 标识
+ * 避免每次请求生成新 UUID 导致限速失效。
  */
+const IP_RE = /^(\d{1,3}\.){3}\d{1,3}$|^[0-9a-fA-F:]+$/;
+
 export function getClientIp(req: NextRequest): string {
   const forwarded = req.headers.get('x-forwarded-for');
   if (typeof forwarded === 'string' && forwarded.length > 0) {
-    const firstIp = forwarded.split(',')[0];
-    if (firstIp) return firstIp.trim();
+    const firstIp = forwarded.split(',')[0]?.trim();
+    if (firstIp && IP_RE.test(firstIp)) return firstIp;
   }
   const realIp = req.headers.get('x-real-ip');
-  if (realIp) return realIp;
-  // 无法识别 IP 时使用随机标识，避免多实例下共享桶
-  return `anon:${crypto.randomUUID().slice(0, 8)}`;
+  if (realIp && IP_RE.test(realIp)) return realIp;
+  // 无法识别 IP 时使用匿名标识，避免多实例下共享桶
+  return 'anon:unknown';
 }
 
 /**

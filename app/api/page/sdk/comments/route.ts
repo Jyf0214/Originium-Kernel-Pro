@@ -12,6 +12,7 @@ import { apiHandler } from '@/lib/api-handler'
 import { getSession } from '@/lib/auth'
 import { isStorageConfigured, getStorageProvider } from '@/lib/storage/storage-provider'
 import { normalizeWebDavContent } from '@/lib/page-source/shared'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 /** 评论数据结构 */
 interface Comment {
@@ -108,6 +109,12 @@ async function resolveUserName(
 export const POST = apiHandler('POST', { label: 'page-sdk.comments.post' }, async (req) => {
   if (!isStorageConfigured()) {
     return NextResponse.json({ error: '存储后端未配置' }, { status: 503 })
+  }
+
+  // IP 频率限制：每分钟最多 10 条评论
+  const rl = checkRateLimit(req, 'comment-post', 10, 60_000)
+  if (!rl.allowed) {
+    return NextResponse.json({ error: '评论过于频繁，请稍后再试' }, { status: 429 })
   }
 
   let body: unknown

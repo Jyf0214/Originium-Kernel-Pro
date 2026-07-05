@@ -72,8 +72,11 @@ export function MermaidBlock({ code }: MermaidBlockProps) {
           .replace(/<use\b[^>]*\/?>/gi, '')
           .replace(/<animate\b[^<]*(?:(?!<\/animate>)<[^<]*)*<\/animate>/gi, '')
           .replace(/<set\b[^<]*(?:(?!<\/set>)<[^<]*)*<\/set>/gi, '')
-          .replace(/\bon\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
-          .replace(/javascript\s*:/gi, '')
+          .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+          .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+          .replace(/<embed\b[^>]*\/?>/gi, '')
+          .replace(/\bon[a-zA-Z0-9_]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+          .replace(/(?:javascript|vbscript)\s*:/gi, '')
           .replace(/data\s*:/gi, '');
 
         containerRef.current.innerHTML = sanitized;
