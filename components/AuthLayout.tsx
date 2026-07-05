@@ -3,13 +3,13 @@
 import { type FC, type PropsWithChildren } from 'react';
 import { cx } from 'antd-style';
 import { authStyles } from './style';
-import { useIsDark } from '@/hooks/useIsDark';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 /**
  * 认证页面全屏布局 — 顶部品牌、中部内容、底部版权
  */
 const AuthLayout: FC<PropsWithChildren> = ({ children }) => {
-  const isDarkMode = useIsDark();
+  const isDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
   return (
     <div className={authStyles.outer} style={{ height: '100%', padding: 8, width: '100%', display: 'flex', flexDirection: 'column' }}>

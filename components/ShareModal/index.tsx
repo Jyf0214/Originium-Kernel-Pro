@@ -4,7 +4,7 @@ import { useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { modalContentVariants, modalTransition } from '@/components/ui/motion';
 import { Button } from '@/components/ui/Button';
-import { ShareModalHeader } from './ShareModalHeader';
+import { X } from 'lucide-react';
 import { ShareModalGrid } from './ShareModalGrid';
 import { ShareModalFooter } from './ShareModalFooter';
 import { useCopyFeedback } from './use-copy-feedback';
@@ -202,7 +202,12 @@ export default function ShareModal({
             transition={{ ...modalTransition, duration: 0.25 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <ShareModalHeader onClose={onClose} />
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-zinc-100">
+              <h2 className="text-lg font-bold text-zinc-900">分享</h2>
+              <Button variant="ghost" size="sm" iconOnly onClick={onClose} aria-label="关闭" autoLoading={false}>
+                <X size={18} />
+              </Button>
+            </div>
             <ShareModalGrid platforms={displayPlatforms} onShare={handleShare} />
             <ShareModalFooter shareUrl={shareUrl} copied={copied} onCopy={copy} />
 

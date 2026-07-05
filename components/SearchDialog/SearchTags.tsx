@@ -6,7 +6,7 @@ import React from 'react';
 
 import { Button } from '@/components/ui/Button';
 
-import { POPULAR_TAGS } from './search-styles';
+const POPULAR_TAGS = ['随笔', '旅行', '日常', '北京', '私密'] as const;
 
 interface SearchTagsProps {
   onTagClick: (tag: string) => void;
