@@ -1,5 +1,4 @@
 import type {Metadata, Viewport} from 'next';
-import dynamic from 'next/dynamic';
 import './globals.css';
 import { AuthProvider } from '../hooks/use-auth';
 import { CustomHead } from '../components/CustomHead';
@@ -10,10 +9,7 @@ import { PageTransition } from '../components/PageTransition';
 import { PostPageProvider } from '@/contexts/PostPageContext';
 import { PWARegister } from '../components/PWARegister';
 import { TabTitleSwitch } from '../components/TabTitleSwitch';
-const MusicPlayer = dynamic(
-  () => import('@/components/MusicPlayer/index').then((m) => ({ default: m.MusicPlayer })),
-  { ssr: false },
-);
+import { MusicPlayerWrapper } from '../components/MusicPlayer/MusicPlayerWrapper';
 import { loadConfig } from '@/lib/config';
 import { ThirdPartyScripts } from '@/components/ThirdPartyScripts';
 import { EffectsManager } from '@/components/effects';
@@ -85,7 +81,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
               </div>
             </PostPageProvider>
           </AuthProvider>
-          <MusicPlayer />
+          <MusicPlayerWrapper />
         </Providers>
         <TabTitleSwitch />
         <ThirdPartyScripts />
