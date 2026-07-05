@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import { zAppConfig, type AppConfig, type SiteConfig, type AppearanceConfig, type AccessConfig, type AuthConfig, type UserConfig, type ShareConfig, type MainToneConfig, type FooterConfig, type ClerkConfig, type FooterOwnerConfig, type FooterRuntimeConfig, type SharejsConfig, type AddtoanyConfig, type PostEditConfig, type CopyrightConfig, type TocConfig, type WordCountConfig, type PostMetaConfig, type PostMetaDisplayConfig, type PostMetaPostConfig, type ErrorImgConfig, type CoverConfig, type AuthorStatusConfig, type SocialConfig, type CopyConfig, type HighlightConfig, type MournConfig, type NavConfig, type NavMenuItem, type NavMenuGroup, type RewardConfig, type QRCodeItem } from '@/lib/config-schema';
+import { zAppConfig, type AppConfig, type SiteConfig, type AppearanceConfig, type AccessConfig, type AuthConfig, type AvatarConfig, type ShareConfig, type MainToneConfig, type FooterConfig, type ClerkConfig, type FooterOwnerConfig, type FooterRuntimeConfig, type SharejsConfig, type AddtoanyConfig, type PostEditConfig, type CopyrightConfig, type TocConfig, type WordCountConfig, type PostMetaConfig, type PostMetaDisplayConfig, type PostMetaPostConfig, type ErrorImgConfig, type CoverConfig, type AuthorStatusConfig, type SocialConfig, type CopyConfig, type HighlightConfig, type MournConfig, type NavConfig, type NavMenuItem, type NavMenuGroup, type RewardConfig, type QRCodeItem } from '@/lib/config-schema';
 
 export type {
   AppConfig,
@@ -9,7 +9,7 @@ export type {
   AppearanceConfig,
   AccessConfig,
   AuthConfig,
-  UserConfig,
+  AvatarConfig,
   ShareConfig,
   MainToneConfig,
   FooterConfig,
@@ -139,16 +139,16 @@ export function filterAccessibleSlugs(
 }
 
 /**
- * 获取用户头像（全局统一，始终返回 auth.admin.avatar）
+ * 获取用户头像（全局唯一，始终返回 avatar.url）
  */
 export function getUserAvatarAsync(): Promise<string | null> {
   return Promise.resolve(getUserAvatar());
 }
 
 /**
- * 获取用户头像（同步，全局统一）
+ * 获取用户头像（同步，全局唯一）
  */
 export function getUserAvatar(): string | null {
   const config = loadConfig();
-  return config.auth?.admin?.avatar ?? null;
+  return config.avatar?.url || null;
 }

@@ -39,6 +39,7 @@ export default function ConfigPage() {
     auth: {
       allowRegistration: true,
     },
+    avatar: { url: '' },
     nav: {
       enable: false,
       travelling: false,
@@ -58,7 +59,7 @@ export default function ConfigPage() {
     },
     wordcount: { enable: false, postWordcount: false, min2read: true, totalWordcount: false },
     toc: { post: true, page: false, number: true, expand: false, styleSimple: false },
-    copyright: { enable: true, decode: false, authorHref: '', location: '中国', license: 'CC BY-NC-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/', avatarSinks: true, authorImgBack: '', authorImgFront: '', authorLink: '/' },
+    copyright: { enable: true, decode: false, authorHref: '', location: '中国', license: 'CC BY-NC-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/', authorLink: '/' },
     reward: { enable: true, qrCodes: [] },
     postEdit: { enable: false, github: false },
     share: { sharejs: { enable: true, sites: 'facebook,twitter,wechat,weibo,qq' }, addtoany: { enable: false, item: 'facebook,twitter,wechat,sina_weibo,email,copy_link' } },

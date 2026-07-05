@@ -6,10 +6,10 @@ describe('getUserAvatar 全局头像', () => {
     clearConfigCache();
   });
 
-  it('始终返回 auth.admin.avatar', () => {
+  it('始终返回 avatar.url', () => {
     const config = loadConfig();
     const result = getUserAvatar();
-    expect(result).toBe(config.auth?.admin?.avatar);
+    expect(result).toBe(config.avatar?.url || null);
   });
 
   it('无参数时始终返回全局头像', () => {

@@ -50,11 +50,8 @@ access:
       - '*'
 auth:
   allowRegistration: false
-  admin:
-    avatar: https://avatar.vercel.sh/jyf0214?size=128&background=030712&color=fafaf9
-users:
-  169313142:
-    avatar: https://avatars.githubusercontent.com/u/169313142?v=4
+avatar:
+  url: https://avatar.vercel.sh/jyf0214?size=128&background=030712&color=fafafaf9
 nav:
   enable: true
   travelling: true
@@ -138,9 +135,6 @@ copyright:
   location: 中国
   license: CC BY-NC-SA 4.0
   licenseUrl: https://creativecommons.org/licenses/by-nc-sa/4.0/
-  avatarSinks: true
-  authorImgBack: ''
-  authorImgFront: ''
   authorLink: /
 reward:
   enable: true
@@ -173,7 +167,6 @@ footer:
   runtime:
     enable: false
     launchTime: 04/01/2021 00:00:00
-  avatar: ''
   socialLinks:
     - name: Github
       icon: Github

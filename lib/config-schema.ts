@@ -106,14 +106,19 @@ export const zAccessConfig = z.object({
 });
 
 // ============================================================================
+// AvatarConfig — 全站唯一头像来源
+// ============================================================================
+
+export const zAvatarConfig = z.object({
+  url: z.string().default(''),
+});
+
+// ============================================================================
 // AuthConfig
 // ============================================================================
 
 export const zAuthConfig = z.object({
   allowRegistration: z.boolean().default(false),
-  admin: z.object({
-    avatar: z.string().default(''),
-  }).optional(),
 });
 
 // ============================================================================
@@ -269,9 +274,6 @@ export const zCopyrightConfig = z.object({
   location: z.string().default('中国'),
   license: z.string().default('CC BY-NC-SA 4.0'),
   licenseUrl: z.string().default('https://creativecommons.org/licenses/by-nc-sa/4.0/'),
-  avatarSinks: z.boolean().default(true),
-  authorImgBack: z.string().default(''),
-  authorImgFront: z.string().default(''),
   authorLink: z.string().default('/'),
 });
 
@@ -366,7 +368,6 @@ export const zFooterConfig = z.object({
   owner: withFullDefault(zFooterOwnerConfig),
   customText: z.string().default(''),
   runtime: withFullDefault(zFooterRuntimeConfig),
-  avatar: z.string().optional(),
   socialLinks: z.array(zFooterSocialLink).optional(),
   links: z.array(zFooterLinkGroup).optional(),
   badges: z.array(zFooterBadge).optional(),
@@ -414,7 +415,7 @@ export const zAppConfig = z.object({
   appearance: withFullDefault(zAppearanceConfig),
   access: withFullDefault(zAccessConfig),
   auth: withFullDefault(zAuthConfig),
-  users: z.record(z.string(), zUserConfig).default({}),
+  avatar: withFullDefault(zAvatarConfig),
   nav: withFullDefault(zNavConfig),
   mourn: withFullDefault(zMournConfig),
   highlight: withFullDefault(zHighlightConfig),
@@ -497,13 +498,10 @@ export interface AccessConfig {
 
 export interface AuthConfig {
   allowRegistration: boolean;
-  admin?: {
-    avatar?: string;
-  };
 }
 
-export interface UserConfig {
-  avatar?: string;
+export interface AvatarConfig {
+  url: string;
 }
 
 export interface NavMenuItem {
@@ -606,9 +604,6 @@ export interface CopyrightConfig {
   location: string;
   license: string;
   licenseUrl: string;
-  avatarSinks: boolean;
-  authorImgBack: string;
-  authorImgFront: string;
   authorLink: string;
 }
 
@@ -683,7 +678,6 @@ export interface FooterConfig {
   owner: FooterOwnerConfig;
   customText: string;
   runtime: FooterRuntimeConfig;
-  avatar?: string;
   socialLinks?: FooterSocialLink[];
   links?: FooterLinkGroup[];
   badges?: FooterBadge[];
@@ -713,7 +707,7 @@ export interface AppConfig {
   appearance: AppearanceConfig;
   access: AccessConfig;
   auth: AuthConfig;
-  users?: Record<string, UserConfig>;
+  avatar: AvatarConfig;
   nav?: NavConfig;
   mourn?: MournConfig;
   highlight?: HighlightConfig;

@@ -283,7 +283,7 @@ function mergeCopyright(
   overrideCopyright: Partial<AppConfig['copyright']> | undefined,
 ): AppConfig['copyright'] | undefined {
   if (!overrideCopyright) return base;
-  return { ...(base ?? { enable: true, decode: false, authorHref: '', location: '中国', license: 'CC BY-NC-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/', avatarSinks: true, authorImgBack: '', authorImgFront: '', authorLink: '/' }), ...overrideCopyright };
+  return { ...(base ?? { enable: true, decode: false, authorHref: '', location: '中国', license: 'CC BY-NC-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/', authorLink: '/' }), ...overrideCopyright };
 }
 
 function mergeReward(
@@ -337,7 +337,7 @@ function mergeAppConfig(
     appearance: mergeAppearance(base.appearance, override.appearance),
     access: mergeAccess(base.access, override.access),
     auth: mergeAuth(base.auth, override.auth),
-    users: override.users ?? base.users,
+    avatar: override.avatar ?? base.avatar,
     nav: mergeNav(base.nav, override.nav),
     mourn: mergeMourn(base.mourn, override.mourn),
     highlight: mergeHighlight(base.highlight, override.highlight),
