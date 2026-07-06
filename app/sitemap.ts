@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { getAllSlugs, getContentIndexes } from '@/lib/content';
+import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { getSiteUrl } from '@/const/url';
 
 /**
@@ -10,7 +10,8 @@ import { getSiteUrl } from '@/const/url';
  * - 全部公开帖子的详情页
  *
  * 私有帖子（目录 index.md / index.tsx 中 `public: false`）不收录，
- * 避免搜索爬虫抓取到需要鉴权的内容。
+ * hidden 文章不收录，
+ * 避免搜索爬虫抓取到需要鉴权或不公开的内容。
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl = getSiteUrl();
@@ -24,32 +25,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${siteUrl}/archives`, lastModified: now, changeFrequency: 'weekly', priority: 0.7 },
   ];
 
-  const postSlugs = getAllSlugs('posts');
+  const allFiles = getContentFiles('posts');
   const indexes = getContentIndexes('posts');
 
-  const postPages: MetadataRoute.Sitemap = postSlugs
-    .filter((slug) => isPublicPostSlug(slug, indexes))
-    .map((slug) => ({
-      url: `${siteUrl}/posts${slug}`,
+  // 过滤公开且未隐藏的文章（与首页、帖子列表页保持一致）
+  const postPages: MetadataRoute.Sitemap = allFiles
+    .filter((file) => {
+      const isHidden = file.meta.hidden === true;
+      const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
+      const dirIndex = indexes.find(
+        (idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'),
+      );
+      const isPublic = dirIndex ? dirIndex.public : true;
+      return isPublic && !isHidden;
+    })
+    .map((file) => ({
+      url: `${siteUrl}/posts${file.slug}`,
       lastModified: now,
-      changeFrequency: 'monthly',
+      changeFrequency: 'monthly' as const,
       priority: 0.8,
     }));
 
   return [...staticPages, ...postPages];
-}
-
-/**
- * 判断帖子所在目录是否标记为 public
- * 与 app/posts/[...slug]/_lib/post-utils.ts 中的 isPrivateSlug 保持一致
- */
-function isPublicPostSlug(
-  slug: string,
-  indexes: { slug: string; public: boolean }[],
-): boolean {
-  const dirSlug = '/' + slug.split('/').filter(Boolean).slice(0, -1).join('/');
-  const dirIndex = indexes.find(
-    (idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'),
-  );
-  return dirIndex ? dirIndex.public : true;
 }
