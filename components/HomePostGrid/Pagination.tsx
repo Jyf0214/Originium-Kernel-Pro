@@ -1,7 +1,8 @@
+import { memo, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
-export function Pagination({
+export const Pagination = memo(function Pagination({
   currentPage,
   totalPages,
   onPageChange,
@@ -12,7 +13,16 @@ export function Pagination({
   onPageChange: (page: number) => void;
   t: (key: string) => string;
 }) {
+  const handlePrev = useCallback(() => {
+    onPageChange(Math.max(1, currentPage - 1));
+  }, [currentPage, onPageChange]);
+
+  const handleNext = useCallback(() => {
+    onPageChange(Math.min(totalPages, currentPage + 1));
+  }, [currentPage, totalPages, onPageChange]);
+
   if (totalPages <= 1) return null;
+
   return (
     <div className="flex items-center justify-center gap-2 mt-10">
       <Button
@@ -21,10 +31,11 @@ export function Pagination({
         autoLoading={false}
         icon={<ChevronLeft size={16} />}
         disabled={currentPage === 1}
-        onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+        onClick={handlePrev}
       >
         <span className="hidden sm:inline">{t('common.previous')}</span>
       </Button>
+      {/* 页码按钮数量通常有限（最多10个），内联回调性能影响可忽略 */}
       {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
         <Button
           key={page}
@@ -44,10 +55,10 @@ export function Pagination({
         autoLoading={false}
         icon={<ChevronRight size={16} />}
         disabled={currentPage === totalPages}
-        onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+        onClick={handleNext}
       >
         <span className="hidden sm:inline">{t('common.next')}</span>
       </Button>
     </div>
   );
-}
+});

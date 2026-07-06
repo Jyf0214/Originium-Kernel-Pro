@@ -123,7 +123,7 @@ export function FeedbackForm() {
         />
 
         {status === 'error' && errorMessage && (
-          <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 text-sm">
+          <div role="alert" className="flex items-start gap-2 p-3 rounded-lg bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 text-sm">
             <AlertCircle size={16} className="mt-0.5 shrink-0" />
             <span>{errorMessage}</span>
           </div>

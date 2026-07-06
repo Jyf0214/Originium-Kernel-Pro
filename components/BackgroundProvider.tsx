@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import type { AppearanceConfig } from '@/lib/config';
+import { useThemeMode } from '@/hooks/use-theme-mode';
 
 /**
  * 背景图提供组件
@@ -61,6 +62,7 @@ function applyBackgroundStyles(url: string | undefined): void {
 export function BackgroundProvider({ children }: { children: React.ReactNode }) {
   const [background, setBackground] = useState<AppearanceConfig['background'] | null>(null);
   const mountedRef = useRef(false);
+  const { isDark } = useThemeMode();
 
   useEffect(() => {
     mountedRef.current = true;
@@ -96,7 +98,7 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
             left: 0,
             width: '100%',
             height: '100%',
-            background: `rgba(255, 255, 255, ${opacity})`,
+            background: isDark ? `rgba(0, 0, 0, ${opacity})` : `rgba(255, 255, 255, ${opacity})`,
             pointerEvents: 'none',
             zIndex: -1,
           }}
