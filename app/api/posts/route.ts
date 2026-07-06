@@ -1,4 +1,4 @@
-import { getContentFiles, getContentIndexes } from '@/lib/content';
+import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
 import { loadConfig, canAccess, hasDatabase } from '@/lib/config';
 import { getSession } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
@@ -19,8 +19,7 @@ export async function GET() {
     const allFiles = getContentFiles('posts');
     const indexes = getContentIndexes('posts');
 
-    const accessibleFiles = allFiles
-      .filter((f) => f.meta.hidden !== true)
+    const accessibleFiles = filterPublicFiles(allFiles, indexes)
       .filter((f) => canAccess('posts', f.slug, isAuthenticated, dbAvailable, config));
 
     const accessibleIndexes = indexes.filter((idx) =>

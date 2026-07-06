@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 
-import { getContentFile, getContentFiles, getAllSlugs, getAdjacentPosts } from '@/lib/content';
+import { getContentFile, getContentFiles, getContentIndexes, filterPublicFiles, getAllSlugs, getAdjacentPosts } from '@/lib/content';
 import { buildWikiLinkMap, getBacklinks, getOutgoingReferences } from '@/lib/content-registry';
 import { getSession } from '@/lib/auth';
 import { loadConfig } from '@/lib/config';
@@ -135,7 +135,8 @@ function buildViewModel(
   const seriesName = typeof meta.series === 'string' ? meta.series : '';
   let seriesInfo: { seriesName: string; articles: { slug: string; title: string; isCurrent: boolean }[] } | undefined;
   if (seriesName) {
-    const allFiles = getContentFiles('posts');
+    const indexes = getContentIndexes('posts');
+    const allFiles = filterPublicFiles(getContentFiles('posts'), indexes);
     const seriesArticles = allFiles
       .filter((f) => typeof f.meta.series === 'string' && f.meta.series === seriesName)
       .sort((a, b) => {
