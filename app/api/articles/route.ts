@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { loadConfig, canAccess, hasDatabase, getUserAvatar } from '@/lib/config';
-import { getContentFiles } from '@/lib/content';
+import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
 import { getDraft, saveDraft } from '@/lib/draft-storage';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
@@ -81,8 +81,9 @@ export async function GET(req: NextRequest) {
     const isAuthenticated = !!session;
     const config = loadConfig();
     const dbAvailable = hasDatabase();
-    const publishedFiles = getContentFiles('posts')
-      .filter((f) => f.meta.hidden !== true)
+    const allFiles = getContentFiles('posts');
+    const indexes = getContentIndexes('posts');
+    const publishedFiles = filterPublicFiles(allFiles, indexes)
       .filter((f) => canAccess('posts', f.slug, isAuthenticated, dbAvailable, config));
     const authorAvatar = getUserAvatar() ?? undefined;
     let published = mapPublishedFiles(publishedFiles, authorAvatar);

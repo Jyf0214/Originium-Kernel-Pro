@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiHandler } from '@/lib/api-handler';
 import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
-import { getContentFiles } from '@/lib/content';
+import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
 import { getDb } from '@/lib/db';
 
 /** 清除 Markdown 标记，统计有效字符数 */
@@ -35,7 +35,7 @@ export const GET = apiHandler('GET', { label: '内容统计', requireAdmin: true
     if (permErr) return permErr;
   }
 
-  const posts = getContentFiles('posts');
+  const posts = filterPublicFiles(getContentFiles('posts'), getContentIndexes('posts'));
   const faces = getContentFiles('faces');
 
   // 日记存储在 Prisma 数据库中，不在本地文件

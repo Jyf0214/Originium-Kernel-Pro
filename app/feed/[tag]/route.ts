@@ -24,9 +24,9 @@ export const dynamic = 'force-static';
 export const revalidate = false;
 
 export async function generateStaticParams(): Promise<{ tag: string }[]> {
-  // 收集所有已使用的标签
-  const { getContentFiles } = await import('@/lib/content');
-  const allFiles = getContentFiles('posts');
+  // 收集所有已使用的标签（仅公开且未隐藏的文章）
+  const { getContentFiles, getContentIndexes, filterPublicFiles } = await import('@/lib/content');
+  const allFiles = filterPublicFiles(getContentFiles('posts'), getContentIndexes('posts'));
   const tagSet = new Set<string>();
 
   for (const file of allFiles) {
