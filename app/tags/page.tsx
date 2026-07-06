@@ -1,4 +1,4 @@
-import { getContentFiles, getContentIndexes } from '@/lib/content';
+import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
 import Link from 'next/link';
 import { Hash, ArrowLeft } from 'lucide-react';
 import { Tag } from '@/components/ui/Tag';
@@ -47,15 +47,7 @@ export default function TagsPage() {
   const indexes = getContentIndexes('posts');
 
   // 仅统计公开且未隐藏文章的标签（与首页、帖子列表页保持一致）
-  const publicFiles = allFiles.filter((file) => {
-    const isHidden = file.meta.hidden === true;
-    const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
-    const dirIndex = indexes.find(
-      (idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'),
-    );
-    const isPublic = dirIndex ? dirIndex.public : true;
-    return isPublic && !isHidden;
-  });
+  const publicFiles = filterPublicFiles(allFiles, indexes);
 
   // 聚合标签及文章数量
   const tagMap = new Map<string, number>();

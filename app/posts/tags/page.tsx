@@ -1,4 +1,4 @@
-import { getContentFiles, getContentIndexes } from '@/lib/content';
+import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
 import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import { HeroBanner } from '@/components/ui/HeroBanner';
@@ -21,15 +21,7 @@ export default function TagsPage() {
   const indexes = getContentIndexes('posts');
 
   // 仅统计公开且未隐藏文章的标签（与首页、帖子列表页保持一致）
-  const publicFiles = allFiles.filter((file) => {
-    const isHidden = file.meta.hidden === true;
-    const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
-    const dirIndex = indexes.find(
-      (idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'),
-    );
-    const isPublic = dirIndex ? dirIndex.public : true;
-    return isPublic && !isHidden;
-  });
+  const publicFiles = filterPublicFiles(allFiles, indexes);
 
   /* 提取所有标签并统计数量 */
   const tagCountMap = new Map<string, number>();

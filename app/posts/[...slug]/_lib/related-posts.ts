@@ -1,4 +1,4 @@
-import { getContentIndexes, getContentFiles } from '@/lib/content';
+import { getContentIndexes, getContentFiles, filterPublicFiles } from '@/lib/content';
 
 export interface RelatedPost {
   slug: string;
@@ -9,15 +9,7 @@ export interface RelatedPost {
 
 export function getRelatedPosts(currentSlug: string, currentTags: string[] = [], limit = 4): RelatedPost[] {
   const pubIndexes = getContentIndexes('posts');
-  const allPublicFiles = getContentFiles('posts').filter((f) => {
-    const isHidden = f.meta.hidden === true;
-    const dirSlug = '/' + f.slug.split('/').filter(Boolean).slice(0, -1).join('/');
-    const dirIndex = pubIndexes.find(
-      (idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'),
-    );
-    const isPublic = dirIndex ? dirIndex.public : true;
-    return isPublic && !isHidden;
-  });
+  const allPublicFiles = filterPublicFiles(getContentFiles('posts'), pubIndexes);
 
   return allPublicFiles
     .filter((f) => f.slug !== currentSlug)
