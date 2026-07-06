@@ -19,28 +19,13 @@ export const AuthCard = memo<AuthCardProps>(({ children, title, subtitle, footer
       <div className="mb-14">
         {title && (
           <div className="mb-5">
-            <span
-              style={{
-                fontSize: 36,
-                fontWeight: 700,
-                lineHeight: 1.6,
-                display: 'block',
-                letterSpacing: '-0.5px',
-              }}
-            >
+            <span className="block text-[36px] font-bold leading-[1.6] tracking-tight">
               {title}
             </span>
           </div>
         )}
         {subtitle && (
-          <span
-            style={{
-              fontSize: 18,
-              color: 'var(--ant-color-text-secondary)',
-              lineHeight: 1.7,
-              display: 'block',
-            }}
-          >
+          <span className="block text-lg leading-[1.7] text-zinc-500 dark:text-zinc-400">
             {subtitle}
           </span>
         )}
