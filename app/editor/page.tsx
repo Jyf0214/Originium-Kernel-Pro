@@ -16,8 +16,17 @@ function EditorContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const articleId = searchParams?.get('id');
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { t } = useI18n();
+
+  // 管理员/超级管理员权限检查
+  const isAdmin = user?.role === 'admin' || user?.role === 'sudo';
+
+  useEffect(() => {
+    if (!authLoading && (!user || !isAdmin)) {
+      router.push('/dashboard');
+    }
+  }, [authLoading, user, isAdmin, router]);
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -181,7 +190,8 @@ function EditorContent() {
     }
   };
 
-  if (fetching) return <GlobalLoading size="large" />;
+  if (authLoading || fetching) return <GlobalLoading size="large" />;
+  if (!user || !isAdmin) return <GlobalLoading size="large" />;
 
   return (
     <div className="max-w-5xl mx-auto p-6 md:p-10 min-h-screen flex flex-col overflow-hidden">
