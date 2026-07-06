@@ -38,9 +38,7 @@ export default function ConfigPage() {
       faces: { public: [], private: ['*'] },
       diary: { public: [], private: ['*'] },
     },
-    auth: {
-      allowRegistration: true,
-    },
+    auth: {},
     avatar: { url: '' },
     nav: {
       enable: false,

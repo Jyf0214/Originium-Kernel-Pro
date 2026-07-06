@@ -125,12 +125,10 @@ export const zAvatarConfig = z.object({
 });
 
 // ============================================================================
-// AuthConfig
+// AuthConfig (保留空对象以兼容已有配置结构)
 // ============================================================================
 
-export const zAuthConfig = z.object({
-  allowRegistration: z.boolean().default(false),
-});
+export const zAuthConfig = z.object({});
 
 // ============================================================================
 // NavConfig
@@ -497,9 +495,8 @@ export interface AccessConfig {
   diary: AccessSection;
 }
 
-export interface AuthConfig {
-  allowRegistration: boolean;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface AuthConfig {}
 
 export interface AvatarConfig {
   url: string;
