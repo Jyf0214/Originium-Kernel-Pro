@@ -12,8 +12,8 @@ const AuthLayout: FC<PropsWithChildren> = ({ children }) => {
   const isDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
   return (
-    <div className={authStyles.outer} style={{ height: '100%', padding: 8, width: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div className={cx(isDarkMode ? authStyles.innerDark : authStyles.innerLight)} style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className={`${authStyles.outer} h-full w-full p-2 flex flex-col`}>
+      <div className={`${cx(isDarkMode ? authStyles.innerDark : authStyles.innerLight)} h-full w-full flex flex-col`}>
         {/* 品牌标题 */}
         <div className="flex items-center gap-2 justify-between w-full px-4 py-4">
           <span className="text-xl font-bold text-zinc-900">Originium Kernel</span>

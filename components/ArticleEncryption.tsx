@@ -39,6 +39,8 @@ interface ArticleEncryptionProps {
  * - 居中卡片布局，锁图标 + 密码输入框
  * - 使用 Web Crypto SHA-256 验证密码
  * - AnimatePresence 过渡动画
+ * 注意：密码验证完全在客户端进行，适用于静态站点场景
+ * 密码哈希存储在文章 frontmatter 中，验证通过后显示解密内容
  */
 export function ArticleEncryption({
   passwordHash,

@@ -65,6 +65,9 @@ export function MermaidBlock({ code }: MermaidBlockProps) {
         if (cancelled || !containerRef.current) return;
 
         // 过滤 SVG 中的危险元素和事件处理器，防止 XSS
+        // 安全说明：mermaid.initialize({ securityLevel: 'strict' }) 是主要防线，
+        // 以下正则作为多层防御的补充层。正则可能被精心构造的输入绕过，
+        // 但 mermaid strict 模式已在源头限制了危险输出。
         const sanitized = svg
           .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
           .replace(/<foreignObject\b[^<]*(?:(?!<\/foreignObject>)<[^<]*)*<\/foreignObject>/gi, '')
@@ -72,9 +75,24 @@ export function MermaidBlock({ code }: MermaidBlockProps) {
           .replace(/<use\b[^>]*\/?>/gi, '')
           .replace(/<animate\b[^<]*(?:(?!<\/animate>)<[^<]*)*<\/animate>/gi, '')
           .replace(/<set\b[^<]*(?:(?!<\/set>)<[^<]*)*<\/set>/gi, '')
+          // 移除其他可能危险的标签
+          .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+          .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+          .replace(/<embed\b[^>]*\/?>/gi, '')
+          .replace(/<applet\b[^<]*(?:(?!<\/applet>)<[^<]*)*<\/applet>/gi, '')
+          .replace(/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/gi, '')
+          .replace(/<input\b[^>]*\/?>/gi, '')
+          .replace(/<button\b[^<]*(?:(?!<\/button>)<[^<]*)*<\/button>/gi, '')
+          .replace(/<textarea\b[^<]*(?:(?!<\/textarea>)<[^<]*)*<\/textarea>/gi, '')
+          .replace(/<select\b[^<]*(?:(?!<\/select>)<[^<]*)*<\/select>/gi, '')
+          .replace(/<base\b[^>]*\/?>/gi, '')
+          // 移除事件处理器属性
           .replace(/\bon\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+          // 移除危险的 URL 协议
           .replace(/javascript\s*:/gi, '')
-          .replace(/data\s*:/gi, '');
+          .replace(/data\s*:/gi, '')
+          .replace(/vbscript\s*:/gi, '')
+          .replace(/livescript\s*:/gi, '');
 
         containerRef.current.innerHTML = sanitized;
 

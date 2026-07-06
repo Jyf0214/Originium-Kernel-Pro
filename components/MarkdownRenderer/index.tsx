@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -59,7 +59,7 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap, watermark }:
   );
 
   // 覆盖 img 组件，收集图片并处理点击，使用 LazyImage 懒加载
-  const imgComponent = (props: Record<string, unknown>) => {
+  const imgComponent = useCallback((props: Record<string, unknown>) => {
     const src = typeof props.src === 'string' ? props.src : '';
     const alt = typeof props.alt === 'string' ? props.alt : '';
     const index = imagesRef.current.length;
@@ -84,7 +84,7 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap, watermark }:
         </div>
       </div>
     );
-  };
+  }, [watermark, setLightbox]);
 
   // 每次渲染前重置 ref
   imagesRef.current = [];

@@ -16,9 +16,9 @@ export const AuthCard = memo<AuthCardProps>(({ children, title, subtitle, footer
   return (
     <div className="w-full max-w-md mx-auto">
       {/* 标题区域 */}
-      <div style={{ marginBottom: 56 }}>
+      <div className="mb-14">
         {title && (
-          <div style={{ marginBottom: 20 }}>
+          <div className="mb-5">
             <span
               style={{
                 fontSize: 36,
@@ -47,7 +47,7 @@ export const AuthCard = memo<AuthCardProps>(({ children, title, subtitle, footer
       </div>
 
       {/* 内容区域 */}
-      <div style={{ marginBottom: 32 }}>{children}</div>
+      <div className="mb-8">{children}</div>
 
       {/* 底部操作区 */}
       {footer}

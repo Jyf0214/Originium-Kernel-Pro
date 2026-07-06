@@ -35,7 +35,19 @@ const features = [
 export default function AboutPage() {
   const [version, setVersion] = useState<string>('');
   useEffect(() => {
-    fetch('/api/version').then(r => r.json()).then((d: { version: string }) => setVersion(d.version)).catch(() => { /* ignore */ });
+    const abortController = new AbortController();
+    fetch('/api/version', { signal: abortController.signal })
+      .then(r => r.json())
+      .then((d: { version: string }) => setVersion(d.version))
+      .catch((err) => {
+        // 忽略 AbortError，其他错误静默处理
+        if (err.name !== 'AbortError') {
+          /* ignore */
+        }
+      });
+    return () => {
+      abortController.abort();
+    };
   }, []);
 
   return (

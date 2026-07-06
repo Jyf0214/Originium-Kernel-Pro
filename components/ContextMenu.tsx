@@ -94,13 +94,14 @@ export function ContextMenu() {
   const handleCopyLink = useCallback(() => {
     const url = window.location.href;
     navigator.clipboard.writeText(url).catch(() => {
-      // 剪贴板 API 不可用时使用 fallback
+      // 剪贴板 API 不可用时使用 fallback（document.execCommand 已废弃，但为兼容旧浏览器保留）
       const textarea = document.createElement('textarea');
       textarea.value = url;
       textarea.style.position = 'fixed';
       textarea.style.opacity = '0';
       document.body.appendChild(textarea);
       textarea.select();
+      // 注意：document.execCommand('copy') 已废弃，但在某些旧浏览器中仍是唯一可用的方法
       document.execCommand('copy');
       document.body.removeChild(textarea);
     });
@@ -109,7 +110,7 @@ export function ContextMenu() {
 
   /** 新标签页打开当前页面 */
   const handleOpenNewTab = useCallback(() => {
-    window.open(window.location.href, '_blank');
+    window.open(window.location.href, '_blank', 'noopener,noreferrer');
     closeMenu();
   }, [closeMenu]);
 
@@ -210,6 +211,8 @@ export function ContextMenu() {
             top: position.y,
           }}
           onContextMenu={(e) => e.preventDefault()}
+          role="menu"
+          aria-label="上下文菜单"
         >
           {menuItems.map((item) =>
             item.divider ? (
@@ -223,6 +226,7 @@ export function ContextMenu() {
                 onClick={item.onClick}
                 className={menuItemClass}
                 disabled={item.divider}
+                role="menuitem"
               >
                 {item.icon}
                 <span>{item.label}</span>

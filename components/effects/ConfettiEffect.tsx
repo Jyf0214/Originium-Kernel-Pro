@@ -73,15 +73,17 @@ interface ConfettiEffectProps {
 export function ConfettiEffect({ enabled = false, trigger = false }: ConfettiEffectProps) {
   const [pieces, setPieces] = useState<ConfettiPiece[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const timeoutRef = useRef<number | null>(null);
 
   /** 触发彩带效果 */
   const fire = useCallback(() => {
     const confetti = generateConfetti();
     setPieces(confetti);
 
-    // 动画结束后清除彩带
-    setTimeout(() => {
+    // 动画结束后清除彩带，保存 timeout ID 以便清理
+    timeoutRef.current = window.setTimeout(() => {
       setPieces([]);
+      timeoutRef.current = null;
     }, ANIMATION_DURATION + 1500);
   }, []);
 
@@ -90,6 +92,13 @@ export function ConfettiEffect({ enabled = false, trigger = false }: ConfettiEff
     if (enabled && trigger) {
       fire();
     }
+    return () => {
+      // 清理待执行的 timeout，防止内存泄漏
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
   }, [enabled, trigger, fire]);
 
   if (!enabled) return null;

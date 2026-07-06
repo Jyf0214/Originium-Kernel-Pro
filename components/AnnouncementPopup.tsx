@@ -80,11 +80,6 @@ export function resetAnnouncement(): void {
   }
 }
 
-// 暴露到 window 方便控制台调试
-if (typeof window !== 'undefined') {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (window as any).resetAnnouncement = resetAnnouncement;
-}
 
 /** 公告弹窗组件 */
 export function AnnouncementPopup() {
@@ -140,6 +135,9 @@ export function AnnouncementPopup() {
             exit="exit"
             transition={modalTransition}
             className="relative w-full max-w-md mx-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="announcement-title"
           >
             {/* 顶部装饰条 */}
             <div className="h-1 w-full bg-gradient-to-r from-amber-400 via-orange-400 to-red-400" />
@@ -164,7 +162,7 @@ export function AnnouncementPopup() {
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-900/30">
                   <Megaphone size={18} className="text-amber-500 dark:text-amber-400" />
                 </div>
-                <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                <h3 id="announcement-title" className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
                   {config.title}
                 </h3>
               </div>
