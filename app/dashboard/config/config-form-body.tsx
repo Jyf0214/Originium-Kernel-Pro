@@ -3,7 +3,6 @@
 import React from 'react';
 import {
   Globe,
-  Shield,
   Palette,
   Code,
   FileCode,
@@ -211,8 +210,6 @@ export default function ConfigFormBody({
 
   const handleSiteChange = (newSite: ConfigState['site']) => onConfigChange({ ...config, site: newSite });
 
-  const handleAuthChange = (checked: boolean) => onConfigChange({ ...config, auth: { ...config.auth, allowRegistration: checked } });
-
   const handleBgChange = (newBg: ConfigState['appearance']['background']) => onConfigChange({
     ...config,
     appearance: { ...config.appearance, background: newBg },
@@ -283,15 +280,6 @@ export default function ConfigFormBody({
     <>
       <ConfigSection id="section-general" title={t('config.general')} icon={Globe} color="bg-emerald-500">
         <SiteConfigForm config={config.site} onChange={handleSiteChange} />
-      </ConfigSection>
-
-      <ConfigSection id="section-auth" title={t('config.auth')} icon={Shield} color="bg-amber-500">
-        <ToggleField
-          label={t('config.allowRegistration')}
-          description={t('config.allowRegistrationHint')}
-          checked={config.auth.allowRegistration}
-          onChange={handleAuthChange}
-        />
       </ConfigSection>
 
       <AccessControlSection

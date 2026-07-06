@@ -41,7 +41,6 @@ export function ClerkAuthProvider({
 
   const providerProps: Record<string, unknown> = {
     signInUrl: '/clerk/sign-in',
-    signUpUrl: '/clerk/sign-up',
   };
   if (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
     providerProps.publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;

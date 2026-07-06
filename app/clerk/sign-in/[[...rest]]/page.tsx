@@ -50,7 +50,6 @@ export default function ClerkSignInPage() {
         {createElement(SignInComp, {
           routing: 'path',
           path: '/clerk/sign-in',
-          signUpUrl: '/clerk/sign-up',
           fallbackRedirectUrl: '/clerk/after-auth',
         })}
       </main>

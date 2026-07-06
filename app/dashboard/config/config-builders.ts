@@ -59,9 +59,8 @@ export interface ConfigState {
     faces: { public: string[]; private: string[] };
     diary: { public: string[]; private: string[] };
   };
-  auth: {
-    allowRegistration: boolean;
-  };
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  auth: {};
   avatar: { url: string };
   nav: NavConfigData;
   mourn: { enable: boolean; days: string[] };
@@ -141,7 +140,7 @@ export function buildAccessConfig(data: Record<string, unknown>): ConfigState['a
 }
 
 export function buildAuthConfig(data: Record<string, unknown>): ConfigState['auth'] {
-  return (data.auth as ConfigState['auth']) || { allowRegistration: true };
+  return (data.auth as ConfigState['auth']) || {};
 }
 
 export function buildNavConfig(data: Record<string, unknown>): ConfigState['nav'] {

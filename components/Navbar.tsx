@@ -8,11 +8,9 @@ import { UserMenu } from '@/components/UserMenu';
 import { Hitokoto } from '@/components/Hitokoto';
 import { ClerkAuthProvider } from '@/components/ClerkAuthProvider';
 import { ClerkLoginSection } from '@/components/ClerkLoginSection';
-import { LoginOutlined } from '@ant-design/icons';
 import { Button } from '@/components/ui/Button';
 import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
-import { useConfig } from '@/hooks/use-config';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { Clock, MapPin, Search, Sun, Moon, Monitor, Keyboard, Menu, X, Home, FileText, Info, Hash } from 'lucide-react';
 import { useThemeMode } from '@/hooks/use-theme-mode';
@@ -72,12 +70,10 @@ function DrawerLink({
 /* ── 抽屉底部工具栏 ── */
 
 function DrawerToolbar({
-  allowRegistration,
   clerkAvailable,
   t,
   onClose,
 }: {
-  allowRegistration: boolean;
   clerkAvailable: boolean;
   t: (key: string) => string;
   onClose: () => void;
@@ -89,23 +85,13 @@ function DrawerToolbar({
       {user ? (
         <UserMenu />
       ) : (
-        <>
-          <Link href="/login" onClick={onClose}>
-            <Button variant="default" size="sm" autoLoading={false}>
-              {t('auth.login')}
-            </Button>
-          </Link>
-          {allowRegistration && (
-            <Link href="/login" onClick={onClose}>
-              <Button variant="primary" size="sm" autoLoading={false}>
-                <LoginOutlined />
-                <span>{t('auth.register')}</span>
-              </Button>
-            </Link>
-          )}
-        </>
+        <Link href="/login" onClick={onClose}>
+          <Button variant="default" size="sm" autoLoading={false}>
+            {t('auth.login')}
+          </Button>
+        </Link>
       )}
-      {clerkAvailable && allowRegistration && !user && (
+      {clerkAvailable && !user && (
         <ClerkAuthProvider>
           <ClerkLoginSection variant="compact" />
         </ClerkAuthProvider>
@@ -120,7 +106,6 @@ function DrawerContent({
   pathname,
   navConfig,
   time,
-  allowRegistration,
   clerkAvailable,
   t,
   closeDrawer,
@@ -128,7 +113,6 @@ function DrawerContent({
   pathname: string;
   navConfig: NavConfig | null;
   time: string;
-  allowRegistration: boolean;
   clerkAvailable: boolean;
   t: (key: string) => string;
   closeDrawer: () => void;
@@ -197,7 +181,6 @@ function DrawerContent({
         )}
         <Hitokoto />
         <DrawerToolbar
-          allowRegistration={allowRegistration}
           clerkAvailable={clerkAvailable}
           t={t}
           onClose={closeDrawer}
@@ -291,14 +274,12 @@ function useNavbarState(navConfigProp?: NavConfig) {
 
 export function Navbar({ navConfig: navConfigProp }: NavbarProps) {
   const { t } = useI18n();
-  const { config: siteConfig } = useConfig();
   const { clerkAvailable } = useAuth();
   const pathname = usePathname();
   const { mode, cycle } = useThemeMode();
   const state = useNavbarState(navConfigProp);
 
   const isAdminPage = ADMIN_PREFIXES.some((prefix) => pathname.startsWith(prefix));
-  const allowRegistration = siteConfig?.auth?.allowRegistration !== false;
 
   if (isAdminPage) return null;
 
@@ -365,7 +346,6 @@ export function Navbar({ navConfig: navConfigProp }: NavbarProps) {
           pathname={pathname}
           navConfig={state.navConfig}
           time={state.time}
-          allowRegistration={allowRegistration}
           clerkAvailable={clerkAvailable}
           t={t}
           closeDrawer={state.closeDrawer}
