@@ -1,4 +1,4 @@
-import { getContentFiles, getContentIndexes } from '@/lib/content';
+import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
 import Link from 'next/link';
 import { ArrowLeft, Hash } from 'lucide-react';
 import Footer from '@/components/Footer';
@@ -11,8 +11,10 @@ interface PageProps {
 
 export function generateStaticParams() {
   const files = getContentFiles('posts');
+  const indexes = getContentIndexes('posts');
+  const publicFiles = filterPublicFiles(files, indexes);
   const tags = new Set<string>();
-  for (const file of files) {
+  for (const file of publicFiles) {
     for (const tag of (file.meta.tags ?? [])) {
       tags.add(tag);
     }
@@ -37,13 +39,7 @@ export default async function TagPage({ params }: PageProps) {
   const indexes = getContentIndexes('posts');
 
   // 仅展示公开且未隐藏的帖子（与首页、帖子列表页保持一致）
-  const publicFiles = allFiles.filter((file) => {
-    const isHidden = file.meta.hidden === true;
-    const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
-    const dirIndex = indexes.find((idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'));
-    const isPublic = dirIndex ? dirIndex.public : true;
-    return isPublic && !isHidden;
-  });
+  const publicFiles = filterPublicFiles(allFiles, indexes);
 
   // 筛选出包含指定标签的帖子
   const taggedPosts = publicFiles.filter((file) =>
