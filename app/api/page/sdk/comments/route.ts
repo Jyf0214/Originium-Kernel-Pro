@@ -10,6 +10,7 @@
 import { NextResponse } from 'next/server'
 import { apiHandler } from '@/lib/api-handler'
 import { getSession } from '@/lib/auth'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
 import { isStorageConfigured, getStorageProvider } from '@/lib/storage/storage-provider'
 import { normalizeWebDavContent } from '@/lib/page-source/shared'
 
@@ -106,6 +107,18 @@ async function resolveUserName(
 
 /** POST — 发表评论 */
 export const POST = apiHandler('POST', { label: 'page-sdk.comments.post' }, async (req) => {
+  // 频率限制：匿名用户每分钟 3 条，已登录用户每分钟 10 条
+  const ip = getClientIp(req)
+  const session = await getSession()
+  const rlLimit = session ? 10 : 3
+  const { allowed, retryAfterMs } = rateLimit(`${ip}:comment-post`, rlLimit, 60 * 1000)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: '评论过于频繁，请稍后再试' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) } },
+    )
+  }
+
   if (!isStorageConfigured()) {
     return NextResponse.json({ error: '存储后端未配置' }, { status: 503 })
   }
@@ -123,7 +136,6 @@ export const POST = apiHandler('POST', { label: 'page-sdk.comments.post' }, asyn
     return NextResponse.json({ error: `评论内容不能为空且不能超过 ${MAX_CONTENT_LEN} 字` }, { status: 400 })
   }
 
-  const session = await getSession()
   const finalUserName = await resolveUserName(session, typeof userName === 'string' ? userName : undefined)
 
   const comment: Comment = {
