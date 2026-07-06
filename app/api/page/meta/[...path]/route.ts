@@ -107,7 +107,7 @@ export const DELETE = apiHandler<{ path: string[] }>('DELETE', { label: 'page-me
   if (authResult) {
     const permErr = await requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'pages_delete');
     if (permErr) return permErr;
-    if (!checkApiKeyPageAccess(authResult.currentKeyId, authResult.session.permissions, relativePath, true)) {
+    if (!checkApiKeyPageAccess(authResult.currentKeyId, authResult.session.permissions, relativePath, false)) {
       return NextResponse.json({ error: '无权操作该页面文件夹' }, { status: 403 });
     }
   }

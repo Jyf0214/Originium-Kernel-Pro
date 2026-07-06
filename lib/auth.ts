@@ -38,8 +38,6 @@ function getSecretEncoder(): Uint8Array {
   return new TextEncoder().encode(getSecret());
 }
 
-export { getSecretEncoder as getSecretEncoder };
-
 export interface SessionPayload {
   uid: string;
   email: string;
@@ -177,7 +175,7 @@ async function getSessionFromApiKey(): Promise<SessionPayload | null> {
 /**
  * API 密钥认证核心逻辑
  * 返回会话和密钥 ID，失败返回 null
- * 供 getSessionFromApiKey 和 authenticateApiKey 复用
+ * 供 getSessionFromApiKey 和 getSessionWithKeyId 复用
  */
 async function authenticateApiKeyCore(): Promise<{ session: SessionPayload; currentKeyId: string } | null> {
   try {
@@ -270,11 +268,6 @@ export async function getSession(): Promise<SessionPayload | null> {
  * 若通过 Cookie 认证，currentKeyId 为 null
  * 未认证时返回 null（与 getSession() 行为一致）
  */
-/** 通过 API 密钥认证，返回会话和密钥 ID，失败返回 null */
-async function authenticateApiKey(): Promise<{ session: SessionPayload; currentKeyId: string } | null> {
-  return authenticateApiKeyCore();
-}
-
 export async function getSessionWithKeyId(): Promise<{ session: SessionPayload; currentKeyId: string | null } | null> {
   // 1. 尝试 Cookie session
   const session = (await cookies()).get('session')?.value;
@@ -295,7 +288,7 @@ export async function getSessionWithKeyId(): Promise<{ session: SessionPayload; 
   }
 
   // 2. 尝试 API 密钥
-  return authenticateApiKey();
+  return authenticateApiKeyCore();
 }
 
 /**

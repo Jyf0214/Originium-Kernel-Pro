@@ -40,6 +40,9 @@ async function hashPassword(password) {
 }
 
 function isLegacyPassword(password) {
+  // 旧版 hashPassword 生成 64 字符 hex（无冒号）
+  if (/^[a-f0-9]{64}$/.test(password)) return true;
+  // 当前格式：scrypt:salt:hash
   return password && password.includes(':') && password.split(':').length === 2;
 }
 
