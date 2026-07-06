@@ -184,6 +184,30 @@ export function clearContentCache(section?: 'posts' | 'faces' | 'diary') {
 }
 
 /**
+ * 过滤公开且未隐藏的文章
+ * 统一所有页面的 public + hidden 检查逻辑，避免重复实现导致遗漏
+ *
+ * @param files 原始文件列表
+ * @param indexes 目录索引列表（可选，未提供时自动获取 posts 分区索引）
+ * @returns 仅包含公开且未隐藏文章的列表
+ */
+export function filterPublicFiles(
+  files: ContentFile[],
+  indexes?: ContentIndex[],
+): ContentFile[] {
+  const idx = indexes ?? getContentIndexes('posts');
+  return files.filter((file) => {
+    const isHidden = file.meta.hidden === true;
+    const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
+    const dirIndex = idx.find(
+      (id) => id.slug === dirSlug || (dirSlug === '/' && id.slug === '/'),
+    );
+    const isPublic = dirIndex ? dirIndex.public : true;
+    return isPublic && !isHidden;
+  });
+}
+
+/**
  * 获取指定分区下的目录索引列表
  * 用于展示分组/分类视图
  */
@@ -269,16 +293,8 @@ export function getAdjacentPosts(currentSlug: string): {
   const allFiles = getContentFiles('posts');
   const indexes = getContentIndexes('posts');
 
-  // 过滤非公开文章和 hidden 文章
-  const publicFiles = allFiles.filter((file) => {
-    // 排除 hidden 文章
-    if (file.meta.hidden === true) return false;
-    const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
-    const dirIndex = indexes.find(
-      (idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'),
-    );
-    return dirIndex ? dirIndex.public : true;
-  });
+  // 过滤公开且未隐藏的文章（与首页、帖子列表页保持一致）
+  const publicFiles = filterPublicFiles(allFiles, indexes);
 
   const currentIndex = publicFiles.findIndex((f) => f.slug === currentSlug);
   if (currentIndex === -1) return { prev: null, next: null };

@@ -1,4 +1,4 @@
-import { getContentFiles, getContentIndexes } from '@/lib/content';
+import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
 import { loadConfig } from '@/lib/config';
 import { getAuthorByName } from '@/lib/authors';
 import Link from 'next/link';
@@ -25,14 +25,7 @@ export default function PostsPage() {
   const indexes = getContentIndexes('posts');
 
   // 仅展示 public 的帖子（过滤掉 hidden 文章）
-  const publicFiles = allFiles.filter((file) => {
-    const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
-    const dirIndex = indexes.find((idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'));
-    const isPublic = dirIndex ? dirIndex.public : true;
-    // hidden 文章不在列表中显示，但可通过 URL 直接访问
-    const isHidden = file.meta.hidden === true;
-    return isPublic && !isHidden;
-  });
+  const publicFiles = filterPublicFiles(allFiles, indexes);
 
   const publicIndexes = indexes.filter((idx) => idx.public);
 

@@ -155,11 +155,11 @@ export default function AboutPage() {
             <Link
               href="/posts"
             >
-            <Button variant="primary" size="lg" autoLoading={false}>
-              <BookOpen size={16} />
-              浏览文章
-            </Button>
-          </Link>
+              <Button variant="primary" size="lg" autoLoading={false}>
+                <BookOpen size={16} />
+                浏览文章
+              </Button>
+            </Link>
           </div>
         </section>
       </PageContainer>

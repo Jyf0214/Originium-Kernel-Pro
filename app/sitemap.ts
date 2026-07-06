@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { getContentFiles, getContentIndexes } from '@/lib/content';
+import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
 import { getSiteUrl } from '@/const/url';
 
 /**
@@ -29,16 +29,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const indexes = getContentIndexes('posts');
 
   // 过滤公开且未隐藏的文章（与首页、帖子列表页保持一致）
-  const postPages: MetadataRoute.Sitemap = allFiles
-    .filter((file) => {
-      const isHidden = file.meta.hidden === true;
-      const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
-      const dirIndex = indexes.find(
-        (idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'),
-      );
-      const isPublic = dirIndex ? dirIndex.public : true;
-      return isPublic && !isHidden;
-    })
+  const postPages: MetadataRoute.Sitemap = filterPublicFiles(allFiles, indexes)
     .map((file) => ({
       url: `${siteUrl}/posts${file.slug}`,
       lastModified: now,
