@@ -74,12 +74,23 @@ export async function sendMail(options: MailOptions): Promise<boolean> {
   }
 }
 
+/** HTML 实体转义，防止邮件 HTML 注入 */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 /**
  * 生成密码重置邮件 HTML
  * @param resetLink 重置链接
  * @param appName 应用名称
  */
 export function generateResetEmailHtml(resetLink: string, appName = 'Originium Kernel'): string {
+  const safeResetLink = escapeHtml(resetLink);
+  const safeAppName = escapeHtml(appName);
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><style>
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f5;margin:0;padding:0}
@@ -93,14 +104,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .footer p{color:#999;font-size:14px;margin:0}
 </style></head><body>
 <div class="container">
-<div class="header"><h1>${appName}</h1></div>
+<div class="header"><h1>${safeAppName}</h1></div>
 <div class="content">
 <p>您好，</p>
 <p>我们收到了您的密码重置请求。请点击下方按钮重置您的密码：</p>
-<p style="text-align:center"><a href="${resetLink}" class="button">重置密码</a></p>
+<p style="text-align:center"><a href="${safeResetLink}" class="button">重置密码</a></p>
 <p>此链接将在 1 小时后失效。如果您没有请求重置密码，请忽略此邮件。</p>
-<p style="color:#999;font-size:12px;word-break:break-all">如果按钮无法点击，请复制链接：${resetLink}</p>
+<p style="color:#999;font-size:12px;word-break:break-all">如果按钮无法点击，请复制链接：${safeResetLink}</p>
 </div>
-<div class="footer"><p>${appName} © ${new Date().getFullYear()}</p></div>
+<div class="footer"><p>${safeAppName} © ${new Date().getFullYear()}</p></div>
 </div></body></html>`;
 }

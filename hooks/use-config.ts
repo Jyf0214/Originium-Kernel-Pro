@@ -1,68 +1,45 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { AppearanceConfig } from '@/lib/config-schema';
-
-interface SharejsConfig {
-  enable: boolean;
-  sites: string;
-}
-
-interface AddtoanyConfig {
-  enable: boolean;
-  item: string;
-}
-
-interface ShareConfig {
-  sharejs: SharejsConfig;
-  addtoany: AddtoanyConfig;
-}
-
-interface MainToneConfig {
-  enable: boolean;
-  mode: 'cdn' | 'api' | 'both';
-}
-
-interface FooterOwnerConfig {
-  enable: boolean;
-  since: number;
-}
-
-interface FooterRuntimeConfig {
-  enable: boolean;
-  launchTime: string;
-}
-
-interface FooterConfig {
-  owner: FooterOwnerConfig;
-  customText: string;
-  runtime: FooterRuntimeConfig;
-}
+import type {
+  AppearanceConfig,
+  ShareConfig,
+  MainToneConfig,
+  FooterConfig,
+  HighlightConfig,
+  CoverConfig,
+  ErrorImgConfig,
+  PostMetaConfig,
+  WordCountConfig,
+  TocConfig,
+  CopyConfig,
+  CopyrightConfig,
+  RewardConfig,
+  PostEditConfig,
+  SiteConfig,
+  AuthConfig,
+  AvatarConfig,
+  MusicConfig,
+} from '@/lib/config-schema';
 
 export interface FrontendConfig {
   share?: ShareConfig;
   mainTone?: MainToneConfig;
   footer?: FooterConfig;
-  highlight?: { theme: string; copy: boolean; lang: boolean; shrink: boolean; heightLimit: number; wordWrap: boolean };
-  cover?: { indexEnable: boolean; asideEnable: boolean; archivesEnable: boolean; position: string; defaultCover: string[] };
-  errorImg?: { flink: string; postPage: string };
-  postMeta?: {
-    page: { dateType: string; dateFormat: string; categories: boolean; tags: boolean; label: boolean };
-    post: { dateType: string; dateFormat: string; categories: boolean; tags: boolean; label: boolean; unread: boolean };
-  };
-  wordcount?: { enable: boolean; postWordcount: boolean; min2read: boolean; totalWordcount: boolean };
-  toc?: { post: boolean; page: boolean; number: boolean; expand: boolean; styleSimple: boolean };
-  copy?: { enable: boolean; copyright: { enable: boolean; limitCount: number } };
-  copyright?: {
-    enable: boolean; decode: boolean; authorHref: string;
-    license: string; licenseUrl: string; authorLink: string;
-  };
-  reward?: { enable: boolean; qrCodes: { img: string; link: string; text: string }[] };
-  postEdit?: { enable: boolean; github: string | false };
-  site?: { title: string; description: string; lang: string };
-  auth?: { allowRegistration: boolean };
-  avatar?: { url?: string };
-  music?: { enable: boolean; autoPlay: boolean; songs: { name: string; artist: string; url: string }[] };
+  highlight?: HighlightConfig;
+  cover?: CoverConfig;
+  errorImg?: ErrorImgConfig;
+  postMeta?: PostMetaConfig;
+  wordcount?: WordCountConfig;
+  toc?: TocConfig;
+  copy?: CopyConfig;
+  copyright?: CopyrightConfig;
+  reward?: RewardConfig;
+  postEdit?: PostEditConfig;
+  site?: SiteConfig;
+  auth?: AuthConfig;
+  avatar?: AvatarConfig;
+  music?: MusicConfig;
   appearance?: AppearanceConfig;
 }
 

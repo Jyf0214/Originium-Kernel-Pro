@@ -24,6 +24,9 @@ export async function saveDraft(id: string, content: string): Promise<void> {
     await db.set(`draft:content:${id}`, content);
   } else {
     // 无数据库时降级到本地文件（仅开发环境）
+    if (process.env.NODE_ENV !== 'development') {
+      throw new Error('草稿保存失败: 无可用数据库且当前环境不支持本地文件存储');
+    }
     ensureDraftsDir();
     const filePath = path.join(DRAFTS_DIR, `${id}.md`);
     await fs.promises.writeFile(filePath, content, 'utf-8');

@@ -4,13 +4,23 @@ const ALGORITHM = 'AES-GCM';
 const IV_LENGTH = 12;
 const PREFIX = 'aes_gcm:';
 
+/** 缓存的派生密钥及其对应的 AUTH_SECRET，用于检测密钥变更 */
 let cachedKey: Promise<CryptoKey> | null = null;
+let cachedKeySecret: string | null = null;
 
 async function deriveKey(): Promise<CryptoKey> {
-  cachedKey ??= (async () => {
-    const keyData = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(getSecret()));
-    return crypto.subtle.importKey('raw', keyData, { name: ALGORITHM }, false, ['encrypt', 'decrypt']);
-  })();
+  const currentSecret = getSecret();
+  // AUTH_SECRET 变更时重新派生密钥，确保运行时修改密钥后立即生效
+  if (cachedKey && cachedKeySecret !== currentSecret) {
+    cachedKey = null;
+  }
+  if (!cachedKey) {
+    cachedKeySecret = currentSecret;
+    cachedKey = (async () => {
+      const keyData = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(currentSecret));
+      return crypto.subtle.importKey('raw', keyData, { name: ALGORITHM }, false, ['encrypt', 'decrypt']);
+    })();
+  }
   return cachedKey;
 }
 

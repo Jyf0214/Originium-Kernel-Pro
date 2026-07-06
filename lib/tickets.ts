@@ -77,12 +77,21 @@ export function getTicketTemplate(slug: string): TicketTemplate | null {
 export function renderTicketBody(template: TicketTemplate, formData: Record<string, string>): string {
   let body = template.body;
 
-  // 替换 {{fieldName}} 占位符
+  // 替换 {{fieldName}} 占位符，对替换值执行 HTML 转义防止注入
   for (const [key, value] of Object.entries(formData)) {
     const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const safeValue = (value ?? '').replace(/\$/g, '$$$$');
+    const safeValue = escapeHtml(value ?? '');
     body = body.replace(new RegExp(`\\{\\{${escapedKey}\\}\\}`, 'g'), safeValue);
   }
 
   return body;
+}
+
+/** HTML 实体转义，防止表单字段中的特殊字符注入 */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
