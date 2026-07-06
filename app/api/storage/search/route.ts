@@ -65,8 +65,40 @@ const CACHE_TTL_MS = 2 * 60 * 1000 // 2 分钟
 const MAX_RESULTS = 50
 const MAX_DEPTH = 5
 const SNIPPET_PADDING = 50
+const MAX_CACHE_ENTRIES = 10
 
-let cache: CacheEntry | null = null
+/** 多条搜索结果缓存，避免交替搜索不同关键词时反复全量扫描 */
+const cacheStore = new Map<string, CacheEntry>()
+
+/** 清理过期缓存条目 */
+function pruneCache(now: number): void {
+  for (const [key, entry] of cacheStore) {
+    if (now - entry.timestamp >= CACHE_TTL_MS) {
+      cacheStore.delete(key)
+    }
+  }
+  // 超过上限时删除最早插入的条目
+  while (cacheStore.size > MAX_CACHE_ENTRIES) {
+    const firstKey = cacheStore.keys().next().value
+    if (firstKey !== undefined) cacheStore.delete(firstKey)
+  }
+}
+
+function getCachedResult(query: string): SearchResponse | null {
+  const now = Date.now()
+  pruneCache(now)
+  const entry = cacheStore.get(query)
+  if (entry && now - entry.timestamp < CACHE_TTL_MS) {
+    return entry.result
+  }
+  return null
+}
+
+function setCachedResult(query: string, result: SearchResponse): void {
+  const now = Date.now()
+  pruneCache(now)
+  cacheStore.set(query, { query, result, timestamp: now })
+}
 
 /* ---------- 可搜索的文件扩展名 ---------- */
 
@@ -189,9 +221,9 @@ export const GET = apiHandler(
       return NextResponse.json({ error: '搜索关键词至少 2 个字符' }, { status: 400 })
     }
 
-    const now = Date.now()
-    if (cache?.query === query && now - cache.timestamp < CACHE_TTL_MS) {
-      return NextResponse.json(cache.result, {
+    const cachedResult = getCachedResult(query)
+    if (cachedResult) {
+      return NextResponse.json(cachedResult, {
         headers: { 'Cache-Control': 'private, max-age=120' },
       })
     }
@@ -217,7 +249,7 @@ export const GET = apiHandler(
         truncated: ctx.truncated.value,
       }
 
-      cache = { query, result: response, timestamp: now }
+      setCachedResult(query, response)
 
       return NextResponse.json(response, {
         headers: { 'Cache-Control': 'private, max-age=120' },

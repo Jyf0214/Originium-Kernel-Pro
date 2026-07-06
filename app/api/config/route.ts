@@ -118,8 +118,10 @@ async function buildConfigResponse(config: Record<string, unknown>) {
       headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
     });
   }
-  // 管理员响应不得被 CDN 缓存——包含 access 规则和远程配置
-  return NextResponse.json(config, {
+  // 管理员响应也不得包含原始 YAML 配置——原始内容可能包含敏感信息（如 API 密钥、连接字符串等）
+  const { _remoteConfig: _rc, _remoteConfigStatus: _rs, _remoteConfigError: _re, ...adminConfig } = config;
+  // 管理员响应不得被 CDN 缓存——包含 access 规则
+  return NextResponse.json(adminConfig, {
     headers: { 'Cache-Control': 'private, no-cache, no-store' },
   });
 }

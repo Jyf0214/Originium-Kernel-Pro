@@ -222,6 +222,19 @@ function buildReportHtml(
   );
 }
 
+/**
+ * 清理邮件主题中的特殊字符，防止影响邮件客户端渲染。
+ * 替换换行符、控制字符，截断到安全长度。
+ */
+function sanitizeSubject(s: string): string {
+  return s
+    .replace(/[\r\n\t]/g, ' ')       // 替换换行和制表符为空格
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '') // 移除控制字符
+    .replace(/\s+/g, ' ')            // 合并连续空格
+    .trim()
+    .slice(0, 80)                     // 截断到 80 字符
+}
+
 async function handleReport(req: NextRequest): Promise<NextResponse> {
   let raw: RawReport;
   try {
@@ -260,7 +273,7 @@ async function handleReport(req: NextRequest): Promise<NextResponse> {
   }
 
   const receivedAt = new Date().toISOString();
-  const subject = `[Originium Error] ${report.message.slice(0, 80)}`;
+  const subject = `[Originium Error] ${sanitizeSubject(report.message)}`;
   const html = buildReportHtml(report, ip, receivedAt);
 
   try {
