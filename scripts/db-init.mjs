@@ -25,10 +25,18 @@ process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS = 'true'
 process.env.PRISMA_HIDE_UPDATE_MESSAGE = 'true'
 
 import crypto from 'crypto';
+import { promisify } from 'util';
 
-function hashPassword(password, secret) {
-  const hmac = crypto.createHmac('sha256', secret);
-  return hmac.update(password).digest('hex');
+const scryptAsync = promisify(crypto.scrypt);
+
+const SCRYPT_PARAMS = { N: 16384, r: 8, p: 1 };
+const SALT_BYTES = 16;
+const KEY_BYTES = 64;
+
+async function hashPassword(password) {
+  const salt = crypto.randomBytes(SALT_BYTES).toString('hex');
+  const hash = (await scryptAsync(password, salt, KEY_BYTES, SCRYPT_PARAMS)).toString('hex');
+  return `scrypt:${salt}:${hash}`;
 }
 
 function isLegacyPassword(password) {
@@ -113,7 +121,7 @@ async function main() {
       where: { key: { startsWith: 'user:uid:' } }
     })
 
-    const newHash = hashPassword(adminPassword, authSecret);
+    const newHash = await hashPassword(adminPassword);
     let updatedCount = 0;
     let createdCount = 0;
 

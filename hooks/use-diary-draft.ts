@@ -58,6 +58,8 @@ export function useDiaryDraft({ id, title, content, tags, date, group, onDraftFo
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   // 用 ref 保存最新 props，避免依赖变化导致定时器不断重置
   const propsRef = useRef({ id, title, content, tags, date, group });
+  // 用 ref 跟踪保存状态，供事件处理器读取最新值
+  const saveStatusRef = useRef<SaveStatus>('idle');
   // 将 tags 序列化为稳定字符串，避免数组引用变化导致 effect 无限触发
   const tagsKey = JSON.stringify(tags);
   propsRef.current = { id, title, content, tags, date, group };
@@ -86,6 +88,7 @@ export function useDiaryDraft({ id, title, content, tags, date, group, onDraftFo
     saveAbortRef.current = controller;
 
     setSaveStatus('saving');
+    saveStatusRef.current = 'saving';
     const data: DraftData = { title: p.title, content: p.content, tags: p.tags, date: p.date, group: p.group };
     saveLocalDraft(p.id, data);
     fetch('/api/diary/draft', {
@@ -97,14 +100,17 @@ export function useDiaryDraft({ id, title, content, tags, date, group, onDraftFo
       .then((res) => {
         if (res.ok) {
           setSaveStatus('saved');
+          saveStatusRef.current = 'saved';
           setLastSavedAt(new Date());
         } else {
           setSaveStatus('error');
+          saveStatusRef.current = 'error';
         }
       })
       .catch((err) => {
         if (err.name !== 'AbortError') {
           setSaveStatus('error');
+          saveStatusRef.current = 'error';
         }
       });
   }, []);
@@ -120,11 +126,14 @@ export function useDiaryDraft({ id, title, content, tags, date, group, onDraftFo
     };
   }, [title, content, tagsKey, date, group, doSave]);
 
-  // 页面/标签页隐藏时立即保存
+  // 页面/标签页隐藏时立即保存；重新可见时对上次失败的草稿自动重试
   useEffect(() => {
     const handleVisibility = () => {
       if (document.hidden && (title || content || tagsKey || date || group)) {
         if (timerRef.current) clearTimeout(timerRef.current);
+        doSave();
+      } else if (!document.hidden && saveStatusRef.current === 'error') {
+        // 上次保存失败，页面重新可见时自动重试
         doSave();
       }
     };

@@ -78,7 +78,7 @@ class PrismaDriver implements IDatabase {
 
   async get(key: string): Promise<string | null> {
     if (!this.prisma) return null
-    const record = await prisma.originiumKV.findUnique({ where: { key } })
+    const record = await this.prisma.originiumKV.findUnique({ where: { key } })
     if (!record) return null
     if (record.expiry && record.expiry < BigInt(Date.now())) {
       await this.del(key)
@@ -90,7 +90,7 @@ class PrismaDriver implements IDatabase {
   async set(key: string, value: string, ttl?: number): Promise<void> {
     if (!this.prisma) return
     const expiry = ttl && Number.isFinite(ttl) ? BigInt(Date.now() + ttl * 1000) : null
-    await prisma.originiumKV.upsert({
+    await this.prisma.originiumKV.upsert({
       where: { key },
       update: { value, expiry },
       create: { key, value, expiry }
@@ -99,12 +99,12 @@ class PrismaDriver implements IDatabase {
 
   async del(key: string): Promise<void> {
     if (!this.prisma) return
-		await prisma.originiumKV.delete({ where: { key } }).catch((error) => { console.error('删除数据库记录失败:', key, error); })
+		await this.prisma.originiumKV.delete({ where: { key } }).catch((error) => { console.error('删除数据库记录失败:', key, error); })
   }
 
   async exists(key: string): Promise<boolean> {
     if (!this.prisma) return false
-    const record = await prisma.originiumKV.findUnique({ where: { key } })
+    const record = await this.prisma.originiumKV.findUnique({ where: { key } })
     // 检查过期时间，与 get() 保持一致
     return !!record && (!record.expiry || record.expiry >= BigInt(Date.now()))
   }
@@ -126,7 +126,7 @@ class PrismaDriver implements IDatabase {
 
   async hgetall(key: string): Promise<Record<string, string>> {
     if (!this.prisma) return {}
-    const records = await prisma.originiumKV.findMany({
+    const records = await this.prisma.originiumKV.findMany({
       where: { key: { startsWith: `${key}:` } }
     })
     const result: Record<string, string> = {}

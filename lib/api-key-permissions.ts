@@ -137,17 +137,22 @@ export const EMPTY_PERMISSIONS: ApiKeyPermissions = {
 
 /**
  * 从 JSON 字符串解析权限配置
- * null/undefined/无效 JSON → 返回 null(视为全部权限)
+ *
+ * 语义区分:
+ * - null/undefined 输入 → 返回 null（向后兼容:数据库中无权限字段视为全部权限）
+ * - 非空字符串但解析/校验失败 → 返回 EMPTY_PERMISSIONS（全部禁止，防止损坏数据导致提权）
+ * - 有效 JSON → 返回解析后的权限对象
  */
 export function parsePermissions(raw: string | null | undefined): ApiKeyPermissions | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as Record<string, unknown>;
     // 基本结构校验
-    if (!parsed.actions || typeof parsed.actions !== 'object') return null;
+    if (!parsed.actions || typeof parsed.actions !== 'object') return EMPTY_PERMISSIONS;
     return parsed as unknown as ApiKeyPermissions;
   } catch {
-    return null;
+    // JSON 解析失败(数据损坏) → 全部禁止，防止 fail-open 提权
+    return EMPTY_PERMISSIONS;
   }
 }
 

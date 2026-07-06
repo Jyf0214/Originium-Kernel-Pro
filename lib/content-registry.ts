@@ -12,7 +12,7 @@
  * 其引用关系通过 API 在运行时动态解析。
  */
 
-import { getContentFiles } from './content';
+import { getContentFiles, type ContentFile } from './content';
 
 /** 内容注册表条目 */
 export interface RegistryEntry {
@@ -97,9 +97,15 @@ function buildRegistry(): Registry {
   // 构建后向链接索引
   const backlinkIndex = new Map<string, BacklinkInfo[]>();
 
+  // 预取各分区的文件列表，避免在循环内重复调用 getContentFiles（O(n²) → O(n)）
+  const filesBySection = new Map<'posts' | 'faces', ContentFile[]>();
+  for (const section of sections) {
+    filesBySection.set(section, getContentFiles(section));
+  }
+
   for (const entry of entries) {
-    const files = getContentFiles(entry.section);
-    const file = files.find((f) => f.slug === entry.slug);
+    const files = filesBySection.get(entry.section);
+    const file = files?.find((f) => f.slug === entry.slug);
     if (!file) continue;
 
     const refTitles = extractWikiLinks(file.content);

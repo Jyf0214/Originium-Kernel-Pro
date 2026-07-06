@@ -170,6 +170,16 @@ export function generateApiKey(): string {
  * 从 Authorization 头解析 Bearer token 并验证 API 密钥
  */
 async function getSessionFromApiKey(): Promise<SessionPayload | null> {
+  const result = await authenticateApiKeyCore();
+  return result?.session ?? null;
+}
+
+/**
+ * API 密钥认证核心逻辑
+ * 返回会话和密钥 ID，失败返回 null
+ * 供 getSessionFromApiKey 和 authenticateApiKey 复用
+ */
+async function authenticateApiKeyCore(): Promise<{ session: SessionPayload; currentKeyId: string } | null> {
   try {
     const hdrs = await headers();
     const authHeader = hdrs.get('authorization');
@@ -199,12 +209,15 @@ async function getSessionFromApiKey(): Promise<SessionPayload | null> {
     // 加载 API 密钥权限配置
     const permissions = parsePermissions(row.permissions);
     return {
-      uid: user.uid,
-      email: user.email,
-      role,
-      userGroup: user.userGroup,
-      // permissions 为 null 表示全部权限(向后兼容)
-      ...(permissions ? { permissions } : {}),
+      session: {
+        uid: user.uid,
+        email: user.email,
+        role,
+        userGroup: user.userGroup,
+        // permissions 为 null 表示全部权限(向后兼容)
+        ...(permissions ? { permissions } : {}),
+      },
+      currentKeyId: row.id,
     };
   } catch {
     return null;
@@ -259,45 +272,7 @@ export async function getSession(): Promise<SessionPayload | null> {
  */
 /** 通过 API 密钥认证，返回会话和密钥 ID，失败返回 null */
 async function authenticateApiKey(): Promise<{ session: SessionPayload; currentKeyId: string } | null> {
-  try {
-    const hdrs = await headers();
-    const authHeader = hdrs.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) return null;
-
-    const token = authHeader.slice(7).trim();
-    if (!token?.startsWith('sk-')) return null;
-
-    const { getDb } = await import('@/lib/db');
-    const db = getDb();
-    if (!db.prisma) return null;
-
-    const hashed = hashApiKey(token);
-    const row = await db.prisma.apiKey.findUnique({ where: { key: hashed } });
-    if (!row) return null;
-
-    // 更新最后使用时间(异步,不阻塞)
-    db.prisma.apiKey.update({ where: { id: row.id }, data: { lastUsed: new Date() } }).catch(() => { /* best-effort */ });
-
-    const userRaw = await db.get(`user:uid:${row.uid}`);
-    if (!userRaw) return null;
-
-    const user = JSON.parse(userRaw) as { uid: string; email: string; role: string; userGroup?: string };
-    const validRoles = ['user', 'admin', 'sudo'] as const;
-    const role = validRoles.includes(user.role as typeof validRoles[number]) ? user.role as SessionPayload['role'] : 'user';
-    const permissions = parsePermissions(row.permissions);
-    return {
-      session: {
-        uid: user.uid,
-        email: user.email,
-        role,
-        userGroup: user.userGroup,
-        ...(permissions ? { permissions } : {}),
-      },
-      currentKeyId: row.id,
-    };
-  } catch {
-    return null;
-  }
+  return authenticateApiKeyCore();
 }
 
 export async function getSessionWithKeyId(): Promise<{ session: SessionPayload; currentKeyId: string | null } | null> {

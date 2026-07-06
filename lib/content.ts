@@ -240,7 +240,7 @@ export function getContentFile(section: 'posts' | 'faces' | 'diary', slug: strin
   // 路径穿越防护：确保解析后的路径在允许的目录内
   const resolved = path.resolve(filePath);
   const allowedDir = path.resolve(rootDir);
-  if (!resolved.startsWith(allowedDir + path.sep) && resolved !== allowedDir + '.md') {
+  if (!resolved.startsWith(allowedDir + path.sep) && resolved !== allowedDir) {
     return null;
   }
 
