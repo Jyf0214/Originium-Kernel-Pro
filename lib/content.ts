@@ -269,8 +269,10 @@ export function getAdjacentPosts(currentSlug: string): {
   const allFiles = getContentFiles('posts');
   const indexes = getContentIndexes('posts');
 
-  // 过滤非公开文章
+  // 过滤非公开文章和 hidden 文章
   const publicFiles = allFiles.filter((file) => {
+    // 排除 hidden 文章
+    if (file.meta.hidden === true) return false;
     const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
     const dirIndex = indexes.find(
       (idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'),

@@ -19,9 +19,9 @@ export async function GET() {
     const allFiles = getContentFiles('posts');
     const indexes = getContentIndexes('posts');
 
-    const accessibleFiles = allFiles.filter((f) =>
-      canAccess('posts', f.slug, isAuthenticated, dbAvailable, config)
-    );
+    const accessibleFiles = allFiles
+      .filter((f) => f.meta.hidden !== true)
+      .filter((f) => canAccess('posts', f.slug, isAuthenticated, dbAvailable, config));
 
     const accessibleIndexes = indexes.filter((idx) =>
       canAccess('posts', idx.slug, isAuthenticated, dbAvailable, config)

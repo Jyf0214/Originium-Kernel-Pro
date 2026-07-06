@@ -32,7 +32,7 @@ export function GET(request: NextRequest) {
 
   logger.info('GET', '查询翻译版本', { slug });
 
-  const allFiles = getContentFiles('posts');
+  const allFiles = getContentFiles('posts').filter((f) => f.meta.hidden !== true);
 
   // 找到原始文章
   const originalFile = allFiles.find((f) => f.slug === slug);
