@@ -29,6 +29,11 @@ const MAX_COMMENTS = 500
 const MAX_CONTENT_LEN = 2000
 const MAX_USERNAME_LEN = 50
 
+/** 清理评论内容中的 HTML 标签，作为纵深防御防止存储恶意标记 */
+function sanitizeContent(s: string): string {
+  return s.replace(/<[^>]*>/g, '').trim()
+}
+
 /** 评论存储路径：comments/{encoded-pagePath}.json */
 function commentFilePath(pagePath: string): string {
   // 将路径中的 / 替换为 __ 以避免嵌套目录问题
@@ -143,7 +148,7 @@ export const POST = apiHandler('POST', { label: 'page-sdk.comments.post' }, asyn
     pagePath,
     userId: session?.uid ?? null,
     userName: finalUserName,
-    content: content.trim(),
+    content: sanitizeContent(content),
     createdAt: new Date().toISOString(),
   }
 

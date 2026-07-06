@@ -7,6 +7,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { apiHandler } from '@/lib/api-handler';
 import { createApiLogger } from '@/lib/api-logger';
+import { getClientIp } from '@/lib/rate-limit';
 import { sendMail } from '@/lib/mail';
 
 const logger = createApiLogger('/api/report-error');
@@ -151,14 +152,6 @@ function consumeRateLimitToken(ip: string): boolean {
   recent.push(now);
   rateLimitMap.set(ip, recent);
   return true;
-}
-
-/**
- * 提取客户端 IP。优先取 x-forwarded-for 第一项，回退 x-real-ip。
- */
-function getClientIp(req: NextRequest): string {
-  const xff = req.headers.get('x-forwarded-for');
-  return xff?.split(',')?.[0]?.trim() ?? req.headers.get('x-real-ip') ?? 'unknown';
 }
 
 /**

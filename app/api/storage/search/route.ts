@@ -10,6 +10,7 @@
  */
 import { NextResponse } from 'next/server'
 import { apiHandler } from '@/lib/api-handler'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
 import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth'
 import { getStorageProvider, isStorageConfigured } from '@/lib/storage/storage-provider'
 import { storageNotConfigured } from '../_helpers'
@@ -205,6 +206,16 @@ export const GET = apiHandler(
   { label: 'storage.search', requireAdmin: true },
   async (req) => {
     if (!isStorageConfigured()) return storageNotConfigured()
+
+    // 速率限制：每 IP 每分钟最多 10 次搜索
+    const ip = getClientIp(req)
+    const { allowed, retryAfterMs } = rateLimit(`${ip}:storage-search`, 10, 60 * 1000)
+    if (!allowed) {
+      return NextResponse.json(
+        { error: '搜索过于频繁，请稍后再试' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) } },
+      )
+    }
 
     // API 密钥权限检查
     const authResult = await getSessionWithKeyId()
