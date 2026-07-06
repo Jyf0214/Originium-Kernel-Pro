@@ -24,8 +24,10 @@ export default async function PrivatePostsPage() {
   const allFiles = getContentFiles('posts');
   const indexes = getContentIndexes('posts');
 
-  // 仅展示 private 的帖子（目录标记 public: false）
+  // 仅展示 private 的帖子（目录标记 public: false），排除 hidden 帖子
   const privateFiles = allFiles.filter((file) => {
+    // 排除 hidden 文章
+    if (file.meta.hidden === true) return false;
     const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
     const dirIndex = indexes.find((idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'));
     return dirIndex ? !dirIndex.public : false;

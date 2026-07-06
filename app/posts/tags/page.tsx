@@ -1,4 +1,4 @@
-import { getContentFiles } from '@/lib/content';
+import { getContentFiles, getContentIndexes } from '@/lib/content';
 import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import { HeroBanner } from '@/components/ui/HeroBanner';
@@ -18,10 +18,22 @@ export const revalidate = 300; // 5 分钟 ISR
  */
 export default function TagsPage() {
   const allFiles = getContentFiles('posts');
+  const indexes = getContentIndexes('posts');
+
+  // 仅统计公开且未隐藏文章的标签（与首页、帖子列表页保持一致）
+  const publicFiles = allFiles.filter((file) => {
+    const isHidden = file.meta.hidden === true;
+    const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
+    const dirIndex = indexes.find(
+      (idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'),
+    );
+    const isPublic = dirIndex ? dirIndex.public : true;
+    return isPublic && !isHidden;
+  });
 
   /* 提取所有标签并统计数量 */
   const tagCountMap = new Map<string, number>();
-  for (const file of allFiles) {
+  for (const file of publicFiles) {
     const tags = file.meta.tags;
     if (!Array.isArray(tags)) continue;
     for (const tag of tags) {
@@ -35,7 +47,7 @@ export default function TagsPage() {
     .sort((a, b) => b.count - a.count);
 
   /* 构建帖子摘要列表 */
-  const posts: PostSummary[] = allFiles.map((f) => ({
+  const posts: PostSummary[] = publicFiles.map((f) => ({
     slug: f.slug,
     title: f.meta.title,
     date: f.meta.date,

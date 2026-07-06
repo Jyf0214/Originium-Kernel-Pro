@@ -81,9 +81,9 @@ export async function GET(req: NextRequest) {
     const isAuthenticated = !!session;
     const config = loadConfig();
     const dbAvailable = hasDatabase();
-    const publishedFiles = getContentFiles('posts').filter((f) =>
-      canAccess('posts', f.slug, isAuthenticated, dbAvailable, config)
-    );
+    const publishedFiles = getContentFiles('posts')
+      .filter((f) => f.meta.hidden !== true)
+      .filter((f) => canAccess('posts', f.slug, isAuthenticated, dbAvailable, config));
     const authorAvatar = getUserAvatar() ?? undefined;
     let published = mapPublishedFiles(publishedFiles, authorAvatar);
 
