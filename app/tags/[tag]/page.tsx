@@ -36,11 +36,13 @@ export default async function TagPage({ params }: PageProps) {
   const allFiles = getContentFiles('posts');
   const indexes = getContentIndexes('posts');
 
-  // 仅展示 public 的帖子
+  // 仅展示公开且未隐藏的帖子（与首页、帖子列表页保持一致）
   const publicFiles = allFiles.filter((file) => {
+    const isHidden = file.meta.hidden === true;
     const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
     const dirIndex = indexes.find((idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'));
-    return dirIndex ? dirIndex.public : true;
+    const isPublic = dirIndex ? dirIndex.public : true;
+    return isPublic && !isHidden;
   });
 
   // 筛选出包含指定标签的帖子

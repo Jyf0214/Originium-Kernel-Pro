@@ -46,13 +46,15 @@ export default function TagsPage() {
   const allFiles = getContentFiles('posts');
   const indexes = getContentIndexes('posts');
 
-  // 仅统计公开文章的标签
+  // 仅统计公开且未隐藏文章的标签（与首页、帖子列表页保持一致）
   const publicFiles = allFiles.filter((file) => {
+    const isHidden = file.meta.hidden === true;
     const dirSlug = '/' + file.slug.split('/').filter(Boolean).slice(0, -1).join('/');
     const dirIndex = indexes.find(
       (idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'),
     );
-    return dirIndex ? dirIndex.public : true;
+    const isPublic = dirIndex ? dirIndex.public : true;
+    return isPublic && !isHidden;
   });
 
   // 聚合标签及文章数量

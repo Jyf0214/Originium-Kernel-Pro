@@ -52,6 +52,7 @@ function YouTubeEmbed({ videoId }: { videoId: string }) {
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
         loading="lazy"
+        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
         className="absolute inset-0 w-full h-full"
       />
     </div>
