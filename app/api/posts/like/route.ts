@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import { apiHandler } from '@/lib/api-handler';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 /**
@@ -23,6 +24,9 @@ const likeDedup = new Map<string, boolean>();
 const LIKE_RATE_LIMIT = 10;
 const LIKE_RATE_WINDOW_MS = 60 * 1000;
 
+/** slug 最大长度限制，防止内存耗尽攻击 */
+const MAX_SLUG_LEN = 200;
+
 /** 去重缓存过期时间：24 小时（防止冷启动后大量重复写入） */
 const DEDUP_EXPIRY_MS = 24 * 60 * 60 * 1000;
 const likeDedupExpiry = new Map<string, number>();
@@ -40,53 +44,57 @@ function cleanupDedup(now: number): void {
   }
 }
 
-export function GET(req: NextRequest) {
+/** GET — 获取点赞数 */
+export const GET = apiHandler('GET', { label: '文章点赞查询' }, (req) => {
   const slug = req.nextUrl.searchParams.get('slug');
-  if (!slug) {
+  if (!slug || typeof slug !== 'string') {
     return NextResponse.json({ error: '缺少 slug 参数' }, { status: 400 });
+  }
+  if (slug.length > MAX_SLUG_LEN) {
+    return NextResponse.json({ error: 'slug 长度超出限制' }, { status: 400 });
   }
   const count = likeCounts.get(slug) ?? 0;
   return NextResponse.json({ count });
-}
+})
 
-export async function POST(req: NextRequest) {
-  try {
-    const ip = getClientIp(req);
-    const { allowed, retryAfterMs } = rateLimit(`${ip}:like`, LIKE_RATE_LIMIT, LIKE_RATE_WINDOW_MS);
-    if (!allowed) {
-      return NextResponse.json(
-        { error: '点赞过于频繁，请稍后再试' },
-        { status: 429, headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) } },
-      );
-    }
-
-    const body = await req.json();
-    const { slug } = body as { slug?: string };
-    if (!slug || typeof slug !== 'string') {
-      return NextResponse.json({ error: '缺少 slug 字段' }, { status: 400 });
-    }
-
-    // IP+slug 去重：同一 IP 对同一文章只计一次赞
-    const dedupKey = `${ip}:${slug}`;
-    const now = Date.now();
-    cleanupDedup(now);
-
-    if (likeDedup.has(dedupKey)) {
-      // 已点过赞，返回当前计数但不递增
-      const current = likeCounts.get(slug) ?? 0;
-      return NextResponse.json({ count: current, liked: true });
-    }
-
-    const current = likeCounts.get(slug) ?? 0;
-    const newCount = current + 1;
-    likeCounts.set(slug, newCount);
-
-    // 记录去重标记
-    likeDedup.set(dedupKey, true);
-    likeDedupExpiry.set(dedupKey, now + DEDUP_EXPIRY_MS);
-
-    return NextResponse.json({ count: newCount, liked: true });
-  } catch {
-    return NextResponse.json({ error: '请求体格式错误' }, { status: 400 });
+/** POST — 点赞 */
+export const POST = apiHandler('POST', { label: '文章点赞' }, async (req) => {
+  const ip = getClientIp(req);
+  const { allowed, retryAfterMs } = rateLimit(`${ip}:like`, LIKE_RATE_LIMIT, LIKE_RATE_WINDOW_MS);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: '点赞过于频繁，请稍后再试' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) } },
+    );
   }
-}
+
+  const body = await req.json();
+  const { slug } = body as { slug?: string };
+  if (!slug || typeof slug !== 'string') {
+    return NextResponse.json({ error: '缺少 slug 字段' }, { status: 400 });
+  }
+  if (slug.length > MAX_SLUG_LEN) {
+    return NextResponse.json({ error: 'slug 长度超出限制' }, { status: 400 });
+  }
+
+  // IP+slug 去重：同一 IP 对同一文章只计一次赞
+  const dedupKey = `${ip}:${slug}`;
+  const now = Date.now();
+  cleanupDedup(now);
+
+  if (likeDedup.has(dedupKey)) {
+    // 已点过赞，返回当前计数但不递增
+    const current = likeCounts.get(slug) ?? 0;
+    return NextResponse.json({ count: current, liked: true });
+  }
+
+  const current = likeCounts.get(slug) ?? 0;
+  const newCount = current + 1;
+  likeCounts.set(slug, newCount);
+
+  // 记录去重标记
+  likeDedup.set(dedupKey, true);
+  likeDedupExpiry.set(dedupKey, now + DEDUP_EXPIRY_MS);
+
+  return NextResponse.json({ count: newCount, liked: true });
+})
