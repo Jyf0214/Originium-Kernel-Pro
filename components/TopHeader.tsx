@@ -3,6 +3,7 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
+import { Menu } from 'lucide-react';
 
 const breadcrumbMap: Record<string, string> = {
   '/dashboard': 'dashboard.title',
@@ -19,7 +20,11 @@ const breadcrumbMap: Record<string, string> = {
   '/diary': 'sidebar.diary',
 };
 
-export function TopHeader() {
+interface TopHeaderProps {
+  onMenuClick?: () => void;
+}
+
+export function TopHeader({ onMenuClick }: TopHeaderProps) {
   const pathname = usePathname();
   const { t } = useI18n();
 
@@ -38,7 +43,17 @@ export function TopHeader() {
   const breadcrumb = pathname ? getBreadcrumbLabel(pathname) : '';
 
   return (
-    <header className="h-16 bg-white dark:bg-zinc-800 border-b border-zinc-100 dark:border-zinc-700 flex items-center px-4 md:px-6 sticky top-0 z-50">
+    <header className="h-14 bg-white dark:bg-zinc-800 border-b border-zinc-100 dark:border-zinc-700 flex items-center px-4 md:px-6 sticky top-0 z-50 gap-2">
+      {onMenuClick && (
+        <button
+          type="button"
+          onClick={onMenuClick}
+          className="md:hidden flex items-center justify-center w-6 h-6 rounded text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 dark:hover:text-zinc-400 dark:hover:bg-zinc-700 transition-colors shrink-0"
+          aria-label="打开侧边栏"
+        >
+          <Menu size={14} />
+        </button>
+      )}
       <nav className="flex items-center gap-1.5 text-sm text-zinc-400 dark:text-zinc-500 min-w-0 overflow-hidden">
         <span className="hover:text-zinc-600 transition-colors shrink-0">{t('dashboard.title') || '控制台'}</span>
         {breadcrumb && (

@@ -8,18 +8,20 @@ import SidebarHeader from './SidebarHeader';
 import SidebarUserMenu from './SidebarUserMenu';
 import SidebarGroup from './SidebarGroup';
 import SidebarCollapseButton from './SidebarCollapseButton';
-import MobileToggle from './MobileToggle';
-import { useSidebarState } from './use-sidebar-state';
 import { useSidebarCollapsed } from './use-sidebar-collapsed';
 import { menuItems } from './sidebar-config';
 import { showCuteLogoutConfirm } from '@/components/ui/CuteLogout';
 import type { MenuItem } from './types';
 
-function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, isSudo, logout } = useAuth();
   const pathname = usePathname();
   const { t } = useI18n();
-  const { isOpen, open, close } = useSidebarState();
   const { collapsed, toggle: toggleCollapsed, hydrated } = useSidebarCollapsed();
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
@@ -62,7 +64,7 @@ function Sidebar() {
 
   const renderContent = (showCloseButton: boolean, desktopCollapsed = false) => (
     <div className="flex flex-col h-full bg-white dark:bg-zinc-900 border-r border-zinc-100 dark:border-zinc-800">
-      <SidebarHeader showCloseButton={showCloseButton} onClose={close} collapsed={desktopCollapsed} />
+      <SidebarHeader showCloseButton={showCloseButton} onClose={onClose} collapsed={desktopCollapsed} />
       <SidebarUserMenu user={user ?? undefined} onLogout={handleLogout} collapsed={desktopCollapsed} />
       <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-7 custom-scrollbar">
         {Object.entries(grouped).map(([group, groupItems]) => (
@@ -73,7 +75,7 @@ function Sidebar() {
             isCollapsed={!!collapsedGroups[group]}
             onToggle={() => toggleGroup(group)}
             isActive={isActive}
-            onItemClick={close}
+            onItemClick={onClose}
             t={t}
             collapsed={desktopCollapsed}
           />
@@ -89,7 +91,7 @@ function Sidebar() {
 
   return (
     <>
-      <MobileToggle isOpen={isOpen} onClick={isOpen ? close : open} />
+      <MobileToggle isOpen={isOpen} onClick={onClose} />
       {/* 桌面端侧栏：折叠/展开宽度切换 + 宽度过渡动画 */}
       <div
         className={`hidden md:flex max-h-screen overflow-y-auto z-[100] bg-white dark:bg-zinc-900 flex-col transition-[width] duration-200 ease-in-out ${
@@ -102,7 +104,7 @@ function Sidebar() {
         <div
           className="md:hidden fixed inset-0 bg-zinc-900/40 backdrop-blur-md z-[998] transition-opacity duration-300"
           aria-hidden="true"
-          onClick={close}
+          onClick={onClose}
         />
       )}
       <div
