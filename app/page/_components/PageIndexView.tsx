@@ -6,7 +6,7 @@
  * 与 app/page/page.tsx(服务端)配对:服务端只负责读取 WebDAV/DB,
  * 把结果以 props 传入本组件,由本组件负责 i18n 渲染与交互。
  */
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Globe, Folder, FileCode, Plus, FolderOpen, RotateCw } from 'lucide-react';
@@ -60,6 +60,9 @@ export function PageIndexView({ notConfigured, pages, emptyDirs, orphans: _orpha
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editMetaPage, setEditMetaPage] = useState<PageIndexItem | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const openSidebar = useCallback(() => setSidebarOpen(true), []);
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -82,9 +85,9 @@ export function PageIndexView({ notConfigured, pages, emptyDirs, orphans: _orpha
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
       <div className="flex-1 flex flex-col md:ml-[280px] min-h-screen bg-zinc-50">
-        <TopHeader />
+        <TopHeader onMenuClick={openSidebar} />
         <main className="flex-1 p-6 md:p-10">
           <div className="max-w-5xl mx-auto">
             <header className="mb-8">

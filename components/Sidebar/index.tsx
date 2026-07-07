@@ -8,6 +8,7 @@ import SidebarHeader from './SidebarHeader';
 import SidebarUserMenu from './SidebarUserMenu';
 import SidebarGroup from './SidebarGroup';
 import SidebarCollapseButton from './SidebarCollapseButton';
+import MobileToggle from './MobileToggle';
 import { useSidebarCollapsed } from './use-sidebar-collapsed';
 import { menuItems } from './sidebar-config';
 import { showCuteLogoutConfirm } from '@/components/ui/CuteLogout';
