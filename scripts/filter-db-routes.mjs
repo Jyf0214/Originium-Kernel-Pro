@@ -3,8 +3,14 @@
 /**
  * 构建时路由过滤脚本
  *
- * 检测数据库环境变量，无数据库时将后台相关路由目录临时移至 .disabled-routes/，
- * 使 next build 不生成这些路由的构建产物。
+ * 支持两种过滤模式：
+ *
+ * 1. GitHub Pages 部署（GITHUB_PAGES=true）：
+ *    移除所有 API 路由，因为 GitHub Pages 只支持静态 HTML 部署，
+ *    无法运行动态 API 路由。
+ *
+ * 2. 无数据库部署（无 DATABASE_URL 等环境变量）：
+ *    移除后台相关路由目录，只保留博客帖子路由。
  *
  * 被移除的路由：
  *   - app/dashboard/          仪表盘
@@ -87,6 +93,28 @@ const DB_ROUTE_PATHS = [
   'app/api/page',
 ];
 
+/** 需要在 GitHub Pages 部署时移除的 API 路由目录（相对于 ROOT） */
+const API_ROUTE_PATHS = [
+  // ── 认证 / 管理 ──
+  'app/api/auth',
+  'app/api/admin',
+  // ── 认证依赖 ──
+  'app/api/diary',
+  'app/api/faces',
+  'app/api/user',
+  'app/api/users',
+  'app/api/cleanup',
+  'app/api/recycle-bin',
+  'app/api/feedback',
+  'app/api/requests',
+  'app/api/ticket-templates',
+  'app/api/tickets',
+  'app/api/github',
+  'app/api/webhooks',
+  // ── 存储 / 自定义页面 ──
+  'app/api/page',
+];
+
 function hasDatabase() {
   return !!(
     process.env.DATABASE_URL ??
@@ -96,12 +124,18 @@ function hasDatabase() {
   );
 }
 
-if (hasDatabase()) {
-  // 有数据库，不操作
-  process.exit(0);
+function isGitHubPages() {
+  return process.env.GITHUB_PAGES === 'true';
 }
 
-console.log('[filter-db-routes] 未检测到数据库环境变量，移除后台路由目录...');
+// 决定过滤模式
+const isGH = isGitHubPages();
+const hasDB = hasDatabase();
+
+if (!isGH && hasDB) {
+  // 非 GitHub Pages 且有数据库，不操作
+  process.exit(0);
+}
 
 if (!existsSync(DISABLED_DIR)) {
   mkdirSync(DISABLED_DIR, { recursive: true });
@@ -110,18 +144,40 @@ if (!existsSync(DISABLED_DIR)) {
 const manifest = [];
 let moved = 0;
 
-for (const relPath of DB_ROUTE_PATHS) {
-  const src = join(ROOT, relPath);
-  if (!existsSync(src)) continue;
+if (isGH) {
+  // GitHub Pages 部署：移除所有 API 路由（静态导出不支持动态 API）
+  console.log('[filter-db-routes] 检测到 GitHub Pages 部署，移除 API 路由目录...');
 
-  // 平铺存放：.disabled-routes/app__dashboard → app/dashboard
-  const flatName = relPath.replace(/\//g, '__');
-  const dest = join(DISABLED_DIR, flatName);
+  for (const relPath of API_ROUTE_PATHS) {
+    const src = join(ROOT, relPath);
+    if (!existsSync(src)) continue;
 
-  renameSync(src, dest);
-  manifest.push({ original: relPath, stored: flatName });
-  console.log(`  移除: ${relPath}`);
-  moved++;
+    // 平铺存放：.disabled-routes/app__api__auth → app/api/auth
+    const flatName = relPath.replace(/\//g, '__');
+    const dest = join(DISABLED_DIR, flatName);
+
+    renameSync(src, dest);
+    manifest.push({ original: relPath, stored: flatName });
+    console.log(`  移除: ${relPath}`);
+    moved++;
+  }
+} else {
+  // 无数据库部署：移除后台路由目录
+  console.log('[filter-db-routes] 未检测到数据库环境变量，移除后台路由目录...');
+
+  for (const relPath of DB_ROUTE_PATHS) {
+    const src = join(ROOT, relPath);
+    if (!existsSync(src)) continue;
+
+    // 平铺存放：.disabled-routes/app__dashboard → app/dashboard
+    const flatName = relPath.replace(/\//g, '__');
+    const dest = join(DISABLED_DIR, flatName);
+
+    renameSync(src, dest);
+    manifest.push({ original: relPath, stored: flatName });
+    console.log(`  移除: ${relPath}`);
+    moved++;
+  }
 }
 
 if (moved > 0) {
