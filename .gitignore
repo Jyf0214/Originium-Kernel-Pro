@@ -66,3 +66,6 @@ bun.lockb
 # 保留 .qwen/agents 下所有 Markdown
 !.qwen/agents/
 !.qwen/agents/**/*.md
+
+# 构建时临时禁用的路由目录（由 filter-db-routes.mjs 生成，restore-db-routes.mjs 恢复）
+.disabled-routes/

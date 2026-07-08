@@ -7,7 +7,7 @@ export default defineConfig([
     ignores: [
       "**/.next/**", "**/node_modules/**", "**/dist/**", "**/build/**",
       "scripts/**", "**/*.js", "**/*.mjs", "*.mjs",
-      ".eslintrc.json",
+      ".eslintrc.json", ".disabled-routes/**",
     ],
   },
   ...tseslint.configs.recommended,
