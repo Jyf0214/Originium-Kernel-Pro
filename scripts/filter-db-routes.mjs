@@ -95,24 +95,8 @@ const DB_ROUTE_PATHS = [
 
 /** 需要在 GitHub Pages 部署时移除的 API 路由目录（相对于 ROOT） */
 const API_ROUTE_PATHS = [
-  // ── 认证 / 管理 ──
-  'app/api/auth',
-  'app/api/admin',
-  // ── 认证依赖 ──
-  'app/api/diary',
-  'app/api/faces',
-  'app/api/user',
-  'app/api/users',
-  'app/api/cleanup',
-  'app/api/recycle-bin',
-  'app/api/feedback',
-  'app/api/requests',
-  'app/api/ticket-templates',
-  'app/api/tickets',
-  'app/api/github',
-  'app/api/webhooks',
-  // ── 存储 / 自定义页面 ──
-  'app/api/page',
+  // ── 整个 API 目录 ──
+  'app/api',
 ];
 
 function hasDatabase() {
