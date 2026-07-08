@@ -116,6 +116,8 @@ const GITHUB_PAGES_REMOVE_PATHS = [
   'app/tickets',
   'app/page',
   'app/article',
+  // ── 私有帖子页（使用 cookies，无法静态导出） ──
+  'app/posts/private',
 ];
 
 function hasDatabase() {
