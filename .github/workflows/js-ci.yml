@@ -36,6 +36,9 @@ jobs:
             npm install
           fi
 
+      - name: Generate static data (for type check)
+        run: node scripts/generate-navigation.mjs && node scripts/generate-site-config.mjs && node scripts/generate-version.mjs
+
       - name: Syntax & Lint Check (语法与风格校验)
         run: |
           # 如果 package.json 中配置了 lint 命令，则强制运行。
