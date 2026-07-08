@@ -47,12 +47,38 @@
  * 构建完成后由 restore-db-routes.mjs 恢复。
  */
 
-import { existsSync, renameSync, mkdirSync, writeFileSync, rmSync } from 'fs';
+import { existsSync, renameSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'fs';
 import { join, relative } from 'path';
 
 const ROOT = process.cwd();
 const DISABLED_DIR = join(ROOT, '.disabled-routes');
 const MANIFEST = join(DISABLED_DIR, '.manifest.json');
+
+/**
+ * 从 .env.local 加载环境变量（脚本在 next build 之前运行，.env.local 尚未自动加载）
+ * 仅解析简单 KEY=VALUE 格式，忽略注释和空行
+ */
+function loadEnvLocal() {
+  const envPath = join(ROOT, '.env.local');
+  if (!existsSync(envPath)) return;
+  const content = readFileSync(envPath, 'utf-8');
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eqIdx = trimmed.indexOf('=');
+    if (eqIdx < 1) continue;
+    const key = trimmed.slice(0, eqIdx).trim();
+    let value = trimmed.slice(eqIdx + 1).trim();
+    // 去除引号包裹
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    // 不覆盖已有的环境变量（CI 中的优先级更高）
+    if (!(key in process.env)) {
+      process.env[key] = value;
+    }
+  }
+}
 
 /** 需要在无数据库时移除的路由目录（相对于 ROOT） */
 const DB_ROUTE_PATHS = [
@@ -133,12 +159,16 @@ function isGitHubPages() {
   return process.env.GITHUB_PAGES === 'true';
 }
 
+// 先加载 .env.local，确保本地数据库环境变量可用
+loadEnvLocal();
+
 // 决定过滤模式
 const isGH = isGitHubPages();
 const hasDB = hasDatabase();
 
 if (!isGH && hasDB) {
   // 非 GitHub Pages 且有数据库，不操作
+  console.log('[filter-db-routes] 检测到数据库环境变量，跳过路由过滤');
   process.exit(0);
 }
 
