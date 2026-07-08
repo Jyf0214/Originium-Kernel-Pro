@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import { PostListClient } from './PostListClient';
 import PostNavigation from '@/components/PostNavigation';
-import Footer from '@/components/Footer';
+import FooterWrapper from '@/components/Footer/FooterWrapper';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -88,7 +88,7 @@ export default function PostsPage() {
           </div>
         </div>
       </main>
-      <Footer />
+      <FooterWrapper />
     </div>
   );
 }

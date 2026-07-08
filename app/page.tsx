@@ -3,7 +3,7 @@ import { loadConfig } from '@/lib/config';
 import { getAuthorByName } from '@/lib/authors';
 import { estimateReadingTime } from '@/lib/reading-time';
 import { HomePostGrid } from '@/components/HomePostGrid';
-import Footer from '@/components/Footer';
+import FooterWrapper from '@/components/Footer/FooterWrapper';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -58,7 +58,7 @@ export default function HomePage() {
         defaultCover={config.cover?.defaultCover?.[0]}
         coverConfig={config.cover}
       />
-      <Footer />
+      <FooterWrapper />
     </div>
   );
 }

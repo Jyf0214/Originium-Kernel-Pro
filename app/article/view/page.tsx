@@ -7,7 +7,7 @@ import { ArrowLeft, User, Calendar, Tag as TagIcon } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { GlobalLoading } from '@/components/Loading';
-import Footer from '@/components/Footer';
+import FooterWrapper from '@/components/Footer/FooterWrapper';
 import { useConfig } from '@/hooks/use-config';
 import { showError } from '@/lib/error';
 import { PageContainer } from '@/components/ui/PageContainer';
@@ -166,7 +166,7 @@ function ArticleViewContent() {
         </article>
       </PageContainer>
 
-      <Footer />
+      <FooterWrapper />
     </div>
   );
 }

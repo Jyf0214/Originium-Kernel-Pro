@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import { HeroBanner } from '@/components/ui/HeroBanner';
 import { TagCloudClient, type TagStat, type PostSummary } from './TagCloudClient';
-import Footer from '@/components/Footer';
+import FooterWrapper from '@/components/Footer/FooterWrapper';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -77,7 +77,7 @@ export default function TagsPage() {
           <TagCloudClient tagStats={tagStats} posts={posts} />
         </section>
       </main>
-      <Footer />
+      <FooterWrapper />
     </div>
   );
 }

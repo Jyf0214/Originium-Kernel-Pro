@@ -8,7 +8,7 @@ import { type Article } from '@/types/content';
 import { useI18n } from '@/hooks/use-i18n';
 import { GlobalLoading } from '@/components/Loading';
 import { Avatar } from '@/components/Avatar';
-import Footer from '@/components/Footer';
+import FooterWrapper from '@/components/Footer/FooterWrapper';
 import AuthorCard from '@/components/AuthorCard';
 import { useConfig } from '@/hooks/use-config';
 import { useAuthorByName } from '@/hooks/use-author';
@@ -157,7 +157,7 @@ function UserProfileContent() {
         </div>
       </main>
 
-      <Footer />
+      <FooterWrapper />
     </div>
   );
 }

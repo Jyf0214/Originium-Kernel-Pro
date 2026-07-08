@@ -1,6 +1,7 @@
 // Footer - 页脚主组件
 // 负责装配：链接组、徽章、运行时状态、版权底栏（含回到顶部）。
 // 所有配置加载、默认值兜底、动画变体均来自 footer-config / 子组件本身。
+// 支持通过 props 传入静态配置（构建时生成），优先使用 props，无则回退 API。
 
 'use client';
 
@@ -22,6 +23,7 @@ import {
   defRuntimeEnable,
   defLaunchTime,
 } from './footer-config';
+import type { FooterConfigData } from './types';
 
 // 区块统一的进入动画变体
 const footerSectionVariants = {
@@ -29,8 +31,13 @@ const footerSectionVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
 };
 
-export default function Footer() {
-  const { config, error } = useFooterConfig();
+interface FooterProps {
+  staticConfig?: FooterConfigData;
+  staticSocial?: Record<string, string>;
+}
+
+export default function Footer({ staticConfig, staticSocial }: FooterProps) {
+  const { config, error } = useFooterConfig(staticConfig, staticSocial);
 
   // 解析后的最终值
   const links = defLinks(config);

@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import Footer from '@/components/Footer';
+import FooterWrapper from '@/components/Footer/FooterWrapper';
 import ShareButtons from '@/components/ShareButtons';
 import ArticleCopyright from '@/components/ArticleCopyright';
 import RewardArea from '@/components/RewardArea';
@@ -107,7 +107,7 @@ export function ArticlePageBody({
         <CopyInterceptor articleRef={articleRef} authorName={articleData.authorName} authorInfo={authorInfo} />
         <TableOfContents content={rawContent || articleData.content} />
       </PageContainer>
-      <Footer />
+      <FooterWrapper />
     </div>
   );
 }
