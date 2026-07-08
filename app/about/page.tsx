@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { HeroBanner } from '@/components/ui/HeroBanner';
 import { BookOpen, Github, Shield, Globe } from 'lucide-react';
@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { FeedbackForm } from '@/components/FeedbackForm';
 import Footer from '@/components/Footer';
+import { VERSION } from '@/data/version';
 
 const features = [
   {
@@ -33,23 +34,6 @@ const features = [
 ];
 
 export default function AboutPage() {
-  const [version, setVersion] = useState<string>('');
-  useEffect(() => {
-    const abortController = new AbortController();
-    fetch('/api/version', { signal: abortController.signal })
-      .then(r => r.json())
-      .then((d: { version: string }) => setVersion(d.version))
-      .catch((err) => {
-        // 忽略 AbortError，其他错误静默处理
-        if (err.name !== 'AbortError') {
-          /* ignore */
-        }
-      });
-    return () => {
-      abortController.abort();
-    };
-  }, []);
-
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <PageContainer maxWidth="5xl" padding="compact">
@@ -134,11 +118,11 @@ export default function AboutPage() {
         </section>
 
         {/* 版本信息 */}
-        {version && (
+        {VERSION && (
           <section className="mb-10 sm:mb-12">
             <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 p-5 sm:p-6 text-center">
               <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-1">当前版本</p>
-              <p className="text-lg font-mono font-bold text-zinc-900 dark:text-zinc-100">{version}</p>
+              <p className="text-lg font-mono font-bold text-zinc-900 dark:text-zinc-100">{VERSION}</p>
             </div>
           </section>
         )}

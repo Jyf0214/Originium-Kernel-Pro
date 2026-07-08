@@ -11,7 +11,7 @@ import { useThemeMode } from '@/hooks/use-theme-mode';
  */
 async function fetchBackgroundFromSiteConfig(mountedRef: { current: boolean }, setBackground: (bg: AppearanceConfig['background']) => void): Promise<boolean> {
   try {
-    const res = await fetch('/api/site-config');
+    const res = await fetch('/site-config.json');
     if (res.ok) {
       const data = await res.json();
       if (data.appearance?.background?.url) {

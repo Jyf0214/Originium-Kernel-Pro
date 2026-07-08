@@ -4,7 +4,9 @@
  * 大版本: 从 package.json 读取
  * 小版本: git commit short hash（代码不变则不变）
  *
- * 输出: data/version.json
+ * 输出:
+ *   - data/version.json  （供其他脚本/工具读取）
+ *   - data/version.ts     （供前端页面 import 的 TS 常量）
  */
 import { execSync } from 'child_process';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
@@ -25,10 +27,21 @@ try {
   console.warn('[generate-version] git 不可用，小版本设为 unknown');
 }
 
-const version = { major, minor, generatedAt: new Date().toISOString() };
+const version = `${major}+${minor}`;
 
 const dataDir = join(root, 'data');
 if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
 
-writeFileSync(join(dataDir, 'version.json'), JSON.stringify(version, null, 2) + '\n');
-console.log(`[generate-version] ${major}+${minor}`);
+// JSON 版本（供构建工具读取）
+writeFileSync(
+  join(dataDir, 'version.json'),
+  JSON.stringify({ major, minor, version, generatedAt: new Date().toISOString() }, null, 2) + '\n',
+);
+
+// TS 常量版本（供前端页面直接 import，无需 API 调用）
+writeFileSync(
+  join(dataDir, 'version.ts'),
+  `/** 构建时自动生成，请勿手动编辑 */\nexport const VERSION = '${version}';\n`,
+);
+
+console.log(`[generate-version] ${version}`);

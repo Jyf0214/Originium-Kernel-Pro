@@ -7,6 +7,7 @@ import { PostListClient } from './PostListClient';
 import PostNavigation from '@/components/PostNavigation';
 import FooterWrapper from '@/components/Footer/FooterWrapper';
 import type { Metadata } from 'next';
+import navigationData from '@/data/navigation.json';
 
 export const metadata: Metadata = {
   title: '帖子 - Originium Kernel',
@@ -54,16 +55,8 @@ export default function PostsPage() {
     groupName: idx.groupName,
   }));
 
-  // 构建服务端预渲染的导航树（从目录索引转换）
-  const navigationTree = publicIndexes.map((idx) => ({
-    slug: idx.slug.replace(/^\//, ''),
-    title: idx.title,
-    description: idx.description ?? '',
-    icon: '',
-    order: 0,
-    public: idx.public,
-    children: [],
-  }));
+  // 使用构建时预生成的导航树
+  const navigationTree = navigationData;
 
   return (
     <div className="min-h-screen flex flex-col bg-white sm:bg-zinc-50 dark:bg-white sm:dark:bg-zinc-900">
