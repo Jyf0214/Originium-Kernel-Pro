@@ -93,14 +93,29 @@ const DB_ROUTE_PATHS = [
   'app/api/page',
 ];
 
-/** 需要在 GitHub Pages 部署时移除的 API 路由目录（相对于 ROOT） */
-const API_ROUTE_PATHS = [
+/** 需要在 GitHub Pages 部署时移除的路由目录（相对于 ROOT）
+ *
+ * 项目有大量动态路由（缺少 generateStaticParams），
+ * 在 output: export 模式下全部会报错。
+ * 直接移除所有无法静态化的路由目录。
+ */
+const GITHUB_PAGES_REMOVE_PATHS = [
   // ── 整个 API 目录 ──
   'app/api',
-  // ── 文件下载路由（依赖存储后端） ──
+  // ── 需要运行时服务的页面路由 ──
   'app/files',
-  // ── 用户文章路由（缺少 generateStaticParams） ──
   'app/[user]',
+  'app/diary',
+  'app/faces',
+  'app/clerk',
+  'app/dashboard',
+  'app/login',
+  'app/forgot-password',
+  'app/reset-password',
+  'app/editor',
+  'app/tickets',
+  'app/page',
+  'app/article',
 ];
 
 function hasDatabase() {
@@ -133,10 +148,10 @@ const manifest = [];
 let moved = 0;
 
 if (isGH) {
-  // GitHub Pages 部署：移除所有 API 路由（静态导出不支持动态 API）
-  console.log('[filter-db-routes] 检测到 GitHub Pages 部署，移除 API 路由目录...');
+  // GitHub Pages 部署：移除所有无法静态化的路由（output: export 不支持动态路由）
+  console.log('[filter-db-routes] 检测到 GitHub Pages 部署，移除动态路由目录...');
 
-  for (const relPath of API_ROUTE_PATHS) {
+  for (const relPath of GITHUB_PAGES_REMOVE_PATHS) {
     const src = join(ROOT, relPath);
     if (!existsSync(src)) continue;
 
