@@ -7,7 +7,7 @@ import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
-import FooterWrapper from '@/components/Footer/FooterWrapper';
+import Footer from '@/components/Footer';
 
 export default function FacesPage() {
   const [data, setData] = React.useState<{faces: FaceItem[], groups: GroupItem[]}>({faces: [], groups: []});
@@ -57,7 +57,7 @@ export default function FacesPage() {
         />
         <FacesListClient faces={data.faces || []} groups={data.groups || []} />
       </PageContainer>
-      <FooterWrapper />
+      <Footer />
     </div>
   );
 }
