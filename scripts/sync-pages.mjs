@@ -1014,7 +1014,23 @@ async function syncFromB2() {
 // ─── 入口 ──────────────────────────────────────────────────────────────────
 
 async function main() {
+  // 自定义页面实验性功能未启用时，跳过整个同步流程
+  if (process.env.CUSTOM_PAGES_ENABLED !== 'true') {
+    console.log(`${LOG_PREFIX} 实验性功能「自定义页面」未启用(CUSTOM_PAGES_ENABLED 未设置为 true),跳过页面同步`);
+    return;
+  }
+
   const storageType = (process.env.STORAGE_TYPE || 'webdav').toLowerCase();
+
+  // 统一检测存储是否已配置，未配置则直接跳过（不清理本地、不报错）
+  const isConfigured = storageType === 'backblaze'
+    ? !!(process.env.B2_KEY_ID && process.env.B2_APP_KEY && process.env.B2_BUCKET)
+    : !!(process.env.WEBDAV_URL && process.env.WEBDAV_USER && process.env.WEBDAV_PASS);
+
+  if (!isConfigured) {
+    console.log(`${LOG_PREFIX} 存储后端未配置,跳过页面同步`);
+    return;
+  }
 
   if (storageType === 'backblaze') {
     console.log(`${LOG_PREFIX} 存储后端: Backblaze B2`);

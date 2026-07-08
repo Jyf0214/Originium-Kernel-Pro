@@ -9,7 +9,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Globe, Folder, FileCode, Plus, FolderOpen, RotateCw } from 'lucide-react';
+import { Globe, Folder, FileCode, Plus, FolderOpen, RotateCw, FlaskConical } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
 import Sidebar from '@/components/Sidebar/index';
@@ -48,12 +48,14 @@ export interface StorageOrphan {
 
 interface PageIndexViewProps {
   notConfigured: boolean;
+  /** 实验性功能「自定义页面」是否已启用 */
+  customPagesEnabled?: boolean;
   pages: PageIndexItem[];
   emptyDirs: string[];
   orphans?: StorageOrphan[];
 }
 
-export function PageIndexView({ notConfigured, pages, emptyDirs, orphans: _orphans = [] }: PageIndexViewProps) {
+export function PageIndexView({ notConfigured, customPagesEnabled = true, pages, emptyDirs, orphans: _orphans = [] }: PageIndexViewProps) {
   const { t } = useI18n();
   const { isSudo } = useAuth();
   const router = useRouter();
@@ -85,7 +87,7 @@ export function PageIndexView({ notConfigured, pages, emptyDirs, orphans: _orpha
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
+      <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} storageConfigured={customPagesEnabled} />
       <div className="flex-1 flex flex-col md:ml-[280px] min-h-screen bg-zinc-50">
         <TopHeader onMenuClick={openSidebar} />
         <main className="flex-1 p-6 md:p-10">
@@ -105,7 +107,7 @@ export function PageIndexView({ notConfigured, pages, emptyDirs, orphans: _orpha
             </header>
 
             {/* 管理员操作：刷新 + 新建页面 */}
-            {isSudo && (
+            {isSudo && customPagesEnabled && (
               <div className="flex justify-end gap-2 mb-4">
                 <Button
                   variant="default"
@@ -129,7 +131,9 @@ export function PageIndexView({ notConfigured, pages, emptyDirs, orphans: _orpha
               </div>
             )}
 
-            {notConfigured ? (
+            {!customPagesEnabled ? (
+              <ExperimentalFeatureCard />
+            ) : notConfigured ? (
               <NotConfiguredCard />
             ) : pages.length === 0 && emptyDirs.length === 0 ? (
               <EmptyCard />
@@ -180,6 +184,38 @@ export function PageIndexView({ notConfigured, pages, emptyDirs, orphans: _orpha
           onSaved={() => router.refresh()}
         />
       )}
+    </div>
+  );
+}
+
+function ExperimentalFeatureCard() {
+  return (
+    <div className="rounded-2xl bg-white p-8 ring-1 ring-violet-200/60 bg-violet-50/30">
+      <div className="flex items-center gap-3 text-violet-700 font-semibold mb-3">
+        <FlaskConical size={20} aria-hidden />
+        <span>实验性功能</span>
+      </div>
+      <p className="text-sm text-zinc-600 leading-relaxed mb-4">
+        「自定义页面」是一项实验性功能，需要显式启用后才能使用。
+      </p>
+      <div className="rounded-xl bg-zinc-50 p-4 ring-1 ring-zinc-200 mb-4">
+        <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">启用步骤</p>
+        <ol className="text-sm text-zinc-700 space-y-2 list-decimal ml-4">
+          <li>
+            在 <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">.env.local</code> 中设置
+            <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">CUSTOM_PAGES_ENABLED=true</code>
+          </li>
+          <li>
+            配置存储后端（WebDAV 或 Backblaze B2）的环境变量
+          </li>
+          <li>
+            重启服务后在存储后端 <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">pages/</code> 目录下放置 HTML 文件
+          </li>
+        </ol>
+      </div>
+      <p className="text-xs text-zinc-500">
+        启用后，侧边栏将出现「自定义页面」入口，支持通过存储后端托管自定义 HTML 页面。
+      </p>
     </div>
   );
 }

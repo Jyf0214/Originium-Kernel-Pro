@@ -16,9 +16,11 @@ import type { MenuItem } from './types';
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  /** 存储后端是否已配置，默认 true（向后兼容） */
+  storageConfigured?: boolean;
 }
 
-function Sidebar({ isOpen, onClose }: SidebarProps) {
+function Sidebar({ isOpen, onClose, storageConfigured = true }: SidebarProps) {
   const { user, isSudo, logout } = useAuth();
   const pathname = usePathname();
   const { t } = useI18n();
@@ -26,9 +28,17 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
   const items: MenuItem[] = menuItems.filter((item) => {
-    if (!item.roles || item.roles.length === 0) return true;
-    if (item.roles.includes('sudo')) return isSudo;
-    return false;
+    // 角色过滤
+    if (item.roles && item.roles.length > 0) {
+      if (item.roles.includes('sudo')) {
+        if (!isSudo) return false;
+      } else {
+        return false;
+      }
+    }
+    // 存储依赖过滤：requiresStorage=true 时仅存储已配置才显示
+    if (item.requiresStorage && !storageConfigured) return false;
+    return true;
   });
 
   const handleLogout = async () => {

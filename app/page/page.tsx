@@ -2,6 +2,7 @@ import 'server-only';
 import fs from 'fs';
 import path from 'path';
 import { PAGES_PREFIX } from '@/lib/page-source/shared';
+import { isCustomPagesEnabled } from '@/lib/storage/storage-provider';
 import { fetchPageHtml, fetchPageMeta } from '@/lib/page-source/fs';
 import { PageIndexView, type PageIndexItem } from './_components/PageIndexView';
 
@@ -81,6 +82,20 @@ function extractDirPaths(index: string[]): string[] {
 }
 
 export default async function PageIndex() {
+  const customPagesEnabled = isCustomPagesEnabled();
+
+  // 实验性功能未启用时，显示引导页
+  if (!customPagesEnabled) {
+    return (
+      <PageIndexView
+        notConfigured={false}
+        customPagesEnabled={false}
+        pages={[]}
+        emptyDirs={[]}
+      />
+    );
+  }
+
   // 从索引文件读取
   const index = readPagesIndex();
 
@@ -129,6 +144,7 @@ export default async function PageIndex() {
   return (
     <PageIndexView
       notConfigured={false}
+      customPagesEnabled={true}
       pages={items}
       emptyDirs={dirPaths.map(d => d.slice(PAGES_PREFIX.length + 1))}
     />

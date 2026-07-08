@@ -22,7 +22,7 @@ export const menuItems: MenuItem[] = [
   { key: 'sidebar.posts', icon: BookOpen, href: '/posts', group: 'content' },
   { key: 'sidebar.faces', icon: Users, href: '/faces', group: 'content' },
   { key: 'sidebar.write', icon: PenLine, href: '/editor', group: 'content' },
-  { key: 'sidebar.customPages', icon: Globe, href: '/page', group: 'content' },
+  { key: 'sidebar.customPages', icon: Globe, href: '/page', group: 'content', requiresStorage: true },
   { key: 'sidebar.articleManagement', icon: Archive, href: '/dashboard/articles', group: 'manage' },
   { key: 'sidebar.trash', icon: Trash2, href: '/dashboard/articles?status=pending_deletion', group: 'manage' },
   { key: 'sidebar.diary', icon: FileText, href: '/diary', group: 'personal' },

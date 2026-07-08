@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { buildPageRelativePath, resolvePageFilePath } from '@/lib/page-source/shared';
+import { isCustomPagesEnabled } from '@/lib/storage/storage-provider';
 import { fetchPageHtml, fetchPageMeta } from '@/lib/page-source/fs';
 import { loadConfig } from '@/lib/config';
 import CustomPageView from './CustomPageView';
@@ -11,6 +12,9 @@ interface PageProps {
 export const dynamic = 'force-dynamic';
 
 export default async function CustomPage({ params }: PageProps) {
+  // 实验性功能未启用时直接 404
+  if (!isCustomPagesEnabled()) notFound();
+
   const { path: pathSegments } = await params;
 
   // 构建相对路径（含目录穿越校验）

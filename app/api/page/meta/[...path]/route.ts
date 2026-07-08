@@ -10,7 +10,7 @@ import { NextResponse } from 'next/server'
 import { apiHandler } from '@/lib/api-handler'
 import { getSessionWithKeyId, requireApiKeyPermission, getSession } from '@/lib/auth'
 import { buildPageRelativePath, type PageMeta } from '@/lib/page-source/shared'
-import { isStorageConfigured } from '@/lib/storage/storage-provider'
+import { isStorageConfigured, isCustomPagesEnabled } from '@/lib/storage/storage-provider'
 import { fetchPageMeta, putPageMeta, deletePageMeta } from '@/lib/page-source/webdav'
 import { checkPageAccess, checkApiKeyPageAccess } from '@/lib/storage/acl'
 
@@ -49,6 +49,9 @@ function parseMetaBody(body: unknown): { meta: PageMeta } | { error: string } {
 }
 
 export const GET = apiHandler<{ path: string[] }>('GET', { label: 'page-meta.get' }, async (req, ctx) => {
+  if (!isCustomPagesEnabled()) {
+    return NextResponse.json({ error: '自定义页面实验性功能未启用', code: 'FEATURE_DISABLED' }, { status: 503 });
+  }
   if (!isStorageConfigured()) {
     return NextResponse.json({ error: '存储后端未配置', code: 'NOT_CONFIGURED' }, { status: 503 });
   }
@@ -67,6 +70,9 @@ export const GET = apiHandler<{ path: string[] }>('GET', { label: 'page-meta.get
 })
 
 export const PUT = apiHandler<{ path: string[] }>('PUT', { label: 'page-meta.put', requireSudo: true }, async (req, ctx) => {
+  if (!isCustomPagesEnabled()) {
+    return NextResponse.json({ error: '自定义页面实验性功能未启用', code: 'FEATURE_DISABLED' }, { status: 503 });
+  }
   if (!isStorageConfigured()) {
     return NextResponse.json({ error: '存储后端未配置', code: 'NOT_CONFIGURED' }, { status: 503 });
   }
@@ -96,6 +102,9 @@ export const PUT = apiHandler<{ path: string[] }>('PUT', { label: 'page-meta.put
 })
 
 export const DELETE = apiHandler<{ path: string[] }>('DELETE', { label: 'page-meta.delete', requireSudo: true }, async (_req, ctx) => {
+  if (!isCustomPagesEnabled()) {
+    return NextResponse.json({ error: '自定义页面实验性功能未启用', code: 'FEATURE_DISABLED' }, { status: 503 });
+  }
   if (!isStorageConfigured()) {
     return NextResponse.json({ error: '存储后端未配置', code: 'NOT_CONFIGURED' }, { status: 503 });
   }
