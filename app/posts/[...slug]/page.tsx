@@ -1,9 +1,8 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 
 import { getContentFile, getContentFiles, getContentIndexes, filterPublicFiles, getAllSlugs, getAdjacentPosts } from '@/lib/content';
 import { buildWikiLinkMap, getBacklinks, getOutgoingReferences } from '@/lib/content-registry';
-import { getSession } from '@/lib/auth';
 import { loadConfig } from '@/lib/config';
 import { getAuthorByName } from '@/lib/authors';
 import { getSiteUrl } from '@/const/url';
@@ -22,11 +21,8 @@ interface PageProps {
   params: Promise<{ slug: string[] }>;
 }
 
-// 私有文章需要运行时读取 session，必须动态渲染（不能 ISR 预渲染）
-export const dynamic = 'force-dynamic';
-
-// 公开文章使用 ISR（增量静态再生），每 600 秒（10 分钟）重新验证一次
-// 私有文章由 dynamic = 'force-dynamic' 保证运行时渲染
+// 静态导出模式：所有公开文章预渲染为静态 HTML
+// 私有文章在构建时也会被预渲染，但不包含实际内容
 export const revalidate = 600;
 
 export function generateStaticParams() {
@@ -50,8 +46,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function PostDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const fullPath = '/' + slug.join('/');
-
-  await enforceAccess(fullPath);
 
   const file = getContentFile('posts', fullPath);
   if (!file) notFound();
@@ -100,14 +94,6 @@ export default async function PostDetailPage({ params }: PageProps) {
       <Footer />
     </div>
   );
-}
-
-async function enforceAccess(fullPath: string): Promise<void> {
-  if (!isPrivateSlug(fullPath)) return;
-  const session = await getSession();
-  if (!session) {
-    redirect(`/login?callbackUrl=/posts${fullPath}`);
-  }
 }
 
 function buildViewModel(
