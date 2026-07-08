@@ -11,7 +11,7 @@
     "db:init": "node scripts/db-init.mjs",
     "db:init:seed": "node scripts/db-init.mjs",
     "sync:pages": "node scripts/sync-pages.mjs",
-    "prebuild": "npm run sync:pages && node scripts/download-avatar.mjs && node scripts/generate-favicon.mjs",
+    "prebuild": "npm run sync:pages && node scripts/download-avatar.mjs && node scripts/generate-favicon.mjs && node scripts/generate-navigation.mjs && node scripts/generate-site-config.mjs",
     "db:generate": "PRISMA_HIDE_UPDATE_MESSAGE=true PRISMA_HIDE_PREVIEW_FLAG_WARNINGS=true prisma generate",
     "db:push": "PRISMA_HIDE_UPDATE_MESSAGE=true PRISMA_HIDE_PREVIEW_FLAG_WARNINGS=true prisma db push",
     "db:push:safe": "ALLOW_DB_PUSH=1 npx prisma db push",

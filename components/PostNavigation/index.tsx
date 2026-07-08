@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -8,7 +8,6 @@ import {
   ChevronRight,
   ChevronDown,
   FileText,
-  Loader2,
 } from 'lucide-react';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -118,48 +117,11 @@ function TreeNode({ node, depth, pathname }: TreeNodeProps) {
   );
 }
 
-// ─── 骨架屏 ─────────────────────────────────────────────────────────────────
-
-function SkeletonTree() {
-  return (
-    <div className="space-y-2 px-3 animate-pulse">
-      {[40, 55, 35, 50, 30].map((w, i) => (
-        <div key={i} className="flex items-center gap-2" style={{ paddingLeft: `${(i % 3) * 16}px` }}>
-          <div className="w-4 h-4 rounded bg-zinc-200 dark:bg-zinc-700" />
-          <div className="h-4 rounded bg-zinc-200 dark:bg-zinc-700" style={{ width: `${w}%` }} />
-        </div>
-      ))}
-    </div>
-  );
-}
-
 // ─── 主组件 ─────────────────────────────────────────────────────────────────
 
 export default function PostNavigation({ initialTree }: PostNavigationProps) {
   const pathname = usePathname();
-  const [tree, setTree] = useState<NavigationNode[]>(initialTree);
-  const [loading, setLoading] = useState(false);
-
-  const fetchTree = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/navigation');
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data.tree)) {
-          setTree(data.tree);
-        }
-      }
-    } catch {
-      // 获取失败时保留初始数据，不中断用户操作
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void fetchTree();
-  }, [fetchTree]);
+  const [tree] = useState<NavigationNode[]>(initialTree);
 
   return (
     <nav
@@ -172,15 +134,10 @@ export default function PostNavigation({ initialTree }: PostNavigationProps) {
           <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
             目录导航
           </h3>
-          {loading && (
-            <Loader2 className="w-3.5 h-3.5 text-zinc-400 animate-spin" />
-          )}
         </div>
 
         {/* 内容区 */}
-        {loading && tree.length === 0 ? (
-          <SkeletonTree />
-        ) : tree.length === 0 ? (
+        {tree.length === 0 ? (
           <p className="text-sm text-zinc-400 dark:text-zinc-500 text-center py-4">
             暂无目录
           </p>
