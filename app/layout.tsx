@@ -10,7 +10,7 @@ import { PostPageProvider } from '@/contexts/PostPageContext';
 import { PWARegister } from '../components/PWARegister';
 import { TabTitleSwitch } from '../components/TabTitleSwitch';
 import { MusicPlayerWrapper } from '../components/MusicPlayer/MusicPlayerWrapper';
-import { loadConfig } from '@/lib/config';
+import { loadConfig, hasDatabase } from '@/lib/config';
 import { ThirdPartyScripts } from '@/components/ThirdPartyScripts';
 import { EffectsManager } from '@/components/effects';
 
@@ -73,7 +73,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         <Providers>
           <AuthProvider>
             <PostPageProvider>
-              <Navbar navConfig={config.nav} siteTitle={config.site.title} />
+              <Navbar navConfig={config.nav} siteTitle={config.site.title} databaseConfigured={hasDatabase()} />
               <div id="main-content" tabIndex={-1}>
                 <RouteTransition>
                   <PageTransition>{children}</PageTransition>
