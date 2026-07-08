@@ -99,6 +99,8 @@ const API_ROUTE_PATHS = [
   'app/api',
   // ── 文件下载路由（依赖存储后端） ──
   'app/files',
+  // ── 用户文章路由（缺少 generateStaticParams） ──
+  'app/[user]',
 ];
 
 function hasDatabase() {
