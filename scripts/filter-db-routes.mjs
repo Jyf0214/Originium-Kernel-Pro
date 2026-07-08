@@ -97,6 +97,8 @@ const DB_ROUTE_PATHS = [
 const API_ROUTE_PATHS = [
   // ── 整个 API 目录 ──
   'app/api',
+  // ── 文件下载路由（依赖存储后端） ──
+  'app/files',
 ];
 
 function hasDatabase() {
