@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next';
 import { getSiteUrl } from '@/const/url';
 
+export const dynamic = 'force-static';
+
 /**
  * robots.txt 配置
  *

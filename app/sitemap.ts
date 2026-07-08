@@ -2,6 +2,8 @@ import type { MetadataRoute } from 'next';
 import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
 import { getSiteUrl } from '@/const/url';
 
+export const dynamic = 'force-static';
+
 /**
  * 站点地图
  *
