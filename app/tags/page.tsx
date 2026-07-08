@@ -2,7 +2,7 @@ import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/con
 import Link from 'next/link';
 import { Hash, ArrowLeft } from 'lucide-react';
 import { Tag } from '@/components/ui/Tag';
-import Footer from '@/components/Footer';
+import FooterWrapper from '@/components/Footer/FooterWrapper';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -163,7 +163,7 @@ export default function TagsPage() {
           </Link>
         </div>
       </main>
-      <Footer />
+      <FooterWrapper />
     </div>
   );
 }

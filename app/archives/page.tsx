@@ -2,7 +2,7 @@ import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/con
 import { PageContainer } from '@/components/ui/PageContainer';
 import { Tag } from '@/components/ui/Tag';
 import Link from 'next/link';
-import Footer from '@/components/Footer';
+import FooterWrapper from '@/components/Footer/FooterWrapper';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -131,7 +131,7 @@ export default function ArchivesPage() {
           )}
         </div>
       </PageContainer>
-      <Footer />
+      <FooterWrapper />
     </div>
   );
 }

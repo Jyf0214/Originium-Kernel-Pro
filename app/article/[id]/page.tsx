@@ -13,7 +13,7 @@ import { estimateReadingTime } from '@/lib/reading-time';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Tag } from '@/components/ui/Tag';
-import Footer from '@/components/Footer';
+import FooterWrapper from '@/components/Footer/FooterWrapper';
 import ShareButtons from '@/components/ShareButtons';
 import { ReadingProgressBar } from '@/components/ui/ReadingProgressBar';
 import { ScrollToTop } from '@/components/ui/ScrollToTop';
@@ -147,7 +147,7 @@ export default function ArticlePage() {
           </div>
         </article>
       </PageContainer>
-      <Footer />
+      <FooterWrapper />
     </div>
   );
 }

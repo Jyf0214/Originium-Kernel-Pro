@@ -155,6 +155,7 @@ export function defLaunchTime(config: FooterConfigData | null): string {
 
 // ─── Config Hook ─────────────────────────────────────
 // 从 /api/config 拉取 footer 与 social 字段，失败时记录错误但不抛出。
+// 支持通过 props 传入静态配置（构建时生成），优先使用 props。
 
 export interface UseFooterConfigResult {
   config: FooterConfigData | null;
@@ -162,12 +163,15 @@ export interface UseFooterConfigResult {
   error: string | null;
 }
 
-export function useFooterConfig(): UseFooterConfigResult {
-  const [config, setConfig] = useState<FooterConfigData | null>(null);
-  const [socialData, setSocialData] = useState<Record<string, string> | null>(null);
+export function useFooterConfig(staticConfig?: FooterConfigData, staticSocial?: Record<string, string>): UseFooterConfigResult {
+  const [config, setConfig] = useState<FooterConfigData | null>(staticConfig ?? null);
+  const [socialData, setSocialData] = useState<Record<string, string> | null>(staticSocial ?? null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // 如果已有静态配置，不发起 API 请求
+    if (staticConfig) return;
+
     const fetchConfig = async () => {
       try {
         const res = await fetch('/api/config');
@@ -187,7 +191,7 @@ export function useFooterConfig(): UseFooterConfigResult {
       }
     };
     void fetchConfig();
-  }, []);
+  }, [staticConfig]);
 
   return { config, socialData, error };
 }
