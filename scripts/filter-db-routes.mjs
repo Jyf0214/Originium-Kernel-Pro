@@ -95,7 +95,7 @@ const DB_ROUTE_PATHS = [
 
 /** 需要在 GitHub Pages 部署时移除的路由目录（相对于 ROOT）
  *
- * 项目有大量动态路由（缺少 generateStaticParams），
+ * 项目有大量动态路由（缺少 generateStaticParams 或设置了 force-dynamic），
  * 在 output: export 模式下全部会报错。
  * 直接移除所有无法静态化的路由目录。
  */
@@ -116,6 +116,9 @@ const GITHUB_PAGES_REMOVE_PATHS = [
   'app/tickets',
   'app/page',
   'app/article',
+  // ── 帖子详情页（force-dynamic，无法静态导出） ──
+  'app/posts/[...slug]',
+  'app/posts/private',
 ];
 
 function hasDatabase() {
