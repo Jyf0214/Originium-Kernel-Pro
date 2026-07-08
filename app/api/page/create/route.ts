@@ -13,7 +13,7 @@ import { NextResponse } from 'next/server'
 import { apiHandler } from '@/lib/api-handler'
 import { getSessionWithKeyId, requireApiKeyPermission, getSession } from '@/lib/auth'
 import { getDb } from '@/lib/db'
-import { isStorageConfigured, getStorageProvider } from '@/lib/storage/storage-provider'
+import { isStorageConfigured, isCustomPagesEnabled, getStorageProvider } from '@/lib/storage/storage-provider'
 import { renderTemplate, type TemplateType } from '@/lib/page-templates'
 import { checkApiKeyPageAccess } from '@/lib/storage/acl'
 
@@ -85,6 +85,14 @@ async function writeCreatorMeta(name: string, creatorEmail: string | undefined):
 /* ── 主 Handler ── */
 
 export const POST = apiHandler('POST', { label: 'page.create', requireSudo: true }, async (req) => {
+  // 实验性功能未启用时返回 503
+  if (!isCustomPagesEnabled()) {
+    return NextResponse.json(
+      { error: '自定义页面实验性功能未启用，请设置 CUSTOM_PAGES_ENABLED=true', code: 'FEATURE_DISABLED' },
+      { status: 503 },
+    )
+  }
+
   let body: CreatePageBody
   try {
     body = await req.json()

@@ -11,6 +11,12 @@ export interface MenuItem {
    * - 设置后：仅当当前用户角色命中列表时才渲染
    */
   roles?: string[];
+  /**
+   * 标记为需要存储后端配置的实验性功能。
+   * - 未设置或 false：始终显示
+   * - true：仅当 storageConfigured=true 时显示
+   */
+  requiresStorage?: boolean;
 }
 
 export interface SidebarUser {

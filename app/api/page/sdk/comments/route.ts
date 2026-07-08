@@ -11,7 +11,7 @@ import { NextResponse } from 'next/server'
 import { apiHandler } from '@/lib/api-handler'
 import { getSession } from '@/lib/auth'
 import { rateLimit, getClientIp } from '@/lib/rate-limit'
-import { isStorageConfigured, getStorageProvider } from '@/lib/storage/storage-provider'
+import { isStorageConfigured, isCustomPagesEnabled, getStorageProvider } from '@/lib/storage/storage-provider'
 import { normalizeWebDavContent } from '@/lib/page-source/shared'
 
 /** 评论数据结构 */
@@ -78,6 +78,9 @@ async function writeComments(pagePath: string, comments: Comment[]): Promise<boo
 
 /** GET — 获取评论列表 */
 export const GET = apiHandler('GET', { label: 'page-sdk.comments.get' }, async (req) => {
+  if (!isCustomPagesEnabled()) {
+    return NextResponse.json({ comments: [], error: '自定义页面实验性功能未启用' }, { status: 503 })
+  }
   const pagePath = req.nextUrl.searchParams.get('pagePath')
   if (!pagePath?.startsWith('/page/')) {
     return NextResponse.json({ error: 'pagePath 参数无效' }, { status: 400 })
@@ -112,6 +115,10 @@ async function resolveUserName(
 
 /** POST — 发表评论 */
 export const POST = apiHandler('POST', { label: 'page-sdk.comments.post' }, async (req) => {
+  if (!isCustomPagesEnabled()) {
+    return NextResponse.json({ error: '自定义页面实验性功能未启用' }, { status: 503 })
+  }
+
   // 频率限制：匿名用户每分钟 3 条，已登录用户每分钟 10 条
   const ip = getClientIp(req)
   const session = await getSession()
@@ -122,10 +129,6 @@ export const POST = apiHandler('POST', { label: 'page-sdk.comments.post' }, asyn
       { error: '评论过于频繁，请稍后再试' },
       { status: 429, headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) } },
     )
-  }
-
-  if (!isStorageConfigured()) {
-    return NextResponse.json({ error: '存储后端未配置' }, { status: 503 })
   }
 
   let body: unknown
@@ -165,6 +168,9 @@ export const POST = apiHandler('POST', { label: 'page-sdk.comments.post' }, asyn
 
 /** DELETE — 删除评论（仅限自己的） */
 export const DELETE = apiHandler('DELETE', { label: 'page-sdk.comments.delete' }, async (req) => {
+  if (!isCustomPagesEnabled()) {
+    return NextResponse.json({ error: '自定义页面实验性功能未启用' }, { status: 503 })
+  }
   const id = req.nextUrl.searchParams.get('id')
   const pagePath = req.nextUrl.searchParams.get('pagePath')
   if (!id || !pagePath) {
