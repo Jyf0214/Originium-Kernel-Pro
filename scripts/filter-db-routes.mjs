@@ -6,14 +6,36 @@
  * 检测数据库环境变量，无数据库时将后台相关路由目录临时移至 .disabled-routes/，
  * 使 next build 不生成这些路由的构建产物。
  *
- * 被移除的路由（均需要数据库）：
- *   - app/dashboard/          仪表盘（全部子页面）
+ * 被移除的路由：
+ *   - app/dashboard/          仪表盘
  *   - app/login/              登录
  *   - app/forgot-password/    密码重置
  *   - app/reset-password/     密码修改
+ *   - app/diary/              日记
+ *   - app/faces/              人物/联系人
+ *   - app/editor/             编辑器
+ *   - app/clerk/              Clerk 认证
+ *   - app/[user]/             用户主页
+ *   - app/[user]/[article]    用户文章
+ *   - app/article/            文章视图
+ *   - app/page/               自定义页面
+ *   - app/files/              文件管理
+ *   - app/tickets/            工单
  *   - app/api/auth/           认证 API
  *   - app/api/admin/          管理 API
- *   - app/api/page/sdk/comments/  评论 API
+ *   - app/api/diary/          日记 API
+ *   - app/api/faces/          人物 API
+ *   - app/api/user/           用户信息 API
+ *   - app/api/users/          用户列表 API
+ *   - app/api/page/           自定义页面 API
+ *   - app/api/tickets/        工单 API
+ *   - app/api/github/         GitHub 同步 API
+ *   - app/api/webhooks/       Webhook API
+ *   - app/api/cleanup         清理 API
+ *   - app/api/recycle-bin     回收站 API
+ *   - app/api/feedback        反馈 API
+ *   - app/api/requests        请求 API
+ *   - app/api/ticket-templates 工单模板 API
  *
  * 有数据库时直接退出，不做任何操作。
  * 构建完成后由 restore-db-routes.mjs 恢复。
@@ -28,13 +50,41 @@ const MANIFEST = join(DISABLED_DIR, '.manifest.json');
 
 /** 需要在无数据库时移除的路由目录（相对于 ROOT） */
 const DB_ROUTE_PATHS = [
+  // ── 后台管理 ──
   'app/dashboard',
   'app/login',
   'app/forgot-password',
   'app/reset-password',
+  // ── 认证依赖（日记、人物、编辑器、Clerk、用户页） ──
+  'app/diary',
+  'app/faces',
+  'app/editor',
+  'app/clerk',
+  'app/[user]',
+  'app/[user]/[article]',
+  'app/article',
+  // ── 存储 / 自定义页面 / 工单 / 文件管理 ──
+  'app/page',
+  'app/files',
+  'app/tickets',
+  // ── API：认证 / 管理 ──
   'app/api/auth',
   'app/api/admin',
-  'app/api/page/sdk/comments',
+  // ── API：认证依赖 ──
+  'app/api/diary',
+  'app/api/faces',
+  'app/api/user',
+  'app/api/users',
+  'app/api/cleanup',
+  'app/api/recycle-bin',
+  'app/api/feedback',
+  'app/api/requests',
+  'app/api/ticket-templates',
+  'app/api/tickets',
+  'app/api/github',
+  'app/api/webhooks',
+  // ── API：存储 / 自定义页面 ──
+  'app/api/page',
 ];
 
 function hasDatabase() {
