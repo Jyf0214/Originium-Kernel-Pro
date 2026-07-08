@@ -174,21 +174,34 @@ export function useFooterConfig(staticConfig?: FooterConfigData, staticSocial?: 
 
     const fetchConfig = async () => {
       try {
+        // 优先尝试 /api/config（服务端部署可用）
         const res = await fetch('/api/config');
         if (res.ok) {
           const data = await res.json();
           if (data.footer) setConfig(data.footer);
           if (data.social) setSocialData(data.social);
-        } else {
-          const errMsg = `页脚配置获取失败: ${res.status}`;
-          console.warn(errMsg);
-          setError(errMsg);
+          return;
         }
-      } catch (e) {
-        const errMsg = '页脚配置请求异常';
-        console.warn(errMsg, e);
-        setError(errMsg);
+        // /api/config 不可用（静态部署），回退到构建时生成的 /site-config.json
+      } catch {
+        // /api/config 请求异常，继续回退
       }
+
+      try {
+        const fallbackRes = await fetch('/site-config.json');
+        if (fallbackRes.ok) {
+          const fallbackData = await fallbackRes.json();
+          if (fallbackData.footer) setConfig(fallbackData.footer);
+          if (fallbackData.social) setSocialData(fallbackData.social);
+          return;
+        }
+      } catch {
+        // /site-config.json 也不可用
+      }
+
+      const errMsg = '页脚配置获取失败';
+      console.warn(errMsg);
+      setError(errMsg);
     };
     void fetchConfig();
   }, [staticConfig]);
