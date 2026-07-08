@@ -29,6 +29,8 @@ const siteConfig = {
       slogans: raw.appearance?.loading?.slogans ?? [],
     },
   },
+  footer: raw.footer ?? {},
+  social: raw.social ?? {},
 };
 
 writeFileSync(
