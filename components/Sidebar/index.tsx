@@ -8,7 +8,6 @@ import SidebarHeader from './SidebarHeader';
 import SidebarUserMenu from './SidebarUserMenu';
 import SidebarGroup from './SidebarGroup';
 import SidebarCollapseButton from './SidebarCollapseButton';
-import MobileToggle from './MobileToggle';
 import { useSidebarCollapsed } from './use-sidebar-collapsed';
 import { menuItems } from './sidebar-config';
 import { showCuteLogoutConfirm } from '@/components/ui/CuteLogout';
@@ -92,7 +91,6 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      <MobileToggle isOpen={isOpen} onClick={onClose} />
       {/* 桌面端侧栏：折叠/展开宽度切换 + 宽度过渡动画 */}
       <div
         className={`hidden md:flex max-h-screen overflow-y-auto z-[100] bg-white dark:bg-zinc-900 flex-col transition-[width] duration-200 ease-in-out ${
