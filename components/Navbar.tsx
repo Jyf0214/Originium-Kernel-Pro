@@ -31,6 +31,8 @@ const KeyboardShortcutsHelp = dynamic(
 interface NavbarProps {
   navConfig?: NavConfig;
   siteTitle?: string;
+  /** 数据库是否已配置，false 时隐藏登录入口 */
+  databaseConfigured?: boolean;
 }
 
 const ADMIN_PREFIXES = ['/dashboard', '/admin', '/editor'];
@@ -71,10 +73,12 @@ function DrawerLink({
 
 function DrawerToolbar({
   clerkAvailable,
+  databaseConfigured,
   t,
   onClose,
 }: {
   clerkAvailable: boolean;
+  databaseConfigured: boolean;
   t: (key: string) => string;
   onClose: () => void;
 }) {
@@ -84,14 +88,14 @@ function DrawerToolbar({
       <LanguageSwitcher />
       {user ? (
         <UserMenu />
-      ) : (
+      ) : databaseConfigured ? (
         <Link href="/login" onClick={onClose}>
           <Button variant="default" size="sm" autoLoading={false}>
             {t('auth.login')}
           </Button>
         </Link>
-      )}
-      {clerkAvailable && !user && (
+      ) : null}
+      {clerkAvailable && !user && databaseConfigured && (
         <ClerkAuthProvider>
           <ClerkLoginSection variant="compact" />
         </ClerkAuthProvider>
@@ -107,6 +111,7 @@ function DrawerContent({
   navConfig,
   time,
   clerkAvailable,
+  databaseConfigured,
   t,
   closeDrawer,
 }: {
@@ -114,6 +119,7 @@ function DrawerContent({
   navConfig: NavConfig | null;
   time: string;
   clerkAvailable: boolean;
+  databaseConfigured: boolean;
   t: (key: string) => string;
   closeDrawer: () => void;
 }) {
@@ -182,6 +188,7 @@ function DrawerContent({
         <Hitokoto />
         <DrawerToolbar
           clerkAvailable={clerkAvailable}
+          databaseConfigured={databaseConfigured}
           t={t}
           onClose={closeDrawer}
         />
@@ -272,7 +279,7 @@ function useNavbarState(navConfigProp?: NavConfig) {
 
 /* ── 主组件 ── */
 
-export function Navbar({ navConfig: navConfigProp }: NavbarProps) {
+export function Navbar({ navConfig: navConfigProp, databaseConfigured = true }: NavbarProps) {
   const { t } = useI18n();
   const { clerkAvailable } = useAuth();
   const pathname = usePathname();
@@ -347,6 +354,7 @@ export function Navbar({ navConfig: navConfigProp }: NavbarProps) {
           navConfig={state.navConfig}
           time={state.time}
           clerkAvailable={clerkAvailable}
+          databaseConfigured={databaseConfigured}
           t={t}
           closeDrawer={state.closeDrawer}
         />

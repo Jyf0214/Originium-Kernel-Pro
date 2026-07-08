@@ -18,9 +18,11 @@ interface SidebarProps {
   onClose: () => void;
   /** 存储后端是否已配置，默认 true（向后兼容） */
   storageConfigured?: boolean;
+  /** 数据库是否已配置，默认 true（向后兼容） */
+  databaseConfigured?: boolean;
 }
 
-function Sidebar({ isOpen, onClose, storageConfigured = true }: SidebarProps) {
+function Sidebar({ isOpen, onClose, storageConfigured = true, databaseConfigured = true }: SidebarProps) {
   const { user, isSudo, logout } = useAuth();
   const pathname = usePathname();
   const { t } = useI18n();
@@ -38,6 +40,8 @@ function Sidebar({ isOpen, onClose, storageConfigured = true }: SidebarProps) {
     }
     // 存储依赖过滤：requiresStorage=true 时仅存储已配置才显示
     if (item.requiresStorage && !storageConfigured) return false;
+    // 数据库依赖过滤：requiresDb=true 时仅数据库已配置才显示
+    if (item.requiresDb && !databaseConfigured) return false;
     return true;
   });
 

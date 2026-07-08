@@ -17,6 +17,12 @@ export interface MenuItem {
    * - true：仅当 storageConfigured=true 时显示
    */
   requiresStorage?: boolean;
+  /**
+   * 标记为需要数据库的功能。
+   * - 未设置或 false：始终显示
+   * - true：仅当 databaseConfigured=true 时显示
+   */
+  requiresDb?: boolean;
 }
 
 export interface SidebarUser {
