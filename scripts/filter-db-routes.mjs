@@ -47,7 +47,7 @@
  * 构建完成后由 restore-db-routes.mjs 恢复。
  */
 
-import { existsSync, renameSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, renameSync, mkdirSync, writeFileSync, rmSync } from 'fs';
 import { join, relative } from 'path';
 
 const ROOT = process.cwd();
@@ -161,6 +161,9 @@ if (isGH) {
     const flatName = relPath.replace(/\//g, '__');
     const dest = join(DISABLED_DIR, flatName);
 
+    // 清理可能残留的旧目标目录（上次构建未恢复时会残留）
+    if (existsSync(dest)) rmSync(dest, { recursive: true, force: true });
+
     renameSync(src, dest);
     manifest.push({ original: relPath, stored: flatName });
     console.log(`  移除: ${relPath}`);
@@ -177,6 +180,9 @@ if (isGH) {
     // 平铺存放：.disabled-routes/app__dashboard → app/dashboard
     const flatName = relPath.replace(/\//g, '__');
     const dest = join(DISABLED_DIR, flatName);
+
+    // 清理可能残留的旧目标目录（上次构建未恢复时会残留）
+    if (existsSync(dest)) rmSync(dest, { recursive: true, force: true });
 
     renameSync(src, dest);
     manifest.push({ original: relPath, stored: flatName });
