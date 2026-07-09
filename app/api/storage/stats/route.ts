@@ -139,13 +139,13 @@ async function scanDirectory(
     return
   }
 
+  // 收集文件和子目录路径
+  const dirPromises: Promise<void>[] = []
   for (const entry of entries) {
     if (entry.type === 'directory') {
-      // 递归进入子目录
       const subPath = dirPath ? `${dirPath}/${entry.filename}` : entry.filename
-      await scanDirectory(provider, subPath, depth + 1, files)
+      dirPromises.push(scanDirectory(provider, subPath, depth + 1, files))
     } else {
-      // 记录文件信息
       const relativePath = dirPath ? `${dirPath}/${entry.filename}` : entry.filename
       files.push({
         name: entry.filename,
@@ -155,6 +155,8 @@ async function scanDirectory(
       })
     }
   }
+  // 并行扫描所有子目录，提升递归扫描性能
+  await Promise.all(dirPromises)
 }
 
 /**

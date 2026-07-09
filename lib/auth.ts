@@ -224,12 +224,27 @@ async function authenticateApiKeyCore(): Promise<{ session: SessionPayload; curr
 
 /**
  * 检查 JWT 会话是否已被吊销（密码修改后 sv 不匹配）
+ *
+ * 30 秒内存缓存：同一用户在 30 秒内的重复校验直接返回缓存结果，
+ * 避免每次 API 请求都查库。密码修改后缓存自然过期。
  */
+const SV_CACHE_TTL_MS = 30 * 1000
+const svCache = new Map<string, { sv: number; revoked: boolean; ts: number }>()
+
 async function isSessionRevoked(uid: string, sv: number): Promise<boolean> {
+  const now = Date.now()
+  const cached = svCache.get(uid)
+  if (cached?.sv === sv && (now - cached.ts) < SV_CACHE_TTL_MS) {
+    return cached.revoked
+  }
+
   const { getDb } = await import('@/lib/db');
   const db = getDb();
   const currentSv = await db.get(`user:sv:${uid}`);
-  return currentSv !== null && currentSv !== undefined && Number(currentSv) !== sv;
+  const revoked = currentSv !== null && currentSv !== undefined && Number(currentSv) !== sv;
+
+  svCache.set(uid, { sv, revoked, ts: now })
+  return revoked
 }
 
 /**

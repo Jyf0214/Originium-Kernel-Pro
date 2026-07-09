@@ -39,11 +39,9 @@ export type {
 };
 
 /**
- * 检测数据库是否可用（其他非配置页面使用，配置页面不再依赖数据库）
+ * 检测数据库是否可用 — 统一入口在 lib/db.ts，此处 re-export 保持向后兼容
  */
-export function hasDatabase(): boolean {
-  return !!(process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? process.env.POSTGRES_PRISMA_URL ?? process.env.POSTGRES_URL_NON_POOLING);
-}
+export { hasDatabase } from '@/lib/db';
 
 /**
  * 从 config.yaml 加载配置。

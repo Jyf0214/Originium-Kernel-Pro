@@ -18,6 +18,16 @@ function getDatabaseUrl(): string | undefined {
   )
 }
 
+/**
+ * 检测数据库是否可用（至少配置了一个数据库 URL 环境变量）
+ *
+ * 统一入口：lib/config.ts 和其他模块均从此处引用，
+ * 避免 lib/db.ts、lib/env.ts、lib/config.ts 三处重复实现。
+ */
+export function hasDatabase(): boolean {
+  return !!getDatabaseUrl()
+}
+
 // 创建 Prisma 客户端单例
    
 const globalForPrisma = globalThis as unknown as {
