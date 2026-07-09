@@ -1,8 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { loadConfig, canAccess, hasDatabase, getUserAvatar } from '@/lib/config';
-import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
+import { getUserAvatar } from '@/lib/config';
+import { getAccessibleContent } from '@/lib/content-access';
+import type { ContentFile } from '@/types/content';
 import { getDraft, saveDraft } from '@/lib/draft-storage';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
@@ -34,7 +35,7 @@ async function getDraftsFromDb() {
 
 /** 将文件索引映射为已发布文章对象 */
 function mapPublishedFiles(
-  files: ReturnType<typeof getContentFiles>,
+  files: ContentFile[],
   authorAvatar?: string,
 ) {
   return files.map((f) => ({
@@ -79,12 +80,7 @@ export async function GET(req: NextRequest) {
     // 已发布文章：从 posts/ 文件系统索引读取（由 lib/content.ts 在构建时生成）
     const session = await getSession();
     const isAuthenticated = !!session;
-    const config = loadConfig();
-    const dbAvailable = hasDatabase();
-    const allFiles = getContentFiles('posts');
-    const indexes = getContentIndexes('posts');
-    const publishedFiles = filterPublicFiles(allFiles, indexes)
-      .filter((f) => canAccess('posts', f.slug, isAuthenticated, dbAvailable, config));
+    const { files: publishedFiles } = await getAccessibleContent('posts');
     const authorAvatar = getUserAvatar() ?? undefined;
     let published = mapPublishedFiles(publishedFiles, authorAvatar);
 
@@ -187,10 +183,8 @@ async function handlePublishedPost(
   return NextResponse.json({ success: true, id: articleMeta.id, slug: postSlug });
 }
 
-export const POST = apiHandler('POST', { label: '创建文章', requireAuth: true }, async (req) => {
-  const session = (await getSession())!;
-
-  const rl = rateLimit(`${session.uid}:articles-write`, 20, 60 * 1000);
+export const POST = apiHandler('POST', { label: '创建文章', requireAuth: true }, async (req, _ctx, session) => {
+  const rl = rateLimit(`${session!.uid}:articles-write`, 20, 60 * 1000);
   if (!rl.allowed) {
     return NextResponse.json({ error: '操作过于频繁' }, { status: 429 });
   }
@@ -205,8 +199,8 @@ export const POST = apiHandler('POST', { label: '创建文章', requireAuth: tru
     id,
     title,
     content: content ?? '',
-    authorId: session.uid,
-    authorName: session.email.split('@')[0] ?? 'unknown',
+    authorId: session!.uid,
+    authorName: session!.email.split('@')[0] ?? 'unknown',
     tags: tags ?? [],
     coverImage: coverImage ?? '',
     description: description ?? '',

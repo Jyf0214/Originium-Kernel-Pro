@@ -6,7 +6,7 @@
  * 重命名存储后端文件/文件夹 + 更新数据库元数据
  */
 import { NextResponse } from 'next/server'
-import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth'
+import { createApiLogger } from '@/lib/api-logger'
 import {
   buildWebDavTarget,
   catchAllHandler,
@@ -21,7 +21,10 @@ import {
   rootNotAllowedResponse,
   storageErrorResponse,
   storageNotConfigured,
+  requireApiKeyPerm,
 } from '../../_helpers'
+
+const logger = createApiLogger('/api/storage/rename')
 
 /** 检查目标路径是否已存在（数据库 + 存储层双重检查） */
 async function assertTargetAvailable(newRel: string, segments: string[], newName: string): Promise<NextResponse | null> {
@@ -85,12 +88,8 @@ export const POST = catchAllHandler<{ path: string[] }>(
   async (req, context) => {
     if (!isStorageConfigured()) return storageNotConfigured()
 
-    // API 密钥细粒度权限检查
-    const authResult = await getSessionWithKeyId()
-    if (authResult) {
-      const permErr = await requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'storage_write')
-      if (permErr) return permErr
-    }
+    const denied = await requireApiKeyPerm('storage_write')
+    if (denied) return denied
 
     const parts = await getPathParts(context)
     const rel = resolveStoragePath(parts)
@@ -122,7 +121,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
       const provider = await getStorageProvider()
       await provider.moveFile(oldTarget, newTarget)
     } catch (err) {
-      console.error(`[storage.rename] target="${oldTarget}" → "${newTarget}" 失败`, err)
+      logger.error('POST', `target="${oldTarget}" → "${newTarget}" 失败`, { error: (err as Error).message })
       return storageErrorResponse(err, '重命名')
     }
 
@@ -130,10 +129,10 @@ export const POST = catchAllHandler<{ path: string[] }>(
     try {
       await renameFolderMeta(rel, newRel)
     } catch (metaErr) {
-      console.error(`[storage.rename] 元数据更新失败 "${rel}" → "${newRel}"`, metaErr)
+      logger.error('POST', `元数据更新失败 "${rel}" → "${newRel}"`, { error: (metaErr as Error).message })
     }
 
-    console.warn(`[storage.rename] "${rel}" → "${newRel}" 重命名成功`)
+    logger.info('POST', `"${rel}" → "${newRel}" 重命名成功`)
 
     // 返回更新后的元数据
     const meta = await readFolderMeta(newRel)

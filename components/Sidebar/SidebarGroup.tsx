@@ -1,3 +1,4 @@
+import React from 'react';
 import { ChevronDown } from 'lucide-react';
 import SidebarItem from './SidebarItem';
 import { groupKeys } from './sidebar-config';
@@ -14,7 +15,7 @@ interface SidebarGroupProps {
   collapsed?: boolean;
 }
 
-export default function SidebarGroup({
+const SidebarGroup = React.memo(function SidebarGroup({
   group,
   items,
   isCollapsed,
@@ -68,4 +69,6 @@ export default function SidebarGroup({
       )}
     </div>
   );
-}
+});
+
+export default SidebarGroup;

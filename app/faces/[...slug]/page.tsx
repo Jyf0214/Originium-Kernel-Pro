@@ -8,7 +8,7 @@ import { BacklinkPanel } from '@/components/BacklinkPanel';
 import Link from 'next/link';
 import { ArrowLeft, Code, Eye } from 'lucide-react';
 import { GlobalLoading } from '@/components/Loading';
-import FooterWrapper from '@/components/Footer/FooterWrapper';
+import Footer from '@/components/Footer';
 import { notFound, useParams } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
@@ -183,7 +183,7 @@ export default function FaceDetailPage() {
           <FaceDetailContent file={file} showRaw={showRaw} rawContent={rawContent} fullPath={fullPath} />
         </article>
       </PageContainer>
-      <FooterWrapper />
+      <Footer />
     </div>
   );
 }

@@ -15,6 +15,8 @@
 import { NextResponse } from 'next/server'
 import type { FileStat } from 'webdav'
 import { getDb } from '@/lib/db'
+import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth'
+import type { PermissionAction } from '@/lib/api-key-permissions'
 import { isStorageConfigured, getStorageProvider } from '@/lib/storage/storage-provider'
 import { isValidPath, joinPath } from '@/lib/storage/path'
 import { apiHandler } from '@/lib/api-handler'
@@ -22,6 +24,8 @@ import type { StorageFolderMeta, WebDavEntry } from '@/lib/storage/types'
 
 /** 直接复用 lib/api-handler 导出的 ApiHandlerOptions(已支持泛型 + requireSudo) */
 export { apiHandler, type ApiHandlerOptions } from '@/lib/api-handler'
+
+const logger = createApiLogger('/api/storage')
 
 /** 存储根路径:暂未支持多挂载,所有路径相对根(空串) */
 const STORAGE_ROOT = ''
@@ -189,7 +193,7 @@ export async function deleteFolderMetaCascade(path: string): Promise<void> {
   } catch (err) {
     const code = (err as { code?: string })?.code
     if (code === 'P2025') return
-    console.error(`[storage] deleteFolderMetaCascade 失败: ${path}`, err)
+    logger.error('deleteFolderMetaCascade', `失败: ${path}`, { error: (err as Error).message })
   }
 }
 
@@ -238,7 +242,7 @@ export async function renameFolderMeta(oldPath: string, newPath: string): Promis
   } catch (err) {
     const code = (err as { code?: string })?.code
     if (code === 'P2025') return
-    console.error(`[storage] renameFolderMeta 失败: ${oldPath} → ${newPath}`, err)
+    logger.error('renameFolderMeta', `失败: ${oldPath} → ${newPath}`, { error: (err as Error).message })
   }
 }
 
@@ -296,6 +300,25 @@ export function storageErrorResponse(err: unknown, op: string): NextResponse {
     { error: `${op} 失败` },
     { status: 500 }
   )
+}
+
+/**
+ * API 密钥细粒度权限检查(供存储路由统一使用)
+ *
+ * 调用 getSessionWithKeyId() 获取当前会话;
+ * 若为 API 密钥认证,则检查该密钥是否具备 permission 权限;
+ * 若权限不足,返回403 NextResponse;否则返回 null(表示通过)。
+ *
+ * 用法:在 apiHandler 业务函数开头调用,
+ *   const denied = await requireApiKeyPerm('storage_read')
+ *   if (denied) return denied
+ */
+export async function requireApiKeyPerm(permission: PermissionAction): Promise<NextResponse | null> {
+  const authResult = await getSessionWithKeyId()
+  if (authResult) {
+    return await requireApiKeyPermission(authResult.session, authResult.currentKeyId, permission)
+  }
+  return null
 }
 
 /** 重新导出供各路由直接使用 */

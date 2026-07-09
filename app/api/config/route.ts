@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { loadConfig, clearConfigCache, type AppConfig, type SocialConfig } from '@/lib/config';
+import { loadConfig, clearConfigCache, type AppConfig } from '@/lib/config';
 import { getFileFromGithub } from '@/lib/github';
 import { createApiLogger } from '@/lib/api-logger';
 import { zAppConfig } from '@/lib/config-schema';
@@ -9,29 +9,31 @@ import yaml from 'js-yaml';
 
 const logger = createApiLogger('/api/config');
 
-function mergeSite(
-  base: AppConfig['site'],
-  overrideSite: Partial<AppConfig['site']> | undefined,
-): AppConfig['site'] {
-  return {
-    title: overrideSite?.title ?? base.title,
-    description: overrideSite?.description ?? base.description,
-    heroTitleLine1: overrideSite?.heroTitleLine1 ?? base.heroTitleLine1,
-    heroTitleLine2: overrideSite?.heroTitleLine2 ?? base.heroTitleLine2,
-    lang: overrideSite?.lang ?? base.lang,
-  };
+/**
+ * 通用配置段合并:override 存在时以 base(或 defaults)为基础展开 override。
+ * 适用于大多数结构为"扁平或浅层嵌套 + 可选默认值"的配置段。
+ * 复杂嵌套合并(如 appearance、postMeta)仍保留专用函数。
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mergeSection<T extends Record<string, any>>(
+  base: T | undefined,
+  override: Partial<T> | undefined,
+  defaults?: T,
+): T | undefined {
+  if (!override) return base;
+  return { ...(defaults ?? base), ...override } as T;
 }
 
 function mergeAppearance(
   base: AppConfig['appearance'],
-  overrideAppearance: Partial<AppConfig['appearance']> | undefined,
+  override: Partial<AppConfig['appearance']> | undefined,
 ): AppConfig['appearance'] {
-  if (!overrideAppearance) return base;
-  const background = overrideAppearance.background
-    ? { ...base.background, ...overrideAppearance.background }
+  if (!override) return base;
+  const background = override.background
+    ? { ...base.background, ...override.background }
     : base.background;
   const baseLoading = base.loading ?? { page: { type: 'spinner' as const }, navigation: { type: 'spinner' as const }, slogans: [] as string[] };
-  const ovLoading = overrideAppearance.loading;
+  const ovLoading = override.loading;
   const loading = ovLoading
     ? {
         page: { ...baseLoading.page, ...ovLoading.page } as typeof baseLoading.page,
@@ -40,198 +42,70 @@ function mergeAppearance(
       }
     : baseLoading;
   return {
-    fontSize: overrideAppearance.fontSize ?? base.fontSize,
+    fontSize: override.fontSize ?? base.fontSize,
     background,
-    customCSS: overrideAppearance.customCSS ?? base.customCSS,
-    customHead: overrideAppearance.customHead ?? base.customHead,
+    customCSS: override.customCSS ?? base.customCSS,
+    customHead: override.customHead ?? base.customHead,
     loading,
-    effects: overrideAppearance.effects ?? base.effects,
+    effects: override.effects ?? base.effects,
   };
 }
 
 function mergeAccess(
   base: AppConfig['access'],
-  overrideAccess: Partial<AppConfig['access']> | undefined,
+  override: Partial<AppConfig['access']> | undefined,
 ): AppConfig['access'] {
-  if (!overrideAccess) return base;
+  if (!override) return base;
   return {
-    posts: { ...base.posts, ...overrideAccess.posts },
-    faces: { ...base.faces, ...overrideAccess.faces },
-    diary: { ...base.diary, ...overrideAccess.diary },
+    posts: { ...base.posts, ...override.posts },
+    faces: { ...base.faces, ...override.faces },
+    diary: { ...base.diary, ...override.diary },
   };
-}
-
-function mergeAuth(
-  base: AppConfig['auth'],
-  overrideAuth: Partial<AppConfig['auth']> | undefined,
-): AppConfig['auth'] {
-  if (!overrideAuth) return base;
-  return { ...base, ...overrideAuth };
-}
-
-function mergeNav(
-  base: AppConfig['nav'],
-  overrideNav: Partial<AppConfig['nav']> | undefined,
-): AppConfig['nav'] | undefined {
-  if (!overrideNav) return base;
-  return { ...(base ?? { enable: false, travelling: false, clock: false, menu: [] }), ...overrideNav };
-}
-
-function mergeMourn(
-  base: AppConfig['mourn'],
-  overrideMourn: Partial<AppConfig['mourn']> | undefined,
-): AppConfig['mourn'] | undefined {
-  if (!overrideMourn) return base;
-  return { ...(base ?? { enable: false, days: [] }), ...overrideMourn };
-}
-
-function mergeHighlight(
-  base: AppConfig['highlight'],
-  overrideHighlight: Partial<AppConfig['highlight']> | undefined,
-): AppConfig['highlight'] | undefined {
-  if (!overrideHighlight) return base;
-  return { ...(base ?? { theme: 'light', copy: true, lang: true, shrink: false, heightLimit: 330, wordWrap: true }), ...overrideHighlight };
-}
-
-function mergeCopy(
-  base: AppConfig['copy'],
-  overrideCopy: Partial<AppConfig['copy']> | undefined,
-): AppConfig['copy'] | undefined {
-  if (!overrideCopy) return base;
-  return { ...(base ?? { enable: true, copyright: { enable: false, limitCount: 50 } }), ...overrideCopy };
-}
-
-function mergeSocial(
-  base: AppConfig['social'],
-  overrideSocial: Partial<AppConfig['social']> | undefined,
-): AppConfig['social'] | undefined {
-  if (!overrideSocial) return base;
-  return { ...(base ?? {}), ...overrideSocial } as SocialConfig;
-}
-
-function mergeCover(
-  base: AppConfig['cover'],
-  overrideCover: Partial<AppConfig['cover']> | undefined,
-): AppConfig['cover'] | undefined {
-  if (!overrideCover) return base;
-  return { ...(base ?? { indexEnable: true, asideEnable: true, archivesEnable: true, position: 'left', defaultCover: [] }), ...overrideCover };
-}
-
-function mergeErrorImg(
-  base: AppConfig['errorImg'],
-  overrideErrorImg: Partial<AppConfig['errorImg']> | undefined,
-): AppConfig['errorImg'] | undefined {
-  if (!overrideErrorImg) return base;
-  return { ...(base ?? { flink: '/img/friend_404.gif', postPage: '/img/404.jpg' }), ...overrideErrorImg };
 }
 
 function mergePostMeta(
   base: AppConfig['postMeta'],
-  overridePostMeta: Partial<AppConfig['postMeta']> | undefined,
+  override: Partial<AppConfig['postMeta']> | undefined,
 ): AppConfig['postMeta'] | undefined {
-  if (!overridePostMeta) return base;
+  if (!override) return base;
   const def: AppConfig['postMeta'] = { page: { dateType: 'created', dateFormat: 'simple', categories: true, tags: true, label: false }, post: { dateType: 'both', dateFormat: 'date', categories: true, tags: true, label: true, unread: false } };
   const baseFull = { ...def, ...base };
   return {
     ...baseFull,
-    ...overridePostMeta,
-    page: { ...baseFull.page, ...overridePostMeta.page },
-    post: { ...baseFull.post, ...overridePostMeta.post },
+    ...override,
+    page: { ...baseFull.page, ...override.page },
+    post: { ...baseFull.post, ...override.post },
   };
 }
 
-function mergeWordCount(
-  base: AppConfig['wordcount'],
-  overrideWordCount: Partial<AppConfig['wordcount']> | undefined,
-): AppConfig['wordcount'] | undefined {
-  if (!overrideWordCount) return base;
-  return { ...(base ?? { enable: false, postWordcount: false, min2read: true, totalWordcount: false }), ...overrideWordCount };
-}
-
-function mergeToc(
-  base: AppConfig['toc'],
-  overrideToc: Partial<AppConfig['toc']> | undefined,
-): AppConfig['toc'] | undefined {
-  if (!overrideToc) return base;
-  return { ...(base ?? { post: true, page: false, number: true, expand: false, styleSimple: false }), ...overrideToc };
-}
-
-function mergeCopyright(
-  base: AppConfig['copyright'],
-  overrideCopyright: Partial<AppConfig['copyright']> | undefined,
-): AppConfig['copyright'] | undefined {
-  if (!overrideCopyright) return base;
-  return { ...(base ?? { enable: true, decode: false, authorHref: '', license: 'CC BY-NC-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/', authorLink: '/' }), ...overrideCopyright };
-}
-
-function mergeReward(
-  base: AppConfig['reward'],
-  overrideReward: Partial<AppConfig['reward']> | undefined,
-): AppConfig['reward'] | undefined {
-  if (!overrideReward) return base;
-  return { ...(base ?? { enable: true, qrCodes: [] }), ...overrideReward };
-}
-
-function mergePostEdit(
-  base: AppConfig['postEdit'],
-  overridePostEdit: Partial<AppConfig['postEdit']> | undefined,
-): AppConfig['postEdit'] | undefined {
-  if (!overridePostEdit) return base;
-  return { ...(base ?? { enable: false, github: false }), ...overridePostEdit };
-}
-
-function mergeShare(
-  base: AppConfig['share'],
-  overrideShare: Partial<AppConfig['share']> | undefined,
-): AppConfig['share'] | undefined {
-  if (!overrideShare) return base;
-  const def = { sharejs: { enable: true, sites: 'facebook,twitter,wechat,weibo,qq' }, addtoany: { enable: false, item: 'facebook,twitter,wechat,sina_weibo,email,copy_link' } };
-  return { ...def, ...base, ...overrideShare };
-}
-
-function mergeMainTone(
-  base: AppConfig['mainTone'],
-  overrideMainTone: Partial<AppConfig['mainTone']> | undefined,
-): AppConfig['mainTone'] | undefined {
-  if (!overrideMainTone) return base;
-  return { ...(base ?? { enable: false, mode: 'api' }), ...overrideMainTone };
-}
-
-function mergeFooter(
-  base: AppConfig['footer'],
-  overrideFooter: Partial<AppConfig['footer']> | undefined,
-): AppConfig['footer'] | undefined {
-  if (!overrideFooter) return base;
-  const def = { owner: { enable: true, since: 2020 }, customText: '', runtime: { enable: false, launchTime: '04/01/2021 00:00:00' } };
-  return { ...def, ...base, ...overrideFooter };
-}
-
+/** 合并 App 配置:每个段调用 mergeSection 或专用合并函数 */
 function mergeAppConfig(
   base: AppConfig,
   override: Partial<AppConfig>,
 ): AppConfig {
   return {
-    site: mergeSite(base.site, override.site),
+    // site: 逐字段覆盖(base 无默认值,override 直接展开即可)
+    site: { ...base.site, ...override.site },
     appearance: mergeAppearance(base.appearance, override.appearance),
     access: mergeAccess(base.access, override.access),
-    auth: mergeAuth(base.auth, override.auth),
+    auth: { ...base.auth, ...override.auth },
     avatar: override.avatar ?? base.avatar,
-    nav: mergeNav(base.nav, override.nav),
-    mourn: mergeMourn(base.mourn, override.mourn),
-    highlight: mergeHighlight(base.highlight, override.highlight),
-    copy: mergeCopy(base.copy, override.copy),
-    social: mergeSocial(base.social, override.social),
-    cover: mergeCover(base.cover, override.cover),
-    errorImg: mergeErrorImg(base.errorImg, override.errorImg),
+    nav: mergeSection(base.nav, override.nav, { enable: false, travelling: false, clock: false, menu: [] }),
+    mourn: mergeSection(base.mourn, override.mourn, { enable: false, days: [] }),
+    highlight: mergeSection(base.highlight, override.highlight, { theme: 'light', copy: true, lang: true, shrink: false, heightLimit: 330, wordWrap: true }),
+    copy: mergeSection(base.copy, override.copy, { enable: true, copyright: { enable: false, limitCount: 50 } }),
+    social: mergeSection(base.social, override.social, {}),
+    cover: mergeSection(base.cover, override.cover, { indexEnable: true, asideEnable: true, archivesEnable: true, position: 'left', defaultCover: [] }),
+    errorImg: mergeSection(base.errorImg, override.errorImg, { flink: '/img/friend_404.gif', postPage: '/img/404.jpg' }),
     postMeta: mergePostMeta(base.postMeta, override.postMeta),
-    wordcount: mergeWordCount(base.wordcount, override.wordcount),
-    toc: mergeToc(base.toc, override.toc),
-    copyright: mergeCopyright(base.copyright, override.copyright),
-    reward: mergeReward(base.reward, override.reward),
-    postEdit: mergePostEdit(base.postEdit, override.postEdit),
-    share: mergeShare(base.share, override.share),
-    mainTone: mergeMainTone(base.mainTone, override.mainTone),
-    footer: mergeFooter(base.footer, override.footer),
+    wordcount: mergeSection(base.wordcount, override.wordcount, { enable: false, postWordcount: false, min2read: true, totalWordcount: false }),
+    toc: mergeSection(base.toc, override.toc, { post: true, page: false, number: true, expand: false, styleSimple: false }),
+    copyright: mergeSection(base.copyright, override.copyright, { enable: true, decode: false, authorHref: '', license: 'CC BY-NC-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/', authorLink: '/' }),
+    reward: mergeSection(base.reward, override.reward, { enable: true, qrCodes: [] }),
+    postEdit: mergeSection(base.postEdit, override.postEdit, { enable: false, github: false }),
+    share: mergeSection(base.share, override.share, { sharejs: { enable: true, sites: 'facebook,twitter,wechat,weibo,qq' }, addtoany: { enable: false, item: 'facebook,twitter,wechat,sina_weibo,email,copy_link' } }),
+    mainTone: mergeSection(base.mainTone, override.mainTone, { enable: false, mode: 'api' }),
+    footer: mergeSection(base.footer, override.footer, { owner: { enable: true, since: 2020 }, customText: '', runtime: { enable: false, launchTime: '04/01/2021 00:00:00' } }),
     clerk: override.clerk ?? base.clerk,
   };
 }

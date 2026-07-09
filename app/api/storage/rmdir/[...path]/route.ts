@@ -5,7 +5,7 @@
  * - WebDAV 物理删除 + Prisma 元数据清理
  */
 import { NextResponse } from 'next/server'
-import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth'
+import { createApiLogger } from '@/lib/api-logger'
 import {
   buildWebDavTarget,
   catchAllHandler,
@@ -19,7 +19,10 @@ import {
   rootNotAllowedResponse,
   storageErrorResponse,
   storageNotConfigured,
+  requireApiKeyPerm,
 } from '../../_helpers'
+
+const logger = createApiLogger('/api/storage/rmdir')
 
 export const DELETE = catchAllHandler<{ path: string[] }>(
   'DELETE',
@@ -27,12 +30,8 @@ export const DELETE = catchAllHandler<{ path: string[] }>(
   async (req, context) => {
     if (!isStorageConfigured()) return storageNotConfigured()
 
-    // API 密钥权限检查
-    const authResult = await getSessionWithKeyId()
-    if (authResult) {
-      const permErr = await requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'storage_delete')
-      if (permErr) return permErr
-    }
+    const denied = await requireApiKeyPerm('storage_delete')
+    if (denied) return denied
 
     const parts = await getPathParts(context)
     const rel = resolveStoragePath(parts)
@@ -46,12 +45,12 @@ export const DELETE = catchAllHandler<{ path: string[] }>(
       // 移除 .keep 占位文件。通过 StorageProvider 接口统一处理。
       await provider.deleteDirectory(target)
     } catch (err) {
-      console.error(`[storage.rmdir] target="${target}" 存储后端删除失败`, err)
+      logger.error('DELETE', `target="${target}" 存储后端删除失败`, { error: (err as Error).message })
       return storageErrorResponse(err, '删除目录')
     }
 
     await deleteFolderMetaCascade(rel)
-    console.warn(`[storage.rmdir] target="${target}" 已删除(元数据已清理)`)
+    logger.info('DELETE', `target="${target}" 已删除(元数据已清理)`)
     return new NextResponse(null, { status: 204 })
   }
 )

@@ -13,6 +13,10 @@ import { Lightbox } from '@/components/ui/Lightbox';
 import { LazyImage } from '@/components/ui/LazyImage';
 import type { MarkdownRendererProps, WikiLinkMap } from './types';
 
+/** 模块级插件数组，避免每次渲染创建新数组 */
+const remarkPlugins = [remarkGfm, remarkMath, remarkFootnotes];
+const rehypePlugins = [rehypeKatex];
+
 /** [[标题]] 预处理正则 */
 const WIKI_LINK_RE = /\[\[([^\[\]]+?)\]\]/g;
 
@@ -108,8 +112,8 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap, watermark }:
       prose-hr:border-zinc-100 dark:prose-hr:border-zinc-700 prose-hr:my-12
     ">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath, remarkFootnotes]}
-        rehypePlugins={[rehypeKatex]}
+        remarkPlugins={remarkPlugins}
+        rehypePlugins={rehypePlugins}
         components={{ ...components, img: imgComponent as never }}
       >
         {processedContent}

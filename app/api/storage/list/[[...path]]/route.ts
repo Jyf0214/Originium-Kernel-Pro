@@ -4,7 +4,7 @@
  * path 为空数组时表示根目录
  */
 import { NextResponse } from 'next/server'
-import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth'
+import { createApiLogger } from '@/lib/api-logger'
 import {
   catchAllHandler,
   getPathParts,
@@ -14,8 +14,11 @@ import {
   toWebDavEntry,
   storageNotConfigured,
   storageErrorResponse,
+  requireApiKeyPerm,
 } from '../../_helpers'
 import { isValidPath } from '@/lib/storage/path'
+
+const logger = createApiLogger('/api/storage/list')
 
 export const GET = catchAllHandler<{ path?: string[] }>(
   'GET',
@@ -23,12 +26,8 @@ export const GET = catchAllHandler<{ path?: string[] }>(
   async (_req, context) => {
     if (!isStorageConfigured()) return storageNotConfigured()
 
-    // API 密钥权限检查
-    const authResult = await getSessionWithKeyId()
-    if (authResult) {
-      const permErr = await requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'storage_read')
-      if (permErr) return permErr
-    }
+    const denied = await requireApiKeyPerm('storage_read')
+    if (denied) return denied
 
     const parts = await getPathParts(context)
     const target = buildWebDavTarget(parts)
@@ -40,13 +39,13 @@ export const GET = catchAllHandler<{ path?: string[] }>(
       const provider = await getStorageProvider()
       const stats = await provider.listDirectory(target)
       const entries = stats.map(toWebDavEntry)
-      console.warn(`[storage.list] target="${target}" entries=${entries.length}`)
+      logger.info('GET', `target="${target}" entries=${entries.length}`)
       return NextResponse.json(
         { path: target, entries },
         { headers: { 'Cache-Control': 'private, max-age=10' } },
       )
     } catch (err) {
-      console.error(`[storage.list] target="${target}" 失败`, err)
+      logger.error('GET', `target="${target}" 失败`, { error: (err as Error).message })
       return storageErrorResponse(err, '列出目录')
     }
   }

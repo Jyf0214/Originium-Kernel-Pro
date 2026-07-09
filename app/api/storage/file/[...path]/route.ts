@@ -4,7 +4,7 @@
  * 路径必须指向一个具体文件,不能是根
  */
 import { NextResponse } from 'next/server'
-import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth'
+import { createApiLogger } from '@/lib/api-logger'
 import {
   buildWebDavTarget,
   catchAllHandler,
@@ -17,7 +17,10 @@ import {
   rootNotAllowedResponse,
   storageErrorResponse,
   storageNotConfigured,
+  requireApiKeyPerm,
 } from '../../_helpers'
+
+const logger = createApiLogger('/api/storage/file')
 
 export const DELETE = catchAllHandler<{ path: string[] }>(
   'DELETE',
@@ -25,12 +28,8 @@ export const DELETE = catchAllHandler<{ path: string[] }>(
   async (_req, context) => {
     if (!isStorageConfigured()) return storageNotConfigured()
 
-    // API 密钥权限检查
-    const authResult = await getSessionWithKeyId()
-    if (authResult) {
-      const permErr = await requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'storage_delete')
-      if (permErr) return permErr
-    }
+    const denied = await requireApiKeyPerm('storage_delete')
+    if (denied) return denied
 
     const parts = await getPathParts(context)
     const rel = resolveStoragePath(parts)
@@ -42,11 +41,11 @@ export const DELETE = catchAllHandler<{ path: string[] }>(
       const provider = await getStorageProvider()
       await provider.deleteFile(target)
     } catch (err) {
-      console.error(`[storage.file.delete] target="${target}" 失败`, err)
+      logger.error('DELETE', `target="${target}" 失败`, { error: (err as Error).message })
       return storageErrorResponse(err, '删除文件')
     }
 
-    console.warn(`[storage.file.delete] target="${target}" 已删除`)
+    logger.info('DELETE', `target="${target}" 已删除`)
     return new NextResponse(null, { status: 204 })
   }
 )

@@ -1,3 +1,4 @@
+import React from 'react';
 import Link from 'next/link';
 import type { MenuItem } from './types';
 
@@ -10,7 +11,7 @@ interface SidebarItemProps {
   collapsed?: boolean;
 }
 
-export default function SidebarItem({
+const SidebarItem = React.memo(function SidebarItem({
   item,
   isActive,
   isAdminGroup,
@@ -57,4 +58,6 @@ export default function SidebarItem({
       )}
     </Link>
   );
-}
+});
+
+export default SidebarItem;

@@ -1,5 +1,4 @@
-import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
-import { loadConfig, canAccess, hasDatabase } from '@/lib/config';
+import { getAccessibleContent } from '@/lib/content-access';
 import { getSession } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
 
@@ -14,17 +13,7 @@ export async function GET() {
     logger.info('GET', '读取帖子列表');
     const session = await getSession();
     const isAuthenticated = !!session;
-    const config = loadConfig();
-    const dbAvailable = hasDatabase();
-    const allFiles = getContentFiles('posts');
-    const indexes = getContentIndexes('posts');
-
-    const accessibleFiles = filterPublicFiles(allFiles, indexes)
-      .filter((f) => canAccess('posts', f.slug, isAuthenticated, dbAvailable, config));
-
-    const accessibleIndexes = indexes.filter((idx) =>
-      canAccess('posts', idx.slug, isAuthenticated, dbAvailable, config)
-    );
+    const { files: accessibleFiles, indexes: accessibleIndexes } = await getAccessibleContent('posts');
 
     logger.info('GET', '帖子列表读取成功', { count: accessibleFiles.length });
     return Response.json({
