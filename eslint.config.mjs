@@ -54,7 +54,7 @@ export default defineConfig([
       "no-var": "error",
       "prefer-rest-params": "error",
       "prefer-spread": "error",
-      "no-duplicate-imports": "error",
+      "no-duplicate-imports": ["error", { allowSeparateTypeImports: true }],
       "no-self-compare": "error",
 
       // === 复杂度控制 ===
