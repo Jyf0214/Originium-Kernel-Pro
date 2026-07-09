@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { getSession, requireSudo } from '@/lib/auth';
+import { getSession, requireSudo, type SessionPayload } from '@/lib/auth';
 
 /* ---------- API 响应性能指标 ---------- */
 
@@ -69,31 +69,38 @@ function querySummary(req: NextRequest): string {
   return ` params=${keys.join(',')}`;
 }
 
+/** checkAuth 返回类型：成功时携带 session，失败时携带 error */
+type AuthCheckResult =
+  | { error: NextResponse; session?: undefined }
+  | { session: SessionPayload | null; error?: undefined };
+
 async function checkAuth(
   options: ApiHandlerOptions,
   method: string,
   pathname: string,
   req: NextRequest,
-): Promise<NextResponse | null> {
+): Promise<AuthCheckResult> {
   if (options.requireAuth || options.requireAdmin) {
     const session = await getSession();
     if (!session) {
       console.warn(`[API] ${method} ${pathname}${querySummary(req)} → 401 未登录`);
-      return NextResponse.json({ error: '未登录' }, { status: 401 });
+      return { error: NextResponse.json({ error: '未登录' }, { status: 401 }) };
     }
     if (options.requireAdmin && session.role !== 'admin' && session.role !== 'sudo') {
       console.warn(`[API] ${method} ${pathname}${querySummary(req)} → 403 用户 ${session.uid} 无管理员权限`);
-      return NextResponse.json({ error: '无权限访问' }, { status: 403 });
+      return { error: NextResponse.json({ error: '无权限访问' }, { status: 403 }) };
     }
+    return { session };
   }
   if (options.requireSudo) {
     const result = await requireSudo();
     if (result instanceof NextResponse) {
       console.warn(`[API] ${method} ${pathname}${querySummary(req)} → ${result.status} sudo 验证失败`);
-      return result;
+      return { error: result };
     }
+    return { session: result };
   }
-  return null;
+  return { session: null };
 }
 
 async function checkDb(
@@ -125,7 +132,7 @@ export function apiHandler<
 >(
   method: string,
   options: ApiHandlerOptions,
-  handler: (req: NextRequest, ctx?: ApiCtx<P>) => NextResponse | Promise<NextResponse>,
+  handler: (req: NextRequest, ctx?: ApiCtx<P>, session?: SessionPayload) => NextResponse | Promise<NextResponse>,
 ) {
   return async (req: NextRequest, ctx?: ApiCtx<P>) => {
     const pathname = req.nextUrl.pathname;
@@ -139,13 +146,14 @@ export function apiHandler<
     let statusCode = 500;
 
     try {
-      const authErr = await checkAuth(options, method, pathname, req);
-      if (authErr) { statusCode = authErr.status; return authErr; }
+      const authResult = await checkAuth(options, method, pathname, req);
+      if (authResult.error) { statusCode = authResult.error.status; return authResult.error; }
+      const session = authResult.session ?? undefined;
 
       const dbErr = await checkDb(options, method, pathname);
       if (dbErr) { statusCode = dbErr.status; return dbErr; }
 
-      const response = await handler(req, ctx);
+      const response = await handler(req, ctx, session);
       statusCode = response.status;
       return response;
     } catch (error) {

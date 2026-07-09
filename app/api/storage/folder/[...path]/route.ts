@@ -5,7 +5,7 @@
  */
 import { NextResponse } from 'next/server'
 import { ApiErr } from '@/lib/api-handler'
-import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth'
+import { createApiLogger } from '@/lib/api-logger'
 import { getDb } from '@/lib/db'
 import { hashPassword } from '@/lib/hash'
 import {
@@ -19,7 +19,10 @@ import {
   resolveStoragePath,
   storageNotConfigured,
   writeFolderMeta,
+  requireApiKeyPerm,
 } from '../../_helpers'
+
+const logger = createApiLogger('/api/storage/folder')
 
 /** 读取单条文件夹元数据 */
 export const GET = catchAllHandler<{ path: string[] }>(
@@ -29,12 +32,8 @@ export const GET = catchAllHandler<{ path: string[] }>(
     if (!isStorageConfigured()) return storageNotConfigured()
     if (!getDb().prisma) return databaseNotConfigured()
 
-    // API 密钥权限检查
-    const authResult = await getSessionWithKeyId()
-    if (authResult) {
-      const permErr = await requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'storage_read')
-      if (permErr) return permErr
-    }
+    const denied = await requireApiKeyPerm('storage_read')
+    if (denied) return denied
 
     const parts = await getPathParts(context)
     const path = resolveStoragePath(parts)
@@ -112,12 +111,8 @@ export const PATCH = catchAllHandler<{ path: string[] }>(
     const prisma = getDb().prisma
     if (!prisma) return databaseNotConfigured()
 
-    // API 密钥权限检查
-    const authResult = await getSessionWithKeyId()
-    if (authResult) {
-      const permErr = await requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'settings_write')
-      if (permErr) return permErr
-    }
+    const denied = await requireApiKeyPerm('settings_write')
+    if (denied) return denied
 
     const parts = await getPathParts(context)
     const path = resolveStoragePath(parts)
@@ -150,7 +145,7 @@ export const PATCH = catchAllHandler<{ path: string[] }>(
       },
     })
 
-    console.warn(`[storage.folder.patch] path="${path}" public=${nextPublic} password=${passwordChanged ? '已更新' : '未变'}`)
+    logger.info('PATCH', `path="${path}" public=${nextPublic} password=${passwordChanged ? '已更新' : '未变'}`)
     return NextResponse.json({
       path: updated.path,
       public: updated.public,

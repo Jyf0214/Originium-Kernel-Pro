@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { compactCardVariants, cardVariants, staggerDelay } from '@/components/ui/motion';
 import { Calendar } from 'lucide-react';
 import Link from 'next/link';
+import React from 'react';
 import { Tag } from '@/components/ui/Tag';
 import type { PostItem, CoverConfig } from './types';
 import { PostCardCover } from './PostCardCover';
@@ -11,7 +12,7 @@ import { PostCardBody } from './PostCardBody';
 
 export type { PostItem, CoverConfig } from './types';
 
-export function PostCard({
+export const PostCard = React.memo(function PostCard({
   post,
   index,
   coverConfig,
@@ -85,4 +86,4 @@ export function PostCard({
       <PostCardBody post={post} locale={locale} t={t} position={coverConfig?.position} />
     </motion.article>
   );
-}
+});

@@ -4,8 +4,10 @@
  * 已有元数据时保留原 public/description/createdAt,只刷新 updatedAt
  */
 import { NextResponse } from 'next/server'
-import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth'
+import { createApiLogger } from '@/lib/api-logger'
 import { getDb } from '@/lib/db'
+
+const logger = createApiLogger('storage.mkdir')
 import {
   buildWebDavTarget,
   catchAllHandler,
@@ -20,6 +22,7 @@ import {
   rootNotAllowedResponse,
   storageErrorResponse,
   storageNotConfigured,
+  requireApiKeyPerm,
 } from '../../_helpers'
 
 export const POST = catchAllHandler<{ path: string[] }>(
@@ -28,12 +31,8 @@ export const POST = catchAllHandler<{ path: string[] }>(
   async (_req, context) => {
     if (!isStorageConfigured()) return storageNotConfigured()
 
-    // API 密钥细粒度权限检查
-    const authResult = await getSessionWithKeyId()
-    if (authResult) {
-      const permErr = await requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'storage_write')
-      if (permErr) return permErr
-    }
+    const denied = await requireApiKeyPerm('storage_write')
+    if (denied) return denied
 
     const prisma = getDb().prisma
     if (!prisma) return databaseNotConfigured()
@@ -49,7 +48,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
       const provider = await getStorageProvider()
       await provider.createDirectory(target, { recursive: true })
     } catch (err) {
-      console.error(`[storage.mkdir] target="${target}" 存储后端创建失败`, err)
+      logger.error('POST', `target="${target}" 存储后端创建失败`, { error: (err as Error).message })
       return storageErrorResponse(err, '创建目录')
     }
 
@@ -79,7 +78,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
           updatedAt: upserted.updatedAt,
         }
 
-    console.warn(`[storage.mkdir] target="${target}" 元数据已写入`)
+    logger.info('POST', `target="${target}" 元数据已写入`)
     return NextResponse.json(meta)
   }
 )

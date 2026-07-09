@@ -6,7 +6,7 @@
  * 移动存储后端文件 + 更新数据库元数据
  */
 import { NextResponse } from 'next/server'
-import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth'
+import { createApiLogger } from '@/lib/api-logger'
 import {
   buildWebDavTarget,
   catchAllHandler,
@@ -20,7 +20,10 @@ import {
   rootNotAllowedResponse,
   storageErrorResponse,
   storageNotConfigured,
+  requireApiKeyPerm,
 } from '../../_helpers'
+
+const logger = createApiLogger('/api/storage/move')
 
 /** 解析并校验移动目标路径 */
 function parseMoveDestination(
@@ -59,12 +62,8 @@ export const POST = catchAllHandler<{ path: string[] }>(
   async (req, context) => {
     if (!isStorageConfigured()) return storageNotConfigured()
 
-    // API 密钥细粒度权限检查
-    const authResult = await getSessionWithKeyId()
-    if (authResult) {
-      const permErr = await requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'storage_write')
-      if (permErr) return permErr
-    }
+    const denied = await requireApiKeyPerm('storage_write')
+    if (denied) return denied
 
     const parts = await getPathParts(context)
     const srcRel = resolveStoragePath(parts)
@@ -100,7 +99,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
       const provider = await getStorageProvider()
       await provider.moveFile(oldTarget, newTarget)
     } catch (err) {
-      console.error(`[storage.move] target="${oldTarget}" → "${newTarget}" 失败`, err)
+      logger.error('POST', `target="${oldTarget}" → "${newTarget}" 失败`, { error: (err as Error).message })
       return storageErrorResponse(err, '移动')
     }
 
@@ -108,11 +107,11 @@ export const POST = catchAllHandler<{ path: string[] }>(
     try {
       await renameFolderMeta(srcRel, destRel)
     } catch (metaErr) {
-      console.error(`[storage.move] 元数据更新失败 "${srcRel}" → "${destRel}"`, metaErr)
+      logger.error('POST', `元数据更新失败 "${srcRel}" → "${destRel}"`, { error: (metaErr as Error).message })
       // 存储已移动但元数据更新失败：返回警告而非崩溃
     }
 
-    console.warn(`[storage.move] "${srcRel}" → "${destRel}" 移动成功`)
+    logger.info('POST', `"${srcRel}" → "${destRel}" 移动成功`)
 
     return NextResponse.json({ path: destRel })
   }

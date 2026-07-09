@@ -8,7 +8,7 @@
  * 完整数据收集后通过 StorageProvider.putFileContents() 写入。
  */
 import { NextResponse } from 'next/server'
-import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth'
+import { createApiLogger } from '@/lib/api-logger'
 import {
   MAX_UPLOAD_SIZE,
   buildWebDavTarget,
@@ -22,7 +22,10 @@ import {
   resolveStoragePath,
   storageErrorResponse,
   storageNotConfigured,
+  requireApiKeyPerm,
 } from '../../_helpers'
+
+const logger = createApiLogger('/api/storage/upload')
 
 /** 被禁止的文件扩展名（可执行、可注入脚本、或其他高风险类型） */
 const BLOCKED_EXTENSIONS = new Set([
@@ -47,7 +50,7 @@ function getExtension(filePath: string): string {
 function validateUploadExtension(relPath: string): NextResponse | null {
   const ext = getExtension(relPath)
   if (ext !== '' && BLOCKED_EXTENSIONS.has(ext)) {
-    console.warn(`[storage.upload] 拒绝上传: 扩展名 "${ext}" 在黑名单中 path="${relPath}"`)
+    logger.warn('validateUploadExtension', `拒绝上传: 扩展名 "${ext}" 在黑名单中 path="${relPath}"`)
     return NextResponse.json(
       { error: '不支持的文件类型', blocked: ext },
       { status: 400 },
@@ -97,10 +100,10 @@ async function readBodyWithSizeLimit(
     return { buffer: Buffer.concat(chunks), bytesReceived }
   } catch (err) {
     if (sizeExceeded) {
-      console.warn(`[storage.upload] target="${target}" 超限 size=${bytesReceived} bytes`)
+      logger.warn('readBodyWithSizeLimit', `target="${target}" 超限 size=${bytesReceived} bytes`)
       return payloadTooLargeResponse(bytesReceived)
     }
-    console.error(`[storage.upload] target="${target}" 读取失败`, err)
+    logger.error('readBodyWithSizeLimit', `target="${target}" 读取失败`, { error: (err as Error).message })
     return storageErrorResponse(err, '上传文件')
   }
 }
@@ -111,12 +114,8 @@ export const POST = catchAllHandler<{ path: string[] }>(
   async (req, context) => {
     if (!isStorageConfigured()) return storageNotConfigured()
 
-    // API 密钥细粒度权限检查
-    const authResult = await getSessionWithKeyId()
-    if (authResult) {
-      const permErr = await requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'storage_write')
-      if (permErr) return permErr
-    }
+    const denied = await requireApiKeyPerm('storage_write')
+    if (denied) return denied
 
     const parts = await getPathParts(context)
     const rel = resolveStoragePath(parts)
@@ -142,11 +141,11 @@ export const POST = catchAllHandler<{ path: string[] }>(
       const provider = await getStorageProvider()
       await provider.putFileContents(target, buffer, { headers: { overwrite: 'true' } })
     } catch (err) {
-      console.error(`[storage.upload] target="${target}" 写入失败`, err)
+      logger.error('POST', `target="${target}" 写入失败`, { error: (err as Error).message })
       return storageErrorResponse(err, '上传文件')
     }
 
-    console.warn(`[storage.upload] target="${target}" size=${bytesReceived} bytes`)
+    logger.info('POST', `target="${target}" size=${bytesReceived} bytes`)
     return NextResponse.json({
       path: target,
       size: bytesReceived,

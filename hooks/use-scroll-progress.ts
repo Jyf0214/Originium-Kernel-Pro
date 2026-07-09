@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 const STORAGE_KEY_PREFIX = 'reading-progress-';
 
 /**
  * 滚动进度 Hook — 监听页面滚动，返回 0-1 的阅读进度
  * 基于 scrollY / (scrollHeight - clientHeight) 计算
+ *
+ * 使用 requestAnimationFrame 节流，避免每帧触发 setState 导致大量 re-render
  *
  * 支持持久化：传入 pageKey 时自动保存进度到 localStorage
  * 不自动恢复——由外部组件（如 ContinueReadingPrompt）读取 savedPosition 后手动恢复
@@ -19,6 +21,7 @@ export function useScrollProgress(pageKey?: string): {
   clearSavedPosition: () => void;
 } {
   const [progress, setProgress] = useState(0);
+  const rafRef = useRef<number>(0);
   const [savedPosition, setSavedPosition] = useState<number | null>(() => {
     if (pageKey && typeof window !== 'undefined') {
       try {
@@ -35,14 +38,20 @@ export function useScrollProgress(pageKey?: string): {
   });
 
   const handleScroll = useCallback(() => {
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    if (scrollHeight <= 0) {
-      setProgress(0);
-      return;
+    // 取消上一帧尚未执行的更新，确保每帧最多触发一次 setState
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
     }
-    const next = Math.min(Math.max(scrollTop / scrollHeight, 0), 1);
-    setProgress(next);
+    rafRef.current = requestAnimationFrame(() => {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      if (scrollHeight <= 0) {
+        setProgress(0);
+        return;
+      }
+      const next = Math.min(Math.max(scrollTop / scrollHeight, 0), 1);
+      setProgress(next);
+    });
   }, []);
 
   const clearSavedPosition = useCallback(() => {
@@ -81,6 +90,7 @@ export function useScrollProgress(pageKey?: string): {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
       window.removeEventListener('beforeunload', saveProgress);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
       saveProgress();
     };
   }, [handleScroll, saveProgress]);

@@ -12,9 +12,11 @@
  */
 import { NextResponse } from 'next/server'
 import { apiHandler } from '@/lib/api-handler'
-import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth'
+import { createApiLogger } from '@/lib/api-logger'
 import { getStorageProvider, isStorageConfigured } from '@/lib/storage/storage-provider'
-import { storageNotConfigured } from '../_helpers'
+import { storageNotConfigured, requireApiKeyPerm } from '../_helpers'
+
+const logger = createApiLogger('/api/storage/stats')
 
 /* ---------- 类型定义 ---------- */
 
@@ -133,7 +135,7 @@ async function scanDirectory(
     entries = await provider.listDirectory(dirPath)
   } catch (err) {
     // 目录不可访问（如 404、权限不足等），静默跳过
-    console.warn(`[storage.stats] 跳过不可访问目录: ${dirPath}`, (err as Error).message)
+    logger.warn('scanDirectory', `跳过不可访问目录: ${dirPath}`, { error: (err as Error).message })
     return
   }
 
@@ -222,12 +224,8 @@ export const GET = apiHandler(
   async () => {
     if (!isStorageConfigured()) return storageNotConfigured()
 
-    // API 密钥权限检查
-    const authResult = await getSessionWithKeyId()
-    if (authResult) {
-      const permErr = await requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'stats_read')
-      if (permErr) return permErr
-    }
+    const denied = await requireApiKeyPerm('stats_read')
+    if (denied) return denied
 
     // 检查缓存是否有效
     const now = Date.now()
@@ -244,12 +242,12 @@ export const GET = apiHandler(
       cachedResult = result
       cacheTimestamp = now
 
-      console.warn(`[storage.stats] 分析完成: ${result.totalFiles} 个文件, ${result.totalSize} 字节`)
+      logger.info('GET', `分析完成: ${result.totalFiles} 个文件, ${result.totalSize} 字节`)
       return NextResponse.json(result, {
         headers: { 'Cache-Control': 'private, max-age=300' },
       })
     } catch (err) {
-      console.error('[storage.stats] 分析失败', err)
+      logger.error('GET', '分析失败', { error: (err as Error).message })
       return NextResponse.json(
         { error: '存储分析失败' },
         { status: 500 },

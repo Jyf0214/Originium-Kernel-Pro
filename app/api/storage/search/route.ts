@@ -10,10 +10,12 @@
  */
 import { NextResponse } from 'next/server'
 import { apiHandler } from '@/lib/api-handler'
+import { createApiLogger } from '@/lib/api-logger'
 import { rateLimit, getClientIp } from '@/lib/rate-limit'
-import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth'
 import { getStorageProvider, isStorageConfigured } from '@/lib/storage/storage-provider'
-import { storageNotConfigured } from '../_helpers'
+import { storageNotConfigured, requireApiKeyPerm } from '../_helpers'
+
+const logger = createApiLogger('/api/storage/search')
 
 /* ---------- 类型定义 ---------- */
 
@@ -218,11 +220,8 @@ export const GET = apiHandler(
     }
 
     // API 密钥权限检查
-    const authResult = await getSessionWithKeyId()
-    if (authResult) {
-      const permErr = await requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'search')
-      if (permErr) return permErr
-    }
+    const denied = await requireApiKeyPerm('search')
+    if (denied) return denied
 
     const query = req.nextUrl.searchParams.get('q')?.trim()
     if (!query) {
@@ -266,7 +265,7 @@ export const GET = apiHandler(
         headers: { 'Cache-Control': 'private, max-age=120' },
       })
     } catch (err) {
-      console.error('[storage.search] 搜索失败', err)
+      logger.error('GET', '搜索失败', { error: (err as Error).message })
       return NextResponse.json(
         { error: '搜索失败' },
         { status: 500 },

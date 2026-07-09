@@ -215,9 +215,8 @@ async function handleDraftSave(
   return NextResponse.json({ success: true });
 }
 
-export const PATCH = apiHandler('PATCH', { label: '更新文章', requireAuth: true }, async (req, context) => {
+export const PATCH = apiHandler('PATCH', { label: '更新文章', requireAuth: true }, async (req, context, session) => {
   const id = await getParam(context, 'id');
-  const session = (await getSession())!;
   const body = await req.json() as Record<string, unknown>;
   logger.info('PATCH', '更新文章', { id });
   const db = getDb();
@@ -230,7 +229,7 @@ export const PATCH = apiHandler('PATCH', { label: '更新文章', requireAuth: t
 
   const meta = JSON.parse(metaStr) as Record<string, unknown>;
 
-  if (!checkArticlePermission(meta, session)) {
+  if (!checkArticlePermission(meta, session!)) {
     return NextResponse.json({ error: '无权限' }, { status: 403 });
   }
 
@@ -268,16 +267,15 @@ async function moveToRecycleBin(
   return NextResponse.json({ success: true, message: '已移入回收站' });
 }
 
-export const DELETE = apiHandler('DELETE', { label: '删除文章', requireAuth: true }, async (req, context) => {
+export const DELETE = apiHandler('DELETE', { label: '删除文章', requireAuth: true }, async (req, context, session) => {
   const id = await getParam(context, 'id');
-  const session = (await getSession())!;
   logger.info('DELETE', '删除文章', { id });
   const db = getDb();
   const metaStr = await db.get(`article:data:${id}`);
 
   // 数据库无记录 → 文件系统发布的文章，构造元数据后移入回收站
   if (!metaStr) {
-    if (session.role !== 'admin' && session.role !== 'sudo') {
+    if (session!.role !== 'admin' && session!.role !== 'sudo') {
       return NextResponse.json({ error: '无权限删除此文章' }, { status: 403 });
     }
     const { getContentFile } = await import('@/lib/content');
@@ -293,8 +291,8 @@ export const DELETE = apiHandler('DELETE', { label: '删除文章', requireAuth:
       id,
       slug,
       title: file.meta.title,
-      authorId: session.uid,
-      authorName: (file.meta.author) ?? session.email,
+      authorId: session!.uid,
+      authorName: (file.meta.author) ?? session!.email,
       status: 'published',
       tags: file.meta.tags ?? [],
       createdAt: file.meta.date ?? new Date().toISOString(),
@@ -311,8 +309,8 @@ export const DELETE = apiHandler('DELETE', { label: '删除文章', requireAuth:
   }
 
   // 所有角色统一移入回收站
-  if (meta.authorId !== session.uid && session.role !== 'admin' && session.role !== 'sudo') {
-    logger.warn('DELETE', '无权限', { id, authorId: meta.authorId, uid: session.uid });
+  if (meta.authorId !== session!.uid && session!.role !== 'admin' && session!.role !== 'sudo') {
+    logger.warn('DELETE', '无权限', { id, authorId: meta.authorId, uid: session!.uid });
     return NextResponse.json({ error: '无权限' }, { status: 403 });
   }
 

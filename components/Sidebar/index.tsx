@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
@@ -53,7 +53,7 @@ function Sidebar({ isOpen, onClose, storageConfigured = true, databaseConfigured
     }
   };
 
-  const isActive = (href: string) => {
+  const isActive = useCallback((href: string) => {
     const [path = ''] = href.split('?');
     if (path === '/dashboard') return pathname === '/dashboard';
     const currentPath = pathname ?? '';
@@ -63,7 +63,7 @@ function Sidebar({ isOpen, onClose, storageConfigured = true, databaseConfigured
       return currentPath + window.location.search === href;
     }
     return true;
-  };
+  }, [pathname]);
 
   const grouped = items.reduce<Record<string, MenuItem[]>>((acc, item) => {
     const g = item.group ?? 'other';
