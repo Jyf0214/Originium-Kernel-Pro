@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { getDb } from '@/lib/db';
 import type { getSession } from '@/lib/auth';
 import { getUserAvatar } from '@/lib/config';
