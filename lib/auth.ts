@@ -227,12 +227,24 @@ async function authenticateApiKeyCore(): Promise<{ session: SessionPayload; curr
  *
  * 30 秒内存缓存：同一用户在 30 秒内的重复校验直接返回缓存结果，
  * 避免每次 API 请求都查库。密码修改后缓存自然过期。
+ * 当缓存超过 100 条时自动清理过期条目，防止内存泄漏。
  */
 const SV_CACHE_TTL_MS = 30 * 1000
+const SV_CACHE_MAX_SIZE = 100
 const svCache = new Map<string, { sv: number; revoked: boolean; ts: number }>()
+
+function purgeExpiredSVCache(now: number): void {
+  for (const [key, entry] of svCache) {
+    if (now - entry.ts >= SV_CACHE_TTL_MS) svCache.delete(key)
+  }
+}
 
 async function isSessionRevoked(uid: string, sv: number): Promise<boolean> {
   const now = Date.now()
+
+  // 缓存超限时清理过期条目，防止内存泄漏
+  if (svCache.size > SV_CACHE_MAX_SIZE) purgeExpiredSVCache(now)
+
   const cached = svCache.get(uid)
   if (cached?.sv === sv && (now - cached.ts) < SV_CACHE_TTL_MS) {
     return cached.revoked
