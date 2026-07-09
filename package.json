@@ -5,7 +5,7 @@
   "telemetry": false,
   "scripts": {
     "dev": "next dev",
-    "type-check": "tsc --noEmit",
+    "type-check": "node scripts/generate-site-config-ts.mjs && tsc --noEmit",
     "lint": "eslint . --max-warnings=0 --cache --cache-location .next/.eslint-cache",
     "check": "npm run lint",
     "db:init": "node scripts/db-init.mjs",
