@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { Pin, User as UserIcon, Calendar, Clock } from 'lucide-react';
 import { Tag } from '@/components/ui/Tag';
@@ -52,7 +53,7 @@ function PostCardBodyFooter({
   );
 }
 
-export function PostCardBody({
+export const PostCardBody = React.memo(function PostCardBody({
   post,
   locale,
   t,
@@ -100,4 +101,4 @@ export function PostCardBody({
       <PostCardBodyFooter post={post} locale={locale} t={t} />
     </div>
   );
-}
+});

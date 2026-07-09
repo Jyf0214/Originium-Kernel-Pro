@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import type { TocItemProps } from './toc-types';
 import {
   TOC_ITEM_BASE,
@@ -17,7 +18,7 @@ import {
  * - 每项为 li，内含锚点链接；当前激活项有高亮样式
  * - 启用 numbering 时，渲染层级编号（如 1 / 1.1 / 1.1.1）
  */
-export function TocItem({
+export const TocItem = React.memo(function TocItem({
   items,
   activeId,
   depth = 0,
@@ -68,6 +69,6 @@ export function TocItem({
       })}
     </ul>
   );
-}
+});
 
 export default TocItem;

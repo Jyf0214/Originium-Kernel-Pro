@@ -8,7 +8,7 @@ import React, { useState, useCallback } from 'react';
 import { Modal, Spin, Empty } from 'antd';
 import { History, ChevronLeft, Clock, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { MarkdownRenderer } from '@/components/MarkdownRenderer';
+import { LazyMarkdownRenderer as MarkdownRenderer } from '@/components/MarkdownRenderer/dynamic';
 import { showError } from '@/lib/error';
 
 interface VersionSummary {
