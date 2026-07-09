@@ -1,5 +1,6 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { apiHandler } from '@/lib/api-handler';
 
 /**
  * Share Event Tracking API
@@ -22,56 +23,48 @@ interface SharePayload {
   platform: string;
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = (await request.json()) as SharePayload;
+export const POST = apiHandler('POST', { label: '分享事件记录' }, async (request) => {
+  const body = (await request.json()) as SharePayload;
 
-    if (!body.url || !body.platform) {
-      return NextResponse.json(
-        { error: '缺少必要参数: url, platform' },
-        { status: 400 },
-      );
-    }
-
-    // 频率限制：每 IP 每分钟 30 次
-    const ip = getClientIp(request);
-    const { allowed } = rateLimit(`share:${ip}`, 30, 60 * 1000);
-    if (!allowed) {
-      return NextResponse.json({ error: '请求过于频繁' }, { status: 429 });
-    }
-
-    // 记录分享事件到服务器日志（URL 截断 + 控制字符清理防止日志注入）
-    const timestamp = new Date().toISOString();
-    const safeUrl = (body.url ?? '').replace(/[\x00-\x1f\x7f]/g, '').slice(0, 2000);
-    const logEntry = {
-      timestamp,
-      url: safeUrl,
-      title: body.title ?? '(无标题)',
-      platform: body.platform,
-      referer: request.headers.get('referer') ?? '',
-      userAgent: request.headers.get('user-agent') ?? '',
-      ip: request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown',
-    };
-
-    // 记录分享事件（生产环境可改为写入数据库或发送到分析服务）
-    console.warn('[SHARE]', JSON.stringify(logEntry));
-
-    // 返回分享链接（方便前端直接使用）
-    const shareUrl = buildShareUrl(body.url, body.title, body.platform);
-
-    return NextResponse.json({
-      success: true,
-      shareUrl,
-      message: '分享事件已记录',
-    });
-  } catch (error) {
-    console.error('[SHARE] 处理分享请求失败:', error);
+  if (!body.url || !body.platform) {
     return NextResponse.json(
-      { error: '分享请求处理失败' },
-      { status: 500 },
+      { error: '缺少必要参数: url, platform' },
+      { status: 400 },
     );
   }
-}
+
+  // 频率限制：每 IP 每分钟 30 次
+  const ip = getClientIp(request);
+  const { allowed } = rateLimit(`share:${ip}`, 30, 60 * 1000);
+  if (!allowed) {
+    return NextResponse.json({ error: '请求过于频繁' }, { status: 429 });
+  }
+
+  // 记录分享事件到服务器日志（URL 截断 + 控制字符清理防止日志注入）
+  const timestamp = new Date().toISOString();
+  const safeUrl = (body.url ?? '').replace(/[\x00-\x1f\x7f]/g, '').slice(0, 2000);
+  const logEntry = {
+    timestamp,
+    url: safeUrl,
+    title: body.title ?? '(无标题)',
+    platform: body.platform,
+    referer: request.headers.get('referer') ?? '',
+    userAgent: request.headers.get('user-agent') ?? '',
+    ip: request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown',
+  };
+
+  // 记录分享事件（生产环境可改为写入数据库或发送到分析服务）
+  console.warn('[SHARE]', JSON.stringify(logEntry));
+
+  // 返回分享链接（方便前端直接使用）
+  const shareUrl = buildShareUrl(body.url, body.title, body.platform);
+
+  return NextResponse.json({
+    success: true,
+    shareUrl,
+    message: '分享事件已记录',
+  });
+});
 
 /**
  * 构建分享 URL

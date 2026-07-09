@@ -10,20 +10,12 @@
  * 复用 lib/content-registry.ts 的注册表和索引查询。
  */
 
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getBacklinks, getOutgoingReferences } from '@/lib/content-registry';
-import { createApiLogger } from '@/lib/api-logger';
-import { getSession } from '@/lib/auth';
+import { apiHandler } from '@/lib/api-handler';
 import { checkRateLimit } from '@/lib/rate-limit';
 
-const logger = createApiLogger('/api/backlinks');
-
-export async function GET(req: NextRequest) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.json({ error: '未授权' }, { status: 401 });
-  }
-
+export const GET = apiHandler('GET', { label: '后向链接查询', requireAuth: true }, (req) => {
   const rl = checkRateLimit(req, 'backlinks', 20, 60 * 1000);
   if (!rl.allowed) {
     return NextResponse.json({ error: '请求过于频繁' }, { status: 429 });
@@ -43,18 +35,8 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  logger.info('GET', '查询后向链接', { section, slug });
+  const backlinks = getBacklinks(section, slug);
+  const outgoing = getOutgoingReferences(section, slug);
 
-  try {
-    const backlinks = getBacklinks(section, slug);
-    const outgoing = getOutgoingReferences(section, slug);
-
-    return NextResponse.json({ backlinks, outgoing });
-  } catch (err) {
-    logger.error('GET', '查询后向链接失败', { section, slug, error: String(err) });
-    return NextResponse.json(
-      { error: '查询失败' },
-      { status: 500 },
-    );
-  }
-}
+  return NextResponse.json({ backlinks, outgoing });
+});
