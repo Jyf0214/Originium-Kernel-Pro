@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
 import { loadConfig, clearConfigCache, type AppConfig } from '@/lib/config';
 import { getFileFromGithub, updateFileInGithub } from '@/lib/github';
 import { apiHandler } from '@/lib/api-handler';
@@ -69,13 +68,12 @@ function mergePostMeta(
   override: Partial<AppConfig['postMeta']> | undefined,
 ): AppConfig['postMeta'] | undefined {
   if (!override) return base;
-  const def: AppConfig['postMeta'] = { page: { dateType: 'created', dateFormat: 'simple', categories: true, tags: true, label: false }, post: { dateType: 'both', dateFormat: 'date', categories: true, tags: true, label: true, unread: false } };
-  const baseFull = { ...def, ...base };
+  if (!base) return override as AppConfig['postMeta'];
   return {
-    ...baseFull,
+    ...base,
     ...override,
-    page: { ...baseFull.page, ...override.page },
-    post: { ...baseFull.post, ...override.post },
+    page: { ...base.page, ...override.page },
+    post: { ...base.post, ...override.post },
   };
 }
 
@@ -154,15 +152,8 @@ export const POST = apiHandler('POST', { label: 'config更新', requireAdmin: tr
 /**
  * 从 GitHub 拉取配置
  */
-export async function PUT() {
-  // 认证检查：仅管理员或超级管理员可同步远程配置
-  const session = await getSession();
-  if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
-    logger.warn('PUT', '无权限访问', { role: session?.role });
-    return NextResponse.json({ error: '无权限' }, { status: 403 });
-  }
-
-  logger.info('PUT', '开始从 GitHub 同步配置', { role: session.role });
+export const PUT = apiHandler('PUT', { label: 'config同步', requireAdmin: true }, async (_req, _ctx, session) => {
+  logger.info('PUT', '开始从 GitHub 同步配置', { role: session?.role });
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
   if (!repo || !token) {
@@ -170,27 +161,22 @@ export async function PUT() {
     return NextResponse.json({ error: 'GitHub 未配置' }, { status: 400 });
   }
 
-  try {
-    const remote = await getFileFromGithub(repo, token, 'config.yaml');
-    if (!remote) {
-      logger.warn('PUT', 'config.yaml 不存在');
-      return NextResponse.json({ error: 'config.yaml 不存在' }, { status: 404 });
-    }
-    const parsed = yaml.load(remote.content) as Partial<AppConfig>;
-    const validated = zAppConfig.safeParse(parsed);
-    if (!validated.success) {
-      logger.warn('PUT', '远程 YAML Zod 校验失败', { issues: validated.error.issues.map(i => i.path.join('.')) });
-      return NextResponse.json({ error: '远程配置校验失败: ' + validated.error.issues.map(i => i.path.join('.')).join(', ') }, { status: 400 });
-    }
-    const currentConfig = loadConfig();
-    const mergedConfig = mergeAppConfig(currentConfig, validated.data);
-
-    logger.info('PUT', '从 GitHub 同步配置成功');
-    void logAudit('config_update', 'config', '站点配置已从 GitHub 同步更新', session.uid);
-    clearConfigCache();
-    return NextResponse.json({ success: true, config: mergedConfig });
-  } catch (error) {
-    logger.error('PUT', '从 GitHub 同步配置失败', { error: error instanceof Error ? error.message : '未知错误' });
-    return NextResponse.json({ error: '同步失败' }, { status: 500 });
+  const remote = await getFileFromGithub(repo, token, 'config.yaml');
+  if (!remote) {
+    logger.warn('PUT', 'config.yaml 不存在');
+    return NextResponse.json({ error: 'config.yaml 不存在' }, { status: 404 });
   }
-}
+  const parsed = yaml.load(remote.content) as Partial<AppConfig>;
+  const validated = zAppConfig.safeParse(parsed);
+  if (!validated.success) {
+    logger.warn('PUT', '远程 YAML Zod 校验失败', { issues: validated.error.issues.map(i => i.path.join('.')) });
+    return NextResponse.json({ error: '远程配置校验失败: ' + validated.error.issues.map(i => i.path.join('.')).join(', ') }, { status: 400 });
+  }
+  const currentConfig = loadConfig();
+  const mergedConfig = mergeAppConfig(currentConfig, validated.data);
+
+  logger.info('PUT', '从 GitHub 同步配置成功');
+  void logAudit('config_update', 'config', '站点配置已从 GitHub 同步更新', session?.uid ?? 'unknown');
+  clearConfigCache();
+  return NextResponse.json({ success: true, config: mergedConfig });
+});

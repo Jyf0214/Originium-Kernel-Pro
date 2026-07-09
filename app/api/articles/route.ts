@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import type { getSession } from '@/lib/auth';
 import { getUserAvatar } from '@/lib/config';
 import { getAccessibleContent } from '@/lib/content-access';
 import type { ContentFile } from '@/types/content';
@@ -71,44 +71,38 @@ async function loadDrafts(
   return drafts;
 }
 
-export async function GET(req: NextRequest) {
-  try {
-    logger.info('GET', '获取文章列表');
-    // 读取查询参数
-    const authorFilter = req.nextUrl.searchParams.get('author');
+export const GET = apiHandler('GET', { label: '文章列表', requireAuth: false }, async (req, _ctx, session) => {
+  logger.info('GET', '获取文章列表');
+  // 读取查询参数
+  const authorFilter = req.nextUrl.searchParams.get('author');
 
-    // 已发布文章：从 posts/ 文件系统索引读取（由 lib/content.ts 在构建时生成）
-    const session = await getSession();
-    const isAuthenticated = !!session;
-    const { files: publishedFiles } = await getAccessibleContent('posts');
-    const authorAvatar = getUserAvatar() ?? undefined;
-    let published = mapPublishedFiles(publishedFiles, authorAvatar);
+  // 已发布文章：从 posts/ 文件系统索引读取（由 lib/content.ts 在构建时生成）
+  const isAuthenticated = !!session;
+  const { files: publishedFiles } = await getAccessibleContent('posts');
+  const authorAvatar = getUserAvatar() ?? undefined;
+  let published = mapPublishedFiles(publishedFiles, authorAvatar);
 
-    // 按 author 参数过滤已发布文章
-    if (authorFilter) {
-      published = published.filter((p: { author?: string }) => p.author === authorFilter);
-    }
-
-    // 草稿：仅已登录用户可查看，非 sudo/admin 只能看到自己的草稿
-    const drafts = isAuthenticated ? await loadDrafts(session, authorFilter) : [];
-
-    // 合并，按日期降序
-    const all = [
-      ...published,
-      ...drafts.map((d) => ({ ...d, status: 'draft' })),
-    ].sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
-      const dateA = a.date ? new Date(a.date as string).getTime() : 0;
-      const dateB = b.date ? new Date(b.date as string).getTime() : 0;
-      return dateB - dateA;
-    });
-
-    logger.info('GET', '获取文章列表成功', { count: all.length });
-    return NextResponse.json(all);
-  } catch (error) {
-    logger.error('GET', '获取文章列表失败', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ error: '获取文章列表失败' }, { status: 500 });
+  // 按 author 参数过滤已发布文章
+  if (authorFilter) {
+    published = published.filter((p: { author?: string }) => p.author === authorFilter);
   }
-}
+
+  // 草稿：仅已登录用户可查看，非 sudo/admin 只能看到自己的草稿
+  const drafts = isAuthenticated ? await loadDrafts(session, authorFilter) : [];
+
+  // 合并，按日期降序
+  const all = [
+    ...published,
+    ...drafts.map((d) => ({ ...d, status: 'draft' })),
+  ].sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+    const dateA = a.date ? new Date(a.date as string).getTime() : 0;
+    const dateB = b.date ? new Date(b.date as string).getTime() : 0;
+    return dateB - dateA;
+  });
+
+  logger.info('GET', '获取文章列表成功', { count: all.length });
+  return NextResponse.json(all);
+});
 
 /**
  * 构建文章 frontMatter 对象
