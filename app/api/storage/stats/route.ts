@@ -137,8 +137,7 @@ async function parallelLimit<T>(
 
     if (executing.length >= limit) {
       await Promise.race(executing)
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      executing.splice(
+      void executing.splice(
         executing.findIndex((ep) => ep === p),
         1,
       )
