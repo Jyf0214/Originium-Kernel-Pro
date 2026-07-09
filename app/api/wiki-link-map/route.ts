@@ -11,22 +11,9 @@
 
 import { NextResponse } from 'next/server';
 import { buildWikiLinkMap } from '@/lib/content-registry';
-import { createApiLogger } from '@/lib/api-logger';
-import { getSession } from '@/lib/auth';
+import { apiHandler } from '@/lib/api-handler';
 
-const logger = createApiLogger('/api/wiki-link-map');
-
-export async function GET() {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.json({ error: '未授权' }, { status: 401 });
-  }
-  logger.info('GET', '获取 wiki-link 映射表');
-  try {
-    const map = buildWikiLinkMap();
-    return NextResponse.json(map);
-  } catch (err) {
-    logger.error('GET', '获取 wiki-link 映射表失败', { error: String(err) });
-    return NextResponse.json({ error: '获取失败' }, { status: 500 });
-  }
-}
+export const GET = apiHandler('GET', { label: 'wiki-link映射', requireAuth: true }, () => {
+  const map = buildWikiLinkMap();
+  return NextResponse.json(map);
+});

@@ -1,8 +1,6 @@
-import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
-import { createApiLogger } from '@/lib/api-logger';
-
-const logger = createApiLogger('/api/translations');
+import { apiHandler } from '@/lib/api-handler';
 
 /**
  * 翻译查询 API
@@ -18,27 +16,23 @@ const logger = createApiLogger('/api/translations');
  *   translations: [{ lang: 'en', slug: '/posts/en/article-en', title: '...' }]
  * }
  */
-export function GET(request: NextRequest) {
+export const GET = apiHandler('GET', { label: '翻译查询' }, (request) => {
   const { searchParams } = new URL(request.url);
   const slug = searchParams.get('slug');
 
   if (!slug) {
-    logger.warn('GET', '缺少 slug 参数');
-    return Response.json(
+    return NextResponse.json(
       { error: '缺少必需参数 slug', original: null, translations: [] },
       { status: 400 },
     );
   }
-
-  logger.info('GET', '查询翻译版本', { slug });
 
   const allFiles = filterPublicFiles(getContentFiles('posts'), getContentIndexes('posts'));
 
   // 找到原始文章
   const originalFile = allFiles.find((f) => f.slug === slug);
   if (!originalFile) {
-    logger.info('GET', '未找到原始文章', { slug });
-    return Response.json(
+    return NextResponse.json(
       { error: '未找到指定文章', original: null, translations: [] },
       { status: 404 },
     );
@@ -60,12 +54,7 @@ export function GET(request: NextRequest) {
       })
       .filter((t) => t.lang !== originalLang);
 
-    logger.info('GET', '翻译查询完成（frontmatter 映射）', {
-      originalLang,
-      translationCount: translations.length,
-    });
-
-    return Response.json(
+    return NextResponse.json(
       {
         original: { lang: originalLang, slug },
         translations,
@@ -107,12 +96,7 @@ export function GET(request: NextRequest) {
     }
   }
 
-  logger.info('GET', '翻译查询完成（目录扫描）', {
-    originalLang,
-    translationCount: translations.length,
-  });
-
-  return Response.json(
+  return NextResponse.json(
     {
       original: { lang: originalLang, slug },
       translations,
@@ -121,4 +105,4 @@ export function GET(request: NextRequest) {
       headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' },
     },
   );
-}
+});
