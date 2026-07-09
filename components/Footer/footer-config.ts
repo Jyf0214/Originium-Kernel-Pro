@@ -3,7 +3,6 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
 import {
   Github,
   Twitter,
@@ -11,6 +10,8 @@ import {
   Mail,
   type LucideIcon,
 } from 'lucide-react';
+
+import { FOOTER_CONFIG, SOCIAL_DATA } from '@/data/site-config';
 
 import type {
   FooterBadge,
@@ -154,8 +155,8 @@ export function defLaunchTime(config: FooterConfigData | null): string {
 }
 
 // ─── Config Hook ─────────────────────────────────────
-// 从 /api/config 拉取 footer 与 social 字段，失败时记录错误但不抛出。
-// 支持通过 props 传入静态配置（构建时生成），优先使用 props。
+// 构建时通过 data/footer-config.ts 内嵌配置，无需运行时 API 调用。
+// 支持通过 props 传入静态配置（服务端组件 FooterWrapper），优先使用 props。
 
 export interface UseFooterConfigResult {
   config: FooterConfigData | null;
@@ -164,47 +165,7 @@ export interface UseFooterConfigResult {
 }
 
 export function useFooterConfig(staticConfig?: FooterConfigData, staticSocial?: Record<string, string>): UseFooterConfigResult {
-  const [config, setConfig] = useState<FooterConfigData | null>(staticConfig ?? null);
-  const [socialData, setSocialData] = useState<Record<string, string> | null>(staticSocial ?? null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    // 如果已有静态配置，不发起 API 请求
-    if (staticConfig) return;
-
-    const fetchConfig = async () => {
-      try {
-        // 优先尝试 /api/config（服务端部署可用）
-        const res = await fetch('/api/config');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.footer) setConfig(data.footer);
-          if (data.social) setSocialData(data.social);
-          return;
-        }
-        // /api/config 不可用（静态部署），回退到构建时生成的 /site-config.json
-      } catch {
-        // /api/config 请求异常，继续回退
-      }
-
-      try {
-        const fallbackRes = await fetch('/site-config.json');
-        if (fallbackRes.ok) {
-          const fallbackData = await fallbackRes.json();
-          if (fallbackData.footer) setConfig(fallbackData.footer);
-          if (fallbackData.social) setSocialData(fallbackData.social);
-          return;
-        }
-      } catch {
-        // /site-config.json 也不可用
-      }
-
-      const errMsg = '页脚配置获取失败';
-      console.warn(errMsg);
-      setError(errMsg);
-    };
-    void fetchConfig();
-  }, [staticConfig]);
-
-  return { config, socialData, error };
+  const config = staticConfig ?? FOOTER_CONFIG;
+  const socialData = staticSocial ?? SOCIAL_DATA;
+  return { config, socialData, error: null };
 }

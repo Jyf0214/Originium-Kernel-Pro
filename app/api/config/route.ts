@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { loadConfig, type AppConfig, type SocialConfig } from '@/lib/config';
+import { loadConfig, clearConfigCache, type AppConfig, type SocialConfig } from '@/lib/config';
 import { getFileFromGithub } from '@/lib/github';
 import { createApiLogger } from '@/lib/api-logger';
 import { zAppConfig } from '@/lib/config-schema';
@@ -8,123 +8,6 @@ import { logAudit } from '@/lib/audit';
 import yaml from 'js-yaml';
 
 const logger = createApiLogger('/api/config');
-
-// 内存缓存：避免每次请求都调用 GitHub API
-// 配置变更频率极低，5 分钟缓存足以覆盖大多数场景
-type ConfigResponse = AppConfig & {
-  githubConfigured?: boolean;
-  _remoteConfig?: string;
-  _remoteConfigStatus?: string;
-  _remoteConfigError?: string;
-  [key: string]: unknown;
-};
-let configCache: { data: ConfigResponse; timestamp: number } | null = null;
-const CACHE_TTL = 5 * 60 * 1000; // 5 分钟
-
-/**
- * System Configuration API
- *
- * 配置来源：
- * 1. config.yaml（本地文件）
- * 2. GitHub config.yaml（远程同步，通过 _remoteConfig 返回）
- *
- * 所有配置统一使用 AppConfig 结构
- */
-export async function GET() {
-  try {
-    return await handleConfigGet();
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    logger.error('GET', '获取配置失败', { error: msg });
-    return NextResponse.json({ error: '获取配置失败' }, { status: 500 });
-  }
-}
-
-async function handleConfigGet() {
-  // 检查内存缓存，命中则直接返回（剥离内部字段）
-  const now = Date.now();
-  if (configCache && now - configCache.timestamp < CACHE_TTL) {
-    logger.info('GET', '使用缓存配置');
-    return buildConfigResponse(configCache.data);
-  }
-
-  logger.info('GET', '读取配置');
-  const githubRepo = process.env.GITHUB_REPO;
-  const githubToken = process.env.GITHUB_TOKEN;
-
-  // 默认从本地 config.yaml 加载
-  let config = loadConfig();
-  let remoteConfigRaw = '';
-  let remoteConfigStatus = '';
-  let remoteConfigError = '';
-
-  // 优先从 GitHub 获取远程配置
-  if (githubRepo && githubToken) {
-    try {
-      const remote = await getFileFromGithub(githubRepo, githubToken, 'config.yaml');
-      if (remote) {
-        remoteConfigRaw = remote.content;
-        remoteConfigStatus = 'ok';
-        // 将远程 YAML 解析后作为主配置返回，使用 Zod 校验确保数据完整
-        const parsed = yaml.load(remote.content) as AppConfig | null;
-        if (parsed) {
-          const result = zAppConfig.safeParse(parsed);
-          if (result.success) {
-            config = result.data;
-          } else {
-            logger.warn('GET', '远程 YAML Zod 校验失败，回退到本地配置', { issues: result.error.issues.map(i => i.path.join('.')) });
-          }
-        }
-        logger.info('GET', '远程配置已获取并作为主配置');
-      } else {
-        remoteConfigStatus = 'not_found';
-        logger.info('GET', '远程 config.yaml 不存在，使用本地配置');
-      }
-    } catch (error) {
-      remoteConfigStatus = 'error';
-      remoteConfigError = error instanceof Error ? error.message : '未知错误';
-      logger.error('GET', '获取远程配置失败，使用本地配置', { error: remoteConfigError });
-    }
-  } else {
-    logger.info('GET', 'GitHub 未配置，使用本地配置');
-  }
-
-  const response: ConfigResponse = {
-    ...config,
-    _remoteConfig: remoteConfigRaw,
-    _remoteConfigStatus: remoteConfigStatus,
-  };
-
-  if (githubRepo) {
-    response.githubConfigured = true;
-  }
-  if (remoteConfigError) {
-    response._remoteConfigError = remoteConfigError;
-  }
-
-  logger.info('GET', '配置读取成功', { source: remoteConfigStatus || 'local' });
-  // 更新内存缓存
-  configCache = { data: response, timestamp: Date.now() };
-
-  return buildConfigResponse(response);
-}
-
-/** 未认证用户剥离 access 规则、githubConfigured 和 _remoteConfig 等内部字段，防止信息泄露 */
-async function buildConfigResponse(config: Record<string, unknown>) {
-  const session = await getSession();
-  if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
-    const { access: _access, githubConfigured: _gc, _remoteConfig: _rc, _remoteConfigStatus: _rs, _remoteConfigError: _re, ...safeConfig } = config;
-    return NextResponse.json(safeConfig, {
-      headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
-    });
-  }
-  // 管理员响应也不得包含原始 YAML 配置——原始内容可能包含敏感信息（如 API 密钥、连接字符串等）
-  const { _remoteConfig: _rc, _remoteConfigStatus: _rs, _remoteConfigError: _re, ...adminConfig } = config;
-  // 管理员响应不得被 CDN 缓存——包含 access 规则
-  return NextResponse.json(adminConfig, {
-    headers: { 'Cache-Control': 'private, no-cache, no-store' },
-  });
-}
 
 function mergeSite(
   base: AppConfig['site'],
@@ -399,9 +282,6 @@ export async function POST(req: NextRequest) {
 
     logger.info('POST', '配置已合并并持久化');
     void logAudit('config_update', 'config', '站点配置已更新', session.uid);
-    // 配置已更新，清除缓存使下次 GET 重新拉取
-    configCache = null;
-    const { clearConfigCache } = await import('@/lib/config');
     clearConfigCache();
     return NextResponse.json({ success: true, config: mergedConfig });
   } catch (error: unknown) {
@@ -446,9 +326,6 @@ export async function PUT() {
 
     logger.info('PUT', '从 GitHub 同步配置成功');
     void logAudit('config_update', 'config', '站点配置已从 GitHub 同步更新', session.uid);
-    // 清除缓存，确保下次 GET 返回最新配置
-    configCache = null;
-    const { clearConfigCache } = await import('@/lib/config');
     clearConfigCache();
     return NextResponse.json({ success: true, config: mergedConfig });
   } catch (error) {
