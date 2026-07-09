@@ -3,7 +3,7 @@
 import React from 'react';
 import { type ContentFile } from '@/types/content';
 import { Avatar } from '@/components/Avatar';
-import { MarkdownRenderer } from '@/components/MarkdownRenderer';
+import { LazyMarkdownRenderer as MarkdownRenderer } from '@/components/MarkdownRenderer/dynamic';
 import { BacklinkPanel } from '@/components/BacklinkPanel';
 import Link from 'next/link';
 import { ArrowLeft, Code, Eye } from 'lucide-react';

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ArrowLeft, QrCode } from 'lucide-react';
 import Link from 'next/link';
-import { MarkdownRenderer } from '@/components/MarkdownRenderer';
+import { LazyMarkdownRenderer as MarkdownRenderer } from '@/components/MarkdownRenderer/dynamic';
 import { ArticleEncryption } from '@/components/ArticleEncryption';
 import { BacklinkPanel } from '@/components/BacklinkPanel';
 import { Giscus } from '@/components/Comments/Giscus';

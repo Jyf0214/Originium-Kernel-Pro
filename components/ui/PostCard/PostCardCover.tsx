@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { LazyImage } from '@/components/ui/LazyImage';
@@ -32,7 +33,7 @@ function PostCardImage({ post, defaultCover, position }: { post: PostItem; defau
   return null;
 }
 
-export function PostCardCover({
+export const PostCardCover = React.memo(function PostCardCover({
   post,
   coverConfig,
   defaultCover,
@@ -67,4 +68,4 @@ export function PostCardCover({
       </Link>
     </div>
   );
-}
+});

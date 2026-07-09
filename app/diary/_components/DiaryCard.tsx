@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Calendar, Tag, Eye, X, Loader2, Edit3, Trash2, Pin, History } from 'lucide-react';
-import { MarkdownRenderer } from '@/components/MarkdownRenderer';
+import { LazyMarkdownRenderer as MarkdownRenderer } from '@/components/MarkdownRenderer/dynamic';
 import { Button } from '@/components/ui/Button';
 import { CuteConfirm } from '@/components/ui/CuteConfirm';
 import { formatShortDate, renderReferenceLinks } from './diary-utils';

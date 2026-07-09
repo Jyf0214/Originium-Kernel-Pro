@@ -1,4 +1,5 @@
 import type {Metadata, Viewport} from 'next';
+import { Suspense } from 'react';
 import './globals.css';
 import { AuthProvider } from '../hooks/use-auth';
 import { CustomHead } from '../components/CustomHead';
@@ -12,7 +13,7 @@ import { TabTitleSwitch } from '../components/TabTitleSwitch';
 import { MusicPlayerWrapper } from '../components/MusicPlayer/MusicPlayerWrapper';
 import { loadConfig, hasDatabase } from '@/lib/config';
 import { ThirdPartyScripts } from '@/components/ThirdPartyScripts';
-import { EffectsManager } from '@/components/effects';
+import { EffectsManager } from '@/components/effects/dynamic';
 
 export const metadata: Metadata = {
   title: 'Originium Kernel',
@@ -76,7 +77,11 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
               <Navbar navConfig={config.nav} siteTitle={config.site.title} databaseConfigured={hasDatabase()} />
               <div id="main-content" tabIndex={-1}>
                 <RouteTransition>
-                  <PageTransition>{children}</PageTransition>
+                  <PageTransition>
+                    <Suspense>
+                      {children}
+                    </Suspense>
+                  </PageTransition>
                 </RouteTransition>
               </div>
             </PostPageProvider>
