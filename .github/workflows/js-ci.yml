@@ -37,7 +37,7 @@ jobs:
           fi
 
       - name: Generate static data (for type check)
-        run: node scripts/generate-navigation.mjs && node scripts/generate-site-config.mjs && node scripts/generate-version.mjs
+        run: node scripts/generate-navigation.mjs && node scripts/generate-site-config-ts.mjs && node scripts/generate-version.mjs
 
       - name: Syntax & Lint Check (语法与风格校验)
         run: |

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { SITE_CONFIG } from '@/data/site-config';
 import type {
   AppearanceConfig,
   ShareConfig,
@@ -43,45 +43,10 @@ export interface FrontendConfig {
   appearance?: AppearanceConfig;
 }
 
-let cachedConfig: FrontendConfig | null = null;
-let pendingPromise: Promise<FrontendConfig> | null = null;
-
 export function useConfig(): {
   config: FrontendConfig | null;
   loading: boolean;
   error: string | null;
 } {
-  const [config, setConfig] = useState<FrontendConfig | null>(cachedConfig);
-  const [loading, setLoading] = useState(!cachedConfig);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (cachedConfig) {
-      setConfig(cachedConfig);
-      setLoading(false);
-      return;
-    }
-
-    if (pendingPromise) {
-      pendingPromise.then(setConfig).catch(e => setError(e.message)).finally(() => setLoading(false));
-      return;
-    }
-
-    pendingPromise = fetch('/api/config')
-      .then(res => {
-        if (!res.ok) throw new Error('无法加载配置');
-        return res.json();
-      })
-      .then((data: FrontendConfig) => {
-        cachedConfig = data;
-        return data;
-      });
-
-    pendingPromise.then(setConfig).catch(e => setError(e.message)).finally(() => {
-      setLoading(false);
-      pendingPromise = null;
-    });
-  }, []);
-
-  return { config, loading, error };
+  return { config: SITE_CONFIG, loading: false, error: null };
 }
