@@ -1,7 +1,8 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { loadConfig, clearConfigCache, type AppConfig } from '@/lib/config';
-import { getFileFromGithub } from '@/lib/github';
+import { getFileFromGithub, updateFileInGithub } from '@/lib/github';
+import { apiHandler } from '@/lib/api-handler';
 import { createApiLogger } from '@/lib/api-logger';
 import { zAppConfig } from '@/lib/config-schema';
 import { logAudit } from '@/lib/audit';
@@ -10,7 +11,8 @@ import yaml from 'js-yaml';
 const logger = createApiLogger('/api/config');
 
 /**
- * 通用配置段合并:override 存在时以 base(或 defaults)为基础展开 override。
+ * 通用配置段合并:override 存在时以 base 为基础展开 override。
+ * base 来自 loadConfig()，已通过 Zod schema 获得完整默认值，无需额外 defaults。
  * 适用于大多数结构为"扁平或浅层嵌套 + 可选默认值"的配置段。
  * 复杂嵌套合并(如 appearance、postMeta)仍保留专用函数。
  */
@@ -18,10 +20,9 @@ const logger = createApiLogger('/api/config');
 function mergeSection<T extends Record<string, any>>(
   base: T | undefined,
   override: Partial<T> | undefined,
-  defaults?: T,
 ): T | undefined {
   if (!override) return base;
-  return { ...(defaults ?? base), ...override } as T;
+  return { ...(base), ...override } as T;
 }
 
 function mergeAppearance(
@@ -90,79 +91,65 @@ function mergeAppConfig(
     access: mergeAccess(base.access, override.access),
     auth: { ...base.auth, ...override.auth },
     avatar: override.avatar ?? base.avatar,
-    nav: mergeSection(base.nav, override.nav, { enable: false, travelling: false, clock: false, menu: [] }),
-    mourn: mergeSection(base.mourn, override.mourn, { enable: false, days: [] }),
-    highlight: mergeSection(base.highlight, override.highlight, { theme: 'light', copy: true, lang: true, shrink: false, heightLimit: 330, wordWrap: true }),
-    copy: mergeSection(base.copy, override.copy, { enable: true, copyright: { enable: false, limitCount: 50 } }),
-    social: mergeSection(base.social, override.social, {}),
-    cover: mergeSection(base.cover, override.cover, { indexEnable: true, asideEnable: true, archivesEnable: true, position: 'left', defaultCover: [] }),
-    errorImg: mergeSection(base.errorImg, override.errorImg, { flink: '/img/friend_404.gif', postPage: '/img/404.jpg' }),
+    nav: mergeSection(base.nav, override.nav),
+    mourn: mergeSection(base.mourn, override.mourn),
+    highlight: mergeSection(base.highlight, override.highlight),
+    copy: mergeSection(base.copy, override.copy),
+    social: mergeSection(base.social, override.social),
+    cover: mergeSection(base.cover, override.cover),
+    errorImg: mergeSection(base.errorImg, override.errorImg),
     postMeta: mergePostMeta(base.postMeta, override.postMeta),
-    wordcount: mergeSection(base.wordcount, override.wordcount, { enable: false, postWordcount: false, min2read: true, totalWordcount: false }),
-    toc: mergeSection(base.toc, override.toc, { post: true, page: false, number: true, expand: false, styleSimple: false }),
-    copyright: mergeSection(base.copyright, override.copyright, { enable: true, decode: false, authorHref: '', license: 'CC BY-NC-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-nc-sa/4.0/', authorLink: '/' }),
-    reward: mergeSection(base.reward, override.reward, { enable: true, qrCodes: [] }),
-    postEdit: mergeSection(base.postEdit, override.postEdit, { enable: false, github: false }),
-    share: mergeSection(base.share, override.share, { sharejs: { enable: true, sites: 'facebook,twitter,wechat,weibo,qq' }, addtoany: { enable: false, item: 'facebook,twitter,wechat,sina_weibo,email,copy_link' } }),
-    mainTone: mergeSection(base.mainTone, override.mainTone, { enable: false, mode: 'api' }),
-    footer: mergeSection(base.footer, override.footer, { owner: { enable: true, since: 2020 }, customText: '', runtime: { enable: false, launchTime: '04/01/2021 00:00:00' } }),
+    wordcount: mergeSection(base.wordcount, override.wordcount),
+    toc: mergeSection(base.toc, override.toc),
+    copyright: mergeSection(base.copyright, override.copyright),
+    reward: mergeSection(base.reward, override.reward),
+    postEdit: mergeSection(base.postEdit, override.postEdit),
+    share: mergeSection(base.share, override.share),
+    mainTone: mergeSection(base.mainTone, override.mainTone),
+    footer: mergeSection(base.footer, override.footer),
     clerk: override.clerk ?? base.clerk,
   };
 }
 
-export async function POST(req: NextRequest) {
-  const session = await getSession();
-  if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
-    logger.warn('POST', '无权限访问', { role: session?.role });
-    return NextResponse.json({ error: '无权限' }, { status: 403 });
+export const POST = apiHandler('POST', { label: 'config更新', requireAdmin: true }, async (req, _ctx, session) => {
+  logger.info('POST', '开始更新配置', { role: session?.role });
+
+  const rawConfig = await req.json() as Partial<AppConfig>;
+  // PUT 有 Zod 校验，POST 也必须有，防止非法配置写入
+  const validated = zAppConfig.partial().safeParse(rawConfig);
+  if (!validated.success) {
+    return NextResponse.json(
+      { error: '配置校验失败: ' + validated.error.issues.map(i => i.path.join('.')).join(', ') },
+      { status: 400 }
+    );
   }
+  const currentConfig = loadConfig();
+  const mergedConfig = mergeAppConfig(currentConfig, validated.data);
 
-  logger.info('POST', '开始更新配置', { role: session.role });
-
-  try {
-    const rawConfig = await req.json() as Partial<AppConfig>;
-    // PUT 有 Zod 校验，POST 也必须有，防止非法配置写入
-    const validated = zAppConfig.partial().safeParse(rawConfig);
-    if (!validated.success) {
-      return NextResponse.json(
-        { error: '配置校验失败: ' + validated.error.issues.map(i => i.path.join('.')).join(', ') },
-        { status: 400 }
-      );
-    }
-    const currentConfig = loadConfig();
-    const mergedConfig = mergeAppConfig(currentConfig, validated.data);
-
-    // 持久化到 GitHub（如果配置了远程仓库）
-    const githubRepo = process.env.GITHUB_REPO;
-    const githubToken = process.env.GITHUB_TOKEN;
-    if (githubRepo && githubToken) {
-      const yamlContent = yaml.dump(mergedConfig, { lineWidth: -1 });
-      const ghRes = await fetch(`${new URL(req.url).origin}/api/github`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'update',
-          path: 'config.yaml',
-          content: yamlContent,
-          message: 'chore: update site config',
-        }),
+  // 持久化到 GitHub（如果配置了远程仓库）
+  const githubRepo = process.env.GITHUB_REPO;
+  const githubToken = process.env.GITHUB_TOKEN;
+  if (githubRepo && githubToken) {
+    const yamlContent = yaml.dump(mergedConfig, { lineWidth: -1 });
+    try {
+      await updateFileInGithub({
+        repo: githubRepo,
+        token: githubToken,
+        path: 'config.yaml',
+        content: yamlContent,
+        message: 'chore: update site config',
       });
-      if (!ghRes.ok) {
-        const ghErr = await ghRes.json().catch(() => ({}));
-        logger.error('POST', '配置写入 GitHub 失败', { error: ghErr.error });
-        return NextResponse.json({ error: '配置保存到远程仓库失败' }, { status: 500 });
-      }
+    } catch (err) {
+      logger.error('POST', '配置写入 GitHub 失败', { error: err instanceof Error ? err.message : String(err) });
+      return NextResponse.json({ error: '配置保存到远程仓库失败' }, { status: 500 });
     }
-
-    logger.info('POST', '配置已合并并持久化');
-    void logAudit('config_update', 'config', '站点配置已更新', session.uid);
-    clearConfigCache();
-    return NextResponse.json({ success: true, config: mergedConfig });
-  } catch (error: unknown) {
-    logger.error('POST', '更新配置失败', { error: error instanceof Error ? error.message : '未知错误' });
-    return NextResponse.json({ error: '保存失败' }, { status: 500 });
   }
-}
+
+  logger.info('POST', '配置已合并并持久化');
+  void logAudit('config_update', 'config', '站点配置已更新', session?.uid ?? 'unknown');
+  clearConfigCache();
+  return NextResponse.json({ success: true, config: mergedConfig });
+});
 
 /**
  * 从 GitHub 拉取配置

@@ -79,8 +79,14 @@ function buildRegistry(): Registry {
 
   const sections = ['posts', 'faces'] as const;
 
+  // 预取各分区的文件列表，复用同一数组避免重复 getContentFiles() 调用
+  const filesBySection = new Map<'posts' | 'faces', ContentFile[]>();
   for (const section of sections) {
-    const files = getContentFiles(section);
+    filesBySection.set(section, getContentFiles(section));
+  }
+
+  for (const section of sections) {
+    const files = filesBySection.get(section)!;
     for (const file of files) {
       const entry: RegistryEntry = {
         title: file.meta.title,
@@ -96,12 +102,6 @@ function buildRegistry(): Registry {
 
   // 构建后向链接索引
   const backlinkIndex = new Map<string, BacklinkInfo[]>();
-
-  // 预取各分区的文件列表，避免在循环内重复调用 getContentFiles（O(n²) → O(n)）
-  const filesBySection = new Map<'posts' | 'faces', ContentFile[]>();
-  for (const section of sections) {
-    filesBySection.set(section, getContentFiles(section));
-  }
 
   for (const entry of entries) {
     const files = filesBySection.get(entry.section);

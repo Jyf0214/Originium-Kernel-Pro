@@ -80,12 +80,12 @@ export class WebDavProvider implements StorageProvider {
       const entries = contents
         .filter((e) => e.filename !== dirPath && e.filename !== dirPath + '/')
         .sort((a, b) => b.filename.localeCompare(a.filename))
-      for (const entry of entries) {
-        if (entry.type === 'directory') {
-          await client.deleteFile(entry.filename)
-        } else {
-          await client.deleteFile(entry.filename)
-        }
+
+      // 并行删除，每批 8 个，避免 WebDAV 服务器过载
+      const BATCH_SIZE = 8
+      for (let i = 0; i < entries.length; i += BATCH_SIZE) {
+        const batch = entries.slice(i, i + BATCH_SIZE)
+        await Promise.allSettled(batch.map((entry) => client.deleteFile(entry.filename)))
       }
     }
     await client.deleteFile(dirPath)
