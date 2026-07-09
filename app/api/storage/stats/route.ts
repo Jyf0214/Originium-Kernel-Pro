@@ -79,6 +79,9 @@ let cacheTimestamp = 0
 /** 最大递归深度限制 */
 const MAX_DEPTH = 5
 
+/** 并行扫描最大并发数，防止资源耗尽 */
+const MAX_CONCURRENCY = 8
+
 /** 文件类型分组映射 */
 const MIME_CATEGORY_MAP: Record<string, string> = {
   // 图片
@@ -116,6 +119,37 @@ function getTopLevelFolder(filePath: string): string {
 /* ---------- 递归扫描 ---------- */
 
 /**
+ * 并发限制执行器，防止同时发起过多请求导致资源耗尽
+ */
+async function parallelLimit<T>(
+  tasks: (() => Promise<T>)[],
+  limit: number,
+): Promise<T[]> {
+  const results: T[] = []
+  const executing: Promise<void>[] = []
+
+  for (const task of tasks) {
+    const p = task().then((result) => {
+      results.push(result)
+      return void 0
+    })
+    executing.push(p)
+
+    if (executing.length >= limit) {
+      await Promise.race(executing)
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      executing.splice(
+        executing.findIndex((ep) => ep === p),
+        1,
+      )
+    }
+  }
+
+  await Promise.all(executing)
+  return results
+}
+
+/**
  * 递归扫描目录，收集所有文件信息
  * @param provider 存储提供者
  * @param dirPath 当前目录路径
@@ -140,11 +174,11 @@ async function scanDirectory(
   }
 
   // 收集文件和子目录路径
-  const dirPromises: Promise<void>[] = []
+  const dirTasks: (() => Promise<void>)[] = []
   for (const entry of entries) {
     if (entry.type === 'directory') {
       const subPath = dirPath ? `${dirPath}/${entry.filename}` : entry.filename
-      dirPromises.push(scanDirectory(provider, subPath, depth + 1, files))
+      dirTasks.push(() => scanDirectory(provider, subPath, depth + 1, files))
     } else {
       const relativePath = dirPath ? `${dirPath}/${entry.filename}` : entry.filename
       files.push({
@@ -155,8 +189,8 @@ async function scanDirectory(
       })
     }
   }
-  // 并行扫描所有子目录，提升递归扫描性能
-  await Promise.all(dirPromises)
+  // 并行扫描所有子目录，使用并发限制防止资源耗尽
+  await parallelLimit(dirTasks, MAX_CONCURRENCY)
 }
 
 /**
