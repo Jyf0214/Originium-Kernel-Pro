@@ -207,6 +207,7 @@ export function Lightbox({ images, alts, initialIndex, onClose, isOpen = true }:
                       src={src}
                       alt={alts?.[i] ?? ''}
                       className="w-full h-full object-cover"
+                      loading="lazy"
                       draggable={false}
                     />
                   </button>

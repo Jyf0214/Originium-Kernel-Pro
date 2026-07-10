@@ -9,6 +9,29 @@ import { useCoverParallax } from '@/hooks/useCoverParallax';
 import { EASE_STANDARD } from '@/components/ui/motion';
 import type { AuthorInfo } from '@/types/author';
 
+/** 原创/转载标识徽章 — 跨上下文共享 */
+function TypeBadge({
+  typeStr,
+  variant = 'light',
+}: {
+  typeStr: string;
+  variant?: 'overlay' | 'light';
+}) {
+  const isOriginal = typeStr === 'original';
+  const base = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest';
+  const overlay = isOriginal
+    ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 backdrop-blur-sm'
+    : 'bg-amber-500/20 text-amber-200 border border-amber-400/30 backdrop-blur-sm';
+  const light = isOriginal
+    ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700'
+    : 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700';
+  return (
+    <span className={`${base} ${variant === 'overlay' ? overlay : light}`}>
+      {isOriginal ? '原创' : '转载'}
+    </span>
+  );
+}
+
 /** 作者头像：有 avatar 显示图片，否则显示占位图标 */
 function AuthorAvatar({
   authorInfo,
@@ -147,13 +170,7 @@ export function CoverHero({
       >
         {typeStr && (
           <motion.div variants={itemVariants} className="mb-4">
-            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm ${
-              typeStr === 'original'
-                ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/30'
-                : 'bg-amber-500/20 text-amber-200 border border-amber-400/30'
-            }`}>
-              {typeStr === 'original' ? '原创' : '转载'}
-            </span>
+            <TypeBadge typeStr={typeStr} variant="overlay" />
           </motion.div>
         )}
         {tagsArr.length > 0 && (
@@ -226,13 +243,7 @@ function SimpleHeader({
     >
       {typeStr && (
         <motion.div variants={itemVariants} className="mb-4">
-          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest ${
-            typeStr === 'original'
-              ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700'
-              : 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700'
-          }`}>
-            {typeStr === 'original' ? '原创' : '转载'}
-          </span>
+          <TypeBadge typeStr={typeStr} variant="light" />
         </motion.div>
       )}
       {tagsArr.length > 0 && (

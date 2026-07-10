@@ -105,18 +105,24 @@ export default function ShareButtons({ title, url, config, locale: _locale }: Sh
   const [wechatCopied, setWechatCopied] = useState(false);
   const [wechatFailed, setWechatFailed] = useState(false);
   const wechatBtnRef = useRef<HTMLDivElement>(null);
-  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const wechatCopiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const copyFailedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const wechatFailedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  /** 设置延迟定时器：先清除同名旧定时器，再创建新定时器 */
+  const setDelayedReset = useCallback((key: string, setState: (v: boolean) => void, delay = 2000) => {
+    const prev = timersRef.current.get(key);
+    if (prev) clearTimeout(prev);
+    timersRef.current.set(key, setTimeout(() => {
+      setState(false);
+      timersRef.current.delete(key);
+    }, delay));
+  }, []);
 
   // 组件卸载时清理所有定时器
   useEffect(() => {
+    const timers = timersRef.current;
     return () => {
-      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
-      if (wechatCopiedTimerRef.current) clearTimeout(wechatCopiedTimerRef.current);
-      if (copyFailedTimerRef.current) clearTimeout(copyFailedTimerRef.current);
-      if (wechatFailedTimerRef.current) clearTimeout(wechatFailedTimerRef.current);
+      for (const timer of timers.values()) clearTimeout(timer);
+      timers.clear();
     };
   }, []);
 
@@ -138,14 +144,12 @@ export default function ShareButtons({ title, url, config, locale: _locale }: Sh
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
-      copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
+      setDelayedReset('copy', setCopied);
     } catch {
       setCopyFailed(true);
-      if (copyFailedTimerRef.current) clearTimeout(copyFailedTimerRef.current);
-      copyFailedTimerRef.current = setTimeout(() => setCopyFailed(false), 2000);
+      setDelayedReset('copyFailed', setCopyFailed);
     }
-  }, [url]);
+  }, [url, setDelayedReset]);
 
   const handleShare = useCallback((shareUrl: string) => {
     window.open(shareUrl, '_blank', SHARE_WINDOW_FEATURES);
@@ -155,14 +159,12 @@ export default function ShareButtons({ title, url, config, locale: _locale }: Sh
     try {
       await navigator.clipboard.writeText(url);
       setWechatCopied(true);
-      if (wechatCopiedTimerRef.current) clearTimeout(wechatCopiedTimerRef.current);
-      wechatCopiedTimerRef.current = setTimeout(() => setWechatCopied(false), 2000);
+      setDelayedReset('wechatCopied', setWechatCopied);
     } catch {
       setWechatFailed(true);
-      if (wechatFailedTimerRef.current) clearTimeout(wechatFailedTimerRef.current);
-      wechatFailedTimerRef.current = setTimeout(() => setWechatFailed(false), 2000);
+      setDelayedReset('wechatFailed', setWechatFailed);
     }
-  }, [url]);
+  }, [url, setDelayedReset]);
 
   if (!config.enable) return null;
 
