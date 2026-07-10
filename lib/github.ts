@@ -10,10 +10,14 @@ interface GithubSyncParams {
   message: string;
 }
 
-/** 动态导入 Octokit，避免所有引用此文件的路由都加载完整的 Octokit bundle */
+/** 动态导入 Octokit 模块并缓存，避免每次调用都重新解析 import */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _octokitMod: { Octokit: any } | null = null
+
 async function getOctokit(token: string) {
-  const { Octokit } = await import('octokit');
-  return new Octokit({ auth: token });
+  _octokitMod ??= await import('octokit')
+  const { Octokit } = _octokitMod
+  return new Octokit({ auth: token })
 }
 
 /** 从 GitHub 获取文件内容 */

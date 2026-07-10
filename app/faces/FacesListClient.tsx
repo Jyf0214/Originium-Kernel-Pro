@@ -9,7 +9,7 @@ import { Input } from 'antd';
 import { useI18n } from '@/hooks/use-i18n';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Tag } from '@/components/ui/Tag';
-import { FilterPill } from '@/components/ui/FilterPill';
+import { Button } from '@/components/ui/Button';
 
 export interface FaceItem {
   slug: string;
@@ -94,20 +94,26 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
       {/* 分组标签 + 数量统计 */}
       {groupNames.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 mb-8">
-          <FilterPill
-            selected={activeGroup === null}
+          <Button
+            variant={activeGroup === null ? 'primary' : 'secondary'}
+            rounded="full"
+            size="md"
+            autoLoading={false}
             onClick={() => setActiveGroup(null)}
           >
             {t('faces.allFaces')}
-          </FilterPill>
+          </Button>
           {groupNames.map((name) => (
-            <FilterPill
+            <Button
               key={name}
-              selected={activeGroup === name}
+              variant={activeGroup === name ? 'primary' : 'secondary'}
+              rounded="full"
+              size="md"
+              autoLoading={false}
               onClick={() => setActiveGroup(name)}
             >
               {name}
-            </FilterPill>
+            </Button>
           ))}
         </div>
       )}
