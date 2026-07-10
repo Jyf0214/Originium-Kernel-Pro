@@ -37,6 +37,7 @@ model OriginiumKV {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("originium_kv")
+  @@index([expiry])
 }
 
 // 日记表
