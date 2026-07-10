@@ -86,8 +86,40 @@ class PrismaDriver implements IDatabase {
   /** 数据库未配置时为 null;调用方应将其视为「未配置」并降级处理 */
   public readonly prisma: PrismaClient | null = getDatabaseUrl() ? prisma : null
 
+  /** 上次清理过期 KV 的时间戳（毫秒），用于节流 */
+  private _lastCleanupTs = 0
+
+  /**
+   * 批量清理已过期的 KV 记录
+   *
+   * 每小时最多执行一次（节流），使用 deleteMany + expiry 索引高效删除。
+   * 单次删除上限 500 条，避免长事务阻塞连接。
+   * 异常静默吞掉——清理失败不应影响正常业务。
+   */
+  async cleanupExpiredKV(): Promise<void> {
+    if (!this.prisma) return
+    const now = Date.now()
+    // 每小时最多清理一次
+    if (now - this._lastCleanupTs < 60 * 60 * 1000) return
+    this._lastCleanupTs = now
+    try {
+      const result = await this.prisma.originiumKV.deleteMany({
+        where: {
+          expiry: { not: null, lt: BigInt(now) },
+        },
+      })
+      if (result.count > 0) {
+        console.warn(`[db] KV 过期清理: 已删除 ${result.count} 条过期记录`)
+      }
+    } catch {
+      // 清理失败不阻断业务
+    }
+  }
+
   async get(key: string): Promise<string | null> {
     if (!this.prisma) return null
+    // 惰性触发过期清理（节流，不影响读取延迟）
+    void this.cleanupExpiredKV()
     const record = await this.prisma.originiumKV.findUnique({ where: { key } })
     if (!record) return null
     if (record.expiry && record.expiry < BigInt(Date.now())) {
@@ -136,6 +168,8 @@ class PrismaDriver implements IDatabase {
 
   async hgetall(key: string): Promise<Record<string, string>> {
     if (!this.prisma) return {}
+    // 惰性触发过期清理
+    void this.cleanupExpiredKV()
     const records = await this.prisma.originiumKV.findMany({
       where: { key: { startsWith: `${key}:` } }
     })
