@@ -46,9 +46,6 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
     searchHistory,
   } = useSearch({ open, onClose });
 
-  // 计算扁平索引偏移量（用于键盘导航定位）
-  let flatOffset = 0;
-
   return (
     <AnimatePresence>
       {open && (
@@ -119,8 +116,8 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
 
               {/* 结果分组 */}
               {!loading &&
-                groups.map((group) => {
-                  const groupOffset = flatOffset;
+                groups.map((group, groupIndex) => {
+                  const groupOffset = groups.slice(0, groupIndex).reduce((sum, g) => sum + g.results.length, 0);
                   return (
                     <div key={group.type}>
                       {/* 分组标题 */}
@@ -151,8 +148,6 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
                           </motion.div>
                         ))}
                       </motion.div>
-                      {/* 更新偏移量 */}
-                      {(() => { flatOffset += group.results.length; return null; })()}
                     </div>
                   );
                 })}
