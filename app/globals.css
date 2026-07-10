@@ -403,6 +403,77 @@ pre:hover .code-copy-btn {
   animation: fadeInUp 0.5s ease-out 0.3s both;
 }
 
+/* ── Loading 组件动画（替代 styled-jsx） ── */
+
+/* 弹跳点动画 — LoadingText */
+.loading-dots span {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #71717a;
+  margin: 0 2px;
+  animation: dot-bounce 1.4s ease-in-out infinite;
+}
+.loading-dots span:nth-child(1) { animation-delay: 0s; }
+.loading-dots span:nth-child(2) { animation-delay: 0.16s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.32s; }
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* 弹跳点动画 — LoadingDots */
+.loading-dots-animated {
+  display: flex;
+  gap: 6px;
+}
+.loading-dots-animated span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: loading-bounce 1.4s ease-in-out infinite both;
+}
+.loading-dots-animated span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots-animated span:nth-child(2) { animation-delay: -0.16s; }
+.loading-dots-animated span:nth-child(3) { animation-delay: 0s; }
+@keyframes loading-bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+/* 发光旋转动画 — LoadingGlow */
+.loading-glow-container {
+  position: relative;
+  width: 48px;
+  height: 48px;
+}
+.loading-glow-circle {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0%, #18181b 25%, transparent 50%);
+  animation: glow-spin 1.5s linear infinite;
+}
+.loading-glow-inner {
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: white;
+}
+@keyframes glow-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 波浪动画 — LoadingWaves */
+.animate-wave {
+  animation: wave 1s ease-in-out infinite;
+}
+@keyframes wave {
+  0%, 100% { height: 40%; }
+  50% { height: 100%; }
+}
+
 /* 移动端弹窗防撑宽 */
 @media (max-width: 640px) {
   .ant-modal-wrap {

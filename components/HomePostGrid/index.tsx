@@ -7,6 +7,7 @@ import { useI18n } from '@/hooks/use-i18n';
 import { CategoryBar } from '@/components/CategoryBar';
 import { HeroSection } from './HeroSection';
 import { PostCard } from '@/components/ui/PostCard';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Pagination } from './Pagination';
 import { useHomeFilter } from './use-home-filter';
 import type { HomePostGridProps } from './types';
@@ -74,14 +75,13 @@ export function HomePostGrid({
                   />
                 ))
               : (
-                  <div className="col-span-full py-32 text-center bg-white dark:bg-zinc-800 rounded-[3rem] border border-zinc-100 dark:border-zinc-700 shadow-sm">
-                    <div className="w-24 h-24 bg-zinc-50 dark:bg-zinc-700 rounded-full flex items-center justify-center mx-auto mb-6 text-zinc-300 dark:text-zinc-500">
-                      <Sparkles size={40} />
-                    </div>
-                    <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-2">{t('home.emptyTitle')}</h3>
-                    <p className="text-zinc-400 font-medium whitespace-pre-line">
-                      {t('home.noPosts')}
-                    </p>
+                  <div className="col-span-full">
+                    <EmptyState
+                      icon={<Sparkles size={40} />}
+                      title={t('home.emptyTitle')}
+                      description={t('home.noPosts')}
+                      variant="card"
+                    />
                   </div>
                 )}
           </AnimatePresence>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { SITE_CONFIG } from '@/data/site-config';
 import type {
   AppearanceConfig,
@@ -48,5 +49,8 @@ export function useConfig(): {
   loading: boolean;
   error: string | null;
 } {
-  return { config: SITE_CONFIG, loading: false, error: null };
+  return useMemo(
+    () => ({ config: SITE_CONFIG, loading: false, error: null }),
+    [],
+  );
 }
