@@ -2,8 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Pin, User as UserIcon, Calendar, Clock } from 'lucide-react';
+import { Pin, Calendar, Clock } from 'lucide-react';
 import { Tag } from '@/components/ui/Tag';
+import { Avatar } from '@/components/Avatar';
 import type { PostItem } from './types';
 
 function PostCardBodyFooter({
@@ -18,17 +19,11 @@ function PostCardBodyFooter({
   return (
     <div className="mt-auto pt-3 border-t border-zinc-50 dark:border-zinc-800 flex items-center justify-between gap-2 text-zinc-500 dark:text-zinc-400 min-w-0">
       <div className="flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-        {post.authorAvatar ? (
-          <img
-            src={post.authorAvatar}
-            alt={post.authorNickname ?? post.author ?? ''}
-            className="w-5 h-5 rounded object-cover shrink-0"
-          />
-        ) : (
-          <div className="w-5 h-5 bg-zinc-100 dark:bg-zinc-700 rounded flex items-center justify-center text-zinc-600 dark:text-zinc-300 shrink-0">
-            <UserIcon size={10} />
-          </div>
-        )}
+        <Avatar
+          name={post.authorNickname ?? post.author ?? ''}
+          avatarUrl={post.authorAvatar}
+          size={20}
+        />
         <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300 truncate">
           {post.authorNickname ?? post.author ?? t('home.anonymous')}
         </span>
