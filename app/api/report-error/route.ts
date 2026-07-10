@@ -9,6 +9,7 @@ import { apiHandler } from '@/lib/api-handler';
 import { createApiLogger } from '@/lib/api-logger';
 import { getClientIp } from '@/lib/rate-limit';
 import { sendMail } from '@/lib/mail';
+import { escapeHtml } from '@/lib/utils';
 
 const logger = createApiLogger('/api/report-error');
 
@@ -152,18 +153,6 @@ function consumeRateLimitToken(ip: string): boolean {
   recent.push(now);
   rateLimitMap.set(ip, recent);
   return true;
-}
-
-/**
- * 转义 HTML 特殊字符，用于在 <pre> 中安全渲染用户内容。
- */
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }
 
 /**

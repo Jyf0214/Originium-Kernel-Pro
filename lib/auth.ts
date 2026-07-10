@@ -260,6 +260,32 @@ async function isSessionRevoked(uid: string, sv: number): Promise<boolean> {
 }
 
 /**
+ * 验证 Cookie 中的 JWT 会话（共享逻辑）
+ *
+ * 从 Cookie 读取 JWT、验签、校验会话版本号，返回有效载荷或 null。
+ * 供 getSession() 和 getSessionWithKeyId() 复用，避免重复实现。
+ */
+async function verifyCookieSession(): Promise<SessionPayload | null> {
+  const session = (await cookies()).get('session')?.value;
+  if (!session) return null;
+  try {
+    const { payload } = await jwtVerify(session, getSecretEncoder(), {
+      algorithms: ['HS256'],
+    });
+    const typed = payload as unknown as SessionPayload;
+    // 会话版本校验：密码修改后旧 JWT 自动失效
+    const effectiveSv = typed.sv ?? 0;
+    if (await isSessionRevoked(typed.uid, effectiveSv)) {
+      return null;
+    }
+    return typed;
+  } catch {
+    // Cookie 无效
+    return null;
+  }
+}
+
+/**
  * 从 Cookie / API 密钥获取当前会话
  *
  * 优先级:
@@ -268,23 +294,8 @@ async function isSessionRevoked(uid: string, sv: number): Promise<boolean> {
  */
 export async function getSession(): Promise<SessionPayload | null> {
   // 1. 尝试 Cookie session
-  const session = (await cookies()).get('session')?.value;
-  if (session) {
-    try {
-      const { payload } = await jwtVerify(session, getSecretEncoder(), {
-        algorithms: ['HS256'],
-      });
-      const typed = payload as unknown as SessionPayload;
-      // 会话版本校验：密码修改后旧 JWT 自动失效
-      const effectiveSv = typed.sv ?? 0;
-      if (await isSessionRevoked(typed.uid, effectiveSv)) {
-        return null;
-      }
-      return typed;
-    } catch {
-      // Cookie 无效,继续尝试 API 密钥
-    }
-  }
+  const cookieSession = await verifyCookieSession();
+  if (cookieSession) return cookieSession;
 
   // 2. 尝试 API 密钥
   return getSessionFromApiKey();
@@ -297,22 +308,8 @@ export async function getSession(): Promise<SessionPayload | null> {
  */
 export async function getSessionWithKeyId(): Promise<{ session: SessionPayload; currentKeyId: string | null } | null> {
   // 1. 尝试 Cookie session
-  const session = (await cookies()).get('session')?.value;
-  if (session) {
-    try {
-      const { payload } = await jwtVerify(session, getSecretEncoder(), {
-        algorithms: ['HS256'],
-      });
-      const typed = payload as unknown as SessionPayload;
-      const effectiveSv = typed.sv ?? 0;
-      if (await isSessionRevoked(typed.uid, effectiveSv)) {
-        return null;
-      }
-      return { session: typed, currentKeyId: null };
-    } catch {
-      // Cookie 无效,继续尝试 API 密钥
-    }
-  }
+  const cookieSession = await verifyCookieSession();
+  if (cookieSession) return { session: cookieSession, currentKeyId: null };
 
   // 2. 尝试 API 密钥
   return authenticateApiKeyCore();

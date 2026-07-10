@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { escapeHtml } from '@/lib/utils';
 
 interface MailOptions {
   to: string;
@@ -72,16 +73,6 @@ export async function sendMail(options: MailOptions): Promise<boolean> {
     console.error('[mail] 发送邮件失败:', error instanceof Error ? error.message : String(error));
     return false;
   }
-}
-
-/** HTML 实体转义，防止邮件 HTML 注入 */
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }
 
 /**
