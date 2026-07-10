@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import { escapeHtml } from '@/lib/utils';
 
 /** 工单模板字段定义 */
 export interface TicketField {
@@ -85,14 +86,4 @@ export function renderTicketBody(template: TicketTemplate, formData: Record<stri
   }
 
   return body;
-}
-
-/** HTML 实体转义，防止表单字段中的特殊字符注入 */
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }

@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
-import { getSession, getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
+import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { apiHandler } from '@/lib/api-handler';
 import { createApiLogger } from '@/lib/api-logger';
 import { canAccess, loadConfig, hasDatabase } from '@/lib/config';
@@ -378,13 +378,17 @@ function checkSearchRateLimit(req: NextRequest): NextResponse | null {
 }
 
 /** 解析并校验搜索参数，返回搜索上下文或错误响应 */
-async function parseSearchParams(req: NextRequest): Promise<{
+function parseSearchParams(
+  req: NextRequest,
+  isAuthenticated: boolean,
+  isAdmin: boolean,
+): {
   searchQuery: string;
   tag: string | null;
   isAuthenticated: boolean;
   dbAvailable: boolean;
   isAdmin: boolean;
-} | NextResponse> {
+} | NextResponse {
   const { searchParams } = new URL(req.url);
   const query = searchParams.get('q')?.trim() ?? '';
   const tag = searchParams.get('tag')?.trim();
@@ -403,10 +407,7 @@ async function parseSearchParams(req: NextRequest): Promise<{
 
   logger.info('GET', '执行搜索', { query: searchQuery, tag });
 
-  const session = await getSession();
-  const isAuthenticated = !!session;
   const dbAvailable = hasDatabase();
-  const isAdmin = session?.role === 'admin' || session?.role === 'sudo';
 
   return { searchQuery, tag: tag ?? null, isAuthenticated, dbAvailable, isAdmin };
 }
@@ -415,17 +416,20 @@ export const GET = apiHandler('GET', { label: '搜索' }, async (req: NextReques
   const rlErr = checkSearchRateLimit(req);
   if (rlErr) return rlErr;
 
-  // API 密钥权限检查
+  // 统一获取会话：同时用于 API 密钥权限检查和搜索参数解析，避免重复 getSession
   const authResult = await getSessionWithKeyId();
   if (authResult) {
     const permErr = await requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'search');
     if (permErr) return permErr;
   }
 
-  // 解析并校验搜索参数
-  const params = await parseSearchParams(req);
+  const isAuthenticated = !!authResult;
+  const isAdmin = authResult?.session?.role === 'admin' || authResult?.session?.role === 'sudo';
+
+  // 解析并校验搜索参数（复用已有会话信息，不再重复 getSession）
+  const params = await parseSearchParams(req, isAuthenticated, isAdmin);
   if (params instanceof NextResponse) return params;
-  const { searchQuery, tag, isAuthenticated, dbAvailable, isAdmin } = params;
+  const { searchQuery, tag, dbAvailable } = params;
 
   return executeSearch(searchQuery, tag, isAuthenticated, dbAvailable, isAdmin);
 });
