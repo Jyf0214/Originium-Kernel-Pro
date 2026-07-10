@@ -175,21 +175,26 @@ function normalizeKey(path: string): string {
   return path.replace(/^[\\/]+|[\\/]+$/g, '')
 }
 
-/**
- * 根据文件扩展名猜测 Content-Type
- */
+/** 根据文件扩展名猜测 Content-Type */
 function guessContentType(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase()
-  const types: Record<string, string> = {
-    html: 'text/html', htm: 'text/html', css: 'text/css',
-    js: 'application/javascript', json: 'application/json',
-    png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg',
-    gif: 'image/gif', svg: 'image/svg+xml', webp: 'image/webp',
-    ico: 'image/x-icon', pdf: 'application/pdf', txt: 'text/plain',
-    md: 'text/markdown', xml: 'application/xml',
-    woff: 'font/woff', woff2: 'font/woff2', ttf: 'font/ttf',
+  const map: Record<string, string> = {
+    html: 'text/html', htm: 'text/html', css: 'text/css', js: 'application/javascript',
+    mjs: 'application/javascript', json: 'application/json', jsonl: 'application/json',
+    png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif',
+    svg: 'image/svg+xml', webp: 'image/webp', avif: 'image/avif', bmp: 'image/bmp',
+    ico: 'image/x-icon', pdf: 'application/pdf', txt: 'text/plain', csv: 'text/csv',
+    md: 'text/markdown', xml: 'application/xml', yaml: 'text/yaml', yml: 'text/yaml',
+    toml: 'text/plain', mp4: 'video/mp4', webm: 'video/webm', mp3: 'audio/mpeg',
+    wav: 'audio/wav', ogg: 'audio/ogg', wasm: 'application/wasm', zip: 'application/zip',
+    gz: 'application/gzip', tar: 'application/x-tar', '7z': 'application/x-7z-compressed',
+    woff: 'font/woff', woff2: 'font/woff2', ttf: 'font/ttf', otf: 'font/otf',
+    doc: 'application/msword',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    xls: 'application/vnd.ms-excel',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   }
-  return types[ext ?? ''] ?? 'application/octet-stream'
+  return map[ext ?? ''] ?? 'application/octet-stream'
 }
 
 /**
@@ -205,15 +210,8 @@ async function toBuffer(data: FileContent): Promise<Buffer> {
   return Buffer.from(String(data))
 }
 
-/**
- * 向 entries 添加目录条目（去重）
- */
-function addDirEntry(
-  entries: FileStat[],
-  seen: Set<string>,
-  rawPrefix: string,
-  fullPrefix: string
-): void {
+/** 向 entries 添加目录条目（去重） */
+function addDirEntry(entries: FileStat[], seen: Set<string>, rawPrefix: string, fullPrefix: string): void {
   const dirName = rawPrefix.replace(fullPrefix, '').replace(/\/$/, '')
   if (!dirName || seen.has(dirName)) return
   seen.add(dirName)
@@ -234,16 +232,8 @@ interface ContentEntryCtx {
   fullPrefix: string
 }
 
-/**
- * 处理 S3 Contents 条目（文件或 B2 虚拟目录标记）
- */
-function processContentEntry(
-  ctx: ContentEntryCtx,
-  key: string,
-  size: number,
-  lastModified: Date | undefined,
-  etag: string | null | undefined
-): void {
+/** 处理 S3 Contents 条目（文件或 B2 虚拟目录标记） */
+function processContentEntry(ctx: ContentEntryCtx, key: string, size: number, lastModified: Date | undefined, etag: string | null | undefined): void {
   const { entries, seen, fullPrefix } = ctx
   if (!key || key === fullPrefix) return
 
