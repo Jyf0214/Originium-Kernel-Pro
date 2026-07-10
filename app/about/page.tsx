@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { HeroBanner } from '@/components/ui/HeroBanner';

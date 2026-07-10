@@ -47,24 +47,6 @@ export function LoadingText({ tip = 'Loading...' }: { tip?: string }) {
         <span />
         <span />
       </span>
-      <style jsx>{`
-        .loading-dots span {
-          display: inline-block;
-          width: 4px;
-          height: 4px;
-          border-radius: 50%;
-          background: #71717a;
-          margin: 0 2px;
-          animation: dot-bounce 1.4s ease-in-out infinite;
-        }
-        .loading-dots span:nth-child(1) { animation-delay: 0s; }
-        .loading-dots span:nth-child(2) { animation-delay: 0.16s; }
-        .loading-dots span:nth-child(3) { animation-delay: 0.32s; }
-        @keyframes dot-bounce {
-          0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
-          40% { transform: scale(1); opacity: 1; }
-        }
-      `}</style>
     </div>
   );
 }
@@ -83,25 +65,6 @@ export function LoadingDots({ tip = 'Loading', color = '#c084fc' }: LoadingProps
         ))}
       </div>
       {tip && <span className="text-sm text-zinc-400">{tip}</span>}
-      <style jsx>{`
-        .loading-dots-animated {
-          display: flex;
-          gap: 6px;
-        }
-        .loading-dots-animated span {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          animation: bounce 1.4s ease-in-out infinite both;
-        }
-        .loading-dots-animated span:nth-child(1) { animation-delay: -0.32s; }
-        .loading-dots-animated span:nth-child(2) { animation-delay: -0.16s; }
-        .loading-dots-animated span:nth-child(3) { animation-delay: 0s; }
-        @keyframes bounce {
-          0%, 80%, 100% { transform: scale(0); }
-          40% { transform: scale(1); }
-        }
-      `}</style>
     </div>
   );
 }
@@ -114,29 +77,6 @@ export function LoadingGlow({ tip = 'Loading...' }: { tip?: string }) {
         <div className="loading-glow-inner" />
       </div>
       {tip && <span className="text-sm text-zinc-500 animate-pulse">{tip}</span>}
-      <style jsx>{`
-        .loading-glow-container {
-          position: relative;
-          width: 48px;
-          height: 48px;
-        }
-        .loading-glow-circle {
-          position: absolute;
-          inset: 0;
-          border-radius: 50%;
-          background: conic-gradient(from 0deg, transparent 0%, #18181b 25%, transparent 50%);
-          animation: glow-spin 1.5s linear infinite;
-        }
-        .loading-glow-inner {
-          position: absolute;
-          inset: 8px;
-          border-radius: 50%;
-          background: white;
-        }
-        @keyframes glow-spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }
@@ -158,15 +98,6 @@ export function LoadingWaves({ tip = 'Loading...', color = '#c084fc' }: LoadingP
         ))}
       </div>
       {tip && <span className="text-sm text-zinc-400">{tip}</span>}
-      <style jsx>{`
-        .animate-wave {
-          animation: wave 1s ease-in-out infinite;
-        }
-        @keyframes wave {
-          0%, 100% { height: 40%; }
-          50% { height: 100%; }
-        }
-      `}</style>
     </div>
   );
 }

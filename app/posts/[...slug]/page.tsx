@@ -14,6 +14,7 @@ import { PostDetailBody } from './_components/PostDetailBody';
 import { PostCoverSection } from './_components/PostCoverSection';
 import { PostSidebar } from './_components/PostSidebar';
 import { JsonLd } from '@/components/JsonLd';
+import { PostPageProvider } from '@/contexts/PostPageContext';
 import type { Crumb } from './_components/PostBreadcrumb';
 import FooterWrapper from '@/components/Footer/FooterWrapper';
 
@@ -80,7 +81,9 @@ export default async function PostDetailPage({ params }: PageProps) {
       <main className={`flex-1 max-w-6xl 2xl:max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-16 ${file.meta.cover ? '' : 'pt-8'}`}>
         <div className="lg:flex lg:gap-8 items-start">
           <div className="flex-1 min-w-0">
-            <PostDetailBody {...viewModel} omitHeader={!!file.meta.cover} />
+            <PostPageProvider>
+              <PostDetailBody {...viewModel} omitHeader={!!file.meta.cover} />
+            </PostPageProvider>
           </div>
           <div className="animate-sidebar-slidein">
             <PostSidebar

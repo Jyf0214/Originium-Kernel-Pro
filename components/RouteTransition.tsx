@@ -2,6 +2,7 @@
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { EASE_STANDARD } from '@/components/ui/motion';
 
 /**
  * Pjax 风格页面过渡 — 模拟加载进度条 + 淡入淡出
@@ -87,7 +88,7 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.2, ease: 'easeInOut' }}
+          transition={{ duration: 0.3, ease: EASE_STANDARD }}
         >
           {children}
         </motion.div>

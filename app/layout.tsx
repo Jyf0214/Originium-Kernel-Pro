@@ -6,8 +6,6 @@ import { CustomHead } from '../components/CustomHead';
 import { Providers } from './providers';
 import { Navbar } from '../components/Navbar';
 import { RouteTransition } from '../components/RouteTransition';
-import { PageTransition } from '../components/PageTransition';
-import { PostPageProvider } from '@/contexts/PostPageContext';
 import { PWARegister } from '../components/PWARegister';
 import { TabTitleSwitch } from '../components/TabTitleSwitch';
 import { MusicPlayerWrapper } from '../components/MusicPlayer/MusicPlayerWrapper';
@@ -55,6 +53,14 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
             __html: `(function(){try{var m=localStorage.getItem('theme-mode');var d=m==='dark'||(m!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches);if(d)document.documentElement.classList.add('dark')}catch(e){}})()`,
           }}
         />
+        {/* 字体大小：从构建时配置读取 fontSize 并设置 CSS 变量 */}
+        {typeof config.appearance?.fontSize === 'number' && config.appearance.fontSize >= 10 && config.appearance.fontSize <= 30 && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `document.documentElement.style.setProperty('--base-font-size','${config.appearance.fontSize}px')`,
+            }}
+          />
+        )}
         {/* 构建时注入固定头像路径 /avatar.jpg（由 prebuild 脚本下载），运行时不依赖外部 URL */}
         <script
           dangerouslySetInnerHTML={{
@@ -73,18 +79,14 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         </a>
         <Providers>
           <AuthProvider>
-            <PostPageProvider>
-              <Navbar navConfig={config.nav} siteTitle={config.site.title} databaseConfigured={hasDatabase()} />
-              <div id="main-content" tabIndex={-1}>
-                <RouteTransition>
-                  <PageTransition>
+            <Navbar navConfig={config.nav} siteTitle={config.site.title} databaseConfigured={hasDatabase()} />
+            <div id="main-content" tabIndex={-1}>
+              <RouteTransition>
                     <Suspense>
                       {children}
                     </Suspense>
-                  </PageTransition>
-                </RouteTransition>
-              </div>
-            </PostPageProvider>
+              </RouteTransition>
+            </div>
           </AuthProvider>
           <MusicPlayerWrapper />
         </Providers>
