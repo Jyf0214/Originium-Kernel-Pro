@@ -6,8 +6,8 @@ describe('getUserAvatar 全局头像', () => {
     clearConfigCache();
   });
 
-  it('始终返回 avatar.url', () => {
-    const config = loadConfig();
+  it('始终返回 avatar.url', async () => {
+    const config = await loadConfig();
     const result = getUserAvatar();
     expect(result).toBe(config.avatar?.url || null);
   });

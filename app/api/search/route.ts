@@ -123,7 +123,7 @@ function loadSearchIndex(): SearchIndexEntry[] | null {
 }
 
 /** 处理单个 markdown 文件，返回搜索结果或 undefined */
-function processSearchFile(
+async function processSearchFile(
   filePath: string,
   baseDir: string,
   query: string,
@@ -132,10 +132,10 @@ function processSearchFile(
     dbAvailable: boolean;
     tagFilter?: string;
   },
-): SearchResult | undefined {
+): Promise<SearchResult | undefined> {
   const relative = path.relative(baseDir, filePath);
   const slug = '/' + relative.replace(/\.md$/, '').replace(/\\/g, '/');
-  const config = loadConfig();
+  const config = await loadConfig();
 
   if (!canAccess('posts', slug, options.isAuthenticated, options.dbAvailable, config)) {
     return undefined;
@@ -198,7 +198,7 @@ function processSearchFile(
  * 降级方案：递归扫描 posts 目录，搜索匹配的文章
  * 仅在构建时索引文件缺失时使用（运行时每次请求都会读取文件系统）
  */
-function searchPostsDirectoryLegacy(
+async function searchPostsDirectoryLegacy(
   dir: string,
   baseDir: string,
   query: string,
@@ -207,22 +207,26 @@ function searchPostsDirectoryLegacy(
     dbAvailable: boolean;
     tagFilter?: string;
   },
-): SearchResult[] {
+): Promise<SearchResult[]> {
   const results: SearchResult[] = [];
 
-  if (!fs.existsSync(dir)) return results;
+  try {
+    await fs.promises.access(dir);
+  } catch {
+    return results;
+  }
 
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const entries = await fs.promises.readdir(dir, { withFileTypes: true });
 
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
 
     if (entry.isDirectory()) {
       results.push(
-        ...searchPostsDirectoryLegacy(fullPath, baseDir, query, options),
+        ...(await searchPostsDirectoryLegacy(fullPath, baseDir, query, options)),
       );
     } else if (entry.isFile() && entry.name.endsWith('.md')) {
-      const result = processSearchFile(
+      const result = await processSearchFile(
         fullPath,
         baseDir,
         query,
@@ -240,7 +244,7 @@ function searchPostsDirectoryLegacy(
 /**
  * 使用构建时预生成的索引搜索文章（内存中匹配，无需读取文件系统）
  */
-function searchFromIndex(
+async function searchFromIndex(
   index: SearchIndexEntry[],
   query: string,
   options: {
@@ -248,10 +252,10 @@ function searchFromIndex(
     dbAvailable: boolean;
     tagFilter?: string;
   },
-): SearchResult[] {
+): Promise<SearchResult[]> {
   const results: SearchResult[] = [];
   const qLower = query.toLowerCase();
-  const config = loadConfig();
+  const config = await loadConfig();
 
   for (const entry of index) {
     // 权限检查：索引包含所有文章，运行时按当前认证状态过滤
@@ -296,7 +300,7 @@ function searchFromIndex(
 /**
  * 搜索入口：优先使用构建时索引，索引不可用时降级到实时扫描
  */
-function searchPostsDirectory(
+async function searchPostsDirectory(
   dir: string,
   baseDir: string,
   query: string,
@@ -305,13 +309,13 @@ function searchPostsDirectory(
     dbAvailable: boolean;
     tagFilter?: string;
   },
-): SearchResult[] {
+): Promise<SearchResult[]> {
   const index = loadSearchIndex();
   if (index) {
-    return searchFromIndex(index, query, options);
+    return await searchFromIndex(index, query, options);
   }
   // 降级：原有的实时扫描逻辑
-  return searchPostsDirectoryLegacy(dir, baseDir, query, options);
+  return await searchPostsDirectoryLegacy(dir, baseDir, query, options);
 }
 
 /**
@@ -452,7 +456,7 @@ async function executeSearch(
   isAdmin: boolean,
 ): Promise<NextResponse> {
   // 搜索 posts
-  const postResults = searchPostsDirectory(
+  const postResults = await searchPostsDirectory(
     POSTS_DIR,
     POSTS_DIR,
     searchQuery,
