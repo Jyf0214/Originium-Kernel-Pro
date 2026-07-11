@@ -70,6 +70,21 @@ const MAX_DEPTH = 5
 const SNIPPET_PADDING = 50
 const MAX_CACHE_ENTRIES = 10
 
+/* ---------- 缓存并发保护 ---------- */
+let cacheLock: Promise<void> = Promise.resolve();
+
+async function withCacheLock<T>(fn: () => T | Promise<T>): Promise<T> {
+  const prev = cacheLock;
+  let release!: () => void;
+  cacheLock = new Promise<void>((r) => { release = r; });
+  await prev;
+  try {
+    return await fn();
+  } finally {
+    release();
+  }
+}
+
 /** 多条搜索结果缓存，避免交替搜索不同关键词时反复全量扫描 */
 const cacheStore = new Map<string, CacheEntry>()
 
@@ -231,7 +246,7 @@ export const GET = apiHandler(
       return NextResponse.json({ error: '搜索关键词至少 2 个字符' }, { status: 400 })
     }
 
-    const cachedResult = getCachedResult(query)
+    const cachedResult = await withCacheLock(() => getCachedResult(query))
     if (cachedResult) {
       return NextResponse.json(cachedResult, {
         headers: { 'Cache-Control': 'private, max-age=120' },
@@ -259,7 +274,7 @@ export const GET = apiHandler(
         truncated: ctx.truncated.value,
       }
 
-      setCachedResult(query, response)
+      await withCacheLock(() => setCachedResult(query, response))
 
       return NextResponse.json(response, {
         headers: { 'Cache-Control': 'private, max-age=120' },

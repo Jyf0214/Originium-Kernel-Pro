@@ -34,13 +34,11 @@ export async function isClerkAvailable(): Promise<boolean> {
 }
 
 /**
- * 运行时动态 import()，避开构建器静态分析
- * new Function 创建的函数不受 bundler 追踪
+ * 运行时动态 import()，加载可选依赖
+ * 调用方通过 try/catch 处理模块不可用的情况
  */
 function runtimeImport(specifier: string): Promise<unknown> {
-  // biome-ignore lint/security/noGlobalFunction: required to bypass bundler static analysis
-  const importFn = new Function('s', 'return import(s)') as (s: string) => Promise<unknown>;
-  return importFn(specifier);
+  return import(specifier);
 }
 
 /**

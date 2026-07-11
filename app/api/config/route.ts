@@ -5,6 +5,7 @@ import { apiHandler } from '@/lib/api-handler';
 import { createApiLogger } from '@/lib/api-logger';
 import { zAppConfig } from '@/lib/config-schema';
 import { logAudit } from '@/lib/audit';
+import { sanitizeHeadHtml, sanitizeCss } from '@/lib/sanitize';
 import yaml from 'js-yaml';
 
 const logger = createApiLogger('/api/config');
@@ -123,6 +124,14 @@ export const POST = apiHandler('POST', { label: 'config更新', requireAdmin: tr
   }
   const currentConfig = loadConfig();
   const mergedConfig = mergeAppConfig(currentConfig, validated.data);
+
+  // 写入时消毒 customHead 和 customCSS，防止存储型 XSS
+  if (mergedConfig.appearance.customHead) {
+    mergedConfig.appearance.customHead = sanitizeHeadHtml(mergedConfig.appearance.customHead);
+  }
+  if (mergedConfig.appearance.customCSS) {
+    mergedConfig.appearance.customCSS = sanitizeCss(mergedConfig.appearance.customCSS);
+  }
 
   // 持久化到 GitHub（如果配置了远程仓库）
   const githubRepo = process.env.GITHUB_REPO;

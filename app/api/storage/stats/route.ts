@@ -79,6 +79,9 @@ let cacheTimestamp = 0
 /** 最大递归深度限制 */
 const MAX_DEPTH = 5
 
+/** 最大扫描文件数量，防止资源耗尽 */
+const MAX_FILES = 5000
+
 /** 并行扫描最大并发数，防止资源耗尽 */
 const MAX_CONCURRENCY = 8
 
@@ -162,6 +165,7 @@ async function scanDirectory(
   files: FileItem[],
 ): Promise<void> {
   if (depth > MAX_DEPTH) return
+  if (files.length >= MAX_FILES) return
 
   let entries: { filename: string; basename: string; type: string; size: number; mime?: string }[]
   try {

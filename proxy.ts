@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth';
 
 /**
  * Edge Runtime 兼容的数据库检测
@@ -59,6 +60,15 @@ export default async function proxy(req: NextRequest) {
     // 页面路由重定向到首页（避免暴露后台入口）
     const homeUrl = new URL('/', req.url);
     return NextResponse.redirect(homeUrl);
+  }
+
+  // 日记创建/编辑页面服务端鉴权：仅 sudo 角色可访问
+  const diaryWritePattern = /^\/diary\/new(?:\/|$)/;
+  if (diaryWritePattern.test(pathname)) {
+    const session = await getSession();
+    if (!session || session.role !== 'sudo') {
+      return NextResponse.redirect(new URL('/login', req.url));
+    }
   }
 
   // Clerk 可选集成

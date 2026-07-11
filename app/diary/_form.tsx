@@ -34,6 +34,7 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
   const [recovered, setRecovered] = React.useState(false);
   const [nowTick, setNowTick] = React.useState(Date.now());
   const [lastSavedSnapshot, setLastSavedSnapshot] = React.useState({ title: initialTitle ?? '', content: initialContent ?? '', tags: (initialTags ?? []).join(', '), group: initialGroup ?? '默认', date: initialDate ?? new Date().toISOString().slice(0, 10) });
+  const pendingSaveRef = React.useRef(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
   const router = useRouter();
 
@@ -87,9 +88,10 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
     }
   }, [saveStatus]);
 
-  // 表单有未保存变更时阻止意外离开
+  // 表单有未保存变更时阻止意外离开（正在进行保存时不拦截，避免误报）
   React.useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
+      if (pendingSaveRef.current) return;
       e.preventDefault();
       e.returnValue = '';
     };
@@ -122,6 +124,7 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
     if (!content.trim()) { showError('请输入内容'); return; }
 
     setSaving(true);
+    pendingSaveRef.current = true;
     try {
       const tagsArr = tags.split(',').map(t => t.trim()).filter(Boolean);
       const result = await onSave(title.trim(), content.trim(), tagsArr, diaryDate, diaryGroup);
@@ -134,6 +137,7 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
       showError('保存失败');
     } finally {
       setSaving(false);
+      pendingSaveRef.current = false;
     }
   };
 

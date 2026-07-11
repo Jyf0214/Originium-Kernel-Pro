@@ -89,7 +89,7 @@ async function handleFileSystemLookup(
   });
 }
 
-export const GET = apiHandler('GET', { label: '获取文章详情' }, async (req, context) => {
+export const GET = apiHandler('GET', { label: '获取文章详情', requireAuth: true }, async (req, context) => {
   const id = await getParam(context, 'id');
   logger.info('GET', '获取文章详情', { id });
   logger.info('GET', '读取文章详情', { id });

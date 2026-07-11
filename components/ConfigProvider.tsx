@@ -28,6 +28,8 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     const loader = LOCALE_LOADERS[locale] ?? LOCALE_LOADERS['zh-CN']!;
     void loader().then((mod) => {
       if (!cancelled) setAntdLocale(mod.default);
+    }).catch((err) => {
+      if (!cancelled) console.error('AntD locale 加载失败:', err);
     });
     return () => { cancelled = true; };
   }, [locale]);

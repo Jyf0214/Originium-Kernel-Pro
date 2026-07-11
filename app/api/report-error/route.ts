@@ -25,6 +25,8 @@ const MAX_DETAILS_BYTES = 5 * 1024;
 // === 速率限制：每 IP 每小时 5 次 ===
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
 const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_MAP_MAX_SIZE = 2000;
+const RATE_LIMIT_MAP_HARD_CAP = 1500;
 const rateLimitMap = new Map<string, number[]>();
 
 /** 清理过期条目，防止 map 无限增长 */
@@ -37,6 +39,16 @@ function pruneRateLimitMap(): void {
       rateLimitMap.delete(ip);
     } else {
       rateLimitMap.set(ip, recent);
+    }
+  }
+  // 分布式攻击下大量唯一 IP 可能导致 map 超过上限，强制淘汰最旧条目
+  if (rateLimitMap.size > RATE_LIMIT_MAP_MAX_SIZE) {
+    const entries = Array.from(rateLimitMap.entries())
+      .map(([ip, ts]) => ({ ip, earliest: ts[0] ?? 0 }))
+      .sort((a, b) => a.earliest - b.earliest);
+    const toRemove = entries.slice(0, rateLimitMap.size - RATE_LIMIT_MAP_HARD_CAP);
+    for (const { ip } of toRemove) {
+      rateLimitMap.delete(ip);
     }
   }
 }
