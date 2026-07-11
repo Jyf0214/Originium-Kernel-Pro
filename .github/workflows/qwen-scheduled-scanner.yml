@@ -115,6 +115,9 @@ jobs:
         env:
           UNLIMITED_OPENAI_API_KEY: ${{ secrets.UNLIMITED_OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_EVENT_COMMENT_BODY: ${{ github.event.comment.body }}
+          GITHUB_EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           set -o pipefail
           export NODE_PENDING_DEPRECATION=0
@@ -133,8 +136,8 @@ jobs:
 
           # 1. 物理分支感知与同步（PR 评论触发时切换到 PR 分支）
           PR_NUMBER=""
-          if [ "${{ github.event_name }}" = "issue_comment" ]; then
-            PR_NUMBER="${{ github.event.issue.number }}"
+          if [ "$GITHUB_EVENT_NAME" = "issue_comment" ]; then
+            PR_NUMBER="$GITHUB_EVENT_ISSUE_NUMBER"
             PR_BRANCH=$(gh pr view "$PR_NUMBER" --json headRefName --jq .headRefName 2>/dev/null || echo "scheduled/audit-patch-$CURRENT_DATE")
             echo "检测到 PR 评论触发，正在切换到 PR 分支: $PR_BRANCH"
 
@@ -154,25 +157,45 @@ jobs:
             echo "定时/手动触发。目标分支初始化为: $PR_BRANCH"
           fi
 
-          # 2. 恢复或创建巡检会话
-          # PR 评论触发时始终创建新会话（旧会话可能已过期或不相关）
-          # 定时/手动触发时尝试恢复旧会话
+          # 2. 恢复或创建巡检会话（双重匹配机制：支持定时触发的全新开启与 PR 评论下的精确承接）
           mkdir -p ~/.qwen
-          if [ "${{ github.event_name }}" = "issue_comment" ]; then
-            # PR 评论触发：创建新会话
-            SESSION_ID=$(cat /proc/sys/kernel/random/uuid)
-            echo "$SESSION_ID" > ~/.qwen/current_scheduled_session_id.txt
-            IS_RESUME=false
-            echo "PR 评论触发，创建新会话: $SESSION_ID (Fresh Session Mode)"
-          elif [ -f ~/.qwen/current_scheduled_session_id.txt ]; then
-            SESSION_ID=$(cat ~/.qwen/current_scheduled_session_id.txt)
-            IS_RESUME=true
-            echo "Successfully loaded persistent Scheduled Session ID: $SESSION_ID (Incremental Scan Mode)"
+          
+          # 对分支名称进行安全字符化，用于作会话文件名
+          BRANCH_NAME_SAFE=$(echo "$PR_BRANCH" | sed 's/[^a-zA-Z0-9_.-]/_/g')
+          SESSION_ID=""
+          IS_RESUME=false
+
+          if [ "$GITHUB_EVENT_NAME" = "issue_comment" ]; then
+            # PR 评论触发模式
+            if [ -f ~/.qwen/session_pr_${PR_NUMBER}.txt ]; then
+              SESSION_ID=$(cat ~/.qwen/session_pr_${PR_NUMBER}.txt)
+              IS_RESUME=true
+              echo "成功载入该 PR #${PR_NUMBER} 关联的已有会话 ID: $SESSION_ID (Resume Mode)"
+            elif [ -f ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt ]; then
+              SESSION_ID=$(cat ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt)
+              IS_RESUME=true
+              echo "成功通过同源分支 ${PR_BRANCH} 载入关联会话 ID: $SESSION_ID (Resume Mode)"
+              # 补全 PR 维度的关联记录，便于后续追溯
+              echo "$SESSION_ID" > ~/.qwen/session_pr_${PR_NUMBER}.txt
+            else
+              SESSION_ID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen 2>/dev/null || echo "session-$(date +%s)")
+              echo "$SESSION_ID" > ~/.qwen/session_pr_${PR_NUMBER}.txt
+              echo "$SESSION_ID" > ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt
+              IS_RESUME=false
+              echo "缓存中未找到此 PR #${PR_NUMBER} 的关联会话。已生成全新会话 ID: $SESSION_ID (First-run Mode)"
+            fi
           else
-            SESSION_ID=$(cat /proc/sys/kernel/random/uuid)
-            echo "$SESSION_ID" > ~/.qwen/current_scheduled_session_id.txt
-            IS_RESUME=false
-            echo "Created brand new Scheduled Session ID: $SESSION_ID (First-run Scan Mode)"
+            # 定时或手动触发模式（初次执行或由于网络中断导致的 Attempt 2+ 重试）
+            if [ -f ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt ]; then
+              SESSION_ID=$(cat ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt)
+              IS_RESUME=true
+              echo "成功通过分支 ${PR_BRANCH} 载入已有巡检会话 ID: $SESSION_ID (Incremental Scan Mode)"
+            else
+              SESSION_ID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen 2>/dev/null || echo "session-$(date +%s)")
+              echo "$SESSION_ID" > ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt
+              IS_RESUME=false
+              echo "未找到已有分支会话。已初始化全新巡检会话 ID: $SESSION_ID (First-run Scan Mode)"
+            fi
           fi
 
           # 3. 安全构建 Prompt 临时文件
@@ -181,15 +204,13 @@ jobs:
           # 判断是否由 PR 评论触发（接收安全审计的修复指令）
           IS_PR_FIX=false
           AUDIT_ISSUES=""
-          if [ "${{ github.event_name }}" = "issue_comment" ]; then
+          if [ "$GITHUB_EVENT_NAME" = "issue_comment" ]; then
             IS_PR_FIX=true
             # 提取评论中的审计报告内容（在 ```markdown 和 ``` 之间）
-            # 使用临时文件避免 bash 直接解析特殊字符导致语法错误
-            COMMENT_BODY="${{ github.event.comment.body }}"
-            echo "$COMMENT_BODY" | sed -n '/^```markdown$/,/^```$/p' | sed '1d;$d' > /tmp/audit_issues.txt
+            # 使用环境变量安全传递评论，避免 Bash 误解析特殊字符或换行符
+            echo "$GITHUB_EVENT_COMMENT_BODY" | sed -n '/^```markdown$/,/^```$/p' | sed '1d;$d' > /tmp/audit_issues.txt
             AUDIT_ISSUES=$(cat /tmp/audit_issues.txt)
-            echo "检测到 PR 评论触发，已提取审计问题："
-            echo "$AUDIT_ISSUES"
+            echo "检测到 PR 评论触发，已安全提取审计报告内容。"
           fi
 
           # 根据触发方式构建不同的 Prompt
@@ -214,7 +235,7 @@ jobs:
             echo "/goal 启动本周度项目代码库安全隐患与逻辑缺陷的【分布式深度排查与并行自愈】任务。" >> prompt.txt
             echo "" >> prompt.txt
             echo "## 【Orchestrator 调度与 Subagents 并行协同设计】（核心机制）：" >> prompt.txt
-            echo "作为一个具备高级调度能力的总协调器（Orchestrator），你必须调用系统内置的 'task' 工具，并发分派子任务给专门的子智能体（Subagents）执行，禁止单兵作战：" >> prompt.txt
+            echo "作为一个具备高级调度能力的总协调器（Orchestrator），你必须调用系统内置的 'task' 工具，并发分派子任务给专门 of 子智能体（Subagents）执行，禁止单兵作战：" >> prompt.txt
             echo "1. **第一阶段：并行分布式审计（Parallel Scanning）**：" >> prompt.txt
             echo "   你必须通过并发调用 'task' 工具，分派以下独立的 'Explore' 子智能体开展分析：" >> prompt.txt
             echo "   - 指派子智能体 A (subagent_type: 'Explore')：扫描所有控制器与路由端点，分析并审计是否存在越权访问、鉴权绕过、信息泄露或未授权的操作。" >> prompt.txt
@@ -248,7 +269,7 @@ jobs:
           echo "Starting Qwen Weekly Scheduled Scan..."
           START_TIME=$(date +%s)
           
-          # 3. 首次启动任务（最大会话步数调大至 150）
+          # 3. 启动任务并自动接轨缓存上下文
           if [ "$IS_RESUME" = "true" ]; then
             echo "Executing Scheduled Scan in RESUME mode using --resume..."
             if qwen -y --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --resume "$SESSION_ID" "$FINAL_PROMPT" 2>&1 | tee qwen_output.log; then
