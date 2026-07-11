@@ -8,12 +8,12 @@ describe('getUserAvatar 全局头像', () => {
 
   it('始终返回 avatar.url', async () => {
     const config = await loadConfig();
-    const result = getUserAvatar();
+    const result = await getUserAvatar();
     expect(result).toBe(config.avatar?.url || null);
   });
 
-  it('无参数时始终返回全局头像', () => {
-    const result = getUserAvatar();
+  it('无参数时始终返回全局头像', async () => {
+    const result = await getUserAvatar();
     expect(result).toBeTruthy();
     expect(typeof result).toBe('string');
   });
