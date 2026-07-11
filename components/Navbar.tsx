@@ -222,7 +222,7 @@ function useNavbarState(navConfigProp?: NavConfig) {
         if (err instanceof DOMException && err.name === 'AbortError') return;
       }
     };
-    void fetchNav();
+    void fetchNav().catch(console.error);
     return () => controller.abort();
   }, [navConfigProp]);
 

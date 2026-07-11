@@ -61,7 +61,7 @@ function loadConfigFromYaml(): AppConfig {
   }
 
   const fileContent = fs.readFileSync(configPath, 'utf-8');
-  const raw = yaml.load(fileContent);
+  const raw = yaml.load(fileContent, { schema: yaml.FAILSAFE_SCHEMA });
   const result = zAppConfig.safeParse(raw);
 
   if (!result.success) {

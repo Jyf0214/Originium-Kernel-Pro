@@ -38,7 +38,7 @@ export function useAuthorByName(name: string | undefined): AuthorInfo | null {
     }
     void fetchAuthorsOnce().then((list) => {
       setAuthors(list);
-    });
+    }).catch(console.error);
   }, [name]);
 
   if (!name || authors.length === 0) return null;
