@@ -36,6 +36,10 @@ const BLOCKED_EXTENSIONS = new Set([
   '.ps1', '.psm1', '.psd1',
   '.vbs', '.vbe', '.wsf', '.wsh',
   '.scr', '.jar', '.class',
+  '.html', '.htm', '.xml', '.xsl', '.xslt',
+  '.jsp', '.asp', '.aspx', '.cgi',
+  '.py', '.rb', '.pl', '.java', '.war', '.ear',
+  '.so', '.dll',
 ])
 
 /** 从路径中提取文件扩展名（小写），无扩展名返回空字符串 */

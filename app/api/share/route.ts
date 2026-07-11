@@ -43,14 +43,23 @@ export const POST = apiHandler('POST', { label: '分享事件记录' }, async (r
   // 记录分享事件到服务器日志（URL 截断 + 控制字符清理防止日志注入）
   const timestamp = new Date().toISOString();
   const safeUrl = (body.url ?? '').replace(/[\x00-\x1f\x7f]/g, '').slice(0, 2000);
+  const stripControl = (s: string) => s.replace(/[\x00-\x1f\x7f]/g, '');
+  const rawReferer = stripControl(request.headers.get('referer') ?? '');
+  const rawUserAgent = stripControl(request.headers.get('user-agent') ?? '').slice(0, 200);
+  // x-forwarded-for 可被客户端伪造,仅信任合法 IP 格式
+  const rawIp = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown';
+  const firstIp = rawIp.split(',')[0]?.trim() ?? rawIp;
+  const safeIp = /^\d{1,3}(\.\d{1,3}){3}$/.test(firstIp)
+    ? firstIp
+    : rawIp;
   const logEntry = {
     timestamp,
     url: safeUrl,
-    title: body.title ?? '(无标题)',
-    platform: body.platform,
-    referer: request.headers.get('referer') ?? '',
-    userAgent: request.headers.get('user-agent') ?? '',
-    ip: request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown',
+    title: stripControl(body.title ?? '(无标题)'),
+    platform: stripControl(body.platform),
+    referer: rawReferer,
+    userAgent: rawUserAgent,
+    ip: safeIp,
   };
 
   // 记录分享事件（生产环境可改为写入数据库或发送到分析服务）

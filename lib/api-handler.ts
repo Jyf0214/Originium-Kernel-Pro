@@ -47,17 +47,17 @@ type ParamValue = string | string[];
 interface ApiCtx<P extends Record<string, ParamValue> = Record<string, ParamValue>> { params: Promise<P> }
 
 /**
- * 解析 context.params 中的指定参数，并确保返回非空字符串
+ * 解析 context.params 中的指定参数，未提供时返回 null
  */
 export async function getParam<P extends Record<string, ParamValue> = Record<string, ParamValue>>(
   context: ApiCtx<P> | undefined,
   name: keyof P & string,
-): Promise<string> {
+): Promise<string | null> {
   const params = (await (context?.params ?? Promise.resolve({} as P)));
   const val = params[name];
   // catch-all 路由 [...id] 返回数组，需要拼接回路径字符串
   if (Array.isArray(val)) return val.join('/');
-  return (val) ?? '';
+  return (val) ?? null;
 }
 
 /**

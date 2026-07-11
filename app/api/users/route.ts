@@ -100,7 +100,7 @@ async function listAllUsers(
   return allUsers;
 }
 
-export const GET = apiHandler('GET', { label: '获取用户列表', requireAuth: true }, async (req) => {
+export const GET = apiHandler('GET', { label: '获取用户列表', requireAdmin: true }, async (req) => {
   const session = (await getSession())!;
   logger.info('GET', '获取用户列表');
   const db = getDb();

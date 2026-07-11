@@ -35,6 +35,9 @@ async function validateRoleChange(
 
 export const GET = apiHandler('GET', { label: '获取用户信息', requireAdmin: true }, async (req, context) => {
   const uid = await getParam(context, 'uid');
+  if (!uid) {
+    return NextResponse.json({ error: '缺少用户 ID' }, { status: 400 });
+  }
   logger.info('GET', '获取用户信息', { uid });
   const db = getDb();
   const userStr = await db.get(`user:uid:${uid}`);
@@ -67,6 +70,9 @@ export const GET = apiHandler('GET', { label: '获取用户信息', requireAdmin
 
 export const PATCH = apiHandler('PATCH', { label: '更新用户信息', requireAdmin: true }, async (req, context) => {
   const uid = await getParam(context, 'uid');
+  if (!uid) {
+    return NextResponse.json({ error: '缺少用户 ID' }, { status: 400 });
+  }
   logger.info('PATCH', '更新用户信息', { uid });
   const db = getDb();
   const userStr = await db.get(`user:uid:${uid}`);

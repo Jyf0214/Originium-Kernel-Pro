@@ -4,9 +4,6 @@
  * 所有对 @clerk/nextjs 的引用都通过此模块进行动态导入，
  * 使得 Clerk 依赖变为可选（optionalDependencies）。
  * 当 Clerk 未安装或未配置环境变量时，相关功能静默降级。
- *
- * 使用 new Function 构建运行时 import() 以绕过构建器的静态分析，
- * 确保即使 @clerk/nextjs 未安装，构建也不会失败。
  */
 
 /**
@@ -34,13 +31,23 @@ export async function isClerkAvailable(): Promise<boolean> {
 }
 
 /**
- * 运行时动态 import()，避开构建器静态分析
- * new Function 创建的函数不受 bundler 追踪
+ * 安全的动态模块注册表，替代 new Function / eval 方式
+ * 仅允许预注册的模块说明符，防止任意代码注入
+ */
+const DYNAMIC_IMPORTS: Record<string, () => Promise<unknown>> = {
+  '@clerk/nextjs': () => import('@clerk/nextjs'),
+  '@clerk/nextjs/server': () => import('@clerk/nextjs/server'),
+};
+
+/**
+ * 安全的运行时动态 import()
  */
 function runtimeImport(specifier: string): Promise<unknown> {
-  // biome-ignore lint/security/noGlobalFunction: required to bypass bundler static analysis
-  const importFn = new Function('s', 'return import(s)') as (s: string) => Promise<unknown>;
-  return importFn(specifier);
+  const loader = DYNAMIC_IMPORTS[specifier];
+  if (!loader) {
+    throw new Error(`[clerk-dynamic] 未知的动态模块: ${specifier}`);
+  }
+  return loader();
 }
 
 /**

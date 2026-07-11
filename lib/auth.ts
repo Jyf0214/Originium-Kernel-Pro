@@ -132,10 +132,10 @@ export async function verifyTempToken(token: string): Promise<TempTokenPayload |
     const { payload } = await jwtVerify(token, getSecretEncoder(), {
       algorithms: ['HS256'],
     });
-    if (payload.purpose !== '2fa_pending' || !payload.uid) {
+    if (payload.purpose !== '2fa_pending' || typeof payload.uid !== 'string') {
       return null;
     }
-    return { uid: payload.uid as string, purpose: '2fa_pending' };
+    return { uid: payload.uid, purpose: '2fa_pending' };
   } catch {
     return null;
   }
@@ -232,6 +232,8 @@ async function authenticateApiKeyCore(): Promise<{ session: SessionPayload; curr
 const SV_CACHE_TTL_MS = 30 * 1000
 const SV_CACHE_MAX_SIZE = 100
 const svCache = new Map<string, { sv: number; revoked: boolean; ts: number }>()
+/** 上次执行定时清理的时间戳（毫秒） */
+let lastSVCachePurge = 0
 
 function purgeExpiredSVCache(now: number): void {
   for (const [key, entry] of svCache) {
@@ -244,6 +246,12 @@ async function isSessionRevoked(uid: string, sv: number): Promise<boolean> {
 
   // 缓存超限时清理过期条目，防止内存泄漏
   if (svCache.size > SV_CACHE_MAX_SIZE) purgeExpiredSVCache(now)
+
+  // 定时清理：即使缓存未超限，也每 60 秒清理一次过期条目
+  if (now - lastSVCachePurge > 60_000) {
+    lastSVCachePurge = now
+    purgeExpiredSVCache(now)
+  }
 
   const cached = svCache.get(uid)
   if (cached?.sv === sv && (now - cached.ts) < SV_CACHE_TTL_MS) {
@@ -273,6 +281,10 @@ async function verifyCookieSession(): Promise<SessionPayload | null> {
       algorithms: ['HS256'],
     });
     const typed = payload as unknown as SessionPayload;
+    // 运行时校验：防止篡改 JWT 后传入非法数据
+    if (!typed || typeof typed.uid !== 'string' || typeof typed.role !== 'string') {
+      return null;
+    }
     // 会话版本校验：密码修改后旧 JWT 自动失效
     const effectiveSv = typed.sv ?? 0;
     if (await isSessionRevoked(typed.uid, effectiveSv)) {
