@@ -40,7 +40,7 @@ export function getTravelPlaces(): TravelPlace[] {
   }
 
   const raw = fs.readFileSync(TRAVEL_PATH, 'utf-8');
-  const data = yaml.load(raw) as Record<string, unknown> | null;
+  const data = yaml.load(raw, { schema: yaml.FAILSAFE_SCHEMA }) as Record<string, unknown> | null;
 
   if (!data || !Array.isArray(data.places)) {
     cachedPlaces = [];

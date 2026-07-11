@@ -42,7 +42,7 @@ export function Hitokoto({ className }: HitokotoProps) {
   }, []);
 
   useEffect(() => {
-    void fetchHitokoto();
+    void fetchHitokoto().catch(console.error);
   }, [fetchHitokoto]);
 
   const displayText = data?.hitokoto ?? '';

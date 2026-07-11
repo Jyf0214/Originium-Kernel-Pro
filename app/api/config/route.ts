@@ -146,7 +146,9 @@ export const POST = apiHandler('POST', { label: 'config更新', requireAdmin: tr
   logger.info('POST', '配置已合并并持久化');
   void logAudit('config_update', 'config', '站点配置已更新', session?.uid ?? 'unknown');
   clearConfigCache();
-  return NextResponse.json({ success: true, config: mergedConfig });
+  // 脱敏:移除认证等敏感字段后再返回给客户端
+  const { auth, clerk, ...sanitizedConfig } = mergedConfig;
+  return NextResponse.json({ success: true, config: sanitizedConfig });
 });
 
 /**
@@ -166,7 +168,7 @@ export const PUT = apiHandler('PUT', { label: 'config同步', requireAdmin: true
     logger.warn('PUT', 'config.yaml 不存在');
     return NextResponse.json({ error: 'config.yaml 不存在' }, { status: 404 });
   }
-  const parsed = yaml.load(remote.content) as Partial<AppConfig>;
+  const parsed = yaml.load(remote.content, { schema: yaml.FAILSAFE_SCHEMA }) as Partial<AppConfig>;
   const validated = zAppConfig.safeParse(parsed);
   if (!validated.success) {
     logger.warn('PUT', '远程 YAML Zod 校验失败', { issues: validated.error.issues.map(i => i.path.join('.')) });

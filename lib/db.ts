@@ -141,7 +141,10 @@ class PrismaDriver implements IDatabase {
 
   async del(key: string): Promise<void> {
     if (!this.prisma) return
-		await this.prisma.originiumKV.delete({ where: { key } }).catch((error) => { console.error('删除数据库记录失败:', key, error); })
+		await this.prisma.originiumKV.delete({ where: { key } }).catch((error) => {
+			console.error(`[DB] del error: key="${key}"`, error);
+			throw error;
+		})
   }
 
   async exists(key: string): Promise<boolean> {

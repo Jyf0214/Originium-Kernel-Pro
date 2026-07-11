@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { loadConfig, canAccess, hasDatabase, type AppConfig } from '@/lib/config';
@@ -7,6 +8,17 @@ import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler, getParam } from '@/lib/api-handler';
 
 const logger = createApiLogger('/api/articles/[id]');
+
+/** PATCH 请求体校验 schema */
+const patchBodySchema = z.object({
+  slug: z.string().min(1).optional(),
+  tags: z.array(z.string()).optional(),
+  content: z.string().optional(),
+  title: z.string().optional(),
+  coverImage: z.string().optional(),
+  description: z.string().optional(),
+  status: z.string().optional(),
+}).strict();
 
 /**
  * Article Detail API (GET, PATCH, DELETE)
@@ -91,6 +103,9 @@ async function handleFileSystemLookup(
 
 export const GET = apiHandler('GET', { label: '获取文章详情' }, async (req, context) => {
   const id = await getParam(context, 'id');
+  if (!id) {
+    return NextResponse.json({ error: '缺少文章 ID' }, { status: 400 });
+  }
   logger.info('GET', '获取文章详情', { id });
   logger.info('GET', '读取文章详情', { id });
   const db = getDb();
@@ -217,7 +232,15 @@ async function handleDraftSave(
 
 export const PATCH = apiHandler('PATCH', { label: '更新文章', requireAuth: true }, async (req, context, session) => {
   const id = await getParam(context, 'id');
+  if (!id) {
+    return NextResponse.json({ error: '缺少文章 ID' }, { status: 400 });
+  }
   const body = await req.json() as Record<string, unknown>;
+  // 校验请求体参数类型，拒绝未知字段和非法类型
+  const parsed = patchBodySchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: '请求参数无效' }, { status: 400 });
+  }
   logger.info('PATCH', '更新文章', { id });
   const db = getDb();
   const metaStr = await db.get(`article:data:${id}`);
@@ -269,6 +292,9 @@ async function moveToRecycleBin(
 
 export const DELETE = apiHandler('DELETE', { label: '删除文章', requireAuth: true }, async (req, context, session) => {
   const id = await getParam(context, 'id');
+  if (!id) {
+    return NextResponse.json({ error: '缺少文章 ID' }, { status: 400 });
+  }
   logger.info('DELETE', '删除文章', { id });
   const db = getDb();
   const metaStr = await db.get(`article:data:${id}`);

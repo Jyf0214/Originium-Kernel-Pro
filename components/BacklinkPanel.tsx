@@ -101,7 +101,7 @@ export function BacklinkPanel({
       }
     }
 
-    void fetchBacklinks();
+    void fetchBacklinks().catch(console.error);
     return () => { cancelled = true; };
   }, [section, slug, data]);
 

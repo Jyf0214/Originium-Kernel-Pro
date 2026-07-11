@@ -22,7 +22,7 @@ export function getAuthors(): AuthorInfo[] {
   }
 
   const raw = fs.readFileSync(AUTHORS_PATH, 'utf-8');
-  const data = yaml.load(raw);
+  const data = yaml.load(raw, { schema: yaml.FAILSAFE_SCHEMA });
 
   if (!Array.isArray(data)) {
     cachedAuthors = [];

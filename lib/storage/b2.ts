@@ -101,21 +101,32 @@ async function b2Authorize(): Promise<B2AuthResult> {
  * 解析 B2 鉴权响应，兼容 v3/v4 嵌套格式
  */
 function parseAuthorizeResponse(data: Record<string, unknown>): B2AuthResult {
-  const storageApi = (data.apiInfo as Record<string, unknown> | undefined)
-    ?.storageApi as Record<string, unknown> | undefined
-  const apiUrl = String(data.apiUrl ?? storageApi?.apiUrl ?? '')
+  // 逐步校验嵌套字段，避免静默传播 undefined/null
+  const apiInfo = data.apiInfo as Record<string, unknown> | undefined
+  if (!apiInfo) throw new Error(`[B2] 鉴权响应缺少 apiInfo, 字段: ${Object.keys(data).join(', ')}`)
+  const storageApi = apiInfo.storageApi as Record<string, unknown> | undefined
+  if (!storageApi) throw new Error('[B2] 鉴权响应缺少 storageApi')
+
+  const apiUrl = typeof data.apiUrl === 'string' ? data.apiUrl
+    : typeof storageApi.apiUrl === 'string' ? storageApi.apiUrl
+    : ''
   if (!apiUrl) {
     throw new Error(`B2 鉴权响应缺少 apiUrl, 字段: ${Object.keys(data).join(', ')}`)
   }
   // s3ApiUrl: B2 官方文档指定的 S3 兼容 API 端点
   // 格式: https://s3.<region>.backblazeb2.com
-  const s3ApiUrl = String(storageApi?.s3ApiUrl ?? '')
+  const s3ApiUrl = typeof storageApi.s3ApiUrl === 'string' ? storageApi.s3ApiUrl : null
+  if (!s3ApiUrl) throw new Error('[B2] 鉴权响应缺少 s3ApiUrl')
+
+  const rawDownloadUrl = typeof data.downloadUrl === 'string' ? data.downloadUrl
+    : typeof storageApi.downloadUrl === 'string' ? storageApi.downloadUrl
+    : ''
+  const downloadUrl = process.env.B2_DOWNLOAD_URL ?? rawDownloadUrl
+
   return {
     accountId: String(data.accountId ?? ''),
     apiUrl,
-    downloadUrl: String(
-      process.env.B2_DOWNLOAD_URL ?? data.downloadUrl ?? storageApi?.downloadUrl ?? ''
-    ),
+    downloadUrl,
     s3ApiUrl,
   }
 }

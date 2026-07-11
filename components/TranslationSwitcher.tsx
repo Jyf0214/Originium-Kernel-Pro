@@ -97,7 +97,7 @@ export function TranslationSwitcher({
       }
     }
 
-    void fetchTranslations();
+    void fetchTranslations().catch(console.error);
     return () => controller.abort();
   }, [slug, initialTranslations]);
 
