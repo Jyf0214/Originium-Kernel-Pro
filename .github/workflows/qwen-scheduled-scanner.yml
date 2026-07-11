@@ -1,36 +1,17 @@
-name: "Qwen Scheduled Bug Hunter"
+name: "Qwen Scheduled Bug Hunter - Inspector"
 
 on:
   schedule:
     # 每周日凌晨 00:00 (UTC) 定时自动拉起深层巡检
     - cron: '0 0 * * 0'
-  workflow_dispatch: # 支持项目合作者手动一键触发
-  issue_comment:
-    types: [created] # 当 Issue/PR 收到评论时触发（用于接收安全审计的修复指令）
+  workflow_dispatch: # 支持手动一键触发
 
 concurrency:
-  # 终极并发隔离算法：通过加入条件后缀（-true / -false），物理隔离非指令评论（如 Vercel 部署评论）和真实的 /fix 修复指令，防止运行中的 Qwen 被误杀
-  group: ${{ github.workflow }}-${{ github.event.issue.number || github.ref }}-${{ github.event_name == 'issue_comment' && contains(github.event.comment.body, '@qwen-code /fix') || github.event_name != 'issue_comment' }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   scheduled-inspect:
-    # 安全防护门禁（仅允许定时触发、手动触发或 PR 上的合作者/Bot 评论触发）
-    if: |
-      github.event_name == 'schedule' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'issue_comment' &&
-        github.event.issue.pull_request &&
-        contains(github.event.comment.body, '@qwen-code /fix') &&
-        (
-          github.event.comment.author_association == 'OWNER' ||
-          github.event.comment.author_association == 'MEMBER' ||
-          github.event.comment.author_association == 'COLLABORATOR' ||
-          github.event.comment.user.login == 'github-actions[bot]' ||
-          github.event.comment.user.login == 'mostima-moment-bot[bot]'
-        )
-      )
-
     runs-on: self-hosted
 
     permissions:
@@ -41,14 +22,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 获取完整 Git 历史
+          fetch-depth: 0
 
       - name: Set up Environment (Node.js)
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      # 安装 TypeScript 语言服务（确保并行扫描时能跨文件解析符号和依赖关系）
       - name: Install TypeScript Language Server for LSP Support
         run: |
           npm install -g typescript-language-server typescript
@@ -75,21 +55,15 @@ jobs:
           EOF
           chmod +x .git/hooks/pre-push
 
-      # 安全恢复会话缓存（支持定时巡检进程级隔离，以及 PR 维度沙箱化隔离）
+      # 安全恢复会话缓存
       - name: Restore Qwen Secure Session Cache
         id: cache-qwen
         uses: actions/cache@v4
         with:
           path: ~/.qwen
-          # 动态生成唯一 Key。如果是 PR 评论则带上 pr-编号；如果是定时/手动则标记为 scheduled
-          key: qwen-session-${{ github.event.issue.number && format('pr-{0}', github.event.issue.number) || 'scheduled' }}-${{ github.run_id }}-${{ github.run_attempt }}
-          
-          # 动态匹配规则
-          # - 如果是定时/手动：restore-keys 只包含带有当前 Run ID 的前缀，全新启动时绝对 Miss，只有重试同一任务时才会恢复。
-          # - 如果是 PR 评论：额外允许匹配该 PR 历史产生的缓存，实现同一 PR 下多次对话的上下文记忆。
+          key: qwen-session-scheduled-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            qwen-session-${{ github.event.issue.number && format('pr-{0}', github.event.issue.number) || 'scheduled' }}-${{ github.run_id }}-
-            ${{ github.event.issue.number && format('qwen-session-pr-{0}-', github.event.issue.number) || '' }}
+            qwen-session-scheduled-${{ github.run_id }}-
 
       # 配置读取：写入 Qwen 全局配置
       - name: Configure Qwen Settings
@@ -117,315 +91,152 @@ jobs:
           }
           EOF
 
-      # 执行基于 Qwen 原生 Subagents 并行协同、持久化清单销项、时间约束防线的自愈巡检
-      - name: Run Scheduled Inspection & Parallel Healing
+      # 执行巡检
+      - name: Run Deep Inspection
         env:
           UNLIMITED_OPENAI_API_KEY: ${{ secrets.UNLIMITED_OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_EVENT_COMMENT_BODY: ${{ github.event.comment.body }}
-          GITHUB_EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
           set -o pipefail
           export NODE_PENDING_DEPRECATION=0
           export QWEN_CODE_UNATTENDED_RETRY=1
           export QWEN_CODE_SUPPRESS_YOLO_WARNING=1
           
-          # 初始化重试与自愈控制参数（最大尝试5次）
           MAX_ATTEMPTS=5
           ATTEMPT=1
           SUCCESS=false
           TRIGGER_COMPRESSION=false
           
-          # 获取当前时间，用于命名分支
           CURRENT_DATE=$(date +%Y%m%d)
           echo "Scheduled Inspection Date: $CURRENT_DATE"
 
-          # ==========================================
-          # 设定强制全新扫描变量 FORCE_FRESH
-          # ==========================================
-          FORCE_FRESH=false
-          if [ "$GITHUB_EVENT_NAME" = "schedule" ] || [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
-            FORCE_FRESH=true
-            echo "当前由定时或手动触发，强制开启全新扫描模式 (FORCE_FRESH=true)，历史会话将被彻底无视。"
-          fi
+          # 自动探测远程分支名是否冲突，避免覆盖已有 PR 分支
+          BASE_BRANCH="scheduled/audit-patch-$CURRENT_DATE"
+          PR_BRANCH="$BASE_BRANCH"
+          SUFFIX=1
+          echo "正在探测远程分支是否重名冲突..."
+          while git ls-remote --heads origin "refs/heads/$PR_BRANCH" | grep -q "$PR_BRANCH"; do
+            PR_BRANCH="${BASE_BRANCH}-${SUFFIX}"
+            SUFFIX=$((SUFFIX + 1))
+          done
+          echo "物理分支名无冲突，初始化为: $PR_BRANCH"
 
-          # ==========================================
-          # 分支感知、重名防冲突自动追加后缀
-          # ==========================================
-          PR_NUMBER=""
-          HAS_CONFLICTS=false
-          CONFLICTED_FILES=""
-          if [ "$GITHUB_EVENT_NAME" = "issue_comment" ]; then
-            PR_NUMBER="$GITHUB_EVENT_ISSUE_NUMBER"
-            PR_BRANCH=$(gh pr view "$PR_NUMBER" --json headRefName --jq .headRefName 2>/dev/null || echo "scheduled/audit-patch-$CURRENT_DATE")
-            echo "检测到 PR 评论触发，正在切换到 PR 对应分支: $PR_BRANCH"
-
-            git fetch origin "$PR_BRANCH"
-            git checkout "$PR_BRANCH"
-
-            # 自动同步主分支最新代码
-            git fetch origin main
-            echo "尝试合并 origin/main 到 $PR_BRANCH 以保持同步..."
-            if git merge origin/main --no-edit; then
-              echo "成功合并 origin/main 到 $PR_BRANCH（无冲突）"
-            else
-              echo "::warning:: 检测到物理合并冲突！正在收集冲突文件列表..."
-              HAS_CONFLICTS=true
-              CONFLICTED_FILES=$(git diff --name-only --diff-filter=U)
-              echo "冲突文件："
-              echo "$CONFLICTED_FILES"
-            fi
-          else
-            # 定时 / 手动启动：自动探测远程分支名是否存在，存在则自动追加后缀递增
-            BASE_BRANCH="scheduled/audit-patch-$CURRENT_DATE"
-            PR_BRANCH="$BASE_BRANCH"
-            SUFFIX=1
-
-            echo "正在探测远程分支是否重名冲突..."
-            while git ls-remote --heads origin "refs/heads/$PR_BRANCH" | grep -q "$PR_BRANCH"; do
-              PR_BRANCH="${BASE_BRANCH}-${SUFFIX}"
-              SUFFIX=$((SUFFIX + 1))
-            done
-
-            if [ "$PR_BRANCH" != "$BASE_BRANCH" ]; then
-              echo "::warning:: 远程已存在同名分支！自动更换分支名称并追加后缀为: $PR_BRANCH"
-            else
-              echo "物理分支名无冲突，初始化为: $PR_BRANCH"
-            fi
-          fi
-
-          # 3. 恢复或创建巡检会话
+          # 准备会话 ID（支持 Run-Attempt 级错误重试，否则一律强制为 Clean 模式）
           mkdir -p ~/.qwen
           BRANCH_NAME_SAFE=$(echo "$PR_BRANCH" | sed 's/[^a-zA-Z0-9_.-]/_/g')
           SESSION_ID=""
           IS_RESUME=false
 
-          if [ "$FORCE_FRESH" = "true" ]; then
+          if [ "$GITHUB_RUN_ATTEMPT" -gt 1 ] && [ -f ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt ]; then
+            SESSION_ID=$(cat ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt)
+            IS_RESUME=true
+            echo "检测到工作流重新尝试 (Retry Attempt)，载入已有会话 ID: $SESSION_ID"
+          else
             SESSION_ID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen 2>/dev/null || echo "session-$(date +%s)")
             echo "$SESSION_ID" > ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt
             IS_RESUME=false
-            echo "已成功阻止续传！强制初始化全新 Qwen 会话 ID: $SESSION_ID (Fresh Session Mode)"
-          else
-            if [ "$GITHUB_EVENT_NAME" = "issue_comment" ]; then
-              if [ -f ~/.qwen/session_pr_${PR_NUMBER}.txt ]; then
-                SESSION_ID=$(cat ~/.qwen/session_pr_${PR_NUMBER}.txt)
-                IS_RESUME=true
-                echo "成功载入该 PR #${PR_NUMBER} 关联的已有会话 ID: $SESSION_ID (PR Session Mode)"
-              elif [ -f ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt ]; then
-                SESSION_ID=$(cat ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt)
-                IS_RESUME=true
-                echo "成功通过同源分支 ${PR_BRANCH} 载入关联会话 ID: $SESSION_ID (Branch Match Mode)"
-                echo "$SESSION_ID" > ~/.qwen/session_pr_${PR_NUMBER}.txt
-              else
-                SESSION_ID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen 2>/dev/null || echo "session-$(date +%s)")
-                echo "$SESSION_ID" > ~/.qwen/session_pr_${PR_NUMBER}.txt
-                echo "$SESSION_ID" > ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt
-                IS_RESUME=false
-                echo "未在缓存中找到该 PR #${PR_NUMBER} 或分支 ${PR_BRANCH} 的关联会话。已初始化全新会话 ID: $SESSION_ID (Fresh Session Mode)"
-              fi
-            else
-              if [ -f ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt ]; then
-                SESSION_ID=$(cat ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt)
-                IS_RESUME=true
-                echo "成功通过分支 ${PR_BRANCH} 载入已有巡检会话 ID: $SESSION_ID (Incremental Scan Mode)"
-              else
-                SESSION_ID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen 2>/dev/null || echo "session-$(date +%s)")
-                echo "$SESSION_ID" > ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt
-                IS_RESUME=false
-                echo "未找到已有分支会话。已初始化全新巡检会话 ID: $SESSION_ID (First-run Scan Mode)"
-              fi
-            fi
+            echo "强制初始化全新 Qwen 巡检会话 ID: $SESSION_ID"
           fi
 
-          # 4. 安全构建 Prompt 临时文件
-          # 在此处增加了 PR 原子性创制的硬性约束，防止并发中断产生 placeholder 的情况
-          > prompt.txt
+          # 构建专注于深度排查与任务墙创制的 Prompt（无需混杂 Git 冲突内容）
+          cat << 'EOF' > prompt.txt
+          /goal 启动本周度项目代码库安全隐患与逻辑缺陷的【分布式深度排查与并行自愈】任务。
 
-          # A. 如果存在 Git 合并冲突，将“清理并解决冲突”作为【终极第一优先级】指令注入 Prompt 最顶端
-          if [ "$HAS_CONFLICTS" = "true" ]; then
-            echo "⚠️【紧急第一优先任务：解决 Git 合并冲突】⚠️" >> prompt.txt
-            echo "当前分支在与主分支（origin/main）合并时检测到了物理合并冲突。" >> prompt.txt
-            echo "以下冲突文件目前带有 Git 冲突标记（即包含由小于号、等号或大于号以及分支名称组成的冲突隔离行），处于未合并状态：" >> prompt.txt
-            echo "" >> prompt.txt
-            echo "$CONFLICTED_FILES" | sed 's/^/- /' >> prompt.txt
-            echo "" >> prompt.txt
-            echo "你必须在执行任何其他安全漏洞自愈或修复任务前，首先解决这些冲突：" >> prompt.txt
-            echo "1. 依次读取这些冲突文件，理清冲突双方的代码逻辑，并进行正确的手工合并。" >> prompt.txt
-            echo "2. 必须彻底清除这些文件中的所有 Git 冲突指示分隔整行（即以连续的小于号、等号或大于号开头的整行标记），确保没有遗留任何物理冲突文本特征。" >> prompt.txt
-            echo "3. 确保解决冲突后的代码结构完整、能够正常通过本地编译。" >> prompt.txt
-            echo "4. 使用 git add 暂存解决冲突后的文件（将其标记为 Resolved）。" >> prompt.txt
-            echo "5. 只有当全部合并冲突被成功解决，且本地执行测试命令没有编译错误后，你才能继续进行后续的安全漏洞自愈和巡检任务！" >> prompt.txt
-            echo "--------------------------------------------------------" >> prompt.txt
-            echo "" >> prompt.txt
-          fi
+          ## 【PR 创制原子性硬防线（核心限制）】（硬性红线）：
+          - 当你运行 'gh pr create' 创建 PR 时，严禁使用 'placeholder' 等空洞字面量来填充 PR Body（描述）。
+          - 你必须首先在项目工作区本地生成写好的、详尽的整个《漏洞档案分析报告》（包含漏洞排查明细、修复细节、测试通过证明等），将其保存为一个物理文件 'pr_description.md'。
+          - 随后，你必须直接使用带有文件引用参数的命令进行原子创建：'gh pr create --title "..." --body-file pr_description.md'。这样可以确保 PR 建立的一瞬间便具备最完整、最高质的内容结构，防止后续进程因为被中断而留下残留草稿。
 
-          # B. 提取常规审计修复指令
-          IS_PR_FIX=false
-          AUDIT_ISSUES=""
-          if [ "$GITHUB_EVENT_NAME" = "issue_comment" ]; then
-            IS_PR_FIX=true
-            echo "$GITHUB_EVENT_COMMENT_BODY" | sed -n '/^```markdown$/,/^```$/p' | sed '1d;$d' > /tmp/audit_issues.txt
-            AUDIT_ISSUES=$(cat /tmp/audit_issues.txt)
-            echo "检测到 PR 评论触发，已安全提取安全审计报告。"
-          fi
+          ## 【Orchestrator 调度与 Subagents 并行协同设计】：
+          作为一个具备高级调度能力的总协调器（Orchestrator），你必须调用系统内置的 'task' 工具，并发分派子任务给专门的子智能体（Subagents）执行，禁止单兵作战：
+          1. **第一阶段：并行分布式审计（Parallel Scanning）**：
+             你必须通过并发调用 'task' 工具，分派以下独立的 'Explore' 子智能体开展分析：
+             - 指派子智能体 A (subagent_type: 'Explore')：扫描所有控制器与路由端点，分析并审计是否存在越权访问、鉴权绕过、信息泄露或未授权的操作。
+             - 指派子智能体 B (subagent_type: 'Explore')：重点扫描涉及数据库、文件系统、动态代码执行、以及用户输入流的核心模块，排查 SQLi、路径穿越（Path Traversal）、命令注入等严重漏洞。
+             - 指派子智能体 C (subagent_type: 'Explore')：扫描项目整体代码库，排查已知 Bug、死锁隐患、未捕获的边界异常、TODO/FIXME 标记等业务稳定性漏洞。
+          2. **第二阶段：建立物理任务墙（todo_checklist.md）**：
+             - 收集上述所有 'Explore' 子智能体返回的审计报告，汇总其发现的所有中高危安全和逻辑漏洞。
+             - 在项目工作区根目录下新建一个物理文件 'todo_checklist.md'。将发现的所有 Bug 漏洞整理成带有 '[ ]' 复选框的任务清单，建立漏洞档案。
+          3. **第三阶段：分布式并行自愈（Parallel Healing）**：
+             - 针对清单中所有的中高危漏洞，你必须再次分派多个独立的研发子智能体 (subagent_type: 'general-purpose') 分头对不同的受影响文件进行修改和修复。
+             - 每当一个子智能体反馈修复成功，你必须亲自运行本地单元测试，确认没有引入退化问题。
+             - 确认修复且通过测试后，将 'todo_checklist.md' 中对应的 '[ ]' 修改为 '[x]'。
+          4. **第四阶段：PR 出库与生动报告**：
+             - 切出巡检分支并将修改推送，自动使用 'gh pr create' 发起 PR（必须严格遵守上述原子性硬防线限制）。
+             - PR 描述中必须详尽贴出你的《漏洞档案分析报告》。
+             - 在原 PR 下面，以极富开发者温度（添加Emoji、谢绝死板机器人腔调）的语言生动评论说明每一项漏洞的排查 and 修复细节。
 
-          # C. 构建基于触发场景的后续 Goal
-          if [ "$IS_PR_FIX" = "true" ]; then
-            # 由安全审计触发：在当前分支上修复审计发现的问题
-            echo "/goal 在当前分支 '$PR_BRANCH' 上，根据安全审计报告修复以下新发现的漏洞：" >> prompt.txt
-            echo "" >> prompt.txt
-            echo "## 安全审计发现的问题：" >> prompt.txt
-            echo "$AUDIT_ISSUES" >> prompt.txt
-            echo "" >> prompt.txt
-            echo "## 修复要求：" >> prompt.txt
-            echo "1. 在当前分支 '$PR_BRANCH' 上继续修复，不要创建新分支" >> prompt.txt
-            echo "2. 针对上述每个问题进行修复，确保修复正确且完整" >> prompt.txt
-            echo "3. 修复后运行本地单元测试验证" >> prompt.txt
-            echo "4. 提交修改并推送到当前分支 '$PR_BRANCH'，更新 PR #$PR_NUMBER" >> prompt.txt
-            echo "5. 在 PR #$PR_NUMBER 下评论说明修复内容" >> prompt.txt
-            echo "" >> prompt.txt
-            echo "## 安全限制：" >> prompt.txt
-            echo "- 严禁直接向主分支（main/master）提交 commit 或执行 push 操作。" >> prompt.txt
-          else
-            # 定时触发或手动触发：执行完整巡检
-            echo "/goal 启动本周度项目代码库安全隐患与逻辑缺陷的【分布式深度排查与并行自愈】任务。" >> prompt.txt
-            echo "" >> prompt.txt
-            echo "## 【PR 创制原子性硬防线（核心限制）】：" >> prompt.txt
-            echo "- 当你运行 'gh pr create' 创建 PR 时，严禁使用 'placeholder' 等空洞字面量来填充 PR Body（描述）。" >> prompt.txt
-            echo "- 你必须首先在项目工作区本地生成写好的、详尽的整个《漏洞档案分析报告》（包含漏洞排查明细、修复细节、测试通过证明等），将其保存为一个物理文件（例如 'pr_description.md'）。" >> prompt.txt
-            echo "- 随后，你必须直接使用带有文件引用参数的命令进行原子创建：'gh pr create --title \"...\" --body-file pr_description.md'。这样可以确保 PR 建立的一瞬间便具备最完整、最高质的内容结构，防止后续进程因为被中断而留下残留草稿。" >> prompt.txt
-            echo "" >> prompt.txt
-            echo "## 【Orchestrator 调度与 Subagents 并行协同设计】：" >> prompt.txt
-            echo "作为一个具备高级调度能力的总协调器（Orchestrator），你必须调用系统内置的 'task' 工具，并发分派子任务给专门的子智能体（Subagents）执行，禁止单兵作战：" >> prompt.txt
-            echo "1. **第一阶段：并行分布式审计（Parallel Scanning）**：" >> prompt.txt
-            echo "   你必须通过并发调用 'task' 工具，分派以下独立的 'Explore' 子智能体开展分析：" >> prompt.txt
-            echo "   - 指派子智能体 A (subagent_type: 'Explore')：扫描所有控制器与路由端点，分析并审计是否存在越权访问、鉴权绕过、信息泄露或未授权的操作。" >> prompt.txt
-            echo "   - 指派子智能体 B (subagent_type: 'Explore')：重点扫描涉及数据库、文件系统、动态代码执行、以及用户输入流的核心模块，排查 SQLi、路径穿越（Path Traversal）、命令注入等严重漏洞。" >> prompt.txt
-            echo "   - 指派子智能体 C (subagent_type: 'Explore')：扫描项目整体代码库，排查已知 Bug、死锁隐患、未捕获的边界异常、TODO/FIXME 标记等业务稳定性漏洞。" >> prompt.txt
-            echo "2. **第二阶段：建立物理任务墙（todo_checklist.md）**：" >> prompt.txt
-            echo "   - 收集上述所有 'Explore' 子智能体返回的审计报告，汇总其发现的所有中高危安全和逻辑漏洞。" >> prompt.txt
-            echo "   - 在项目工作区根目录下新建一个物理文件 'todo_checklist.md'。将发现的所有 Bug 漏洞整理成带有 '[ ]' 复选框的任务清单，建立漏洞档案。" >> prompt.txt
-            echo "3. **第三阶段：分布式并行自愈（Parallel Healing）**：" >> prompt.txt
-            echo "   - 针对清单中所有的中高危漏洞，你必须再次分派多个独立的研发子智能体 (subagent_type: 'general-purpose') 分头对不同的受影响文件进行修改和修复。" >> prompt.txt
-            echo "   - 每当一个子智能体反馈修复成功，你必须亲自运行本地单元测试，确认没有引入退化问题。" >> prompt.txt
-            echo "   - 确认修复且通过测试后，将 'todo_checklist.md' 中对应的 '[ ]' 修改为 '[x]'。" >> prompt.txt
-            echo "4. **第四阶段：PR 出库与生动报告**：" >> prompt.txt
-            echo "   - 切出巡检分支 '$PR_BRANCH'，commit 修改并推送该分支，自动使用 'gh pr create' 发起 PR。" >> prompt.txt
-            echo "   - PR 描述中必须详尽贴出你的《漏洞档案分析报告》。" >> prompt.txt
-            echo "   - 在原 PR 下面，以极富开发者温度（添加Emoji、谢绝死板机器人腔调）的语言生动评论说明每一项漏洞的排查 and 修复细节。" >> prompt.txt
-            echo "" >> prompt.txt
-            echo "## 【LLM Judge 判定终态硬红线（必须 100% 达成）】：" >> prompt.txt
-            echo "- 裁判模型在进行 Goal Check 时，必须强制读取 'todo_checklist.md'。" >> prompt.txt
-            echo "- 只有确保清单中列出的所有漏洞都已被针对性修复，全部打勾销项为 '[x]'，且测试命令 100% 成功通过，才能判定为【已达成（Goal Met）】。否则一律判为【未达成（Goal Not Met）】，并指示你继续修复剩下的未打勾漏洞。" >> prompt.txt
-            echo "" >> prompt.txt
-            echo "## 安全限制：" >> prompt.txt
-            echo "- 严禁直接向主分支（main/master）提交 commit 或执行 push 操作。" >> prompt.txt
-          fi
-          
+          ## 【LLM Judge 判定终态硬红线（必须 100% 达成）】：
+          - 裁判模型在进行 Goal Check 时，必须强制读取 'todo_checklist.md'。
+          - 只有确保清单中列出的所有漏洞都已被针对性修复，全部打勾销项为 '[x]'，且测试命令 100% 成功通过，才能判定为【已达成（Goal Met）】。否则一律判为【未达成（Goal Not Met）】，并指示你继续修复剩下的未打勾漏洞。
+
+          ## 安全限制：
+          - 严禁直接向主分支（main/master）提交 commit 或执行 push 操作。
+          EOF
+
           FINAL_PROMPT="$(cat prompt.txt)"
-          
-          # 弹性恢复指令
-          RESUME_PROMPT="由于网络或上下文限制中断，请读取巡检历史会话并继续完成所有步骤。请注意：若当前分支上依然存在未解决的 Git 合并冲突（即包含 Git 冲突隔离特征的多行冲突代码），你必须优先用代码阅读与编辑工具解决冲突、清除所有的冲突隔离标记行，并执行 git add。接着对照 todo_checklist.md 继续修复未打勾的项，在本地运行并成功通过单元测试，确认无误后完成代码提交与 PR 处理。最后通过 gh 提交生动活泼的说明回复。"
-          
-          echo "Starting Qwen Weekly Scheduled Scan..."
-          START_TIME=$(date +%s)
-          
-          # 4. 执行 Qwen 巡检（应用官方标准推荐的 --approval-mode yolo 参数及显式 -p 指令传入）
+          RESUME_PROMPT="由于网络或上下文限制中断，请读取巡检历史会话并继续完成所有步骤。请注意：必须对照 todo_checklist.md 继续修复未打勾的项，在本地运行并成功通过单元测试，确认无误后完成代码提交与 PR 处理。最后通过 gh 提交生动活泼的说明回复。"
+
+          # 执行 Qwen
           if [ "$IS_RESUME" = "true" ]; then
-            echo "Executing Scheduled Scan in RESUME mode using --resume..."
             if qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --resume "$SESSION_ID" -p "$FINAL_PROMPT" 2>&1 | tee qwen_output.log; then
               SUCCESS=true
             else
               END_TIME=$(date +%s)
               DURATION=$((END_TIME - START_TIME))
-              echo "::warning:: 运行中断。单次耗时: ${DURATION} 秒。"
               if [ $DURATION -ge 1200 ] || grep -q -E "524|terminated|closed" qwen_output.log; then
                 TRIGGER_COMPRESSION=true
               fi
             fi
           else
-            echo "Executing Scheduled Scan in INITIAL mode using --session-id..."
             if qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --session-id "$SESSION_ID" -p "$FINAL_PROMPT" 2>&1 | tee qwen_output.log; then
               SUCCESS=true
             else
               END_TIME=$(date +%s)
               DURATION=$((END_TIME - START_TIME))
-              echo "::warning:: 运行中断。单次耗时: ${DURATION} 秒。"
               if [ $DURATION -ge 1200 ] || grep -q -E "524|terminated|closed" qwen_output.log; then
                 TRIGGER_COMPRESSION=true
               fi
             fi
           fi
-          
-          # 5. 【核心防御判定】：首轮若快速通过，强制启动极深度漏洞会诊机制，重置 Goal
-          if [ "$SUCCESS" = "true" ]; then
-            END_TIME=$(date +%s)
-            DURATION=$((END_TIME - START_TIME))
-            echo "第一轮巡检自愈已完成。耗时: ${DURATION} 秒。"
-            
-            # 如果耗时少于 20 分钟 (1200秒)
-            if [ $DURATION -lt 1200 ]; then
-              echo "::warning:: 巡检耗时少于 20 分钟，判定可能存在排查不足！正在启动第二轮【极深度底层漏洞会诊机制】..."
-              
-              DEEPER_GOAL="/goal 已经完成了初步修复，但为了确保没有遗漏，你现在必须执行【第二轮极深度的底层漏洞会诊】。请使用 Explore 并发扫描所有核心目录，寻找更隐蔽的安全漏洞或稳定缺陷，将它们追加到 'todo_checklist.md' 列表中打勾销项。直接把修改推送到现有的巡检分支上以更新 PR，并在原 PR 下面生动追加你的第二轮扫描与修复总结。"
-              
-              # 开启新目标攻坚，将 SUCCESS 还原为 false
-              SUCCESS=false
-              
-              START_TIME=$(date +%s)
-              if qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --resume "$SESSION_ID" -p "$DEEPER_GOAL" 2>&1 | tee qwen_output.log; then
-                SUCCESS=true
-                echo "极深度会诊任务全部圆满完成！"
-              else
-                END_TIME=$(date +%s)
-                DEEP_DURATION=$((END_TIME - START_TIME))
-                echo "::warning:: 极深度会诊运行异常中断。耗时: ${DEEP_DURATION} 秒。"
-                if [ $DEEP_DURATION -ge 1200 ] || grep -q -E "524|terminated|closed" qwen_output.log; then
-                  TRIGGER_COMPRESSION=true
-                fi
-              fi
+
+          # 首轮耗时防御判定
+          if [ "$SUCCESS" = "true" ] && [ $(( $(date +%s) - START_TIME )) -lt 1200 ]; then
+            echo "::warning:: 巡检耗时过短，判定可能存在排查不足！正在启动第二轮【极深度底层漏洞会诊机制】..."
+            DEEPER_GOAL="/goal 已经完成了初步修复，但为了确保没有遗漏，你现在必须执行【第二轮极深度的底层漏洞会诊】。请使用 Explore 并发扫描所有核心目录，寻找更隐蔽的安全漏洞或稳定缺陷，将它们追加到 'todo_checklist.md' 列表中打勾销项。直接把修改推送到现有的巡检分支上以更新 PR，并在原 PR 下面生动追加你的第二轮扫描与修复总结。"
+            SUCCESS=false
+            START_TIME=$(date +%s)
+            if qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --resume "$SESSION_ID" -p "$DEEPER_GOAL" 2>&1 | tee qwen_output.log; then
+              SUCCESS=true
             fi
           fi
-          
-          # 6. 弹性自愈断点续传循环（在自愈尝试期间，每次也都传递 $RESUME_PROMPT 指令防止 Headless 阻塞）
+
+          # 弹性自愈断点续传循环
           while [ "$SUCCESS" = false ] && [ "$ATTEMPT" -lt "$MAX_ATTEMPTS" ]; do
             ATTEMPT=$((ATTEMPT + 1))
-            echo "=========================================="
-            echo "正在启动自愈流程 (Attempt $ATTEMPT/$MAX_ATTEMPTS)..."
-            echo "=========================================="
             sleep 15
-            
-            # 判定并执行分步压缩命令
             if [ "$TRIGGER_COMPRESSION" = true ]; then
               if [ "$ATTEMPT" = 2 ]; then
-                echo "【Attempt 2 自愈】分步执行快速规则压缩 /compress-fast..."
-                qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --resume "$SESSION_ID" -p "/compress-fast" || echo "Warning: /compress-fast 失败"
+                qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --resume "$SESSION_ID" -p "/compress-fast" || true
               elif [ "$ATTEMPT" -ge 3 ]; then
-                echo "【Attempt $ATTEMPT 自愈】分步执行双重压缩：/compress-fast 紧跟 /compress..."
-                qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --resume "$SESSION_ID" -p "/compress-fast" || echo "Warning: /compress-fast 失败"
+                qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --resume "$SESSION_ID" -p "/compress-fast" || true
                 sleep 5
-                qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --resume "$SESSION_ID" -p "/compress" || echo "Warning: /compress 失败"
+                qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --resume "$SESSION_ID" -p "/compress" || true
               fi
             fi
-            
-            # 弹性无阻塞恢复
             START_TIME=$(date +%s)
             if qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --resume "$SESSION_ID" -p "$RESUME_PROMPT" 2>&1 | tee qwen_output.log; then
               SUCCESS=true
-              echo "自愈成功，周度扫描修复任务已顺利完成。"
             else
               END_TIME=$(date +%s)
               DURATION=$((END_TIME - START_TIME))
-              echo "::warning:: 第 $ATTEMPT 次尝试失败。单次耗时: ${DURATION} 秒。"
               if [ $DURATION -ge 1200 ] || grep -q -E "524|terminated|closed" qwen_output.log; then
                 TRIGGER_COMPRESSION=true
               fi
             fi
           done
-          
-          # 最终成功状态判定
+
           if [ "$SUCCESS" = false ]; then
-            echo "Error: Qwen Autonomous Scheduled Scan failed to complete."
             exit 1
           fi
