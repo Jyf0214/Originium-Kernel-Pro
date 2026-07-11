@@ -5,6 +5,8 @@ on:
     # 每周日凌晨 00:00 (UTC) 定时自动拉起深层巡检
     - cron: '0 0 * * 0'
   workflow_dispatch: # 支持项目合作者手动一键触发
+  pull_request_comment:
+    types: [created] # 当 PR 收到评论时触发（用于接收安全审计的修复指令）
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -12,6 +14,21 @@ concurrency:
 
 jobs:
   scheduled-inspect:
+    # 安全防护门禁（仅允许定时触发、手动触发或合作者/Bot 评论触发）
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request_comment' &&
+        startsWith(github.event.comment.body, '@qwen-code /fix') &&
+        (
+          github.event.comment.author_association == 'OWNER' ||
+          github.event.comment.author_association == 'MEMBER' ||
+          github.event.comment.author_association == 'COLLABORATOR' ||
+          github.event.comment.user.login == 'github-actions[bot]' ||
+          github.event.comment.user.login == 'mostima-moment-bot'
+        )
+      )
+
     runs-on: self-hosted
 
     permissions:
@@ -128,35 +145,67 @@ jobs:
           
           # 2. 安全构建 Prompt 临时文件
           > prompt.txt
-          
-          # 声明并行审计与多 Agent 自愈大目标
-          echo "/goal 启动本周度项目代码库安全隐患与逻辑缺陷的【分布式深度排查与并行自愈】任务。" >> prompt.txt
-          echo "" >> prompt.txt
-          echo "## 【Orchestrator 调度与 Subagents 并行协同设计】（核心机制）：" >> prompt.txt
-          echo "作为一个具备高级调度能力的总协调器（Orchestrator），你必须调用系统内置的 'task' 工具，并发分派子任务给专门的子智能体（Subagents）执行，禁止单兵作战：" >> prompt.txt
-          echo "1. **第一阶段：并行分布式审计（Parallel Scanning）**：" >> prompt.txt
-          echo "   你必须通过并发调用 'task' 工具，分派以下独立的 'Explore' 子智能体开展分析：" >> prompt.txt
-          echo "   - 指派子智能体 A (subagent_type: 'Explore')：扫描所有控制器与路由端点，分析并审计是否存在越权访问、鉴权绕过、信息泄露或未授权的操作。" >> prompt.txt
-          echo "   - 指派子智能体 B (subagent_type: 'Explore')：重点扫描涉及数据库、文件系统、动态代码执行、以及用户输入流的核心模块，排查 SQLi、路径穿越（Path Traversal）、命令注入等严重漏洞。" >> prompt.txt
-          echo "   - 指派子智能体 C (subagent_type: 'Explore')：扫描项目整体代码库，排查已知 Bug、死锁隐患、未捕获的边界异常、TODO/FIXME 标记等业务稳定性漏洞。" >> prompt.txt
-          echo "2. **第二阶段：建立物理任务墙（todo_checklist.md）**：" >> prompt.txt
-          echo "   - 收集上述所有 'Explore' 子智能体返回的审计报告，汇总其发现的所有中高危安全和逻辑漏洞。" >> prompt.txt
-          echo "   - 在项目工作区根目录下新建一个物理文件 'todo_checklist.md'。将发现的所有 Bug 漏洞整理成带有 '[ ]' 复选框的任务清单，建立漏洞档案。" >> prompt.txt
-          echo "3. **第三阶段：分布式并行自愈（Parallel Healing）**：" >> prompt.txt
-          echo "   - 针对清单中所有的中高危漏洞，你必须再次分派多个独立的研发子智能体 (subagent_type: 'general-purpose') 分头对不同的受影响文件进行修改和修复。" >> prompt.txt
-          echo "   - 每当一个子智能体反馈修复成功，你必须亲自运行本地单元测试，确认没有引入退化问题。" >> prompt.txt
-          echo "   - 确认修复且通过测试后，将 'todo_checklist.md' 中对应的 '[ ]' 修改为 '[x]'。" >> prompt.txt
-          echo "4. **第四阶段：PR 出库与生动报告**：" >> prompt.txt
-          echo "   - 切出巡检分支 'scheduled/audit-patch-$CURRENT_DATE'，commit 修改并推送该分支，自动使用 'gh pr create' 发起 PR。" >> prompt.txt
-          echo "   - PR 描述中必须详尽贴出你的《漏洞档案分析报告》。" >> prompt.txt
-          echo "   - 在原 PR 下面，以极富开发者温度（添加Emoji、谢绝死板机器人腔调）的语言生动评论说明每一项漏洞的排查和修复细节。" >> prompt.txt
-          echo "" >> prompt.txt
-          echo "## 【LLM Judge 判定终态硬红线（必须 100% 达成）】：" >> prompt.txt
-          echo "- 裁判模型在进行 Goal Check 时，必须强制读取 'todo_checklist.md'。" >> prompt.txt
-          echo "- 只有确保清单中列出的所有漏洞都已被针对性修复，全部打勾销项为 '[x]'，且测试命令 100% 成功通过，才能判定为【已达成（Goal Met）】。否则一律判为【未达成（Goal Not Met）】，并指示你继续修复剩下的未打勾漏洞。" >> prompt.txt
-          echo "" >> prompt.txt
-          echo "## 安全限制：" >> prompt.txt
-          echo "- 严禁直接向主分支（main/master）提交 commit 或执行 push 操作。" >> prompt.txt
+
+          # 判断是否由 PR 评论触发（接收安全审计的修复指令）
+          IS_PR_FIX=false
+          AUDIT_ISSUES=""
+          if [ "${{ github.event_name }}" = "pull_request_comment" ]; then
+            IS_PR_FIX=true
+            # 提取评论中的审计报告内容（在 ```markdown 和 ``` 之间）
+            COMMENT_BODY="${{ github.event.comment.body }}"
+            AUDIT_ISSUES=$(echo "$COMMENT_BODY" | sed -n '/^```markdown$/,/^```$/p' | sed '1d;$d')
+            echo "检测到 PR 评论触发，已提取审计问题："
+            echo "$AUDIT_ISSUES"
+          fi
+
+          # 根据触发方式构建不同的 Prompt
+          if [ "$IS_PR_FIX" = "true" ]; then
+            # 由安全审计触发：续接之前的会话，修复审计发现的问题
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+            echo "/goal 续接之前的周度安全审计会话，根据安全审计报告修复以下新发现的漏洞：" >> prompt.txt
+            echo "" >> prompt.txt
+            echo "## 安全审计发现的问题：" >> prompt.txt
+            echo "$AUDIT_ISSUES" >> prompt.txt
+            echo "" >> prompt.txt
+            echo "## 修复要求：" >> prompt.txt
+            echo "1. 在现有巡检分支上继续修复，不要创建新分支" >> prompt.txt
+            echo "2. 针对上述每个问题进行修复，确保修复正确且完整" >> prompt.txt
+            echo "3. 修复后运行本地单元测试验证" >> prompt.txt
+            echo "4. 提交修改并推送到现有分支，更新 PR #$PR_NUMBER" >> prompt.txt
+            echo "5. 在 PR #$PR_NUMBER 下评论说明修复内容" >> prompt.txt
+            echo "" >> prompt.txt
+            echo "## 安全限制：" >> prompt.txt
+            echo "- 严禁直接向主分支（main/master）提交 commit 或执行 push 操作。" >> prompt.txt
+          else
+            # 定时触发或手动触发：执行完整巡检
+            echo "/goal 启动本周度项目代码库安全隐患与逻辑缺陷的【分布式深度排查与并行自愈】任务。" >> prompt.txt
+            echo "" >> prompt.txt
+            echo "## 【Orchestrator 调度与 Subagents 并行协同设计】（核心机制）：" >> prompt.txt
+            echo "作为一个具备高级调度能力的总协调器（Orchestrator），你必须调用系统内置的 'task' 工具，并发分派子任务给专门的子智能体（Subagents）执行，禁止单兵作战：" >> prompt.txt
+            echo "1. **第一阶段：并行分布式审计（Parallel Scanning）**：" >> prompt.txt
+            echo "   你必须通过并发调用 'task' 工具，分派以下独立的 'Explore' 子智能体开展分析：" >> prompt.txt
+            echo "   - 指派子智能体 A (subagent_type: 'Explore')：扫描所有控制器与路由端点，分析并审计是否存在越权访问、鉴权绕过、信息泄露或未授权的操作。" >> prompt.txt
+            echo "   - 指派子智能体 B (subagent_type: 'Explore')：重点扫描涉及数据库、文件系统、动态代码执行、以及用户输入流的核心模块，排查 SQLi、路径穿越（Path Traversal）、命令注入等严重漏洞。" >> prompt.txt
+            echo "   - 指派子智能体 C (subagent_type: 'Explore')：扫描项目整体代码库，排查已知 Bug、死锁隐患、未捕获的边界异常、TODO/FIXME 标记等业务稳定性漏洞。" >> prompt.txt
+            echo "2. **第二阶段：建立物理任务墙（todo_checklist.md）**：" >> prompt.txt
+            echo "   - 收集上述所有 'Explore' 子智能体返回的审计报告，汇总其发现的所有中高危安全和逻辑漏洞。" >> prompt.txt
+            echo "   - 在项目工作区根目录下新建一个物理文件 'todo_checklist.md'。将发现的所有 Bug 漏洞整理成带有 '[ ]' 复选框的任务清单，建立漏洞档案。" >> prompt.txt
+            echo "3. **第三阶段：分布式并行自愈（Parallel Healing）**：" >> prompt.txt
+            echo "   - 针对清单中所有的中高危漏洞，你必须再次分派多个独立的研发子智能体 (subagent_type: 'general-purpose') 分头对不同的受影响文件进行修改和修复。" >> prompt.txt
+            echo "   - 每当一个子智能体反馈修复成功，你必须亲自运行本地单元测试，确认没有引入退化问题。" >> prompt.txt
+            echo "   - 确认修复且通过测试后，将 'todo_checklist.md' 中对应的 '[ ]' 修改为 '[x]'。" >> prompt.txt
+            echo "4. **第四阶段：PR 出库与生动报告**：" >> prompt.txt
+            echo "   - 切出巡检分支 'scheduled/audit-patch-$CURRENT_DATE'，commit 修改并推送该分支，自动使用 'gh pr create' 发起 PR。" >> prompt.txt
+            echo "   - PR 描述中必须详尽贴出你的《漏洞档案分析报告》。" >> prompt.txt
+            echo "   - 在原 PR 下面，以极富开发者温度（添加Emoji、谢绝死板机器人腔调）的语言生动评论说明每一项漏洞的排查和修复细节。" >> prompt.txt
+            echo "" >> prompt.txt
+            echo "## 【LLM Judge 判定终态硬红线（必须 100% 达成）】：" >> prompt.txt
+            echo "- 裁判模型在进行 Goal Check 时，必须强制读取 'todo_checklist.md'。" >> prompt.txt
+            echo "- 只有确保清单中列出的所有漏洞都已被针对性修复，全部打勾销项为 '[x]'，且测试命令 100% 成功通过，才能判定为【已达成（Goal Met）】。否则一律判为【未达成（Goal Not Met）】，并指示你继续修复剩下的未打勾漏洞。" >> prompt.txt
+            echo "" >> prompt.txt
+            echo "## 安全限制：" >> prompt.txt
+            echo "- 严禁直接向主分支（main/master）提交 commit 或执行 push 操作。" >> prompt.txt
+          fi
           
           FINAL_PROMPT="$(cat prompt.txt)"
           
