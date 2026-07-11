@@ -130,10 +130,41 @@ jobs:
           # 获取当前时间，用于命名分支
           CURRENT_DATE=$(date +%Y%m%d)
           echo "Scheduled Inspection Date: $CURRENT_DATE"
-          
-          # 1. 恢复或创建巡检会话
+
+          # 1. 物理分支感知与同步（PR 评论触发时切换到 PR 分支）
+          PR_NUMBER=""
+          if [ "${{ github.event_name }}" = "issue_comment" ]; then
+            PR_NUMBER="${{ github.event.issue.number }}"
+            PR_BRANCH=$(gh pr view "$PR_NUMBER" --json headRefName --jq .headRefName 2>/dev/null || echo "scheduled/audit-patch-$CURRENT_DATE")
+            echo "检测到 PR 评论触发，正在切换到 PR 分支: $PR_BRANCH"
+
+            git fetch origin "$PR_BRANCH"
+            git checkout "$PR_BRANCH"
+
+            # 自动同步主分支最新代码
+            git fetch origin main
+            echo "尝试合并 origin/main 到 $PR_BRANCH 以保持同步..."
+            if git merge origin/main --no-edit; then
+              echo "成功合并 origin/main 到 $PR_BRANCH（无冲突）"
+            else
+              echo "::warning:: 检测到合并冲突，保留冲突标记供 Qwen 解决。"
+            fi
+          else
+            PR_BRANCH="scheduled/audit-patch-$CURRENT_DATE"
+            echo "定时/手动触发。目标分支初始化为: $PR_BRANCH"
+          fi
+
+          # 2. 恢复或创建巡检会话
+          # PR 评论触发时始终创建新会话（旧会话可能已过期或不相关）
+          # 定时/手动触发时尝试恢复旧会话
           mkdir -p ~/.qwen
-          if [ -f ~/.qwen/current_scheduled_session_id.txt ]; then
+          if [ "${{ github.event_name }}" = "issue_comment" ]; then
+            # PR 评论触发：创建新会话
+            SESSION_ID=$(cat /proc/sys/kernel/random/uuid)
+            echo "$SESSION_ID" > ~/.qwen/current_scheduled_session_id.txt
+            IS_RESUME=false
+            echo "PR 评论触发，创建新会话: $SESSION_ID (Fresh Session Mode)"
+          elif [ -f ~/.qwen/current_scheduled_session_id.txt ]; then
             SESSION_ID=$(cat ~/.qwen/current_scheduled_session_id.txt)
             IS_RESUME=true
             echo "Successfully loaded persistent Scheduled Session ID: $SESSION_ID (Incremental Scan Mode)"
@@ -143,8 +174,8 @@ jobs:
             IS_RESUME=false
             echo "Created brand new Scheduled Session ID: $SESSION_ID (First-run Scan Mode)"
           fi
-          
-          # 2. 安全构建 Prompt 临时文件
+
+          # 3. 安全构建 Prompt 临时文件
           > prompt.txt
 
           # 判断是否由 PR 评论触发（接收安全审计的修复指令）
@@ -153,26 +184,27 @@ jobs:
           if [ "${{ github.event_name }}" = "issue_comment" ]; then
             IS_PR_FIX=true
             # 提取评论中的审计报告内容（在 ```markdown 和 ``` 之间）
+            # 使用临时文件避免 bash 直接解析特殊字符导致语法错误
             COMMENT_BODY="${{ github.event.comment.body }}"
-            AUDIT_ISSUES=$(echo "$COMMENT_BODY" | sed -n '/^```markdown$/,/^```$/p' | sed '1d;$d')
+            echo "$COMMENT_BODY" | sed -n '/^```markdown$/,/^```$/p' | sed '1d;$d' > /tmp/audit_issues.txt
+            AUDIT_ISSUES=$(cat /tmp/audit_issues.txt)
             echo "检测到 PR 评论触发，已提取审计问题："
             echo "$AUDIT_ISSUES"
           fi
 
           # 根据触发方式构建不同的 Prompt
           if [ "$IS_PR_FIX" = "true" ]; then
-            # 由安全审计触发：续接之前的会话，修复审计发现的问题
-            PR_NUMBER="${{ github.event.issue.number }}"
-            echo "/goal 续接之前的周度安全审计会话，根据安全审计报告修复以下新发现的漏洞：" >> prompt.txt
+            # 由安全审计触发：在当前分支上修复审计发现的问题
+            echo "/goal 在当前分支 '$PR_BRANCH' 上，根据安全审计报告修复以下新发现的漏洞：" >> prompt.txt
             echo "" >> prompt.txt
             echo "## 安全审计发现的问题：" >> prompt.txt
             echo "$AUDIT_ISSUES" >> prompt.txt
             echo "" >> prompt.txt
             echo "## 修复要求：" >> prompt.txt
-            echo "1. 在现有巡检分支上继续修复，不要创建新分支" >> prompt.txt
+            echo "1. 在当前分支 '$PR_BRANCH' 上继续修复，不要创建新分支" >> prompt.txt
             echo "2. 针对上述每个问题进行修复，确保修复正确且完整" >> prompt.txt
             echo "3. 修复后运行本地单元测试验证" >> prompt.txt
-            echo "4. 提交修改并推送到现有分支，更新 PR #$PR_NUMBER" >> prompt.txt
+            echo "4. 提交修改并推送到当前分支 '$PR_BRANCH'，更新 PR #$PR_NUMBER" >> prompt.txt
             echo "5. 在 PR #$PR_NUMBER 下评论说明修复内容" >> prompt.txt
             echo "" >> prompt.txt
             echo "## 安全限制：" >> prompt.txt
