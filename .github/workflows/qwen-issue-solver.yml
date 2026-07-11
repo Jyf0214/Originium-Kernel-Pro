@@ -20,8 +20,8 @@ jobs:
         )
       )
     
-    runs-on: ubuntu-latest
-    
+    runs-on: self-hosted
+
     permissions:
       contents: write      # 用于向仓库推送修复分支
       issues: write        # 用于读取/回复/关闭 Issue
