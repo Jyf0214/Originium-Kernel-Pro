@@ -5,8 +5,8 @@ on:
     # 每周日凌晨 00:00 (UTC) 定时自动拉起深层巡检
     - cron: '0 0 * * 0'
   workflow_dispatch: # 支持项目合作者手动一键触发
-  pull_request_comment:
-    types: [created] # 当 PR 收到评论时触发（用于接收安全审计的修复指令）
+  issue_comment:
+    types: [created] # 当 Issue/PR 收到评论时触发（用于接收安全审计的修复指令）
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,18 +14,19 @@ concurrency:
 
 jobs:
   scheduled-inspect:
-    # 安全防护门禁（仅允许定时触发、手动触发或合作者/Bot 评论触发）
+    # 安全防护门禁（仅允许定时触发、手动触发或 PR 上的合作者/Bot 评论触发）
     if: |
       github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request_comment' &&
+      (github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
         startsWith(github.event.comment.body, '@qwen-code /fix') &&
         (
           github.event.comment.author_association == 'OWNER' ||
           github.event.comment.author_association == 'MEMBER' ||
           github.event.comment.author_association == 'COLLABORATOR' ||
           github.event.comment.user.login == 'github-actions[bot]' ||
-          github.event.comment.user.login == 'mostima-moment-bot'
+          github.event.comment.user.login == 'mostima-moment-bot[bot]'
         )
       )
 
@@ -149,7 +150,7 @@ jobs:
           # 判断是否由 PR 评论触发（接收安全审计的修复指令）
           IS_PR_FIX=false
           AUDIT_ISSUES=""
-          if [ "${{ github.event_name }}" = "pull_request_comment" ]; then
+          if [ "${{ github.event_name }}" = "issue_comment" ]; then
             IS_PR_FIX=true
             # 提取评论中的审计报告内容（在 ```markdown 和 ``` 之间）
             COMMENT_BODY="${{ github.event.comment.body }}"
@@ -161,7 +162,7 @@ jobs:
           # 根据触发方式构建不同的 Prompt
           if [ "$IS_PR_FIX" = "true" ]; then
             # 由安全审计触发：续接之前的会话，修复审计发现的问题
-            PR_NUMBER="${{ github.event.pull_request.number }}"
+            PR_NUMBER="${{ github.event.issue.number }}"
             echo "/goal 续接之前的周度安全审计会话，根据安全审计报告修复以下新发现的漏洞：" >> prompt.txt
             echo "" >> prompt.txt
             echo "## 安全审计发现的问题：" >> prompt.txt
