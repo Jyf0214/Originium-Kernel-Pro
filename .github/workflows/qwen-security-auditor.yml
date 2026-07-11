@@ -6,8 +6,8 @@ on:
 
 jobs:
   security-audit:
-    runs-on: ubuntu-latest
-    
+    runs-on: self-hosted
+
     permissions:
       contents: write      # 用于读取 Git commit 历史与推送
       issues: write        # 用于向 PR 发表审计报告评论
