@@ -1,0 +1,265 @@
+name: "Qwen Scheduled Bug Hunter - PR Fixer"
+
+on:
+  issue_comment:
+    types: [created] # 当 Issue/PR 收到评论时触发
+
+concurrency:
+  # 条件隔离并发组：精妙隔离 Vercel 等系统评论（-false）与真实 /fix 修复指令（-true），防止自愈过程被中断误杀
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}-${{ contains(github.event.comment.body, '@qwen-code /fix') }}
+  cancel-in-progress: true
+
+jobs:
+  pr-repair:
+    # 门禁过滤（只允许对 PR 发表的、包含 /fix 指令的、有权限作者的评论触发）
+    if: |
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '@qwen-code /fix') &&
+      (
+        github.event.comment.author_association == 'OWNER' ||
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'COLLABORATOR' ||
+        github.event.comment.user.login == 'github-actions[bot]' ||
+        github.event.comment.user.login == 'mostima-moment-bot[bot]'
+      )
+
+    runs-on: self-hosted
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Environment (Node.js)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install TypeScript Language Server for LSP Support
+        run: |
+          npm install -g typescript-language-server typescript
+
+      - name: Install Qwen Code CLI Globally
+        run: npm install -g @qwen-code/qwen-code@latest
+
+      # 物理防线：注入本地 Git 钩子，绝对禁止直推主分支
+      - name: Enforce Local Branch Protection (Git Hook Security)
+        run: |
+          mkdir -p .git/hooks
+          cat << 'EOF' > .git/hooks/pre-push
+          #!/bin/sh
+          while read local_ref local_sha remote_ref remote_sha
+          do
+            if [ "$remote_ref" = "refs/heads/main" ] || [ "$remote_ref" = "refs/heads/master" ]; then
+              echo "========================================================="
+              echo " [SECURITY ERROR] Direct push to main/master is PROHIBITED!"
+              echo "========================================================="
+              exit 1
+            fi
+          done
+          exit 0
+          EOF
+          chmod +x .git/hooks/pre-push
+
+      # 安全恢复会话缓存
+      - name: Restore Qwen Secure Session Cache
+        id: cache-qwen
+        uses: actions/cache@v4
+        with:
+          path: ~/.qwen
+          key: qwen-session-pr-${{ github.event.issue.number }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            qwen-session-pr-${{ github.event.issue.number }}-${{ github.run_id }}-
+            qwen-session-pr-${{ github.event.issue.number }}-
+
+      # 配置读取：写入 Qwen 全局配置
+      - name: Configure Qwen Settings
+        run: |
+          mkdir -p ~/.qwen
+          cat << 'EOF' > ~/.qwen/settings.json
+          ${{ secrets.QWEN_SETTINGS_JSON }}
+          EOF
+
+      # 创建 LSP 运行时配置
+      - name: Create LSP Server Configuration
+        run: |
+          cat << 'EOF' > .lsp.json
+          {
+            "typescript": {
+              "command": "typescript-language-server",
+              "args": ["--stdio"],
+              "extensionToLanguage": {
+                ".ts": "typescript",
+                ".tsx": "typescriptreact",
+                ".js": "javascript",
+                ".jsx": "javascriptreact"
+              }
+            }
+          }
+          EOF
+
+      # 执行修复
+      - name: Run PR Auto-Healing
+        env:
+          UNLIMITED_OPENAI_API_KEY: ${{ secrets.UNLIMITED_OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_EVENT_COMMENT_BODY: ${{ github.event.comment.body }}
+          GITHUB_EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -o pipefail
+          export NODE_PENDING_DEPRECATION=0
+          export QWEN_CODE_UNATTENDED_RETRY=1
+          export QWEN_CODE_SUPPRESS_YOLO_WARNING=1
+          
+          MAX_ATTEMPTS=5
+          ATTEMPT=1
+          SUCCESS=false
+          TRIGGER_COMPRESSION=false
+          
+          # 1. 物理分支切换与合并 origin/main（防合并冲突）
+          PR_NUMBER="$GITHUB_EVENT_ISSUE_NUMBER"
+          PR_BRANCH=$(gh pr view "$PR_NUMBER" --json headRefName --jq .headRefName 2>/dev/null)
+          echo "检测到 PR 评论触发，正在切换到目标分支: $PR_BRANCH"
+
+          git fetch origin "$PR_BRANCH"
+          git checkout "$PR_BRANCH"
+
+          git fetch origin main
+          echo "正在尝试将 origin/main 同步合并到当前分支..."
+          HAS_CONFLICTS=false
+          CONFLICTED_FILES=""
+          if git merge origin/main --no-edit; then
+            echo "同步合并成功（无物理冲突）"
+          else
+            echo "::warning:: 检测到物理合并冲突！正在提取冲突文件列表..."
+            HAS_CONFLICTS=true
+            CONFLICTED_FILES=$(git diff --name-only --diff-filter=U)
+            echo "冲突文件："
+            echo "$CONFLICTED_FILES"
+          fi
+
+          # 2. 从本地映射寻回该 PR / 分支对应的会话 ID
+          mkdir -p ~/.qwen
+          BRANCH_NAME_SAFE=$(echo "$PR_BRANCH" | sed 's/[^a-zA-Z0-9_.-]/_/g')
+          SESSION_ID=""
+          IS_RESUME=false
+
+          if [ -f ~/.qwen/session_pr_${PR_NUMBER}.txt ]; then
+            SESSION_ID=$(cat ~/.qwen/session_pr_${PR_NUMBER}.txt)
+            IS_RESUME=true
+            echo "寻获 PR 专属缓存会话 ID: $SESSION_ID (PR Session Mode)"
+          elif [ -f ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt ]; then
+            SESSION_ID=$(cat ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt)
+            IS_RESUME=true
+            echo "寻获同源分支缓存会话 ID: $SESSION_ID (Branch Match Mode)"
+            echo "$SESSION_ID" > ~/.qwen/session_pr_${PR_NUMBER}.txt
+          else
+            SESSION_ID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen 2>/dev/null || echo "session-$(date +%s)")
+            echo "$SESSION_ID" > ~/.qwen/session_pr_${PR_NUMBER}.txt
+            echo "$SESSION_ID" > ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt
+            IS_RESUME=false
+            echo "本地无缓存。已强制生成全新会话 ID: $SESSION_ID"
+          fi
+
+          # 3. 提取审计报告内容
+          > prompt.txt
+          echo "$GITHUB_EVENT_COMMENT_BODY" | sed -n '/^```markdown$/,/^```$/p' | sed '1d;$d' > /tmp/audit_issues.txt
+          AUDIT_ISSUES=$(cat /tmp/audit_issues.txt)
+
+          # 4. 构建针对性极强的【PR 自愈修复提示词】（规避物理符号拦截）
+          # A. 合并冲突处理优先组
+          if [ "$HAS_CONFLICTS" = "true" ]; then
+            echo "⚠️【紧急第一优先任务：解决 Git 合并冲突】⚠️" >> prompt.txt
+            echo "当前分支在与主分支（origin/main）合并时检测到了物理合并冲突。" >> prompt.txt
+            echo "以下冲突文件目前带有 Git 冲突标记（即包含由小于号、等号或大于号以及分支名称组成的冲突隔离行），处于未合并状态：" >> prompt.txt
+            echo "" >> prompt.txt
+            echo "$CONFLICTED_FILES" | sed 's/^/- /' >> prompt.txt
+            echo "" >> prompt.txt
+            echo "你必须在执行任何其他安全漏洞自愈或修复任务前，首先解决这些冲突：" >> prompt.txt
+            echo "1. 依次读取这些冲突文件，理清冲突双方的代码逻辑，并进行正确的手工合并。" >> prompt.txt
+            echo "2. 必须彻底清除这些文件中的所有 Git 冲突指示分隔整行（即以连续的小于号、等号或大于号开头的整行标记），确保没有遗留任何物理冲突文本特征。" >> prompt.txt
+            echo "3. 确保解决冲突后的代码结构完整、能够正常通过本地编译。" >> prompt.txt
+            echo "4. 使用 git add 暂存解决冲突后的文件（将其标记为 Resolved）。" >> prompt.txt
+            echo "5. 只有当全部合并冲突被成功解决，且本地执行测试命令没有编译错误后，你才能继续进行后续的安全漏洞自愈和巡检任务！" >> prompt.txt
+            echo "--------------------------------------------------------" >> prompt.txt
+            echo "" >> prompt.txt
+          fi
+
+          # B. 定向漏洞修复组
+          echo "/goal 在当前分支 '$PR_BRANCH' 上，根据安全审计报告修复以下新发现的漏洞：" >> prompt.txt
+          echo "" >> prompt.txt
+          echo "## 安全审计发现的问题：" >> prompt.txt
+          echo "$AUDIT_ISSUES" >> prompt.txt
+          echo "" >> prompt.txt
+          echo "## 修复要求：" >> prompt.txt
+          echo "1. 在当前分支 '$PR_BRANCH' 上继续修复，不要创建新分支。" >> prompt.txt
+          echo "2. 针对上述每个问题进行修复，确保修复正确且完整。" >> prompt.txt
+          echo "3. 修复后运行本地单元测试验证。" >> prompt.txt
+          echo "4. 提交修改并推送到当前分支 '$PR_BRANCH'，更新 PR #$PR_NUMBER。" >> prompt.txt
+          echo "5. 在 PR #$PR_NUMBER 下以富有人文关怀、生动活泼的开发者口吻总结评论说明修复内容。" >> prompt.txt
+          echo "" >> prompt.txt
+          echo "## 安全限制：" >> prompt.txt
+          echo "- 严禁直接向主分支（main/master）提交 commit 或执行 push 操作。" >> prompt.txt
+
+          FINAL_PROMPT="$(cat prompt.txt)"
+          RESUME_PROMPT="由于网络或上下文限制中断，请读取巡检历史会话并继续完成所有步骤。请注意：若当前分支上依然存在未解决的 Git 合并冲突（即包含 Git 冲突隔离特征的多行冲突代码），你必须优先用代码阅读与编辑工具解决冲突、清除所有的冲突隔离标记行，并执行 git add。接着对照 todo_checklist.md 继续修复未打勾的项，在本地运行并成功通过单元测试，确认无误后完成代码提交与 PR 处理。最后通过 gh 提交生动活泼的说明回复。"
+
+          # 5. 执行自愈
+          START_TIME=$(date +%s)
+          if [ "$IS_RESUME" = "true" ]; then
+            echo "Executing PR Fixer in RESUME mode..."
+            if qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --resume "$SESSION_ID" -p "$FINAL_PROMPT" 2>&1 | tee qwen_output.log; then
+              SUCCESS=true
+            else
+              END_TIME=$(date +%s)
+              DURATION=$((END_TIME - START_TIME))
+              if [ $DURATION -ge 1200 ] || grep -q -E "524|terminated|closed" qwen_output.log; then
+                TRIGGER_COMPRESSION=true
+              fi
+            fi
+          else
+            echo "Executing PR Fixer in INITIAL mode..."
+            if qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --session-id "$SESSION_ID" -p "$FINAL_PROMPT" 2>&1 | tee qwen_output.log; then
+              SUCCESS=true
+            else
+              END_TIME=$(date +%s)
+              DURATION=$((END_TIME - START_TIME))
+              if [ $DURATION -ge 1200 ] || grep -q -E "524|terminated|closed" qwen_output.log; then
+                TRIGGER_COMPRESSION=true
+              fi
+            fi
+          fi
+
+          # 弹性自愈断点续传循环
+          while [ "$SUCCESS" = false ] && [ "$ATTEMPT" -lt "$MAX_ATTEMPTS" ]; do
+            ATTEMPT=$((ATTEMPT + 1))
+            sleep 15
+            if [ "$TRIGGER_COMPRESSION" = true ]; then
+              if [ "$ATTEMPT" = 2 ]; then
+                qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --resume "$SESSION_ID" -p "/compress-fast" || true
+              elif [ "$ATTEMPT" -ge 3 ]; then
+                qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --resume "$SESSION_ID" -p "/compress-fast" || true
+                sleep 5
+                qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --resume "$SESSION_ID" -p "/compress" || true
+              fi
+            fi
+            START_TIME=$(date +%s)
+            if qwen --approval-mode yolo --experimental-lsp --max-session-turns 150 --max-tool-calls -1 --resume "$SESSION_ID" -p "$RESUME_PROMPT" 2>&1 | tee qwen_output.log; then
+              SUCCESS=true
+            else
+              END_TIME=$(date +%s)
+              DURATION=$((END_TIME - START_TIME))
+              if [ $DURATION -ge 1200 ] || grep -q -E "524|terminated|closed" qwen_output.log; then
+                TRIGGER_COMPRESSION=true
+              fi
+            fi
+          done
+
+          if [ "$SUCCESS" = false ]; then
+            exit 1
+          fi
