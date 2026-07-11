@@ -9,7 +9,8 @@ on:
     types: [created] # 当 Issue/PR 收到评论时触发（用于接收安全审计的修复指令）
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # 终极并发隔离算法：通过加入条件后缀（-true / -false），物理隔离非指令评论（如 Vercel 部署评论）和真实的 /fix 修复指令，防止运行中的 Qwen 被误杀
+  group: ${{ github.workflow }}-${{ github.event.issue.number || github.ref }}-${{ github.event_name == 'issue_comment' && contains(github.event.comment.body, '@qwen-code /fix') || github.event_name != 'issue_comment' }}
   cancel-in-progress: true
 
 jobs:
@@ -237,7 +238,8 @@ jobs:
             fi
           fi
 
-          # 4. 安全构建 Prompt 临时文件（采用自然语言描述规避安全拦截）
+          # 4. 安全构建 Prompt 临时文件
+          # 在此处增加了 PR 原子性创制的硬性约束，防止并发中断产生 placeholder 的情况
           > prompt.txt
 
           # A. 如果存在 Git 合并冲突，将“清理并解决冲突”作为【终极第一优先级】指令注入 Prompt 最顶端
@@ -289,7 +291,12 @@ jobs:
             # 定时触发或手动触发：执行完整巡检
             echo "/goal 启动本周度项目代码库安全隐患与逻辑缺陷的【分布式深度排查与并行自愈】任务。" >> prompt.txt
             echo "" >> prompt.txt
-            echo "## 【Orchestrator 调度与 Subagents 并行协同设计】（核心机制）：" >> prompt.txt
+            echo "## 【PR 创制原子性硬防线（核心限制）】：" >> prompt.txt
+            echo "- 当你运行 'gh pr create' 创建 PR 时，严禁使用 'placeholder' 等空洞字面量来填充 PR Body（描述）。" >> prompt.txt
+            echo "- 你必须首先在项目工作区本地生成写好的、详尽的整个《漏洞档案分析报告》（包含漏洞排查明细、修复细节、测试通过证明等），将其保存为一个物理文件（例如 'pr_description.md'）。" >> prompt.txt
+            echo "- 随后，你必须直接使用带有文件引用参数的命令进行原子创建：'gh pr create --title \"...\" --body-file pr_description.md'。这样可以确保 PR 建立的一瞬间便具备最完整、最高质的内容结构，防止后续进程因为被中断而留下残留草稿。" >> prompt.txt
+            echo "" >> prompt.txt
+            echo "## 【Orchestrator 调度与 Subagents 并行协同设计】：" >> prompt.txt
             echo "作为一个具备高级调度能力的总协调器（Orchestrator），你必须调用系统内置的 'task' 工具，并发分派子任务给专门的子智能体（Subagents）执行，禁止单兵作战：" >> prompt.txt
             echo "1. **第一阶段：并行分布式审计（Parallel Scanning）**：" >> prompt.txt
             echo "   你必须通过并发调用 'task' 工具，分派以下独立的 'Explore' 子智能体开展分析：" >> prompt.txt
@@ -318,7 +325,7 @@ jobs:
           
           FINAL_PROMPT="$(cat prompt.txt)"
           
-          # 弹性恢复指令（增加解决冲突的提醒，规避物理标记字面量）
+          # 弹性恢复指令
           RESUME_PROMPT="由于网络或上下文限制中断，请读取巡检历史会话并继续完成所有步骤。请注意：若当前分支上依然存在未解决的 Git 合并冲突（即包含 Git 冲突隔离特征的多行冲突代码），你必须优先用代码阅读与编辑工具解决冲突、清除所有的冲突隔离标记行，并执行 git add。接着对照 todo_checklist.md 继续修复未打勾的项，在本地运行并成功通过单元测试，确认无误后完成代码提交与 PR 处理。最后通过 gh 提交生动活泼的说明回复。"
           
           echo "Starting Qwen Weekly Scheduled Scan..."
