@@ -1,6 +1,10 @@
 /**
  * HTML 和 CSS 消毒工具
  * 用于防止存储型 XSS 攻击
+ *
+ * 安全说明：基于正则的 HTML 清理存在固有局限性，无法覆盖所有绕过手段。
+ * 建议未来引入 DOMPurify 作为主力消毒方案，以获得更全面的 XSS 防护。
+ * 当前正则作为轻量级防线，可过滤大部分常见攻击向量。
  */
 
 // 危险 HTML 标签列表（含自闭合标签）
@@ -16,6 +20,27 @@ const JS_URL_IN_STYLE = /url\s*\(\s*(?:"\s*javascript:[^"]*"|'\s*javascript:[^']
 const JS_URL_GENERAL = /javascript\s*:/gi;
 
 /**
+ * 解码 HTML 实体，防止攻击者通过编码绕过正则过滤
+ * 支持十进制（&#60;）、十六进制（&#x3C;）和命名实体（&lt;）
+ */
+function decodeHtmlEntities(str: string): string {
+  return str
+    // 十六进制实体 &#xHH; / &#xHHHH;
+    .replace(/&#x([0-9a-fA-F]+);/g, (_match, hex: string) => String.fromCharCode(parseInt(hex, 16)))
+    // 十进制实体 &#DDDD;
+    .replace(/&#(\d+);/g, (_match, dec: string) => String.fromCharCode(parseInt(dec, 10)))
+    // 常用命名实体
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#39;/g, "'")
+    .replace(/&#47;/g, '/')
+}
+
+/**
  * 清理 HTML 头部注入内容
  * 移除危险标签、事件处理器和 javascript: URL
  * 保留 <meta>, <link>, <style>, <title> 等安全标签
@@ -23,7 +48,8 @@ const JS_URL_GENERAL = /javascript\s*:/gi;
 export function sanitizeHeadHtml(html: string): string {
   if (!html) return '';
 
-  let sanitized = html;
+  // 先解码 HTML 实体，防止编码绕过
+  let sanitized = decodeHtmlEntities(html);
 
   // 1. 移除危险标签及其内容
   sanitized = sanitized.replace(DANGEROUS_TAGS, '');

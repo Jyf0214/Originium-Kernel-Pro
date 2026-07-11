@@ -21,7 +21,38 @@ function mergeSection<T extends Record<string, any>>(
   override: Partial<T> | undefined,
 ): T | undefined {
   if (!override) return base;
-  return { ...(base), ...override } as T;
+
+  const result = { ...base } as Record<string, unknown>;
+
+  for (const key of Object.keys(override)) {
+    const baseVal = (base as Record<string, unknown>)?.[key];
+    const overVal = (override as Record<string, unknown>)[key];
+
+    // 当双方都是数组时，拼接合并（override 在后），而非直接替换
+    if (Array.isArray(baseVal) && Array.isArray(overVal)) {
+      // 对于对象数组，按 id 字段去重合并；否则直接拼接
+      if (
+        overVal.length > 0 &&
+        typeof overVal[0] === 'object' &&
+        overVal[0] !== null &&
+        'id' in overVal[0]
+      ) {
+        const baseMap = new Map(
+          baseVal.map((item: Record<string, unknown>) => [item.id, item]),
+        );
+        for (const item of overVal) {
+          baseMap.set((item as Record<string, unknown>).id, item);
+        }
+        result[key] = Array.from(baseMap.values());
+      } else {
+        result[key] = [...baseVal, ...overVal];
+      }
+    } else {
+      result[key] = overVal;
+    }
+  }
+
+  return result as T;
 }
 
 function mergeAppearance(

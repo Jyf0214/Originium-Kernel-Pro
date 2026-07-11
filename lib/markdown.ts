@@ -10,6 +10,8 @@ export interface FrontMatter {
   tags?: string[];
   cover?: string;
   date?: string;
+  /** 标记 frontmatter 解析是否失败 */
+  parseError?: boolean;
   [key: string]: string | number | boolean | string[] | undefined;
 }
 
@@ -28,11 +30,12 @@ export function parseMarkdown(markdown: string): ParsedMarkdown {
       content,
       frontMatter: data as FrontMatter,
     };
-  } catch {
-    // If parsing fails, return full content without front matter
+  } catch (err) {
+    // 解析失败时记录警告，并通过 parseError 标记告知调用方
+    console.warn('[markdown] frontmatter 解析失败:', err instanceof Error ? err.message : String(err));
     return {
       content: markdown,
-      frontMatter: { title: 'Untitled' },
+      frontMatter: { title: 'Untitled', parseError: true },
     };
   }
 }

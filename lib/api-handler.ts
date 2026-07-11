@@ -69,6 +69,75 @@ function querySummary(req: NextRequest): string {
   return ` params=${keys.join(',')}`;
 }
 
+/** 需要 CSRF 保护的 HTTP 方法（会修改服务端状态的方法） */
+const CSRF_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+/**
+ * CSRF 来源校验：验证 Origin 或 Referer 头是否属于本应用域名。
+ *
+ * 浏览器跨站请求时会携带 Origin/Referer 头，且无法被 JavaScript 修改。
+ * 通过校验这些头的域名是否与本应用一致，可有效防御 CSRF 攻击。
+ *
+ * 跳过条件：
+ * - GET/HEAD/OPTIONS 等非状态变更方法
+ * - Origin 和 Referer 头均不存在（同源浏览器请求可能不携带这些头）
+ * - 命中 Origin 为 null 的特殊场景（隐私模式、file:// 协议等）
+ */
+function checkCsrfOrigin(req: NextRequest): NextResponse | null {
+  // 仅对状态变更方法执行 CSRF 校验
+  if (!CSRF_METHODS.has(req.method)) return null;
+
+  const origin = req.headers.get('origin');
+  const referer = req.headers.get('referer');
+
+  // 均不存在时跳过校验（同源浏览器请求可能不携带这些头）
+  if (!origin && !referer) return null;
+
+  // 获取可信域名：优先使用 APP_URL 环境变量，回退到请求 Host 头
+  const trustedUrl = process.env.APP_URL || '';
+  let trustedHost = '';
+  if (trustedUrl) {
+    try {
+      trustedHost = new URL(trustedUrl).host;
+    } catch { /* APP_URL 格式异常时回退到 Host 头 */ }
+  }
+  if (!trustedHost) {
+    trustedHost = req.headers.get('host') ?? '';
+  }
+  if (!trustedHost) return null;
+
+  // 校验 Origin 头
+  if (origin) {
+    try {
+      const originHost = new URL(origin).host;
+      if (originHost !== trustedHost) {
+        console.warn(`[API] CSRF 校验失败: origin="${origin}" 不匹配可信域名="${trustedHost}"`);
+        return NextResponse.json({ error: 'CSRF 来源校验失败' }, { status: 403 });
+      }
+    } catch {
+      // Origin 格式非法，视为不匹配
+      console.warn(`[API] CSRF 校验失败: origin="${origin}" 格式非法`);
+      return NextResponse.json({ error: 'CSRF 来源校验失败' }, { status: 403 });
+    }
+  }
+
+  // 校验 Referer 头（当 Origin 不存在时作为备选）
+  if (!origin && referer) {
+    try {
+      const refererHost = new URL(referer).host;
+      if (refererHost !== trustedHost) {
+        console.warn(`[API] CSRF 校验失败: referer="${referer}" 不匹配可信域名="${trustedHost}"`);
+        return NextResponse.json({ error: 'CSRF 来源校验失败' }, { status: 403 });
+      }
+    } catch {
+      console.warn(`[API] CSRF 校验失败: referer="${referer}" 格式非法`);
+      return NextResponse.json({ error: 'CSRF 来源校验失败' }, { status: 403 });
+    }
+  }
+
+  return null;
+}
+
 /** checkAuth 返回类型：成功时携带 session，失败时携带 error */
 type AuthCheckResult =
   | { error: NextResponse; session?: undefined }
@@ -141,6 +210,10 @@ export function apiHandler<
     if (req.method !== method) {
       return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
     }
+
+    // CSRF 来源校验：对状态变更方法验证 Origin/Referer 头
+    const csrfError = checkCsrfOrigin(req);
+    if (csrfError) return csrfError;
 
     const start = performance.now();
     let statusCode = 500;

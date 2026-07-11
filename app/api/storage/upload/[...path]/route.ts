@@ -38,6 +38,41 @@ const BLOCKED_EXTENSIONS = new Set([
   '.scr', '.jar', '.class',
 ])
 
+/** 允许上传的 MIME 类型白名单（仅限安全的图片、文本和文档类型） */
+const ALLOWED_MIME_TYPES = new Set([
+  // 图片类型
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/avif',
+  'image/bmp',
+  'image/tiff',
+  // 文本类型
+  'text/plain',
+  'text/html',
+  'text/css',
+  'text/javascript',
+  'text/markdown',
+  'text/csv',
+  'text/xml',
+  'text/yaml',
+  'text/tab-separated-values',
+  // 结构化数据
+  'application/json',
+  'application/xml',
+  'application/yaml',
+  // 文档类型
+  'application/pdf',
+  // 字体（前端页面可能引用）
+  'font/woff',
+  'font/woff2',
+  'application/font-woff',
+  'application/font-woff2',
+  'application/x-font-woff',
+  'application/x-font-woff2',
+])
+
 /** 从路径中提取文件扩展名（小写），无扩展名返回空字符串 */
 function getExtension(filePath: string): string {
   const lastSeg = filePath.split('/').pop() ?? ''
@@ -53,6 +88,34 @@ function validateUploadExtension(relPath: string): NextResponse | null {
     logger.warn('validateUploadExtension', `拒绝上传: 扩展名 "${ext}" 在黑名单中 path="${relPath}"`)
     return NextResponse.json(
       { error: '不支持的文件类型', blocked: ext },
+      { status: 400 },
+    )
+  }
+  return null
+}
+
+/** 校验上传文件的 MIME 类型是否在白名单中，不合规时返回 400 响应，否则返回 null */
+function validateMimeType(contentType: string | null, relPath: string): NextResponse | null {
+  if (!contentType) {
+    // 未提供 Content-Type 时，根据扩展名判断是否必须提供
+    const ext = getExtension(relPath)
+    if (ext !== '' && BLOCKED_EXTENSIONS.has(ext)) {
+      return NextResponse.json(
+        { error: '缺少 Content-Type 头，无法验证文件类型' },
+        { status: 400 },
+      )
+    }
+    // 无 Content-Type 且扩展名不在黑名单中，放行（兼容部分客户端不发送 Content-Type 的情况）
+    return null
+  }
+
+  // 提取主类型（去除分号后的参数，如 "text/html; charset=utf-8" → "text/html"）
+  const mimeType = (contentType.split(';')[0] ?? contentType).trim().toLowerCase()
+
+  if (!ALLOWED_MIME_TYPES.has(mimeType)) {
+    logger.warn('validateMimeType', `拒绝上传: MIME 类型 "${mimeType}" 不在白名单中 path="${relPath}"`)
+    return NextResponse.json(
+      { error: '不支持的文件 MIME 类型', contentType: mimeType },
       { status: 400 },
     )
   }
@@ -123,6 +186,10 @@ export const POST = catchAllHandler<{ path: string[] }>(
 
     const blocked = validateUploadExtension(rel)
     if (blocked) return blocked
+
+    // MIME 类型白名单校验，防止上传伪装扩展名的恶意文件
+    const mimeBlocked = validateMimeType(req.headers.get('content-type'), rel)
+    if (mimeBlocked) return mimeBlocked
 
     const target = buildWebDavTarget(parts)
 

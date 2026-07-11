@@ -1,5 +1,20 @@
 import { type NextRequest } from 'next/server';
 
+/**
+ * @file 基于内存的频率限制器
+ *
+ * 已知限制：
+ * - 当前实现使用进程内 Map 存储频率限制计数器，仅在单实例场景下有效。
+ * - 在 Vercel 等 Serverless 环境中，每次冷启动会创建新的进程实例，内存状态无法
+ *   跨实例共享，导致频率限制可能被绕过（每个实例独立计数）。
+ * - 服务器重启后所有计数器重置。
+ *
+ * TODO: 对于生产环境的 Serverless 部署，应迁移至分布式存储后端（如 Vercel KV、
+ * Upstash Redis 或 Cloudflare Workers KV），以实现跨实例的统一点频限制。
+ * 迁移时建议保持现有 rateLimit / checkRateLimit / getClientIp 的函数签名不变，
+ * 仅替换内部 store 的实现。
+ */
+
 interface RateLimitEntry {
   /** 当前窗口内的请求次数 */
   count: number;
@@ -45,8 +60,8 @@ export function getClientIp(req: NextRequest): string {
   }
   const realIp = req.headers.get('x-real-ip');
   if (realIp) return realIp;
-  // 无法识别 IP 时使用随机标识，避免多实例下共享桶
-  return `anon:${crypto.randomUUID().slice(0, 8)}`;
+  // 无法识别 IP 时使用固定标识，所有匿名请求共享同一限频条目，防止内存无限增长
+  return 'anon:unknown';
 }
 
 /**

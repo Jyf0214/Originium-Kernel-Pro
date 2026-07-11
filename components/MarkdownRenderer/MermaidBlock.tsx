@@ -68,6 +68,10 @@ export function MermaidBlock({ code }: MermaidBlockProps) {
         // 安全说明：mermaid.initialize({ securityLevel: 'strict' }) 是主要防线，
         // 以下正则作为多层防御的补充层。正则可能被精心构造的输入绕过，
         // 但 mermaid strict 模式已在源头限制了危险输出。
+        // 当前已覆盖：script、foreignObject、style、use、animate、set、
+        // iframe、object、embed、applet、form、input、button、textarea、
+        // select、base 标签，以及所有 on* 事件处理器属性。
+        // 建议未来引入 DOMPurify 对 SVG 内容进行标准化消毒，以获得更全面的防护。
         const sanitized = svg
           .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
           .replace(/<foreignObject\b[^<]*(?:(?!<\/foreignObject>)<[^<]*)*<\/foreignObject>/gi, '')

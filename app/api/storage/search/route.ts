@@ -7,6 +7,12 @@
  *
  * 结果缓存 2 分钟（避免重复扫描）。
  * 最多返回 50 条结果。
+ *
+ * 安全说明：
+ * - 搜索结果中的上下文片段（snippet）会暴露文件内容摘要，
+ *   片段长度已限制为最多 60 字符以降低敏感信息泄露风险。
+ * - 当前已内置每 IP 每分钟 10 次的速率限制，防止暴力枚举文件内容。
+ * - 若未来引入公开搜索通道（无需管理员认证），应进一步限制片段返回或完全禁用。
  */
 import { NextResponse } from 'next/server'
 import { apiHandler } from '@/lib/api-handler'
@@ -68,6 +74,8 @@ const CACHE_TTL_MS = 2 * 60 * 1000 // 2 分钟
 const MAX_RESULTS = 50
 const MAX_DEPTH = 5
 const SNIPPET_PADDING = 50
+/** 单个片段最大字符数，防止过长的内容暴露敏感信息 */
+const MAX_SNIPPET_LENGTH = 60
 const MAX_CACHE_ENTRIES = 10
 
 /** 多条搜索结果缓存，避免交替搜索不同关键词时反复全量扫描 */
@@ -135,6 +143,11 @@ function extractMatches(content: string, keyword: string): SearchMatch[] {
 
     if (start > 0) snippet = `...${snippet}`
     if (end < content.length) snippet = `${snippet}...`
+
+    // 截断过长片段，降低敏感信息泄露风险
+    if (snippet.length > MAX_SNIPPET_LENGTH) {
+      snippet = snippet.slice(0, MAX_SNIPPET_LENGTH) + '...'
+    }
 
     matches.push({ snippet, offset: idx })
     searchOffset = idx + keyword.length

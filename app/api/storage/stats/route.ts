@@ -119,32 +119,20 @@ function getTopLevelFolder(filePath: string): string {
 /* ---------- 递归扫描 ---------- */
 
 /**
- * 并发限制执行器，防止同时发起过多请求导致资源耗尽
+ * 并发限制执行器，按批次执行任务，每批最多同时运行 limit 个任务
+ * 等待当前批次全部完成后，再启动下一批，防止资源耗尽
  */
 async function parallelLimit<T>(
   tasks: (() => Promise<T>)[],
   limit: number,
 ): Promise<T[]> {
   const results: T[] = []
-  const executing: Promise<void>[] = []
-
-  for (const task of tasks) {
-    const p = task().then((result) => {
-      results.push(result)
-      return void 0
-    })
-    executing.push(p)
-
-    if (executing.length >= limit) {
-      await Promise.race(executing)
-      void executing.splice(
-        executing.findIndex((ep) => ep === p),
-        1,
-      )
-    }
+  // 按批次执行，每批最多 limit 个并发任务
+  for (let i = 0; i < tasks.length; i += limit) {
+    const batch = tasks.slice(i, i + limit)
+    const batchResults = await Promise.all(batch.map((task) => task()))
+    results.push(...batchResults)
   }
-
-  await Promise.all(executing)
   return results
 }
 

@@ -68,11 +68,15 @@ export async function recordLoginFailure(email: string): Promise<void> {
 /**
  * 检查指定 email 是否处于锁定状态
  *
- * 同时检查 KV（跨实例）和进程内计数（快速路径）
+ * 同时检查 KV（跨实例持久化）和进程内计数（防止服务器重启后丢失内存计数导致绕过）
  */
 export async function isLoginLocked(email: string): Promise<boolean> {
   const key = normalizeEmail(email);
   const db = getDb();
+
+  // 先检查进程内计数：若已达阈值则立即锁定，防止服务器重启后内存计数归零导致额外尝试
+  const memCount = failCounts.get(key) ?? 0;
+  if (memCount >= LOCK_THRESHOLD) return true;
 
   // 检查 KV 锁定状态（跨实例持久化）
   const lockedUntilRaw = await db.get(`${LOCK_PREFIX}${key}`);

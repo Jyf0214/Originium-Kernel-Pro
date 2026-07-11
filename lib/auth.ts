@@ -273,6 +273,15 @@ async function verifyCookieSession(): Promise<SessionPayload | null> {
       algorithms: ['HS256'],
     });
     const typed = payload as unknown as SessionPayload;
+    // 校验关键字段的存在性和类型，防止损坏或伪造的 JWT 被误接受
+    const validRoles = ['user', 'admin', 'sudo'] as const;
+    if (
+      typeof typed.uid !== 'string' ||
+      typeof typed.email !== 'string' ||
+      !validRoles.includes(typed.role as typeof validRoles[number])
+    ) {
+      return null;
+    }
     // 会话版本校验：密码修改后旧 JWT 自动失效
     const effectiveSv = typed.sv ?? 0;
     if (await isSessionRevoked(typed.uid, effectiveSv)) {
@@ -320,8 +329,13 @@ export async function getSessionWithKeyId(): Promise<{ session: SessionPayload; 
  */
 export async function deleteSession() {
   const cookieStore = await cookies();
-  cookieStore.delete('session');
-  cookieStore.delete('temp_2fa');
+  try {
+    cookieStore.delete('session');
+    cookieStore.delete('temp_2fa');
+  } catch (err) {
+    // 删除不存在的 cookie 不应导致会话清理失败
+    console.warn('[auth] 删除会话 cookie 时出错:', err instanceof Error ? err.message : String(err));
+  }
 }
 
 /**

@@ -51,6 +51,9 @@ function unwrapStat(raw: FileStat | ResponseDataDetailed<FileStat>): FileStat {
   return raw as FileStat
 }
 
+/** HTTP/2 会话级连接超时时间（毫秒），超时后销毁会话防止无限挂起 */
+const HTTP2_SESSION_TIMEOUT_MS = 15_000
+
 /** HTTP/2 直连下载:使用完全不同的帧协议绕过 HTTP/1.1 body 中断问题 */
 function http2Get(webdavBase: string, relPath: string, auth: string): Promise<DownloadResult> {
   return new Promise((resolve) => {
@@ -58,7 +61,27 @@ function http2Get(webdavBase: string, relPath: string, auth: string): Promise<Do
     const urlObj = new URL(webdavBase)
     const encodedPath = relPath.split('/').map(encodeURIComponent).join('/')
     const session = http2.connect(urlObj.origin)
+
+    // 会话级连接超时：防止远程服务器不响应时连接无限挂起
+    let sessionTimer: ReturnType<typeof setTimeout> | null = setTimeout(() => {
+      console.warn(`[files] http2 会话连接超时 path="${relPath}" 已等待 ${HTTP2_SESSION_TIMEOUT_MS}ms`)
+      session.destroy()
+    }, HTTP2_SESSION_TIMEOUT_MS)
+
+    /** 清除会话超时定时器，避免重复销毁 */
+    const clearSessionTimer = () => {
+      if (sessionTimer !== null) {
+        clearTimeout(sessionTimer)
+        sessionTimer = null
+      }
+    }
+
+    // 会话成功建立连接后，清除连接超时定时器（后续由请求级超时接管）
+    session.on('connect', () => { clearSessionTimer() })
+    // 会话关闭时也需清除定时器，防止对已关闭会话再次调用 destroy
+    session.on('close', () => { clearSessionTimer() })
     session.on('error', (err) => {
+      clearSessionTimer()
       session.close()
       resolve({ ok: false, body: Buffer.alloc(0), method: 'http2', error: `session: ${err.message}` })
     })
@@ -76,6 +99,7 @@ function http2Get(webdavBase: string, relPath: string, auth: string): Promise<Do
       const status = Number(headers[':status'] ?? 500)
       if (status >= 400) {
         req.resume()
+        clearSessionTimer()
         session.close()
         resolve({ ok: false, body: Buffer.alloc(0), method: 'http2', error: `upstream ${status}` })
         return
@@ -85,10 +109,12 @@ function http2Get(webdavBase: string, relPath: string, auth: string): Promise<Do
     req.on('end', () => {
       const body = Buffer.concat(chunks)
       console.warn(`[files] http2 完成 path="${relPath}" size=${body.length} 耗时=${Date.now() - start}ms`)
+      clearSessionTimer()
       session.close()
       resolve({ ok: body.length > 0, body, method: 'http2' })
     })
     req.on('error', (err) => {
+      clearSessionTimer()
       session.close()
       resolve({ ok: false, body: Buffer.alloc(0), method: 'http2', error: err.message })
     })

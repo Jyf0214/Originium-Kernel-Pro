@@ -4,17 +4,36 @@ import { apiHandler } from '@/lib/api-handler';
 
 const logger = createApiLogger('/api/env-status');
 
+interface EnvVariable {
+  name: string;
+  isSet?: boolean;
+  required: boolean;
+  isSecret?: boolean;
+  descriptionKey: string;
+  systemInjected?: boolean;
+}
+
+interface EnvGroup {
+  name: string;
+  nameKey: string;
+  descriptionKey: string;
+  variables: EnvVariable[];
+}
+
 /**
  * 环境变量状态检查 API
  * 仅管理员可访问
  *
  * 每个变量返回 descriptionKey（i18n 键），由前端 useI18n 解析，
  * 避免在服务端硬编码双语文案。
+ *
+ * 敏感变量（密钥、密码等）不暴露 isSet 状态，仅展示功能可用性，
+ * 避免攻击者推断安全防护级别。
  */
 export const GET = apiHandler('GET', { label: '获取环境变量状态', requireAdmin: true }, () => {
   logger.info('GET', '获取环境变量状态');
 
-  const envStatus = {
+  const envStatus: Record<string, EnvGroup> = {
     database: {
       name: '数据库',
       nameKey: 'env.groups.database',
@@ -22,26 +41,27 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
       variables: [
         {
           name: 'DATABASE_URL',
-          isSet: !!process.env.DATABASE_URL,
+          // 数据库连接字符串属于敏感信息，不暴露是否已配置
           required: true,
+          isSecret: true,
           descriptionKey: 'env.vars.database.DATABASE_URL',
         },
         {
           name: 'POSTGRES_URL',
-          isSet: !!process.env.POSTGRES_URL,
           required: false,
+          isSecret: true,
           descriptionKey: 'env.vars.database.POSTGRES_URL',
         },
         {
           name: 'POSTGRES_PRISMA_URL',
-          isSet: !!process.env.POSTGRES_PRISMA_URL,
           required: false,
+          isSecret: true,
           descriptionKey: 'env.vars.database.POSTGRES_PRISMA_URL',
         },
         {
           name: 'POSTGRES_URL_NON_POOLING',
-          isSet: !!process.env.POSTGRES_URL_NON_POOLING,
           required: false,
+          isSecret: true,
           descriptionKey: 'env.vars.database.POSTGRES_URL_NON_POOLING',
         },
       ],
@@ -53,8 +73,9 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
       variables: [
         {
           name: 'AUTH_SECRET',
-          isSet: !!process.env.AUTH_SECRET,
+          // 认证密钥属于敏感信息，不暴露是否已配置
           required: true,
+          isSecret: true,
           descriptionKey: 'env.vars.auth.AUTH_SECRET',
         },
       ],
@@ -72,8 +93,9 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
         },
         {
           name: 'ADMIN_PASSWORD',
-          isSet: !!process.env.ADMIN_PASSWORD,
+          // 管理员密码属于敏感信息，不暴露是否已配置
           required: false,
+          isSecret: true,
           descriptionKey: 'env.vars.admin.ADMIN_PASSWORD',
         },
       ],
@@ -104,8 +126,9 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
         },
         {
           name: 'GITHUB_TOKEN',
-          isSet: !!process.env.GITHUB_TOKEN,
+          // GitHub 令牌属于敏感信息，不暴露是否已配置
           required: false,
+          isSecret: true,
           descriptionKey: 'env.vars.github.GITHUB_TOKEN',
         },
         {
@@ -164,14 +187,16 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
           ? [
               {
                 name: 'B2_KEY_ID',
-                isSet: !!process.env.B2_KEY_ID,
+                // B2 密钥属于敏感信息，不暴露是否已配置
                 required: true,
+                isSecret: true,
                 descriptionKey: 'env.vars.storage.B2_KEY_ID',
               },
               {
                 name: 'B2_APP_KEY',
-                isSet: !!process.env.B2_APP_KEY,
+                // B2 应用密钥属于敏感信息，不暴露是否已配置
                 required: true,
+                isSecret: true,
                 descriptionKey: 'env.vars.storage.B2_APP_KEY',
               },
               {
@@ -208,8 +233,9 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
               },
               {
                 name: 'WEBDAV_PASS',
-                isSet: !!process.env.WEBDAV_PASS,
+                // WebDAV 密码属于敏感信息，不暴露是否已配置
                 required: false,
+                isSecret: true,
                 descriptionKey: 'env.vars.storage.WEBDAV_PASS',
               },
             ]),
@@ -240,8 +266,9 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
         },
         {
           name: 'SMTP_PASS',
-          isSet: !!process.env.SMTP_PASS,
+          // SMTP 密码属于敏感信息，不暴露是否已配置
           required: false,
+          isSecret: true,
           descriptionKey: 'env.vars.smtp.SMTP_PASS',
         },
         {
@@ -265,8 +292,9 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
       variables: [
         {
           name: 'CRON_SECRET',
-          isSet: !!process.env.CRON_SECRET,
+          // 定时任务密钥属于敏感信息，不暴露是否已配置
           required: false,
+          isSecret: true,
           descriptionKey: 'env.vars.cron.CRON_SECRET',
         },
       ],
@@ -284,14 +312,16 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
         },
         {
           name: 'CLERK_SECRET_KEY',
-          isSet: !!process.env.CLERK_SECRET_KEY,
+          // Clerk 密钥属于敏感信息，不暴露是否已配置
           required: false,
+          isSecret: true,
           descriptionKey: 'env.vars.clerk.CLERK_SECRET_KEY',
         },
         {
           name: 'CLERK_WEBHOOK_SECRET',
-          isSet: !!process.env.CLERK_WEBHOOK_SECRET,
+          // Clerk Webhook 密钥属于敏感信息，不暴露是否已配置
           required: false,
+          isSecret: true,
           descriptionKey: 'env.vars.clerk.CLERK_WEBHOOK_SECRET',
         },
       ],
@@ -345,21 +375,25 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
     },
   };
 
-  // 计算统计
+  // 计算统计（敏感变量不暴露 isSet 状态，从统计中排除）
   const allVars = Object.values(envStatus).flatMap((g) => g.variables);
+  // 非敏感变量（可安全暴露 isSet 状态）
+  const nonSecretVars = allVars.filter((v) => !v.isSecret);
   const requiredVars = allVars.filter((v) => v.required);
   const optionalVars = allVars.filter((v) => !v.required);
-  const setVars = allVars.filter((v) => v.isSet);
-  const missingRequired = requiredVars.filter((v) => !v.isSet);
+  // 仅统计非敏感变量的已配置数量，避免泄露敏感变量是否已配置
+  const setVars = nonSecretVars.filter((v) => v.isSet);
+  const missingRequired = requiredVars.filter((v) => !v.isSet && !v.isSecret);
 
   // 自定义 isReady:DB 组要求至少一个连接变量被设置(AUTH_SECRET 已在 required 中)
-  const dbVars = envStatus.database.variables;
-  const dbReady = dbVars.some((v) => v.isSet);
-  const isReady = missingRequired.length === 0 && dbReady;
+  const dbVars = envStatus.database!.variables;
+  // 通过 process.env 直接判断数据库是否已配置（不暴露具体变量状态）
+  const dbConfigured = dbVars.some((v) => !!process.env[v.name]);
+  const isReady = missingRequired.length === 0 && dbConfigured;
 
   // 如果 DB 组全部未设置,把 DATABASE_URL 加入 missing 列表
   const finalMissingRequired = [...missingRequired.map((v) => v.name)];
-  if (!dbReady) {
+  if (!dbConfigured) {
     finalMissingRequired.push('DATABASE_URL');
   }
 
@@ -368,13 +402,16 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
     groups: envStatus,
     summary: {
       total: allVars.length,
+      // 仅统计非敏感变量的已配置数量，避免泄露敏感变量是否已配置
       set: setVars.length,
       required: requiredVars.length,
-      requiredSet: requiredVars.filter((v) => v.isSet).length,
+      requiredSet: requiredVars.filter((v) => v.isSet && !v.isSecret).length,
       optional: optionalVars.length,
-      optionalSet: optionalVars.filter((v) => v.isSet).length,
+      optionalSet: optionalVars.filter((v) => v.isSet && !v.isSecret).length,
       missingRequired: finalMissingRequired,
       isReady,
+      // 数据库是否已配置（不暴露具体变量状态）
+      dbConfigured,
     },
   });
 });

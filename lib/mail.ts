@@ -31,17 +31,23 @@ export function isSmtpConfigured(): boolean {
   return !!(config.host && config.user && config.pass);
 }
 
-/** 缓存的 transporter 单例，避免每次发送邮件都重新创建连接 */
+/** 缓存的 transporter 单例及创建时的 host，用于检测配置变更 */
 let cachedTransporter: nodemailer.Transporter | null = null;
+let cachedHost: string | null = null;
 
 function getTransporter() {
   const config = getSmtpConfig();
-  cachedTransporter ??= nodemailer.createTransport({
+  // 当 SMTP_HOST 变更时重新创建 transporter，避免使用过期的缓存连接
+  if (cachedTransporter && cachedHost === config.host) {
+    return cachedTransporter;
+  }
+  cachedTransporter = nodemailer.createTransport({
     host: config.host,
     port: config.port,
     secure: config.secure,
     auth: { user: config.user, pass: config.pass },
   });
+  cachedHost = config.host;
   return cachedTransporter;
 }
 
