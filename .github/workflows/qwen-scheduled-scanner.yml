@@ -140,14 +140,25 @@ jobs:
           CURRENT_DATE=$(date +%Y%m%d)
           echo "Scheduled Inspection Date: $CURRENT_DATE"
 
-          # 1. 物理分支感知与同步
+          # ==========================================
+          # 【防御核心 1】：设定强制全新扫描变量 FORCE_FRESH
+          # ==========================================
+          FORCE_FRESH=false
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ] || [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            FORCE_FRESH=true
+            echo "当前由定时或手动触发，强制开启全新扫描模式 (FORCE_FRESH=true)，历史会话将被彻底无视。"
+          fi
+
+          # ==========================================
+          # 【防御核心 2】：分支感知、重名防冲突自动追加后缀
+          # ==========================================
           PR_NUMBER=""
           HAS_CONFLICTS=false
           CONFLICTED_FILES=""
           if [ "$GITHUB_EVENT_NAME" = "issue_comment" ]; then
             PR_NUMBER="$GITHUB_EVENT_ISSUE_NUMBER"
             PR_BRANCH=$(gh pr view "$PR_NUMBER" --json headRefName --jq .headRefName 2>/dev/null || echo "scheduled/audit-patch-$CURRENT_DATE")
-            echo "检测到 PR 评论触发，正在切换到 PR 分支: $PR_BRANCH"
+            echo "检测到 PR 评论触发，正在切换到 PR 对应分支: $PR_BRANCH"
 
             git fetch origin "$PR_BRANCH"
             git checkout "$PR_BRANCH"
@@ -160,53 +171,77 @@ jobs:
             else
               echo "::warning:: 检测到物理合并冲突！正在收集冲突文件列表..."
               HAS_CONFLICTS=true
-              # 获取处于冲突/未合并（Unmerged）状态的文件列表
               CONFLICTED_FILES=$(git diff --name-only --diff-filter=U)
               echo "冲突文件："
               echo "$CONFLICTED_FILES"
             fi
           else
-            PR_BRANCH="scheduled/audit-patch-$CURRENT_DATE"
-            echo "定时/手动触发。目标分支初始化为: $PR_BRANCH"
+            # 定时 / 手动启动：自动探测远程分支名是否存在，存在则自动追加后缀递增
+            BASE_BRANCH="scheduled/audit-patch-$CURRENT_DATE"
+            PR_BRANCH="$BASE_BRANCH"
+            SUFFIX=1
+
+            echo "正在探测远程分支是否重名冲突..."
+            # 通过 git ls-remote 零成本查询远程分支
+            while git ls-remote --heads origin "refs/heads/$PR_BRANCH" | grep -q "$PR_BRANCH"; do
+              PR_BRANCH="${BASE_BRANCH}-${SUFFIX}"
+              SUFFIX=$((SUFFIX + 1))
+            done
+
+            if [ "$PR_BRANCH" != "$BASE_BRANCH" ]; then
+              echo "::warning:: 远程已存在同名分支！自动更换分支名称并追加后缀为: $PR_BRANCH"
+            else
+              echo "物理分支名无冲突，初始化为: $PR_BRANCH"
+            fi
           fi
 
-          # 2. 恢复或创建巡检会话（双重映射机制）
+          # 3. 恢复或创建巡检会话（PR 评论时自愈，手动巡检时由于 FORCE_FRESH 强行无视旧会话）
           mkdir -p ~/.qwen
           BRANCH_NAME_SAFE=$(echo "$PR_BRANCH" | sed 's/[^a-zA-Z0-9_.-]/_/g')
           SESSION_ID=""
           IS_RESUME=false
 
-          if [ "$GITHUB_EVENT_NAME" = "issue_comment" ]; then
-            if [ -f ~/.qwen/session_pr_${PR_NUMBER}.txt ]; then
-              SESSION_ID=$(cat ~/.qwen/session_pr_${PR_NUMBER}.txt)
-              IS_RESUME=true
-              echo "成功载入该 PR #${PR_NUMBER} 关联的已有会话 ID: $SESSION_ID (Resume Mode)"
-            elif [ -f ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt ]; then
-              SESSION_ID=$(cat ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt)
-              IS_RESUME=true
-              echo "成功通过同源分支 ${PR_BRANCH} 载入关联会话 ID: $SESSION_ID (Resume Mode)"
-              echo "$SESSION_ID" > ~/.qwen/session_pr_${PR_NUMBER}.txt
-            else
-              SESSION_ID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen 2>/dev/null || echo "session-$(date +%s)")
-              echo "$SESSION_ID" > ~/.qwen/session_pr_${PR_NUMBER}.txt
-              echo "$SESSION_ID" > ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt
-              IS_RESUME=false
-              echo "未在缓存中找到该 PR #${PR_NUMBER} 或分支 ${PR_BRANCH} 的关联会话。已初始化全新会话 ID: $SESSION_ID (First-run Mode)"
-            fi
+          if [ "$FORCE_FRESH" = "true" ]; then
+            # 强制全新扫描：直接生成全新 UUID，永不续传
+            SESSION_ID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen 2>/dev/null || echo "session-$(date +%s)")
+            echo "$SESSION_ID" > ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt
+            IS_RESUME=false
+            echo "已成功阻止续传！强制初始化全新 Qwen 会话 ID: $SESSION_ID (Fresh Session Mode)"
           else
-            if [ -f ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt ]; then
-              SESSION_ID=$(cat ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt)
-              IS_RESUME=true
-              echo "成功通过分支 ${PR_BRANCH} 载入已有巡检会话 ID: $SESSION_ID (Incremental Scan Mode)"
+            # PR 评论触发（或是重试当前进程）：读取对应的会话
+            if [ "$GITHUB_EVENT_NAME" = "issue_comment" ]; then
+              if [ -f ~/.qwen/session_pr_${PR_NUMBER}.txt ]; then
+                SESSION_ID=$(cat ~/.qwen/session_pr_${PR_NUMBER}.txt)
+                IS_RESUME=true
+                echo "成功载入该 PR #${PR_NUMBER} 关联的已有会话 ID: $SESSION_ID (PR Session Mode)"
+              elif [ -f ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt ]; then
+                SESSION_ID=$(cat ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt)
+                IS_RESUME=true
+                echo "成功通过同源分支 ${PR_BRANCH} 载入关联会话 ID: $SESSION_ID (Branch Match Mode)"
+                echo "$SESSION_ID" > ~/.qwen/session_pr_${PR_NUMBER}.txt
+              else
+                SESSION_ID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen 2>/dev/null || echo "session-$(date +%s)")
+                echo "$SESSION_ID" > ~/.qwen/session_pr_${PR_NUMBER}.txt
+                echo "$SESSION_ID" > ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt
+                IS_RESUME=false
+                echo "未在缓存中找到该 PR #${PR_NUMBER} 或分支 ${PR_BRANCH} 的关联会话。已初始化全新会话 ID: $SESSION_ID (Fresh Session Mode)"
+              fi
             else
-              SESSION_ID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen 2>/dev/null || echo "session-$(date +%s)")
-              echo "$SESSION_ID" > ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt
-              IS_RESUME=false
-              echo "未找到已有分支会话。已初始化全新巡检会话 ID: $SESSION_ID (First-run Scan Mode)"
+              # 保守退路（防止重试失败任务时因某种原因未识别为 FORCE_FRESH）
+              if [ -f ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt ]; then
+                SESSION_ID=$(cat ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt)
+                IS_RESUME=true
+                echo "成功通过分支 ${PR_BRANCH} 载入已有巡检会话 ID: $SESSION_ID (Incremental Scan Mode)"
+              else
+                SESSION_ID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen 2>/dev/null || echo "session-$(date +%s)")
+                echo "$SESSION_ID" > ~/.qwen/session_branch_${BRANCH_NAME_SAFE}.txt
+                IS_RESUME=false
+                echo "未找到已有分支会话。已初始化全新巡检会话 ID: $SESSION_ID (First-run Scan Mode)"
+              fi
             fi
           fi
 
-          # 3. 安全构建 Prompt 临时文件
+          # 4. 安全构建 Prompt 临时文件
           > prompt.txt
 
           # A. 如果存在 Git 合并冲突，将“清理并解决冲突”作为【终极第一优先级】硬核指令注入 Prompt 最顶端
@@ -273,7 +308,7 @@ jobs:
             echo "   - 每当一个子智能体反馈修复成功，你必须亲自运行本地单元测试，确认没有引入退化问题。" >> prompt.txt
             echo "   - 确认修复且通过测试后，将 'todo_checklist.md' 中对应的 '[ ]' 修改为 '[x]'。" >> prompt.txt
             echo "4. **第四阶段：PR 出库与生动报告**：" >> prompt.txt
-            echo "   - 切出巡检分支 'scheduled/audit-patch-$CURRENT_DATE'，commit 修改并推送该分支，自动使用 'gh pr create' 发起 PR。" >> prompt.txt
+            echo "   - 切出巡检分支 '$PR_BRANCH'，commit 修改并推送该分支，自动使用 'gh pr create' 发起 PR。" >> prompt.txt
             echo "   - PR 描述中必须详尽贴出你的《漏洞档案分析报告》。" >> prompt.txt
             echo "   - 在原 PR 下面，以极富开发者温度（添加Emoji、谢绝死板机器人腔调）的语言生动评论说明每一项漏洞的排查 and 修复细节。" >> prompt.txt
             echo "" >> prompt.txt
