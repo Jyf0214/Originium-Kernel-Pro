@@ -102,7 +102,9 @@ export const GET = apiHandler('GET', { label: '文章列表', requireAuth: false
   });
 
   logger.info('GET', '获取文章列表成功', { count: all.length });
-  return NextResponse.json(all);
+  return NextResponse.json(all, {
+    headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' },
+  });
 });
 
 /**

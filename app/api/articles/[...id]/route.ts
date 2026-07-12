@@ -24,7 +24,9 @@ async function handleDraftArticleResponse(
     const fileContent = await getDraft(id);
     meta.content = fileContent ?? '';
   }
-  return NextResponse.json(meta);
+  return NextResponse.json(meta, {
+    headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' },
+  });
 }
 
 async function handlePublishedArticleResponse(
@@ -53,6 +55,8 @@ async function handlePublishedArticleResponse(
       description: frontMatter.description ?? meta.description,
       date: frontMatter.date ?? meta.createdAt,
       status: 'published',
+    }, {
+      headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' },
     });
   } catch {
     // 网络异常时降级返回元数据，不阻断文章展示
@@ -86,6 +90,8 @@ async function handleFileSystemLookup(
     cover: file.meta.cover,
     description: file.meta.description,
     status: 'published',
+  }, {
+    headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' },
   });
 }
 
@@ -115,7 +121,9 @@ export const GET = apiHandler('GET', { label: '获取文章详情' }, async (req
     }
     // 剔除内部字段（authorId、content）后返回
     const { authorId: _authorId, content: _content, ...safeMeta } = meta;
-    return NextResponse.json(safeMeta);
+    return NextResponse.json(safeMeta, {
+      headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' },
+    });
   }
 
   const session = await getSession();
