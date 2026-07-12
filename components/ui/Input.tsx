@@ -1,9 +1,10 @@
 import { type InputHTMLAttributes, memo, forwardRef, useId } from 'react';
 import { cn } from '@/lib/ui';
+import { sizeStyles, roundedStyles, ringStyles, FormControl, type FormSize, type FormRounded, type FormRing } from './form-styles';
 
-export type InputSize = 'sm' | 'md' | 'lg' | 'xl';
-export type InputRounded = 'sm' | 'md' | 'lg' | 'full' | 'none';
-export type InputRing = 'default' | 'strong';
+export type InputSize = FormSize;
+export type InputRounded = FormRounded;
+export type InputRing = FormRing;
 
 export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string;
@@ -15,26 +16,6 @@ export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
   /** 焦点环强度:default=ring-1 ring-zinc-400 / strong=ring-2 ring-zinc-900 */
   ring?: InputRing;
 }
-
-const sizeStyles: Record<InputSize, string> = {
-  sm: 'h-9 px-3 text-xs',
-  md: 'h-10 px-3 text-sm',
-  lg: 'h-11 px-4 text-sm',
-  xl: 'h-12 px-4 text-base',
-};
-
-const roundedStyles: Record<InputRounded, string> = {
-  sm: 'rounded-lg',
-  md: 'rounded-xl',
-  lg: 'rounded-2xl',
-  full: 'rounded-full',
-  none: 'rounded-none',
-};
-
-const ringStyles: Record<InputRing, string> = {
-  default: 'focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400',
-  strong: 'focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900',
-};
 
 /**
  * 自定义输入框组件
@@ -65,18 +46,10 @@ export const Input = memo(
         />
       );
 
-      if (!label && !error) return inputEl;
-
       return (
-        <div className="w-full">
-          {label && (
-            <label htmlFor={inputId} className="block text-sm font-medium mb-2 text-zinc-700">
-              {label}
-            </label>
-          )}
+        <FormControl inputId={inputId} label={label} error={error}>
           {inputEl}
-          {error && <p id={`${inputId}-error`} className="mt-1 text-xs text-red-500">{error}</p>}
-        </div>
+        </FormControl>
       );
     },
   ),

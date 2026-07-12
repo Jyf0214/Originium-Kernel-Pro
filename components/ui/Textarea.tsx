@@ -1,9 +1,10 @@
 import { type TextareaHTMLAttributes, memo, forwardRef, useId } from 'react';
 import { cn } from '@/lib/ui';
+import { roundedStyles, ringStyles, FormControl, type FormRounded, type FormRing } from './form-styles';
 
 export type TextareaSize = 'sm' | 'md' | 'lg';
-export type TextareaRounded = 'sm' | 'md' | 'lg' | 'full' | 'none';
-export type TextareaRing = 'default' | 'strong';
+export type TextareaRounded = FormRounded;
+export type TextareaRing = FormRing;
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -15,19 +16,6 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
   /** 焦点环强度 */
   ring?: TextareaRing;
 }
-
-const roundedStyles: Record<TextareaRounded, string> = {
-  sm: 'rounded-lg',
-  md: 'rounded-xl',
-  lg: 'rounded-2xl',
-  full: 'rounded-full',
-  none: 'rounded-none',
-};
-
-const ringStyles: Record<TextareaRing, string> = {
-  default: 'focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400',
-  strong: 'focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900',
-};
 
 /**
  * 自定义多行文本框组件
@@ -71,18 +59,10 @@ export const Textarea = memo(
         />
       );
 
-      if (!label && !error) return taEl;
-
       return (
-        <div className="w-full">
-          {label && (
-            <label htmlFor={inputId} className="block text-sm font-medium mb-2 text-zinc-700">
-              {label}
-            </label>
-          )}
+        <FormControl inputId={inputId} label={label} error={error}>
           {taEl}
-          {error && <p id={`${inputId}-error`} className="mt-1 text-xs text-red-500">{error}</p>}
-        </div>
+        </FormControl>
       );
     },
   ),
