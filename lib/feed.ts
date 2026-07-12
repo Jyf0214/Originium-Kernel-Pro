@@ -34,30 +34,12 @@ export function getPostsByTag(tag: string): PublicPost[] {
   });
 }
 
-/** 获取所有已使用的标签（附带文章数量） */
-export function getAllTags(): { tag: string; count: number }[] {
-  const posts = getPublicPosts();
-  const tagMap = new Map<string, number>();
-
-  for (const post of posts) {
-    const tags = post.meta.tags;
-    if (!tags || !Array.isArray(tags)) continue;
-    for (const tag of tags) {
-      tagMap.set(tag, (tagMap.get(tag) ?? 0) + 1);
-    }
-  }
-
-  return Array.from(tagMap.entries())
-    .map(([tag, count]) => ({ tag, count }))
-    .sort((a, b) => b.count - a.count);
-}
-
 /** Feed 项目上限 */
 export const FEED_ITEM_LIMIT = 20;
 
 /** 获取站点配置中的 Feed 相关信息 */
-export function getFeedConfig() {
-  const config = loadConfig();
+export async function getFeedConfig() {
+  const config = await loadConfig();
   const siteUrl = getSiteUrl();
 
   return {
