@@ -4,7 +4,6 @@
  */
 
 import { message } from 'antd';
-import React from 'react';
 import { Button } from '@/components/ui/Button';
 
 const copiedKey = 'copied-feedback';

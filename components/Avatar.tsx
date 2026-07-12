@@ -9,7 +9,7 @@
  * - 图片加载失败时，由浏览器原生显示 broken image 图标
  * - 首字母回退和灰色占位块均已被视为严重漏洞并全部移除
  */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 interface AvatarProps {
   name: string;

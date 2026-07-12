@@ -2,8 +2,6 @@
 
 'use client';
 
-import React from 'react';
-
 import { Button } from '@/components/ui/Button';
 
 const POPULAR_TAGS = ['随笔', '旅行', '日常', '北京', '私密'] as const;

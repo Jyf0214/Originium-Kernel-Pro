@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Globe } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { tooltipVariants, tooltipTransition } from '@/components/ui/motion';

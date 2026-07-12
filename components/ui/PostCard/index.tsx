@@ -40,7 +40,7 @@ export const PostCard = React.memo(function PostCard({
         animate="animate"
         exit="exit"
         transition={{ duration: 0.3, delay: staggerDelay(index) }}
-        className="group bg-white dark:bg-zinc-900 rounded-2xl sm:rounded-2xl border-b border-zinc-100 dark:border-zinc-800 sm:border sm:border-zinc-100 dark:sm:border-zinc-800 px-4 sm:px-5 py-3 hover:border-zinc-300 dark:hover:border-zinc-600 hover:shadow-lg hover:shadow-zinc-100 dark:hover:shadow-zinc-900 transition-all duration-300"
+        className="group bg-white dark:bg-zinc-800 rounded-2xl sm:rounded-2xl border-b border-zinc-100 dark:border-zinc-700 sm:border sm:border-zinc-100 dark:sm:border-zinc-700 px-4 sm:px-5 py-3 hover:border-zinc-300 dark:hover:border-zinc-600 hover:shadow-lg hover:shadow-zinc-100 dark:hover:shadow-zinc-900 transition-all duration-300"
       >
         <div className="flex items-center gap-3">
           {post.tags.length > 0 && (
@@ -80,7 +80,7 @@ export const PostCard = React.memo(function PostCard({
       animate="animate"
       exit="exit"
       transition={{ duration: 0.3, delay: staggerDelay(index, 0.05) }}
-      className={`group bg-white dark:bg-zinc-900 rounded-2xl sm:rounded-[2rem] border sm:border-2 border-zinc-50 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-zinc-600 transition-all duration-500 shadow-none sm:shadow-sm hover:shadow-2xl hover:shadow-zinc-100 dark:hover:shadow-zinc-900 ui-interactive ${isRowLayout ? 'flex' : 'flex flex-col'}`}
+      className={`group bg-white dark:bg-zinc-800 rounded-2xl sm:rounded-[2rem] border sm:border-2 border-zinc-50 dark:border-zinc-700 hover:border-zinc-900 dark:hover:border-zinc-600 transition-all duration-500 shadow-none sm:shadow-sm hover:shadow-2xl hover:shadow-zinc-100 dark:hover:shadow-zinc-900 ui-interactive ${isRowLayout ? 'flex' : 'flex flex-col'}`}
     >
       <PostCardCover post={post} coverConfig={coverConfig} defaultCover={defaultCover} />
       <PostCardBody post={post} locale={locale} t={t} position={coverConfig?.position} />

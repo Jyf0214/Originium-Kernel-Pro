@@ -12,7 +12,7 @@
  * 2. 客户端动态加载：通过 /api/backlinks 接口获取（用于面孔详情页等客户端渲染场景）
  */
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, ArrowDownLeft, GitBranch } from 'lucide-react';
 import type { BacklinkInfo, RegistryEntry } from '@/lib/content-registry';

@@ -128,7 +128,7 @@ export default function PostNavigation({ initialTree }: PostNavigationProps) {
       className="hidden lg:block w-64 shrink-0 sticky top-24 self-start"
       aria-label="文章导航"
     >
-      <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white/50 dark:bg-zinc-900/50 backdrop-blur p-3">
+      <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white/50 dark:bg-zinc-800/50 backdrop-blur p-3">
         {/* 标题栏 */}
         <div className="flex items-center justify-between mb-3 px-2">
           <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">

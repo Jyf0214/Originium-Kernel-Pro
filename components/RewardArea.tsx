@@ -14,7 +14,7 @@ export default function RewardArea() {
 
   return (
     <div className="max-w-3xl mx-auto mt-12 pt-8 border-t border-zinc-100 dark:border-zinc-700 text-center">
-      <div className="bg-zinc-50 dark:bg-zinc-900 rounded-2xl p-8">
+      <div className="bg-zinc-50 dark:bg-zinc-800 rounded-2xl p-8">
         <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-2">赞赏</h3>
         <p className="text-sm text-zinc-400 dark:text-zinc-500 mb-6">如果觉得我的文章对你有用，请随意赞赏</p>
         <div className="flex justify-center gap-6 flex-wrap">

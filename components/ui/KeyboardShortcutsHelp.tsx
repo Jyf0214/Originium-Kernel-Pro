@@ -69,7 +69,7 @@ export function KeyboardShortcutsHelp({ open, onClose, visibleKeys }: KeyboardSh
             animate="animate"
             exit="exit"
             transition={modalTransition}
-            className="relative w-full max-w-xs mx-3 mb-3 sm:mb-0 sm:mx-4 sm:max-w-sm max-h-[50vh] sm:max-h-[80vh] overflow-y-auto bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-100 dark:border-zinc-800"
+            className="relative w-full max-w-xs mx-3 mb-3 sm:mb-0 sm:mx-4 sm:max-w-sm max-h-[50vh] sm:max-h-[80vh] overflow-y-auto bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl border border-zinc-100 dark:border-zinc-800"
             onClick={(e) => e.stopPropagation()}
           >
             {/* 标题栏 */}
