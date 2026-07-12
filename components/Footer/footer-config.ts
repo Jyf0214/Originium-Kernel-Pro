@@ -1,41 +1,13 @@
 // Footer 静态配置 + 默认值兜底 + 远程配置加载 hook
 // 与 UI 渲染解耦，方便单元测试和复用。
 
-import {
-  Github,
-  Twitter,
-  Globe,
-  Mail,
-  type LucideIcon,
-} from 'lucide-react';
-
 import { FOOTER_CONFIG, SOCIAL_DATA } from '@/data/site-config';
 
 import type {
   FooterBadge,
   FooterConfigData,
   FooterLinkGroup,
-  FooterSocialEntry,
-  FooterSocialLink,
 } from './types';
-
-// ─── Icon Mapping ────────────────────────────────────
-// 将配置中的 icon 名称映射为 lucide-react 组件
-
-export const FOOTER_ICON_MAP: Record<string, LucideIcon> = {
-  Github,
-  GitHub: Github,
-  Twitter,
-  Weibo: Globe,
-  Email: Mail,
-  Mail,
-  Globe,
-};
-
-/** 根据名称解析图标，缺失时回退到 Globe */
-export function resolveFooterIcon(name: string): LucideIcon {
-  return FOOTER_ICON_MAP[name] ?? Globe;
-}
 
 // ─── Default Data（配置为空时的兜底） ───────────────
 
@@ -81,25 +53,6 @@ export const DEFAULT_FOOTER_BADGES: FooterBadge[] = [
 ];
 
 export const DEFAULT_FOOTER_TYPED_TEXTS = ['Next.js 驱动', 'TypeScript 构建', '用心守护'];
-
-// ─── Social Entries 解析 ────────────────────────────
-// 合并 socialLinks 配置和 socialData 字典为统一的有序条目
-
-export function buildSocialEntries(
-  socialData: Record<string, string>,
-  socialLinksConfig?: FooterSocialLink[],
-): FooterSocialEntry[] {
-  if (socialLinksConfig && socialLinksConfig.length > 0) {
-    return socialLinksConfig
-      .map((sl) => ({ sl, url: socialData[sl.name] }))
-      // 过滤掉 socialData 中缺失的链接，类型守卫同时收窄 url
-      .filter((entry): entry is { sl: FooterSocialLink; url: string } => Boolean(entry.url))
-      .map(({ sl, url }) => ({ name: sl.name, url, icon: sl.icon }));
-  }
-  return Object.entries(socialData)
-    .filter(([, url]) => Boolean(url))
-    .map(([name, url]) => ({ name, url, icon: name }));
-}
 
 // ─── Default Value Resolver ──────────────────────────
 // 将配置中的各字段统一解析为最终值，缺失时使用默认值兜底。

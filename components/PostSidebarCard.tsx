@@ -5,7 +5,6 @@ import { ArrowUp } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Tag } from '@/components/ui/Tag';
 import { Button } from '@/components/ui/Button';
-import { Avatar } from '@/components/Avatar';
 import { EASE_STANDARD } from '@/components/ui/motion';
 import { cn } from '@/lib/ui';
 import type { AuthorInfo } from '@/types/author';
@@ -45,10 +44,10 @@ export const PostSidebarCard = React.memo(function PostSidebarCard({
       {displayName && (
         <div className="flex items-center gap-3 mb-4 pb-4 border-b border-zinc-100 dark:border-zinc-700">
           {authorInfo?.avatar && (
-            <Avatar
-              name={displayName}
-              avatarUrl={authorInfo.avatar}
-              size={36}
+            <img
+              src={authorInfo.avatar}
+              alt={displayName}
+              className="w-9 h-9 rounded-full object-cover ring-2 ring-zinc-100 dark:ring-zinc-700"
             />
           )}
           <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
