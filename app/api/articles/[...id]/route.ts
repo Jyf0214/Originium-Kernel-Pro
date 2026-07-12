@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { getSession } from '@/lib/auth';
 import { loadConfig, canAccess, hasDatabase, type AppConfig } from '@/lib/config';
 import { getDraft, saveDraft } from '@/lib/draft-storage';
 import { createApiLogger } from '@/lib/api-logger';
@@ -95,7 +94,7 @@ async function handleFileSystemLookup(
   });
 }
 
-export const GET = apiHandler('GET', { label: '获取文章详情' }, async (req, context) => {
+export const GET = apiHandler('GET', { label: '获取文章详情' }, async (req, context, session) => {
   const id = await getParam(context, 'id');
   logger.info('GET', '获取文章详情', { id });
   logger.info('GET', '读取文章详情', { id });
@@ -105,12 +104,9 @@ export const GET = apiHandler('GET', { label: '获取文章详情' }, async (req
   if (metaStr) {
     const meta = JSON.parse(metaStr) as Record<string, unknown>;
     if (meta.status === 'draft') {
-      const session = await getSession();
-      if (!session) {
-        return NextResponse.json({ error: '未授权' }, { status: 403 });
-      }
-      if (meta.authorId !== session.uid && session.role !== 'admin' && session.role !== 'sudo') {
-        logger.warn('GET', '无权限查看草稿', { id, uid: session.uid });
+      // session 来自 apiHandler 注入（requireAuth=false 时为 undefined）
+      if (!session || (meta.authorId !== session.uid && session.role !== 'admin' && session.role !== 'sudo')) {
+        logger.warn('GET', '无权限查看草稿', { id, uid: session?.uid });
         return NextResponse.json({ error: '无权限' }, { status: 403 });
       }
       return handleDraftArticleResponse(id, meta);
@@ -126,7 +122,6 @@ export const GET = apiHandler('GET', { label: '获取文章详情' }, async (req
     });
   }
 
-  const session = await getSession();
   const isAuthenticated = !!session;
   const config = await loadConfig();
   const dbAvailable = hasDatabase();

@@ -14,10 +14,18 @@ interface GithubSyncParams {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _octokitMod: { Octokit: any } | null = null
 
+/** 模块级 Octokit 实例缓存，key 为 token，避免每次请求都新建实例 */
+const octokitCache = new Map<string, unknown>()
+
 async function getOctokit(token: string) {
+  if (octokitCache.has(token)) {
+    return octokitCache.get(token)
+  }
   _octokitMod ??= await import('octokit')
   const { Octokit } = _octokitMod
-  return new Octokit({ auth: token })
+  const instance = new Octokit({ auth: token })
+  octokitCache.set(token, instance)
+  return instance
 }
 
 /** 从 GitHub 获取文件内容 */

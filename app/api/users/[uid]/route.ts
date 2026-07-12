@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { getSession } from '@/lib/auth';
 import { getUserAvatar } from '@/lib/config';
 import type { UserRole } from '@/lib/user';
 import { createApiLogger } from '@/lib/api-logger';
@@ -9,24 +8,23 @@ import { apiHandler, getParam } from '@/lib/api-handler';
 const logger = createApiLogger('/api/users/[uid]');
 
 /** 校验角色变更权限，返回 null 表示通过，否则返回错误 Response */
-async function validateRoleChange(
+function validateRoleChange(
   role: UserRole,
   targetUser: Record<string, unknown>,
-  uid: string,
-): Promise<NextResponse | null> {
+  session: { role: string } | undefined,
+): NextResponse | null {
   const validRoles: UserRole[] = ['user', 'admin', 'sudo'];
   if (!validRoles.includes(role)) {
     logger.warn('PATCH', '无效角色', { role });
     return NextResponse.json({ error: '无效的角色' }, { status: 400 });
   }
-  const currentSession = await getSession();
-  if (currentSession && currentSession.role !== 'sudo') {
+  if (session && session.role !== 'sudo') {
     if (role === 'admin' || role === 'sudo') {
-      logger.warn('PATCH', '权限不足：admin 不能将用户提升为 admin 或 sudo', { uid, requestedRole: role });
+      logger.warn('PATCH', '权限不足：admin 不能将用户提升为 admin 或 sudo', { requestedRole: role });
       return NextResponse.json({ error: '仅超级管理员可以设置管理员或超级管理员角色' }, { status: 403 });
     }
     if (targetUser.role === 'sudo') {
-      logger.warn('PATCH', '权限不足：admin 不能降级超级管理员', { uid });
+      logger.warn('PATCH', '权限不足：admin 不能降级超级管理员');
       return NextResponse.json({ error: '仅超级管理员可以修改超级管理员角色' }, { status: 403 });
     }
   }
@@ -67,7 +65,7 @@ export const GET = apiHandler('GET', { label: '获取用户信息', requireAdmin
   });
 });
 
-export const PATCH = apiHandler('PATCH', { label: '更新用户信息', requireAdmin: true }, async (req, context) => {
+export const PATCH = apiHandler('PATCH', { label: '更新用户信息', requireAdmin: true }, async (req, context, session) => {
   const uid = await getParam(context, 'uid');
   logger.info('PATCH', '更新用户信息', { uid });
   const db = getDb();
@@ -89,7 +87,7 @@ export const PATCH = apiHandler('PATCH', { label: '更新用户信息', requireA
   const previousRole = user.role as string | undefined;
 
   if (role !== undefined) {
-    const roleErr = await validateRoleChange(role, user, uid);
+    const roleErr = await validateRoleChange(role, user, session);
     if (roleErr) return roleErr;
     user.role = role;
   }

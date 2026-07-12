@@ -134,6 +134,35 @@ function readIndexFile(dir: string): ContentIndex | null {
 }
 
 /**
+ * 限制并发的 Promise 池
+ * 同时最多运行 maxConcurrency 个 promise
+ */
+async function withConcurrency<T, R>(
+  items: T[],
+  fn: (item: T) => R | Promise<R>,
+  maxConcurrency: number,
+): Promise<(R | null)[]> {
+  const results: (R | null)[] = []
+  let index = 0
+
+  const workers = Array.from({ length: Math.min(maxConcurrency, items.length) }, async () => {
+    while (true) {
+      const i = index++
+      if (i >= items.length) break
+      try {
+        const item = items.at(i)
+        if (item) results[i] = await fn(item)
+      } catch {
+        results[i] = null
+      }
+    }
+  })
+
+  await Promise.all(workers)
+  return results
+}
+
+/**
  * 获取指定分区的所有内容文件
  * @param section 内容分区：posts、faces 或 diary
  * @param includeIndex 是否包含目录索引信息
@@ -167,6 +196,46 @@ export function getContentFiles(section: 'posts' | 'faces' | 'diary'): ContentFi
   });
 
   contentCache.set(cacheKey, { data: files, timestamp: Date.now() });
+  return files;
+}
+
+/**
+ * 并行获取指定分区的所有内容文件（异步版本，适合 API 路由等异步场景）
+ * 使用 Promise 池限制并发数，避免文件描述符耗尽
+ */
+export async function getContentFilesAsync(
+  section: 'posts' | 'faces' | 'diary',
+): Promise<ContentFile[]> {
+  const rootDir = CONTENT_DIR[section];
+  if (!fs.existsSync(rootDir)) return [];
+
+  const slugs = scanMarkdownFiles(rootDir, rootDir);
+  if (slugs.length === 0) return [];
+
+  // 并行读取所有 Markdown 文件（限制并发数避免文件描述符耗尽）
+  const MAX_FILE_READ_CONCURRENCY = 50;
+
+  const results = await withConcurrency(
+    slugs,
+    (slug) => {
+      const filePath = path.join(rootDir, slug.slice(1) + '.md');
+      if (fs.existsSync(filePath)) {
+        return parseMarkdownFile(filePath, slug);
+      }
+      return null;
+    },
+    MAX_FILE_READ_CONCURRENCY,
+  );
+
+  const files = results.filter((f): f is ContentFile => f !== null);
+
+  // 按日期降序排序
+  files.sort((a, b) => {
+    const dateA = a.meta.date ? new Date(a.meta.date).getTime() : 0;
+    const dateB = b.meta.date ? new Date(b.meta.date).getTime() : 0;
+    return dateB - dateA;
+  });
+
   return files;
 }
 
