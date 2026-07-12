@@ -4,7 +4,6 @@
 
 'use client';
 
-import React from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { modalContentVariants, modalTransition } from '@/components/ui/motion';
 
@@ -68,7 +67,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
             animate="animate"
             exit="exit"
             transition={modalTransition}
-            className="relative w-full max-w-2xl mx-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden"
+            className="relative w-full max-w-2xl mx-4 bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* ── 搜索输入栏 ── */}

@@ -3,7 +3,7 @@
 
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowUp } from 'lucide-react';
 
 // ─── Typed Text（私有辅助组件） ──────────────────────

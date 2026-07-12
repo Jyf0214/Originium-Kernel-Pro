@@ -134,7 +134,7 @@ export function AnnouncementPopup() {
             animate="animate"
             exit="exit"
             transition={modalTransition}
-            className="relative w-full max-w-md mx-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden"
+            className="relative w-full max-w-md mx-4 bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden"
             role="dialog"
             aria-modal="true"
             aria-labelledby="announcement-title"

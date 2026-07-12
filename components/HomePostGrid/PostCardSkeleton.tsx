@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
  */
 export function PostCardSkeleton() {
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border-2 border-zinc-50 dark:border-zinc-800 overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-zinc-800 rounded-[2rem] border-2 border-zinc-50 dark:border-zinc-700 overflow-hidden shadow-sm">
       {/* 图片区域 */}
       <Skeleton className="w-full aspect-video rounded-none" />
       {/* 内容区域 */}

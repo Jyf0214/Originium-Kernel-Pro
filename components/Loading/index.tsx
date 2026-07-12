@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Spin } from 'antd';
-import { LoadingOutlined } from '@ant-design/icons';
+import { Loader2 } from 'lucide-react';
 import { ProgressBar } from './ProgressBar';
 
 type LoadingType = 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd' | 'progress';
@@ -104,7 +104,7 @@ export function LoadingWaves({ tip = 'Loading...', color = '#c084fc' }: LoadingP
 
 export function LoadingAntIcon({ size = 'large', tip, color = '#c084fc', position = 'center' }: LoadingProps) {
   const fontSize = size === 'small' ? 14 : size === 'large' ? 24 : 18;
-  const antIcon = <LoadingOutlined style={{ fontSize, color }} spin />;
+  const antIcon = <Loader2 size={fontSize} className="animate-spin" style={{ color }} />;
   const posClass = positionClasses[position] ?? positionClasses.center;
   return (
     <div className={`flex ${posClass}`}>

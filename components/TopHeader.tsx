@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
 import { Menu } from 'lucide-react';
