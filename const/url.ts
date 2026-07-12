@@ -57,17 +57,3 @@ export function getSiteUrl(): string {
   _siteUrl ??= resolveSiteUrl();
   return _siteUrl;
 }
-
-/** 站点域名 */
-export const SITE_DOMAIN = (() => {
-  try { return new URL(getSiteUrl()).hostname; } catch { return 'localhost'; }
-})();
-
-/** 隐私政策页 */
-export const PRIVACY_URL = '/privacy';
-
-/** 服务条款页 */
-export const TERMS_URL = '/terms';
-
-/** 生成站点图片路径 */
-export const imageUrl = (filename: string) => `/images/${filename}`;
