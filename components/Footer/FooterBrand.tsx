@@ -15,8 +15,13 @@ export interface FooterRuntimeStatusProps {
 
 /**
  * 运行时状态：每秒刷新运行时间，并根据本地小时数（9-18）显示在线/休息中标签。
+ * 用 React.memo 包裹，防止父组件重渲染时连带重渲染此组件
+ * （内部有每秒 setInterval 触发 setState）。
  */
-export function FooterRuntimeStatus({ launchTime, enable }: FooterRuntimeStatusProps) {
+export const FooterRuntimeStatus = React.memo(function FooterRuntimeStatus({
+  launchTime,
+  enable,
+}: FooterRuntimeStatusProps) {
   const [text, setText] = useState('');
   const [isOnline, setIsOnline] = useState(true);
 
@@ -73,6 +78,6 @@ export function FooterRuntimeStatus({ launchTime, enable }: FooterRuntimeStatusP
       </Tag>
     </div>
   );
-}
+});
 
 export default FooterRuntimeStatus;

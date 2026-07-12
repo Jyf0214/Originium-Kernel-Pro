@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 
 interface PostPageContextValue {
   /** 当前文章标题（帖子页设置，导航栏读取） */
@@ -21,8 +21,10 @@ const PostPageContext = createContext<PostPageContextValue>({
  */
 export function PostPageProvider({ children }: { children: React.ReactNode }) {
   const [postTitle, setPostTitle] = useState('');
+  // 用 useMemo 缓存 value，避免每次渲染创建新对象导致消费者不必要的重渲染
+  const value = useMemo(() => ({ postTitle, setPostTitle }), [postTitle, setPostTitle]);
   return (
-    <PostPageContext.Provider value={{ postTitle, setPostTitle }}>
+    <PostPageContext.Provider value={value}>
       {children}
     </PostPageContext.Provider>
   );
