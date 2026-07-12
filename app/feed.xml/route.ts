@@ -1,14 +1,11 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import path from 'path';
 import {
   getPublicPosts,
   getFeedConfig,
   FEED_ITEM_LIMIT,
   toRfc822,
   escapeXml,
-  buildDescription,
-  getPostUrl,
-  type PublicPost,
+  buildRssItem,
 } from '@/lib/feed';
 
 /**
@@ -60,24 +57,4 @@ ${itemsXml}
       'Cache-Control': 'public, max-age=3600, s-maxage=3600',
     },
   });
-}
-
-function buildRssItem(post: PublicPost, siteUrl: string): string {
-  const link = getPostUrl(siteUrl, post.slug);
-  const title = post.meta.title || path.basename(post.slug);
-  const description = buildDescription(post.meta, post.content);
-  const pubDate = toRfc822(post.meta.date);
-  const guid = post.slug;
-  // 完整正文使用 CDATA 包裹，避免 XML 转义问题
-  // 转义 ]] sequences 防止 CDATA 注入
-  const contentEncoded = `<![CDATA[${post.content.replace(/\]\]>/g, ']]]]><![CDATA[>')}]]>`;
-
-  return `    <item>
-      <title>${escapeXml(title)}</title>
-      <link>${escapeXml(link)}</link>
-      <guid isPermaLink="false">${escapeXml(guid)}</guid>
-      <pubDate>${escapeXml(pubDate)}</pubDate>
-      <description>${escapeXml(description)}</description>
-      <content:encoded>${contentEncoded}</content:encoded>
-    </item>`;
 }
