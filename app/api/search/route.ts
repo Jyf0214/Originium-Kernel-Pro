@@ -137,7 +137,7 @@ async function processSearchFile(
   const slug = '/' + relative.replace(/\.md$/, '').replace(/\\/g, '/');
   const config = await loadConfig();
 
-  if (!canAccess('posts', slug, options.isAuthenticated, options.dbAvailable, config)) {
+  if (!(await canAccess('posts', slug, options.isAuthenticated, options.dbAvailable, config))) {
     return undefined;
   }
 
@@ -259,7 +259,7 @@ async function searchFromIndex(
 
   for (const entry of index) {
     // 权限检查：索引包含所有文章，运行时按当前认证状态过滤
-    if (!canAccess('posts', entry.slug, options.isAuthenticated, options.dbAvailable, config)) {
+    if (!(await canAccess('posts', entry.slug, options.isAuthenticated, options.dbAvailable, config))) {
       continue;
     }
 
