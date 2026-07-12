@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -8,7 +8,7 @@ interface EmptyStateProps {
   variant?: 'card' | 'minimal';
 }
 
-export function EmptyState({
+const EmptyState = memo(function EmptyState({
   icon,
   title,
   description,
@@ -27,4 +27,7 @@ export function EmptyState({
       {action && <div className="flex justify-center">{action}</div>}
     </div>
   );
-}
+});
+EmptyState.displayName = 'EmptyState';
+
+export { EmptyState };

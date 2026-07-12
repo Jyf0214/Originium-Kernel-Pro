@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { memo, useId } from 'react';
 import { Switch } from 'antd';
 
 export interface ToggleFieldProps {
@@ -9,7 +9,7 @@ export interface ToggleFieldProps {
   className?: string;
 }
 
-export default function ToggleField({
+const ToggleField = memo(function ToggleField({
   label,
   description,
   checked,
@@ -29,4 +29,7 @@ export default function ToggleField({
       <Switch id={switchId} checked={checked} onChange={onChange} />
     </div>
   );
-}
+});
+ToggleField.displayName = 'ToggleField';
+
+export default ToggleField;

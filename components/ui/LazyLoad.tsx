@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { memo, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useNetworkAware } from '@/hooks/use-network-aware';
 
 interface LazyLoadProps {
@@ -23,7 +23,7 @@ interface LazyLoadProps {
  * - 3G：提前 200px（默认）
  * - 2G / 省流：仅 50px（节省带宽）
  */
-export function LazyLoad({ children, rootMargin, className, networkAware = false }: LazyLoadProps) {
+const LazyLoad = memo(function LazyLoad({ children, rootMargin, className, networkAware = false }: LazyLoadProps) {
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { rootMargin: adaptiveMargin } = useNetworkAware(rootMargin);
@@ -58,4 +58,7 @@ export function LazyLoad({ children, rootMargin, className, networkAware = false
       {visible ? children : null}
     </div>
   );
-}
+});
+LazyLoad.displayName = 'LazyLoad';
+
+export { LazyLoad };
