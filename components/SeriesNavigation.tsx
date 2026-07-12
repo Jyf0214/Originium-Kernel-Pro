@@ -6,6 +6,10 @@ import { BookOpen, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '@/lib/ui';
 
+/** 上一篇/下一篇导航按钮基础样式 */
+const NAV_BUTTON_BASE =
+  'flex-1 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-white dark:hover:bg-zinc-700 transition-colors';
+
 interface SeriesArticle {
   slug: string;
   title: string;
@@ -80,7 +84,7 @@ export const SeriesNavigation = React.memo(function SeriesNavigation({ seriesNam
         {prevArticle ? (
           <Link
             href={`/posts${prevArticle.slug}`}
-            className="flex-1 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-white dark:hover:bg-zinc-700 transition-colors"
+            className={NAV_BUTTON_BASE}
           >
             <ChevronUp size={14} />
             上一篇
@@ -91,7 +95,7 @@ export const SeriesNavigation = React.memo(function SeriesNavigation({ seriesNam
         {nextArticle ? (
           <Link
             href={`/posts${nextArticle.slug}`}
-            className="flex-1 inline-flex items-center justify-end gap-1 px-3 py-1.5 rounded-xl text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-white dark:hover:bg-zinc-700 transition-colors"
+            className={cn(NAV_BUTTON_BASE, 'justify-end')}
           >
             下一篇
             <ChevronDown size={14} />

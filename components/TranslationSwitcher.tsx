@@ -19,6 +19,13 @@ interface TranslationsResponse {
   translations: TranslationInfo[];
 }
 
+/** 语言切换项共享基础样式 */
+const SWITCHER_ITEM_BASE =
+  'inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium transition-colors';
+/** 语言切换项共享边框与背景样式 */
+const SWITCHER_BORDER =
+  'border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500';
+
 /** 语言代码 → 显示名称映射 */
 const LANG_LABELS: Record<string, string> = {
   'zh-CN': '中文',
@@ -112,8 +119,9 @@ export function TranslationSwitcher({
         type="button"
         onClick={() => setExpanded(!expanded)}
         className={cn(
-          'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-          'border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500',
+          SWITCHER_ITEM_BASE,
+          'gap-1.5',
+          SWITCHER_BORDER,
           expanded && 'bg-zinc-50 border-zinc-300',
         )}
         aria-expanded={expanded}
@@ -134,8 +142,9 @@ export function TranslationSwitcher({
               key={t.lang}
               href={t.slug}
               className={cn(
-                'inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-                'border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500 text-zinc-600 dark:text-zinc-400',
+                SWITCHER_ITEM_BASE,
+                SWITCHER_BORDER,
+                'text-zinc-600 dark:text-zinc-400',
                 t.lang === locale && 'bg-zinc-50 border-zinc-300 text-zinc-900 dark:text-zinc-100',
               )}
               title={t.title || getLangLabel(t.lang)}
