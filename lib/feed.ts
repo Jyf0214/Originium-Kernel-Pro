@@ -1,6 +1,7 @@
 import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
 import { loadConfig } from '@/lib/config';
 import { getSiteUrl } from '@/const/url';
+import path from 'path';
 import type { ContentFile } from '@/types/content';
 
 /**
@@ -111,4 +112,29 @@ export function buildDescription(meta: { description?: string }, content: string
  */
 export function getPostUrl(siteUrl: string, slug: string): string {
   return `${siteUrl}/posts${slug}`;
+}
+
+/**
+ * 构建单篇 RSS 2.0 item XML
+ *
+ * 生成标准 RSS 2.0 的 <item> 元素，包含 title、link、guid、pubDate、
+ * description 和 content:encoded（完整正文 CDATA 包裹）。
+ */
+export function buildRssItem(post: PublicPost, siteUrl: string): string {
+  const link = getPostUrl(siteUrl, post.slug);
+  const title = post.meta.title || path.basename(post.slug);
+  const description = buildDescription(post.meta, post.content);
+  const pubDate = toRfc822(post.meta.date);
+  const guid = post.slug;
+  // 转义 ]] sequences 防止 CDATA 注入
+  const contentEncoded = `<![CDATA[${post.content.replace(/\]\]>/g, ']]]]><![CDATA[>')}]]>`;
+
+  return `    <item>
+      <title>${escapeXml(title)}</title>
+      <link>${escapeXml(link)}</link>
+      <guid isPermaLink="false">${escapeXml(guid)}</guid>
+      <pubDate>${escapeXml(pubDate)}</pubDate>
+      <description>${escapeXml(description)}</description>
+      <content:encoded>${contentEncoded}</content:encoded>
+    </item>`;
 }

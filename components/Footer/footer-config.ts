@@ -1,8 +1,6 @@
 // Footer 静态配置 + 默认值兜底 + 远程配置加载 hook
 // 与 UI 渲染解耦，方便单元测试和复用。
 
-'use client';
-
 import {
   Github,
   Twitter,
