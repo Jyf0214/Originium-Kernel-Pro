@@ -377,7 +377,7 @@ async function searchDiaryEntries(query: string): Promise<SearchResult[]> {
 
 function checkSearchRateLimit(req: NextRequest): NextResponse | null {
   const rl = checkRateLimit(req, 'search', 30, 60 * 1000);
-  if (!rl.allowed) return NextResponse.json({ error: '搜索过于频繁' }, { status: 429 });
+  if (!rl.allowed) return NextResponse.json({ error: '搜索过于频繁' }, { status: 429, headers: { 'Cache-Control': 'private, no-cache' } });
   return null;
 }
 
@@ -398,7 +398,9 @@ function parseSearchParams(
   const tag = searchParams.get('tag')?.trim();
 
   if (!query && !tag) {
-    return NextResponse.json({ results: [], groups: [] });
+    return NextResponse.json({ results: [], groups: [] }, {
+      headers: { 'Cache-Control': 'private, no-cache' },
+    });
   }
 
   // 搜索词为空时使用标签作为搜索词
@@ -406,7 +408,7 @@ function parseSearchParams(
 
   // 防止超长搜索词导致性能问题
   if (searchQuery.length > 200) {
-    return NextResponse.json({ error: '搜索词长度不能超过 200 字符' }, { status: 400 });
+    return NextResponse.json({ error: '搜索词长度不能超过 200 字符' }, { status: 400, headers: { 'Cache-Control': 'private, no-cache' } });
   }
 
   logger.info('GET', '执行搜索', { query: searchQuery, tag });
@@ -490,5 +492,7 @@ async function executeSearch(
   return NextResponse.json({
     results: [...topPosts, ...topDiary],
     groups,
+  }, {
+    headers: { 'Cache-Control': 'private, no-cache' },
   });
 }

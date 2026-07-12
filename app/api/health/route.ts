@@ -108,5 +108,8 @@ export async function GET() {
     uptime: Math.floor((Date.now() - startTime) / 1000),
   }
 
-  return NextResponse.json(body, { status: statusCode })
+  return NextResponse.json(body, {
+    status: statusCode,
+    headers: { 'Cache-Control': 'public, max-age=60' },
+  })
 }

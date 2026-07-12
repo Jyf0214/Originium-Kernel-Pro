@@ -69,6 +69,8 @@ export const GET = apiHandler('GET', { label: '获取延迟指标', requireAdmin
       errorRate: 0,
       topRoutes: [],
       collectedAt: Date.now(),
+    }, {
+      headers: { 'Cache-Control': 'public, max-age=30' },
     });
   }
 
@@ -85,5 +87,7 @@ export const GET = apiHandler('GET', { label: '获取延迟指标', requireAdmin
     errorRate: Math.round((errorCount / totalCount) * 10000) / 100,
     topRoutes: topRoutesByCount(entries),
     collectedAt: Date.now(),
+  }, {
+    headers: { 'Cache-Control': 'public, max-age=30' },
   });
 });
