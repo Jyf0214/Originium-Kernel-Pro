@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { getSession } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
 
@@ -100,18 +99,17 @@ async function listAllUsers(
   return allUsers;
 }
 
-export const GET = apiHandler('GET', { label: '获取用户列表', requireAuth: true }, async (req) => {
-  const session = (await getSession())!;
+export const GET = apiHandler('GET', { label: '获取用户列表', requireAuth: true }, async (_req, _context, session) => {
   logger.info('GET', '获取用户列表');
   const db = getDb();
-  const { searchParams } = new URL(req.url);
+  const { searchParams } = new URL(_req.url);
   const username = searchParams.get('username');
   const uid = searchParams.get('uid');
 
   // 用户名/UID 查询同样需要管理员权限，防止任意登录用户探测其他用户信息
   if (username || uid) {
-    if (session.role !== 'sudo' && session.role !== 'admin') {
-      logger.warn('GET', '禁止查询用户信息', { role: session.role, username, uid });
+    if (session!.role !== 'sudo' && session!.role !== 'admin') {
+      logger.warn('GET', '禁止查询用户信息', { role: session!.role, username, uid });
       return NextResponse.json({ error: '无权限' }, { status: 403 });
     }
   }
@@ -136,8 +134,8 @@ export const GET = apiHandler('GET', { label: '获取用户列表', requireAuth:
     return NextResponse.json(userData, { headers: cacheHeaders });
   }
 
-  if (session.role !== 'sudo' && session.role !== 'admin') {
-    logger.warn('GET', '禁止访问', { role: session.role });
+  if (session!.role !== 'sudo' && session!.role !== 'admin') {
+    logger.warn('GET', '禁止访问', { role: session!.role });
     return NextResponse.json({ error: '无权限' }, { status: 403 });
   }
 
