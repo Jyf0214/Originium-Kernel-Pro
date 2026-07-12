@@ -50,15 +50,6 @@ export interface SessionPayload {
 }
 
 /**
- * 生成 UID
- */
-export function generateUID(): string {
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const randomStr = crypto.randomBytes(3).toString('hex').substring(0, 5).toUpperCase();
-  return `UID-${timestamp}-${randomStr}`;
-}
-
-/**
  * 创建新的会话 JWT
  */
 export async function createSession(payload: SessionPayload) {
@@ -154,14 +145,6 @@ export async function clearTempToken() {
 export function hashApiKey(raw: string): string {
   const secret = getSecret();
   return crypto.createHmac('sha256', secret).update(raw).digest('hex');
-}
-
-/**
- * 生成随机 API 密钥(格式: sk-xxxxxx)
- */
-export function generateApiKey(): string {
-  const random = crypto.randomBytes(32).toString('base64url');
-  return `sk-${random}`;
 }
 
 /**
@@ -406,35 +389,4 @@ export function requireApiKeyPermission(
     { error: `无权限: ${action}` },
     { status: 403 },
   );
-}
-
-/* ---------- 密码复杂度校验 ---------- */
-
-const MIN_PASSWORD_LENGTH = 8;
-
-/**
- * 校验密码复杂度
- * 要求: 最少 8 位，至少包含 1 个大写字母、1 个小写字母、1 个数字
- * 返回 { valid: true } 或 { valid: false, reasons: [...] }
- */
-export function validatePasswordStrength(password: string): { valid: true } | { valid: false; reasons: string[] } {
-  const reasons: string[] = [];
-
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    reasons.push(`密码长度不能少于 ${MIN_PASSWORD_LENGTH} 位`);
-  }
-  if (!/[A-Z]/.test(password)) {
-    reasons.push('密码必须包含至少 1 个大写字母');
-  }
-  if (!/[a-z]/.test(password)) {
-    reasons.push('密码必须包含至少 1 个小写字母');
-  }
-  if (!/[0-9]/.test(password)) {
-    reasons.push('密码必须包含至少 1 个数字');
-  }
-
-  if (reasons.length > 0) {
-    return { valid: false, reasons };
-  }
-  return { valid: true };
 }

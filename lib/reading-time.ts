@@ -68,18 +68,3 @@ export function estimateReadingTime(content: string): number {
 
   return Math.max(MIN_READING_TIME, Math.ceil(totalMinutes));
 }
-
-/**
- * 获取阅读时间的显示文本
- *
- * @param content - 文本内容
- * @param locale - 语言区域（默认 'zh-CN'）
- * @returns 格式化的阅读时间文本
- */
-export function formatReadingTime(content: string, locale = 'zh-CN'): string {
-  const minutes = estimateReadingTime(content);
-  if (locale.startsWith('zh')) {
-    return `阅读 ${minutes} 分钟`;
-  }
-  return `${minutes} min read`;
-}

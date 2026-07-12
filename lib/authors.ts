@@ -7,11 +7,6 @@ const AUTHORS_PATH = path.join(process.cwd(), 'authors', 'authors.yaml');
 
 let cachedAuthors: AuthorInfo[] | null = null;
 
-/** 清除缓存，使下次 getAuthors() 重新加载 */
-export function clearAuthorsCache(): void {
-  cachedAuthors = null;
-}
-
 /** 加载作者列表（同步，构建时/服务端使用） */
 export function getAuthors(): AuthorInfo[] {
   if (cachedAuthors) return cachedAuthors;

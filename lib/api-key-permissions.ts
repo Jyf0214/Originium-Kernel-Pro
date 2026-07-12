@@ -157,13 +157,6 @@ export function parsePermissions(raw: string | null | undefined): ApiKeyPermissi
 }
 
 /**
- * 序列化权限为 JSON 字符串(用于存储)
- */
-export function serializePermissions(permissions: ApiKeyPermissions): string {
-  return JSON.stringify(permissions);
-}
-
-/**
  * 检查会话是否拥有指定操作权限
  *
  * 规则:

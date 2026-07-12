@@ -38,14 +38,6 @@ export function parseMarkdown(markdown: string): ParsedMarkdown {
 }
 
 /**
- * Extract front matter only (for indexing)
- */
-export function extractFrontMatter(markdown: string): FrontMatter {
-  const { frontMatter } = parseMarkdown(markdown);
-  return frontMatter;
-}
-
-/**
  * Generate Markdown with Front Matter
  */
 export function generateMarkdown(frontMatter: FrontMatter, content: string): string {
@@ -63,13 +55,4 @@ export function formatDate(dateString?: string): string {
     month: 'long',
     day: 'numeric',
   });
-}
-
-/**
- * Extract tags from front matter
- */
-export function extractTags(markdown: string): string[] {
-  const { frontMatter } = parseMarkdown(markdown);
-  if (!frontMatter.tags) return [];
-  return Array.isArray(frontMatter.tags) ? frontMatter.tags : [frontMatter.tags];
 }

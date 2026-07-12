@@ -39,44 +39,6 @@ export function getEnvConfig(): EnvConfig {
 }
 
 /**
- * 验证环境变量（运行时调用）
- */
-export function validateEnv(): EnvConfig {
-  const config = getEnvConfig();
-  const errors: string[] = [];
-
-  if (!config.databaseUrl) {
-    errors.push('DATABASE_URL 为必填项');
-  }
-
-  if (!config.authSecret) {
-    errors.push('AUTH_SECRET 为必填项');
-  }
-
-  if (process.env.NODE_ENV === 'production' && errors.length > 0) {
-    console.warn('⚠️ 环境变量警告:', errors.join(', '));
-  }
-
-  return config;
-}
-
-/**
- * 检查 GitHub 集成是否已配置
- */
-export function isGitHubConfigured(): boolean {
-  const config = getEnvConfig();
-  return !!(config.githubRepo && config.githubToken);
-}
-
-/**
- * 检查定时任务是否启用
- */
-export function isCronEnabled(): boolean {
-  const config = getEnvConfig();
-  return !!config.cronSecret;
-}
-
-/**
  * 存储相关检测函数已统一到 lib/storage/ 模块:
  * - isWebDavConfigured() → lib/webdav.ts
  * - isB2Configured()     → lib/storage/b2.ts
