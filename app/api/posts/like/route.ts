@@ -40,7 +40,9 @@ export const GET = apiHandler('GET', { label: '文章点赞查询' }, async (req
   const db = getDb();
   const raw = await db.get(`${LIKE_COUNT_PREFIX}${slug}`);
   const count = raw ? Number(raw) || 0 : 0;
-  return NextResponse.json({ count });
+  return NextResponse.json({ count }, {
+    headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=120' },
+  });
 })
 
 /** POST — 点赞 */

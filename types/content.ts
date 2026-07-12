@@ -1,11 +1,3 @@
-/** 文章翻译版本信息 */
-export interface TranslationEntry {
-  /** 目标语言代码（如 'en', 'zh-CN'） */
-  lang: string;
-  /** 翻译版本的路径（如 /posts/en/english-article） */
-  slug: string;
-}
-
 /** 内容文件的元数据 */
 export interface ContentMeta {
   title: string;

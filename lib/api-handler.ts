@@ -139,7 +139,7 @@ export function apiHandler<
 
     // 校验 HTTP 方法
     if (req.method !== method) {
-      return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
+      return NextResponse.json({ error: 'Method not allowed' }, { status: 405, headers: { 'Cache-Control': 'private, no-store' } });
     }
 
     const start = performance.now();
@@ -147,21 +147,34 @@ export function apiHandler<
 
     try {
       const authResult = await checkAuth(options, method, pathname, req);
-      if (authResult.error) { statusCode = authResult.error.status; return authResult.error; }
+      if (authResult.error) {
+        statusCode = authResult.error.status;
+        authResult.error.headers.set('Cache-Control', 'private, no-store');
+        return authResult.error;
+      }
       const session = authResult.session ?? undefined;
 
       const dbErr = await checkDb(options, method, pathname);
-      if (dbErr) { statusCode = dbErr.status; return dbErr; }
+      if (dbErr) {
+        statusCode = dbErr.status;
+        dbErr.headers.set('Cache-Control', 'private, no-store');
+        return dbErr;
+      }
 
       const response = await handler(req, ctx, session);
       statusCode = response.status;
+      // 写方法统一禁止缓存，防止浏览器/CDN 意外缓存 mutation 响应
+      if (method !== 'GET' && method !== 'HEAD') {
+        response.headers.set('Cache-Control', 'private, no-store');
+      }
       return response;
     } catch (error) {
+      const errHeaders = { 'Cache-Control': 'private, no-store' };
       // 格式错误的 JSON 请求体应返回 400 而非 500
       if (error instanceof SyntaxError && error.message.includes('JSON')) {
         statusCode = 400;
         console.warn(`[API] ${method} ${pathname}${querySummary(req)} → 400 请求体格式错误`);
-        return NextResponse.json({ error: '请求体格式错误' }, { status: 400 });
+        return NextResponse.json({ error: '请求体格式错误' }, { status: 400, headers: errHeaders });
       }
       statusCode = 500;
       const err = error instanceof Error ? error : new Error(String(error));
@@ -169,7 +182,7 @@ export function apiHandler<
         message: err.message,
         stack: err.stack,
       });
-      return NextResponse.json({ error: `${options.label} 失败` }, { status: 500 });
+      return NextResponse.json({ error: `${options.label} 失败` }, { status: 500, headers: errHeaders });
     } finally {
       const latencyMs = performance.now() - start;
       recordMetric({
