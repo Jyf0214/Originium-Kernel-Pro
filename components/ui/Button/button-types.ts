@@ -10,7 +10,9 @@ export type ButtonVariant =
   | 'link'
   | 'success'
   | 'warning'
-  | 'filled';
+  | 'filled'
+  | 'heroPrimary'
+  | 'heroGhost';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 export type ButtonRounded = 'sm' | 'md' | 'lg' | 'full' | 'none';
 
@@ -27,4 +29,6 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: ReactNode;
   iconOnly?: boolean;
   block?: boolean;
+  /** 提供 href 时渲染为 Next.js Link，用于导航型按钮 */
+  href?: string;
 }

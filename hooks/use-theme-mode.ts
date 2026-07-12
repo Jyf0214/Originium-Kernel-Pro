@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { safeGetItem, safeSetItem } from '@/lib/local-storage';
 
 const STORAGE_KEY = 'theme-mode';
 
@@ -44,13 +45,9 @@ export function useThemeMode() {
   // 初始化：读取 localStorage + 监听系统偏好
   useEffect(() => {
     let initial: ThemeMode = 'system';
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
-      if (saved && ['light', 'dark', 'system'].includes(saved)) {
-        initial = saved;
-      }
-    } catch {
-      // localStorage 不可用，使用默认值
+    const saved = safeGetItem(STORAGE_KEY) as ThemeMode | null;
+    if (saved && ['light', 'dark', 'system'].includes(saved)) {
+      initial = saved;
     }
     setModeState(initial);
 
@@ -71,11 +68,7 @@ export function useThemeMode() {
 
   const setMode = useCallback((next: ThemeMode) => {
     setModeState(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // localStorage 写入失败，静默忽略
-    }
+    safeSetItem(STORAGE_KEY, next);
   }, []);
 
   const cycle = useCallback(() => {

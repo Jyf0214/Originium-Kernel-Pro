@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
+import type { ButtonVariant } from '@/components/ui/Button';
 
 export interface HeroButton {
   label: string;
@@ -93,30 +94,22 @@ export function HeroBanner({
           }`}
         >
           {buttons.map((btn, i) => {
-            const btnBase =
-              btn.variant === 'primary'
-                ? 'bg-white text-zinc-900 hover:bg-white/90 border-transparent'
-                : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20';
-            const btnClasses = `inline-flex items-center gap-2 px-5 py-2.5 rounded-xl ${btnBase} transition-all font-medium text-sm`;
+            const btnVariant: ButtonVariant =
+              btn.variant === 'primary' ? 'heroPrimary' : 'heroGhost';
 
-            const children = (
-              <>
-                {btn.icon}
-                {btn.label}
-              </>
-            );
-
-            if (btn.href) {
-              return (
-                <Link key={i} href={btn.href} className={btnClasses}>
-                  {children}
-                </Link>
-              );
-            }
             return (
-              <button key={i} onClick={btn.onClick} className={btnClasses}>
-                {children}
-              </button>
+              <Button
+                key={i}
+                variant={btnVariant}
+                size="md"
+                href={btn.href}
+                onClick={btn.onClick}
+                className="px-5 py-2.5"
+                icon={btn.icon ?? undefined}
+                autoLoading={false}
+              >
+                {btn.label}
+              </Button>
             );
           })}
         </div>

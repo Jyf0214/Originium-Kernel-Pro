@@ -101,55 +101,42 @@ export function buildSocialEntries(
     .map(([name, url]) => ({ name, url, icon: name }));
 }
 
-// ─── Default Value Helpers ───────────────────────────
-// 每个 helper 只解析一个默认值，复杂度 ≤ 3
+// ─── Default Value Resolver ──────────────────────────
+// 将配置中的各字段统一解析为最终值，缺失时使用默认值兜底。
 
-export function defSocialData(socialData: Record<string, string> | null): Record<string, string> {
-  return socialData ?? {};
+function resolveList<T>(value: T[] | undefined | null, fallback: T[]): T[] {
+  return value && value.length > 0 ? value : fallback;
 }
 
-export function defAvatarUrl(config: FooterConfigData | null): string | undefined {
-  return config?.avatar;
+function resolveVal<T>(value: T | undefined | null, fallback: T): T {
+  return value ?? fallback;
 }
 
-export function defSocialLinksConfig(config: FooterConfigData | null): FooterSocialLink[] | undefined {
-  return config?.socialLinks;
+export interface ResolvedFooterDefaults {
+  links: FooterLinkGroup[];
+  badges: FooterBadge[];
+  typedText: string[];
+  typedTextPrefix: string;
+  owner: FooterConfigData['owner'];
+  author: string;
+  customText: string;
+  runtimeEnable: boolean;
+  launchTime: string;
 }
 
-export function defLinks(config: FooterConfigData | null): FooterLinkGroup[] {
-  return config?.links && config.links.length > 0 ? config.links : DEFAULT_FOOTER_LINKS;
-}
-
-export function defBadges(config: FooterConfigData | null): FooterBadge[] {
-  return config?.badges && config.badges.length > 0 ? config.badges : DEFAULT_FOOTER_BADGES;
-}
-
-export function defTypedText(config: FooterConfigData | null): string[] {
-  return config?.typedText && config.typedText.length > 0 ? config.typedText : DEFAULT_FOOTER_TYPED_TEXTS;
-}
-
-export function defTypedTextPrefix(config: FooterConfigData | null): string {
-  return config?.typedTextPrefix ?? '本站由 ';
-}
-
-export function defOwner(config: FooterConfigData | null): FooterConfigData['owner'] {
-  return config?.owner ?? { enable: true, since: 2020 };
-}
-
-export function defAuthor(config: FooterConfigData | null): string {
-  return config?.owner?.author ?? 'Originium Kernel';
-}
-
-export function defCustomText(config: FooterConfigData | null): string {
-  return config?.customText ?? '';
-}
-
-export function defRuntimeEnable(config: FooterConfigData | null): boolean {
-  return config?.runtime?.enable ?? false;
-}
-
-export function defLaunchTime(config: FooterConfigData | null): string {
-  return config?.runtime?.launchTime ?? '';
+export function resolveDefaults(config: FooterConfigData | null): ResolvedFooterDefaults {
+  const owner = config?.owner;
+  return {
+    links: resolveList(config?.links, DEFAULT_FOOTER_LINKS),
+    badges: resolveList(config?.badges, DEFAULT_FOOTER_BADGES),
+    typedText: resolveList(config?.typedText, DEFAULT_FOOTER_TYPED_TEXTS),
+    typedTextPrefix: resolveVal(config?.typedTextPrefix, '本站由 '),
+    owner: resolveVal(owner, { enable: true, since: 2020 }),
+    author: resolveVal(owner?.author, 'Originium Kernel'),
+    customText: resolveVal(config?.customText, ''),
+    runtimeEnable: resolveVal(config?.runtime?.enable, false),
+    launchTime: resolveVal(config?.runtime?.launchTime, ''),
+  };
 }
 
 // ─── Config Hook ─────────────────────────────────────

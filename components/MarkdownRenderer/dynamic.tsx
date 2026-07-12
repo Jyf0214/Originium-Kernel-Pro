@@ -8,7 +8,10 @@ import type { MarkdownRendererProps } from './types';
 
 const MarkdownRenderer = dynamic(
   () => import('./index').then((mod) => mod.MarkdownRenderer),
-  { ssr: false },
+  {
+    ssr: false,
+    loading: () => <div className="animate-pulse bg-zinc-100 dark:bg-zinc-800 rounded-xl h-32" />,
+  },
 );
 
 export function LazyMarkdownRenderer(props: MarkdownRendererProps) {

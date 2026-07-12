@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 
 interface HeadingRef {
   id: string;
@@ -11,13 +11,21 @@ interface HeadingRef {
  *
  * - 通过 IntersectionObserver 监听所有 heading 元素
  * - 首个进入视口（顶部偏移 80px、底部 80%）的标题被设为 active
- * - headings 变化时自动重新挂载观察器
+ * - headings 内容变化时才重新挂载观察器，引用变化但内容相同不重建
  */
 export function useTocActive(headings: HeadingRef[]): string {
   const [activeId, setActiveId] = useState<string>('');
 
+  // 序列化 headings 内容作为稳定的依赖键，避免引用变化导致不必要的 observer 重建
+  const headingsKey = useMemo(() => JSON.stringify(headings), [headings]);
+  const prevKeyRef = useRef<string>(headingsKey);
+
   useEffect(() => {
     if (headings.length === 0) return;
+
+    // 内容未变化时跳过重建
+    if (headingsKey === prevKeyRef.current && prevKeyRef.current !== '') return;
+    prevKeyRef.current = headingsKey;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -36,7 +44,8 @@ export function useTocActive(headings: HeadingRef[]): string {
     }
 
     return () => observer.disconnect();
-  }, [headings]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [headingsKey]);
 
   return activeId;
 }

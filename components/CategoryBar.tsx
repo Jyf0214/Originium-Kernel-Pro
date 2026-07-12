@@ -13,7 +13,7 @@ interface CategoryBarProps {
  * 统一标签筛选栏 — 标签横向滚动筛选
  * 位于 hero 标题下方，支持鼠标滚轮水平滚动
  */
-export function CategoryBar({
+export const CategoryBar = React.memo(function CategoryBar({
   tags = [],
   selectedTag,
   onSelectTag,
@@ -71,4 +71,4 @@ export function CategoryBar({
       </div>
     </div>
   );
-}
+});

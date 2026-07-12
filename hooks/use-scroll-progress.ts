@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { safeGetItem, safeSetItem, safeRemoveItem } from '@/lib/local-storage';
 
 const STORAGE_KEY_PREFIX = 'reading-progress-';
 
@@ -11,27 +12,25 @@ const STORAGE_KEY_PREFIX = 'reading-progress-';
  * 使用 requestAnimationFrame 节流，避免每帧触发 setState 导致大量 re-render
  *
  * 支持持久化：传入 pageKey 时自动保存进度到 localStorage
- * 不自动恢复——由外部组件（如 ContinueReadingPrompt）读取 savedPosition 后手动恢复
+ * 提供 restorePosition / dismissPosition 回调，合并了原 useContinueReading 的职责
  */
 export function useScrollProgress(pageKey?: string): {
   progress: number;
   /** localStorage 中保存的上次阅读位置（0-1），无记录时为 null */
   savedPosition: number | null;
-  /** 清除已保存的阅读位置（用户选择从头阅读时调用） */
-  clearSavedPosition: () => void;
+  /** 恢复阅读：平滑滚动到保存的位置并清除记录 */
+  restorePosition: (position: number) => void;
+  /** 放弃恢复：仅清除保存的记录，不滚动 */
+  dismissPosition: () => void;
 } {
   const [progress, setProgress] = useState(0);
   const rafRef = useRef<number>(0);
   const [savedPosition, setSavedPosition] = useState<number | null>(() => {
     if (pageKey && typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY_PREFIX + pageKey);
-        if (saved) {
-          const pct = parseFloat(saved);
-          if (pct > 0.05 && pct < 0.85) return pct;
-        }
-      } catch {
-        // 静默忽略
+      const saved = safeGetItem(STORAGE_KEY_PREFIX + pageKey);
+      if (saved) {
+        const pct = parseFloat(saved);
+        if (pct > 0.05 && pct < 0.85) return pct;
       }
     }
     return null;
@@ -56,28 +55,34 @@ export function useScrollProgress(pageKey?: string): {
 
   const clearSavedPosition = useCallback(() => {
     if (!pageKey) return;
-    try {
-      localStorage.removeItem(STORAGE_KEY_PREFIX + pageKey);
-    } catch {
-      // 静默忽略
-    }
+    safeRemoveItem(STORAGE_KEY_PREFIX + pageKey);
     setSavedPosition(null);
   }, [pageKey]);
+
+  /** 恢复阅读：平滑滚动到保存的位置并清除 localStorage 记录 */
+  const restorePosition = useCallback((position: number) => {
+    requestAnimationFrame(() => {
+      const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      window.scrollTo({ top: scrollHeight * position, behavior: 'smooth' });
+    });
+    clearSavedPosition();
+  }, [clearSavedPosition]);
+
+  /** 放弃恢复：仅清除 localStorage 记录 */
+  const dismissPosition = useCallback(() => {
+    clearSavedPosition();
+  }, [clearSavedPosition]);
 
   // 保存进度到 localStorage
   const saveProgress = useCallback(() => {
     if (!pageKey) return;
-    try {
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      if (scrollHeight <= 0) return;
-      const pct = scrollTop / scrollHeight;
-      // 仅保存 5%~85% 范围内的进度
-      if (pct > 0.05 && pct < 0.85) {
-        localStorage.setItem(STORAGE_KEY_PREFIX + pageKey, String(pct));
-      }
-    } catch {
-      // localStorage 不可用时静默忽略
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    if (scrollHeight <= 0) return;
+    const pct = scrollTop / scrollHeight;
+    // 仅保存 5%~85% 范围内的进度
+    if (pct > 0.05 && pct < 0.85) {
+      safeSetItem(STORAGE_KEY_PREFIX + pageKey, String(pct));
     }
   }, [pageKey]);
 
@@ -95,5 +100,5 @@ export function useScrollProgress(pageKey?: string): {
     };
   }, [handleScroll, saveProgress]);
 
-  return { progress, savedPosition, clearSavedPosition };
+  return { progress, savedPosition, restorePosition, dismissPosition };
 }

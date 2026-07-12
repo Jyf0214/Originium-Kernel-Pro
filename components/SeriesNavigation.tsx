@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { BookOpen, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -22,7 +23,7 @@ interface SeriesNavigationProps {
  * 显示当前系列的所有文章列表，当前文章高亮，
  * 支持上一篇/下一篇快速导航，列表项交错进场动画。
  */
-export function SeriesNavigation({ seriesName, articles }: SeriesNavigationProps) {
+export const SeriesNavigation = React.memo(function SeriesNavigation({ seriesName, articles }: SeriesNavigationProps) {
   const currentIndex = articles.findIndex((a) => a.isCurrent);
   const prevArticle = currentIndex > 0 ? articles[currentIndex - 1] : null;
   const nextArticle = currentIndex < articles.length - 1 ? articles[currentIndex + 1] : null;
@@ -101,4 +102,4 @@ export function SeriesNavigation({ seriesName, articles }: SeriesNavigationProps
       </div>
     </div>
   );
-}
+});

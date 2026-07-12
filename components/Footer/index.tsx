@@ -13,15 +13,7 @@ import { FooterRuntimeStatus } from './FooterBrand';
 import { FooterBar } from './FooterCopyright';
 import {
   useFooterConfig,
-  defLinks,
-  defBadges,
-  defTypedText,
-  defTypedTextPrefix,
-  defOwner,
-  defAuthor,
-  defCustomText,
-  defRuntimeEnable,
-  defLaunchTime,
+  resolveDefaults,
 } from './footer-config';
 import type { FooterConfigData } from './types';
 
@@ -40,15 +32,17 @@ export default function Footer({ staticConfig, staticSocial }: FooterProps) {
   const { config, error } = useFooterConfig(staticConfig, staticSocial);
 
   // 解析后的最终值
-  const links = defLinks(config);
-  const badges = defBadges(config);
-  const typedText = defTypedText(config);
-  const typedTextPrefix = defTypedTextPrefix(config);
-  const owner = defOwner(config);
-  const author = defAuthor(config);
-  const customText = defCustomText(config);
-  const runtimeEnable = defRuntimeEnable(config);
-  const launchTime = defLaunchTime(config);
+  const {
+    links,
+    badges,
+    typedText,
+    typedTextPrefix,
+    owner,
+    author,
+    customText,
+    runtimeEnable,
+    launchTime,
+  } = resolveDefaults(config);
 
   return (
     <footer className="relative overflow-hidden">
