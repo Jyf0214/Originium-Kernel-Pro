@@ -98,7 +98,7 @@ function buildPlatforms(title: string, url: string): Record<string, PlatformDef>
 
 const SHARE_WINDOW_FEATURES = 'noopener,noreferrer,width=600,height=500';
 
-export default function ShareButtons({ title, url, config, locale: _locale }: ShareButtonsProps) {
+function ShareButtonsInner({ title, url, config, locale: _locale }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
   const [wechatHintOpen, setWechatHintOpen] = useState(false);
@@ -260,3 +260,6 @@ export default function ShareButtons({ title, url, config, locale: _locale }: Sh
     </>
   );
 }
+
+const ShareButtons = React.memo(ShareButtonsInner);
+export default ShareButtons;

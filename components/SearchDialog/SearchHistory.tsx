@@ -4,6 +4,9 @@
 
 import { Clock, Trash2 } from 'lucide-react';
 
+import { Button } from '@/components/ui/Button';
+import { SECTION_TITLE_CLASS } from './types';
+
 interface SearchHistoryProps {
   history: string[];
   onHistoryClick: (term: string) => void;
@@ -16,29 +19,32 @@ export function SearchHistory({ history, onHistoryClick, onClear }: SearchHistor
   return (
     <div className="px-6 py-3">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[11px] font-bold uppercase tracking-widest text-zinc-400">
+        <h3 className={SECTION_TITLE_CLASS}>
           最近搜索
         </h3>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={<Trash2 size={10} />}
+          autoLoading={false}
           onClick={onClear}
-          className="flex items-center gap-1 text-[11px] text-zinc-300 hover:text-zinc-500 transition-colors"
         >
-          <Trash2 size={10} />
           清空
-        </button>
+        </Button>
       </div>
       <div className="flex flex-wrap gap-2">
         {history.map((term) => (
-          <button
+          <Button
             key={term}
-            type="button"
+            variant="ghost"
+            size="sm"
+            rounded="full"
+            icon={<Clock size={12} className="text-zinc-300" />}
+            autoLoading={false}
             onClick={() => onHistoryClick(term)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg transition-colors"
           >
-            <Clock size={12} className="text-zinc-300" />
             {term}
-          </button>
+          </Button>
         ))}
       </div>
     </div>

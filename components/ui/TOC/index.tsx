@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { TOCProps, TocHeading, TocNode } from './toc-types';
 import { useTocActive } from './use-toc-active';
 import { TocItem } from './TocItem';
@@ -44,7 +44,7 @@ function buildTree(items: TocHeading[]): TocNode[] {
  * - 滚动时通过 IntersectionObserver 高亮当前标题
  * - 少于 3 个标题时不渲染
  */
-export function TOC({ content, config, locale }: TOCProps) {
+function TOCInner({ content, config, locale }: TOCProps) {
   const [mobileOpen, setMobileOpen] = useState(config?.expand ?? false);
   const [isShortScreen, setIsShortScreen] = useState(false);
 
@@ -151,4 +151,5 @@ export function TOC({ content, config, locale }: TOCProps) {
   );
 }
 
+export const TOC = React.memo(TOCInner);
 export default TOC;

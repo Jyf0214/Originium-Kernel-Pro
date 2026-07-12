@@ -9,7 +9,7 @@ import 'katex/dist/katex.min.css';
 import { useMarkdownConfig } from './use-markdown-config';
 import { buildComponents } from './renderer-config';
 import { remarkFootnotes } from './remark-footnotes';
-import { Lightbox } from '@/components/ui/Lightbox';
+import { Lightbox } from '@/components/ui/LightboxDynamic';
 import { LazyImage } from '@/components/ui/LazyImage';
 import type { MarkdownRendererProps, WikiLinkMap } from './types';
 

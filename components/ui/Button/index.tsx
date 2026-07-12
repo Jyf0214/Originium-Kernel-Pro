@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, forwardRef } from 'react';
+import Link from 'next/link';
 import { cn } from '@/lib/ui';
 import type { ButtonProps, ButtonVariant, ButtonSize, ButtonRounded } from './button-types';
 import { variantStyles, sizePadding, iconOnlySize, roundedStyles, BASE_BUTTON_CLASSES } from './button-styles';
@@ -16,6 +17,25 @@ function renderIcon(showLoading: boolean, icon: React.ReactNode) {
   return null;
 }
 
+/** 渲染按钮内部内容（图标 + 文字/纯文字） */
+function renderButtonContent(
+  showLoading: boolean,
+  icon: React.ReactNode,
+  isResponsiveIcon: boolean,
+  children: React.ReactNode,
+) {
+  return (
+    <>
+      {renderIcon(showLoading, icon)}
+      {isResponsiveIcon ? (
+        <span className="hidden sm:inline-flex items-center">{children}</span>
+      ) : (
+        children
+      )}
+    </>
+  );
+}
+
 /**
  * 自定义按钮组件 — 支持 primary/default/danger 等变体
  *
@@ -27,7 +47,7 @@ function renderIcon(showLoading: boolean, icon: React.ReactNode) {
  */
 export const Button = memo(
   forwardRef<HTMLButtonElement, ButtonProps>(
-    ({ children, variant = 'default', size = 'md', rounded, loading, autoLoading = true, icon, iconOnly, block, className, disabled, onClick, ...props }, ref) => {
+    ({ children, variant = 'default', size = 'md', rounded, loading, autoLoading = true, icon, iconOnly, block, className, disabled, onClick, href, ...props }, ref) => {
       const isIconOnly = iconOnly || (icon && !children);
       const isResponsiveIcon = !isIconOnly && !!icon && !!children;
       const { isLoading, handleClick, showLoading } = useAutoLoading(loading, autoLoading, disabled, onClick);
@@ -43,6 +63,16 @@ export const Button = memo(
         className,
       );
 
+      const content = renderButtonContent(showLoading, icon, isResponsiveIcon, children);
+
+      if (href) {
+        return (
+          <Link href={href} className={btnClassName}>
+            {content}
+          </Link>
+        );
+      }
+
       return (
         <button
           ref={ref}
@@ -51,12 +81,7 @@ export const Button = memo(
           className={btnClassName}
           {...props}
         >
-          {renderIcon(showLoading, icon)}
-          {isResponsiveIcon ? (
-            <span className="hidden sm:inline-flex items-center">{children}</span>
-          ) : (
-            children
-          )}
+          {content}
         </button>
       );
     },

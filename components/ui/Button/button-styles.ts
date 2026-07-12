@@ -11,6 +11,8 @@ export const variantStyles: Record<ButtonVariant, string> = {
   success: 'bg-emerald-600 text-white hover:bg-emerald-500 active:bg-emerald-700 shadow-sm hover:shadow-md',
   warning: 'bg-amber-500 text-white hover:bg-amber-400 active:bg-amber-600 shadow-sm hover:shadow-md',
   filled: 'bg-transparent text-zinc-400 hover:text-zinc-700 active:text-zinc-900 border-none dark:text-zinc-500 dark:hover:text-zinc-300 dark:active:text-zinc-100',
+  heroPrimary: 'bg-white text-zinc-900 hover:bg-white/90 border-transparent shadow-sm',
+  heroGhost: 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20',
 };
 
 export const sizePadding: Record<ButtonSize, string> = {

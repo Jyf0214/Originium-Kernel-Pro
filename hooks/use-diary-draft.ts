@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useCallback, useState } from 'react';
+import { safeGetItem, safeSetItem, safeRemoveItem } from '@/lib/local-storage';
 
 /** 草稿每 2 秒自动保存的防抖间隔 */
 const AUTOSAVE_DEBOUNCE_MS = 2000;
@@ -17,24 +18,16 @@ interface DraftData {
 }
 
 function loadLocalDraft(id: string): DraftData | null {
-  try {
-    const raw = localStorage.getItem(LS_KEY_PREFIX + id);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
+  const raw = safeGetItem(LS_KEY_PREFIX + id);
+  return raw ? JSON.parse(raw) : null;
 }
 
 function saveLocalDraft(id: string, data: DraftData): void {
-  try {
-    localStorage.setItem(LS_KEY_PREFIX + id, JSON.stringify(data));
-  } catch {}
+  safeSetItem(LS_KEY_PREFIX + id, JSON.stringify(data));
 }
 
 function removeLocalDraft(id: string): void {
-  try {
-    localStorage.removeItem(LS_KEY_PREFIX + id);
-  } catch {}
+  safeRemoveItem(LS_KEY_PREFIX + id);
 }
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';

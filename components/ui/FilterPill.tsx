@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import type { ReactNode } from 'react';
 
 export interface FilterPillProps {
@@ -13,7 +14,7 @@ export interface FilterPillProps {
 const baseStyles =
   'shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ui-press whitespace-nowrap';
 
-export function FilterPill({
+export const FilterPill = memo(function FilterPill({
   selected,
   onClick,
   children,
@@ -38,4 +39,4 @@ export function FilterPill({
       <span>{children}</span>
     </button>
   );
-}
+});

@@ -13,6 +13,7 @@ import { SearchInput } from './SearchInput';
 import { SearchResultItem, SearchResultsSummary, SearchLoading } from './SearchResults';
 import { SearchTags } from './SearchTags';
 import { useSearch } from './use-search';
+import { SECTION_TITLE_CLASS } from './types';
 import type { SearchDialogProps } from './types';
 
 // 结果列表 stagger 进场动画变体
@@ -121,7 +122,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
                     <div key={group.type}>
                       {/* 分组标题 */}
                       <div className="px-6 py-2.5">
-                        <h3 className="text-[11px] font-bold uppercase tracking-widest text-zinc-400">
+                        <h3 className={SECTION_TITLE_CLASS}>
                           {group.label}
                           <span className="ml-1.5 font-normal normal-case text-zinc-300">
                             ({group.results.length})

@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import zhCN from '@/i18n/zh-CN.json';
 import en from '@/i18n/en.json';
+import { safeGetItem, safeSetItem } from '@/lib/local-storage';
 
 type Locale = 'zh-CN' | 'en';
 
@@ -17,13 +18,9 @@ const translations: Record<Locale, I18nKeys> = {
 
 function getInitialLocale(): Locale {
   if (typeof window !== 'undefined') {
-    try {
-      const savedLocale = localStorage.getItem('locale') as Locale;
-      if (savedLocale && translations[savedLocale]) {
-        return savedLocale;
-      }
-    } catch {
-      // localStorage 不可用，忽略
+    const savedLocale = safeGetItem('locale') as Locale;
+    if (savedLocale && translations[savedLocale]) {
+      return savedLocale;
     }
     // 从浏览器检测语言
     const browserLocale = navigator.language;
@@ -46,11 +43,7 @@ export function useI18n() {
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
     if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('locale', newLocale);
-      } catch {
-        // localStorage 写入失败，静默忽略
-      }
+      safeSetItem('locale', newLocale);
       // 可选：更新 html lang 属性
       document.documentElement.lang = newLocale;
     }
