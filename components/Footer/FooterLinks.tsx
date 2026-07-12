@@ -15,8 +15,11 @@ export interface FooterLinkGroupsProps {
 
 /**
  * 链接分组：在响应式网格中按 group 渲染多列链接。
+ * 用 React.memo 包裹，纯展示组件无需随父组件重渲染。
  */
-export function FooterLinkGroups({ groups }: FooterLinkGroupsProps) {
+export const FooterLinkGroups = React.memo(function FooterLinkGroups({
+  groups,
+}: FooterLinkGroupsProps) {
   if (!groups.length) return null;
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -42,7 +45,7 @@ export function FooterLinkGroups({ groups }: FooterLinkGroupsProps) {
       ))}
     </div>
   );
-}
+});
 
 // ─── Badges ──────────────────────────────────────────
 
@@ -52,8 +55,11 @@ export interface FooterBadgesProps {
 
 /**
  * 技术栈徽章：一组点击可跳转的胶囊型标签。
+ * 用 React.memo 包裹，纯展示组件无需随父组件重渲染。
  */
-export function FooterBadges({ badges }: FooterBadgesProps) {
+export const FooterBadges = React.memo(function FooterBadges({
+  badges,
+}: FooterBadgesProps) {
   if (!badges.length) return null;
   return (
     <div className="flex flex-wrap items-center justify-center gap-2">
@@ -70,6 +76,6 @@ export function FooterBadges({ badges }: FooterBadgesProps) {
       ))}
     </div>
   );
-}
+});
 
 export default FooterLinkGroups;
