@@ -17,8 +17,8 @@ export const revalidate = 300; // 5 分钟 ISR
  * 首页 — 服务端组件，直接从文件系统读取帖子索引
  * 仅展示 public 内容，不查数据库
  */
-export default function HomePage() {
-  const config = loadConfig();
+export default async function HomePage() {
+  const config = await loadConfig();
   const allFiles = getContentFiles('posts');
   const indexes = getContentIndexes('posts');
 

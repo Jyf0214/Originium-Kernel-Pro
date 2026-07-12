@@ -50,7 +50,7 @@ export const GET = apiHandler('GET', { label: '获取用户信息', requireAdmin
   } catch {
     return NextResponse.json({ error: '用户数据损坏' }, { status: 500 });
   }
-  const avatar = getUserAvatar();
+  const avatar = await getUserAvatar();
 
   logger.info('GET', '获取用户信息成功', { uid });
   return NextResponse.json({

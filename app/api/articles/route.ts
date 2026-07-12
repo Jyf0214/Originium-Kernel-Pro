@@ -80,7 +80,7 @@ export const GET = apiHandler('GET', { label: '文章列表', requireAuth: false
   // 已发布文章：从 posts/ 文件系统索引读取（由 lib/content.ts 在构建时生成）
   const isAuthenticated = !!session;
   const { files: publishedFiles } = await getAccessibleContent('posts');
-  const authorAvatar = getUserAvatar() ?? undefined;
+  const authorAvatar = await getUserAvatar() ?? undefined;
   let published = mapPublishedFiles(publishedFiles, authorAvatar);
 
   // 按 author 参数过滤已发布文章

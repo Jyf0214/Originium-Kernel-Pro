@@ -53,14 +53,16 @@ export { hasDatabase } from '@/lib/db';
  * 注意:此处不再使用 `as AppConfig` 强制断言 — 任何结构错误都会在加载阶段
  * 立即暴露,避免运行时静默接受错误配置。
  */
-function loadConfigFromYaml(): AppConfig {
+async function loadConfigFromYaml(): Promise<AppConfig> {
   const configPath = path.join(process.cwd(), 'config.yaml');
 
-  if (!fs.existsSync(configPath)) {
+  try {
+    await fs.promises.access(configPath);
+  } catch {
     return zAppConfig.parse({});
   }
 
-  const fileContent = fs.readFileSync(configPath, 'utf-8');
+  const fileContent = await fs.promises.readFile(configPath, 'utf-8');
   const raw = yaml.load(fileContent);
   const result = zAppConfig.safeParse(raw);
 
@@ -83,11 +85,11 @@ export function clearConfigCache(): void {
 }
 
 /**
- * 同步加载配置（从 config.yaml）
+ * 异步加载配置（从 config.yaml）
  */
-export function loadConfig(): AppConfig {
+export async function loadConfig(): Promise<AppConfig> {
   if (cachedConfig) return cachedConfig;
-  cachedConfig = loadConfigFromYaml();
+  cachedConfig = await loadConfigFromYaml();
   return cachedConfig;
 }
 
@@ -106,14 +108,14 @@ export function matchPath(pattern: string, target: string): boolean {
 /**
  * 判断指定路径的内容是否可被某角色访问
  */
-export function canAccess(
+export async function canAccess(
   section: 'posts' | 'faces' | 'diary',
   slug: string,
   isAuthenticated: boolean,
   hasDb = false,
   config?: AppConfig,
-): boolean {
-  const rules = (config ?? loadConfig()).access[section];
+): Promise<boolean> {
+  const rules = (config ?? await loadConfig()).access[section];
 
   const isPrivate = rules.private.some((p: string) => matchPath(p, slug));
   const isPublic = rules.public.some((p: string) => matchPath(p, slug));
@@ -127,25 +129,21 @@ export function canAccess(
 /**
  * 过滤可访问的路径
  */
-export function filterAccessibleSlugs(
+export async function filterAccessibleSlugs(
   section: 'posts' | 'faces' | 'diary',
   slugs: string[],
   hasDb = false,
-): string[] {
-  return slugs.filter((slug) => canAccess(section, slug, false, hasDb));
+): Promise<string[]> {
+  const results = await Promise.all(
+    slugs.map(async (slug) => (await canAccess(section, slug, false, hasDb)) ? slug : null),
+  );
+  return results.filter((s): s is string => s !== null);
 }
 
 /**
- * 获取用户头像（全局唯一，始终返回 avatar.url）
+ * 获取用户头像（全局唯一）
  */
-export function getUserAvatarAsync(): Promise<string | null> {
-  return Promise.resolve(getUserAvatar());
-}
-
-/**
- * 获取用户头像（同步，全局唯一）
- */
-export function getUserAvatar(): string | null {
-  const config = loadConfig();
+export async function getUserAvatar(): Promise<string | null> {
+  const config = await loadConfig();
   return config.avatar?.url || null;
 }

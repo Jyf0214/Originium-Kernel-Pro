@@ -51,7 +51,7 @@ export default async function PostDetailPage({ params }: PageProps) {
   const file = getContentFile('posts', fullPath);
   if (!file) notFound();
 
-  const viewModel = buildViewModel(slug, fullPath, file.content, file.meta);
+  const viewModel = await buildViewModel(slug, fullPath, file.content, file.meta);
 
   return (
     <div className="relative min-h-screen flex flex-col">
@@ -99,13 +99,13 @@ export default async function PostDetailPage({ params }: PageProps) {
   );
 }
 
-function buildViewModel(
+async function buildViewModel(
   slug: string[],
   fullPath: string,
   content: string,
   meta: Record<string, unknown>,
 ) {
-  const appConfig = loadConfig();
+  const appConfig = await loadConfig();
   const stats = computeWordStats(content);
   const tocConfig = buildTocConfig(appConfig);
   const wikiLinkMap = buildWikiLinkMap();

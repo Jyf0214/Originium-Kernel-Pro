@@ -121,7 +121,7 @@ export const POST = apiHandler('POST', { label: 'config更新', requireAdmin: tr
       { status: 400 }
     );
   }
-  const currentConfig = loadConfig();
+  const currentConfig = await loadConfig();
   const mergedConfig = mergeAppConfig(currentConfig, validated.data);
 
   // 持久化到 GitHub（如果配置了远程仓库）
@@ -172,7 +172,7 @@ export const PUT = apiHandler('PUT', { label: 'config同步', requireAdmin: true
     logger.warn('PUT', '远程 YAML Zod 校验失败', { issues: validated.error.issues.map(i => i.path.join('.')) });
     return NextResponse.json({ error: '远程配置校验失败: ' + validated.error.issues.map(i => i.path.join('.')).join(', ') }, { status: 400 });
   }
-  const currentConfig = loadConfig();
+  const currentConfig = await loadConfig();
   const mergedConfig = mergeAppConfig(currentConfig, validated.data);
 
   logger.info('PUT', '从 GitHub 同步配置成功');

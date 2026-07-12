@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import { type ContentFile, type ContentIndex } from '@/types/content';
+import { clearContentRegistry } from './content-registry';
 
 export type { ContentMeta, ContentFile, ContentIndex } from '@/types/content';
 
@@ -172,6 +173,7 @@ export function getContentFiles(section: 'posts' | 'faces' | 'diary'): ContentFi
 
 /**
  * 清除内容缓存，文件变更后调用
+ * 同时联动清除 content-registry.ts 中的 wiki 链接缓存
  */
 export function clearContentCache(section?: 'posts' | 'faces' | 'diary') {
   if (section) {
@@ -181,6 +183,8 @@ export function clearContentCache(section?: 'posts' | 'faces' | 'diary') {
     contentCache.clear();
     indexCache.clear();
   }
+  // 联动清除 wiki 链接注册表缓存
+  clearContentRegistry();
 }
 
 /**
@@ -311,6 +315,7 @@ export function getAdjacentPosts(currentSlug: string): {
 
 /**
  * 获取目录树结构（用于导航和面包屑）
+ * 注意：必须深拷贝索引对象，避免原地修改 indexCache 中的缓存数据
  */
 export function getContentTree(section: 'posts' | 'faces' | 'diary'): ContentIndex[] {
   const rootDir = CONTENT_DIR[section];
@@ -319,10 +324,16 @@ export function getContentTree(section: 'posts' | 'faces' | 'diary'): ContentInd
   const indexes = getContentIndexes(section);
   const files = getContentFiles(section);
 
+  // 创建索引的浅拷贝，避免污染缓存中的原始对象
+  const treeIndexes: ContentIndex[] = indexes.map((idx) => ({
+    ...idx,
+    children: [],
+  }));
+
   // 将文件分配到对应的目录索引
   for (const file of files) {
     const dirSlug = path.dirname(file.slug);
-    const parentIndex = indexes.find(
+    const parentIndex = treeIndexes.find(
       (idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'),
     );
     if (parentIndex) {
@@ -335,9 +346,9 @@ export function getContentTree(section: 'posts' | 'faces' | 'diary'): ContentInd
         public: true,
         children: [file],
       };
-      indexes.push(defaultIndex);
+      treeIndexes.push(defaultIndex);
     }
   }
 
-  return indexes;
+  return treeIndexes;
 }

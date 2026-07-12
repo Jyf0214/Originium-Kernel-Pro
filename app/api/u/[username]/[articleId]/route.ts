@@ -48,7 +48,7 @@ export async function GET(
       return NextResponse.json({ error: '用户不存在' }, { status: 404 });
     }
 
-    const avatar = getUserAvatar();
+    const avatar = await getUserAvatar();
 
     const articleStr = await db.get(`article:data:${articleId}`);
     if (!articleStr) {
