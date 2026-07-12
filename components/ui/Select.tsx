@@ -1,9 +1,10 @@
 import { type SelectHTMLAttributes, memo, forwardRef, type ReactNode, useId } from 'react';
 import { cn } from '@/lib/ui';
+import { sizeStyles, roundedStyles, ringStyles, FormControl, type FormSize, type FormRounded, type FormRing } from './form-styles';
 
-export type SelectSize = 'sm' | 'md' | 'lg' | 'xl';
-export type SelectRounded = 'sm' | 'md' | 'lg' | 'full' | 'none';
-export type SelectRing = 'default' | 'strong';
+export type SelectSize = FormSize;
+export type SelectRounded = FormRounded;
+export type SelectRing = FormRing;
 
 export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
   label?: string;
@@ -17,26 +18,6 @@ export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement
   /** 选项节点(原生 <option> / <optgroup>) */
   children: ReactNode;
 }
-
-const sizeStyles: Record<SelectSize, string> = {
-  sm: 'h-9 px-3 text-xs',
-  md: 'h-10 px-3 text-sm',
-  lg: 'h-11 px-4 text-sm',
-  xl: 'h-12 px-4 text-base',
-};
-
-const roundedStyles: Record<SelectRounded, string> = {
-  sm: 'rounded-lg',
-  md: 'rounded-xl',
-  lg: 'rounded-2xl',
-  full: 'rounded-full',
-  none: 'rounded-none',
-};
-
-const ringStyles: Record<SelectRing, string> = {
-  default: 'focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400',
-  strong: 'focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900',
-};
 
 /**
  * 自定义下拉选择器 — 原生 <select> 的样式封装
@@ -83,18 +64,10 @@ export const Select = memo(
         </select>
       );
 
-      if (!label && !error) return selectEl;
-
       return (
-        <div className="w-full">
-          {label && (
-            <label htmlFor={inputId} className="block text-sm font-medium mb-2 text-zinc-700">
-              {label}
-            </label>
-          )}
+        <FormControl inputId={inputId} label={label} error={error}>
           {selectEl}
-          {error && <p id={`${inputId}-error`} className="mt-1 text-xs text-red-500">{error}</p>}
-        </div>
+        </FormControl>
       );
     },
   ),
