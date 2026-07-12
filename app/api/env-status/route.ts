@@ -376,5 +376,7 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
       missingRequired: finalMissingRequired,
       isReady,
     },
+  }, {
+    headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' },
   });
 });

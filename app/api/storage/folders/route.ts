@@ -24,6 +24,8 @@ export const GET = apiHandler(
     if (!getDb().prisma) return databaseNotConfigured()
     const folders = await listAllFolderMetas()
     logger.info('GET', `共 ${folders.length} 个文件夹元数据`)
-    return NextResponse.json({ folders })
+    return NextResponse.json({ folders }, {
+      headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=120' },
+    })
   }
 )

@@ -39,14 +39,16 @@ export const GET = catchAllHandler<{ path: string[] }>(
     const path = resolveStoragePath(parts)
     if (!isValidStoragePath(path)) return invalidPathResponse()
 
+    const cacheHeaders = { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=120' }
+
     const meta = await readFolderMeta(path)
-    if (meta) return NextResponse.json(meta)
+    if (meta) return NextResponse.json(meta, { headers: cacheHeaders })
 
     // 元数据不存在时自动创建默认记录(public=false,新建文件夹默认私有)
     const now = new Date()
     await writeFolderMeta({ path, public: false, description: null, createdAt: now, updatedAt: now })
     const created = await readFolderMeta(path)
-    return NextResponse.json(created ?? { path, public: false, description: null, createdAt: now, updatedAt: now })
+    return NextResponse.json(created ?? { path, public: false, description: null, createdAt: now, updatedAt: now }, { headers: cacheHeaders })
   }
 )
 
