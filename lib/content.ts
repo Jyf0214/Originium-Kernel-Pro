@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import { type ContentFile, type ContentIndex } from '@/types/content';
-import { clearContentRegistry } from './content-registry';
 
 export type { ContentMeta, ContentFile, ContentIndex } from '@/types/content';
 
@@ -172,22 +171,6 @@ export function getContentFiles(section: 'posts' | 'faces' | 'diary'): ContentFi
 }
 
 /**
- * 清除内容缓存，文件变更后调用
- * 同时联动清除 content-registry.ts 中的 wiki 链接缓存
- */
-export function clearContentCache(section?: 'posts' | 'faces' | 'diary') {
-  if (section) {
-    contentCache.delete(section);
-    indexCache.delete(section);
-  } else {
-    contentCache.clear();
-    indexCache.clear();
-  }
-  // 联动清除 wiki 链接注册表缓存
-  clearContentRegistry();
-}
-
-/**
  * 过滤公开且未隐藏的文章
  * 统一所有页面的 public + hidden 检查逻辑，避免重复实现导致遗漏
  *
@@ -311,44 +294,4 @@ export function getAdjacentPosts(currentSlug: string): {
     prev: prevFile ? { slug: prevFile.slug, title: prevFile.meta.title } : null,
     next: nextFile ? { slug: nextFile.slug, title: nextFile.meta.title } : null,
   };
-}
-
-/**
- * 获取目录树结构（用于导航和面包屑）
- * 注意：必须深拷贝索引对象，避免原地修改 indexCache 中的缓存数据
- */
-export function getContentTree(section: 'posts' | 'faces' | 'diary'): ContentIndex[] {
-  const rootDir = CONTENT_DIR[section];
-  if (!fs.existsSync(rootDir)) return [];
-
-  const indexes = getContentIndexes(section);
-  const files = getContentFiles(section);
-
-  // 创建索引的浅拷贝，避免污染缓存中的原始对象
-  const treeIndexes: ContentIndex[] = indexes.map((idx) => ({
-    ...idx,
-    children: [],
-  }));
-
-  // 将文件分配到对应的目录索引
-  for (const file of files) {
-    const dirSlug = path.dirname(file.slug);
-    const parentIndex = treeIndexes.find(
-      (idx) => idx.slug === dirSlug || (dirSlug === '/' && idx.slug === '/'),
-    );
-    if (parentIndex) {
-      parentIndex.children.push(file);
-    } else {
-      // 没有索引的目录，创建默认索引
-      const defaultIndex: ContentIndex = {
-        slug: dirSlug,
-        title: dirSlug === '/' ? '根目录' : path.basename(dirSlug),
-        public: true,
-        children: [file],
-      };
-      treeIndexes.push(defaultIndex);
-    }
-  }
-
-  return treeIndexes;
 }

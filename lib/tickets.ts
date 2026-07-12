@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
-import { escapeHtml } from '@/lib/utils';
 
 /** 工单模板字段定义 */
 export interface TicketField {
@@ -70,20 +69,4 @@ export function getTicketTemplates(): TicketTemplate[] {
 export function getTicketTemplate(slug: string): TicketTemplate | null {
   const templates = getTicketTemplates();
   return templates.find(t => t.slug === slug) ?? null;
-}
-
-/**
- * 将表单数据填充到模板中，生成最终 markdown 内容
- */
-export function renderTicketBody(template: TicketTemplate, formData: Record<string, string>): string {
-  let body = template.body;
-
-  // 替换 {{fieldName}} 占位符，对替换值执行 HTML 转义防止注入
-  for (const [key, value] of Object.entries(formData)) {
-    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const safeValue = escapeHtml(value ?? '');
-    body = body.replace(new RegExp(`\\{\\{${escapedKey}\\}\\}`, 'g'), safeValue);
-  }
-
-  return body;
 }

@@ -22,11 +22,6 @@ const TRAVEL_PATH = path.join(process.cwd(), 'data', 'travel.yaml');
 
 let cachedPlaces: TravelPlace[] | null = null;
 
-/** 清除缓存，使下次加载重新读取文件 */
-export function clearTravelCache(): void {
-  cachedPlaces = null;
-}
-
 /**
  * 加载旅行地点数据
  * 服务端组件 / 构建时使用，读取 data/travel.yaml 并校验格式
