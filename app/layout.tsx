@@ -28,8 +28,8 @@ export const viewport: Viewport = {
   themeColor: '#1a1a1a',
 };
 
-export default function RootLayout({children}: {children: React.ReactNode}) {
-  const config = loadConfig();
+export default async function RootLayout({children}: {children: React.ReactNode}) {
+  const config = await loadConfig();
   return (
     <html lang={config.site.lang} suppressHydrationWarning>
       <head>

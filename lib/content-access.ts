@@ -6,7 +6,7 @@
  * 避免每个路由重复实现 session + config + canAccess 过滤链。
  */
 import { getSession } from '@/lib/auth';
-import { loadConfig, canAccess, hasDatabase } from '@/lib/config';
+import { loadConfig, hasDatabase, matchPath, type AppConfig } from '@/lib/config';
 import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
 import type { ContentFile, ContentIndex } from '@/types/content';
 
@@ -14,6 +14,27 @@ import type { ContentFile, ContentIndex } from '@/types/content';
 export interface FilteredContent {
   files: ContentFile[];
   indexes: ContentIndex[];
+}
+
+/**
+ * 同步版本的访问检查（避免循环内 await 异步函数的 microtask 开销）
+ * 逻辑与 config.ts 中 canAccess 一致，仅在 config 已加载的前提下使用
+ */
+function canAccessSync(
+  section: 'posts' | 'faces' | 'diary',
+  slug: string,
+  isAuthenticated: boolean,
+  hasDb: boolean,
+  config: AppConfig,
+): boolean {
+  const rules = config.access[section];
+  const isPrivate = rules.private.some((p: string) => matchPath(p, slug));
+  const isPublic = rules.public.some((p: string) => matchPath(p, slug));
+
+  if (isPrivate && !hasDb) return false;
+  if (isPrivate && hasDb) return isAuthenticated;
+  if (isPublic) return true;
+  return isAuthenticated;
 }
 
 /**
@@ -27,18 +48,26 @@ export async function getAccessibleContent(
 ): Promise<FilteredContent> {
   const session = await getSession();
   const isAuthenticated = !!session;
-  const config = loadConfig();
+  const config = await loadConfig();
   const dbAvailable = hasDatabase();
 
   const allFiles = getContentFiles(section);
   const indexes = getContentIndexes(section);
 
-  const files = filterPublicFiles(allFiles, indexes)
-    .filter((f) => canAccess(section, f.slug, isAuthenticated, dbAvailable, config));
+  const files = filterPublicFiles(allFiles, indexes);
+  const accessibleFiles = [];
+  for (const f of files) {
+    if (canAccessSync(section, f.slug, isAuthenticated, dbAvailable, config)) {
+      accessibleFiles.push(f);
+    }
+  }
 
-  const accessibleIndexes = indexes.filter((idx) =>
-    canAccess(section, idx.slug, isAuthenticated, dbAvailable, config)
-  );
+  const accessibleIndexes = [];
+  for (const idx of indexes) {
+    if (canAccessSync(section, idx.slug, isAuthenticated, dbAvailable, config)) {
+      accessibleIndexes.push(idx);
+    }
+  }
 
-  return { files, indexes: accessibleIndexes };
+  return { files: accessibleFiles, indexes: accessibleIndexes };
 }

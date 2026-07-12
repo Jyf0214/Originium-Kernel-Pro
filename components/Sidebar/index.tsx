@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
 import SidebarHeader from './SidebarHeader';
 import SidebarUserMenu from './SidebarUserMenu';
@@ -25,6 +25,8 @@ interface SidebarProps {
 function Sidebar({ isOpen, onClose, storageConfigured = true, databaseConfigured = true }: SidebarProps) {
   const { user, isSudo, logout } = useAuth();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const search = searchParams.toString();
   const { t } = useI18n();
   const { collapsed, toggle: toggleCollapsed, hydrated } = useSidebarCollapsed();
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
@@ -60,10 +62,11 @@ function Sidebar({ isOpen, onClose, storageConfigured = true, databaseConfigured
     if (!currentPath.startsWith(path)) return false;
     // href 带查询参数时，必须完整匹配（防止 /dashboard/articles 同时高亮两个）
     if (href.includes('?')) {
-      return currentPath + window.location.search === href;
+      const currentSearch = search ? `?${search}` : '';
+      return currentPath + currentSearch === href;
     }
     return true;
-  }, [pathname]);
+  }, [pathname, search]);
 
   const grouped = items.reduce<Record<string, MenuItem[]>>((acc, item) => {
     const g = item.group ?? 'other';

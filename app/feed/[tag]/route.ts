@@ -47,7 +47,7 @@ export async function GET(
 ): Promise<NextResponse> {
   const { tag } = await params;
   const decodedTag = decodeURIComponent(tag);
-  const { siteUrl, title, description, language } = getFeedConfig();
+  const { siteUrl, title, description, language } = await getFeedConfig();
   const posts = getPostsByTag(decodedTag).slice(0, FEED_ITEM_LIMIT);
 
   if (posts.length === 0) {

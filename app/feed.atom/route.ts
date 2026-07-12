@@ -25,8 +25,8 @@ import {
 export const dynamic = 'force-static';
 export const revalidate = false;
 
-export function GET(_request: NextRequest): NextResponse {
-  const { siteUrl, title, description, language } = getFeedConfig();
+export async function GET(_request: NextRequest): Promise<NextResponse> {
+  const { siteUrl, title, description, language } = await getFeedConfig();
   const allPosts = getPublicPosts();
   const recentPosts = allPosts.slice(0, FEED_ITEM_LIMIT);
 

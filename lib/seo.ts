@@ -1,14 +1,8 @@
 import type { Metadata } from 'next';
+import { getSiteUrl } from '@/const/url';
 
-/** 默认站点 URL，优先从环境变量读取 */
-const DEFAULT_SITE_URL = 'https://zhou-z-boss.castorice.giize.com';
 /** 默认站点标题 */
 const DEFAULT_SITE_TITLE = 'Originium Kernel';
-
-/** 获取站点 URL（构建时从环境变量读取，运行时也支持） */
-function getSiteUrl(siteUrl?: string): string {
-  return siteUrl ?? process.env.APP_URL ?? DEFAULT_SITE_URL;
-}
 
 /** 获取站点标题 */
 function getSiteTitle(siteTitle?: string): string {
@@ -27,7 +21,7 @@ export function buildPostMetadata(opts: {
   siteTitle?: string;
   siteUrl?: string;
 }): Metadata {
-  const siteUrl = getSiteUrl(opts.siteUrl);
+  const siteUrl = opts.siteUrl ?? getSiteUrl();
   const siteTitle = getSiteTitle(opts.siteTitle);
   const fullTitle = opts.title ? `${opts.title} - ${siteTitle}` : siteTitle;
   const description = opts.description ?? `${opts.title} - ${siteTitle}`;
@@ -89,7 +83,7 @@ export function buildListMetadata(opts: {
   siteTitle?: string;
   siteUrl?: string;
 }): Metadata {
-  const siteUrl = getSiteUrl(opts.siteUrl);
+  const siteUrl = opts.siteUrl ?? getSiteUrl();
   const siteTitle = getSiteTitle(opts.siteTitle);
   const fullTitle = opts.title ? `${opts.title} - ${siteTitle}` : siteTitle;
   const canonical = `${siteUrl}${opts.path}`;

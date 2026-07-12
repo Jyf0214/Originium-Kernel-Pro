@@ -2,14 +2,14 @@
 // 在构建时读取 config.yaml，将配置作为 props 传递给客户端 Footer 组件。
 // 适用于 GitHub Pages 等静态导出场景，避免运行时调用 /api/config。
 
-import { loadConfig } from '@/lib/config';
+import { loadConfig, type AppConfig } from '@/lib/config';
 import Footer from './index';
 import type { FooterConfigData } from './types';
 
 /**
  * 将 AppConfig.footer 转换为 FooterConfigData 格式
  */
-function toFooterConfigData(appConfig: ReturnType<typeof loadConfig>): FooterConfigData | undefined {
+function toFooterConfigData(appConfig: AppConfig): FooterConfigData | undefined {
   const footer = appConfig.footer;
   if (!footer) return undefined;
   return {
@@ -27,7 +27,7 @@ function toFooterConfigData(appConfig: ReturnType<typeof loadConfig>): FooterCon
 /**
  * 从 config.yaml 提取社交链接 URL
  */
-function extractSocialData(appConfig: ReturnType<typeof loadConfig>): Record<string, string> {
+function extractSocialData(appConfig: AppConfig): Record<string, string> {
   const social: Record<string, string> = {};
   if (appConfig.social?.Github) social.Github = appConfig.social.Github;
   if (appConfig.social?.Twitter) social.Twitter = appConfig.social.Twitter;
@@ -36,8 +36,8 @@ function extractSocialData(appConfig: ReturnType<typeof loadConfig>): Record<str
   return social;
 }
 
-export default function FooterWrapper() {
-  const appConfig = loadConfig();
+export default async function FooterWrapper() {
+  const appConfig = await loadConfig();
   const staticConfig = toFooterConfigData(appConfig);
   const staticSocial = extractSocialData(appConfig);
 

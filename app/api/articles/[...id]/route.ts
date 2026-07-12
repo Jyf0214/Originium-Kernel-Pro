@@ -72,7 +72,7 @@ async function handleFileSystemLookup(
   if (!file) {
     return null;
   }
-  if (!canAccess('posts', file.slug, isAuthenticated, dbAvailable, config)) {
+  if (!(await canAccess('posts', file.slug, isAuthenticated, dbAvailable, config))) {
     return NextResponse.json({ error: '无权限' }, { status: 403 });
   }
   return NextResponse.json({
@@ -120,7 +120,7 @@ export const GET = apiHandler('GET', { label: '获取文章详情' }, async (req
 
   const session = await getSession();
   const isAuthenticated = !!session;
-  const config = loadConfig();
+  const config = await loadConfig();
   const dbAvailable = hasDatabase();
   const fileResponse = await handleFileSystemLookup(id, isAuthenticated, dbAvailable, config);
   if (fileResponse) {

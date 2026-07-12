@@ -9,8 +9,8 @@ import { sanitizeCss, sanitizeHeadHtml } from './sanitize';
  * customHead 通过客户端组件注入到 document.head
  * 渲染前对两种内容进行消毒，防止存储型 XSS
  */
-export function CustomHead() {
-  const config = loadConfig();
+export async function CustomHead() {
+  const config = await loadConfig();
   const { customCSS, customHead } = config.appearance;
 
   const safeCSS = customCSS ? sanitizeCss(customCSS) : '';
