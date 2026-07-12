@@ -1,5 +1,7 @@
 'use client';
 
+import { memo } from 'react';
+
 interface ReadingProgressBarProps {
   /** 当前滚动进度（0-1） */
   progress: number;
@@ -9,7 +11,7 @@ interface ReadingProgressBarProps {
  * 阅读进度条 — 固定在视口顶部的细条，宽度随滚动百分比增长
  * 纯展示组件，滚动逻辑由 useScrollProgress Hook 在父组件中处理
  */
-export function ReadingProgressBar({ progress }: ReadingProgressBarProps) {
+const ReadingProgressBar = memo(function ReadingProgressBar({ progress }: ReadingProgressBarProps) {
   return (
     <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-transparent pointer-events-none">
       <div
@@ -18,4 +20,7 @@ export function ReadingProgressBar({ progress }: ReadingProgressBarProps) {
       />
     </div>
   );
-}
+});
+ReadingProgressBar.displayName = 'ReadingProgressBar';
+
+export { ReadingProgressBar };
