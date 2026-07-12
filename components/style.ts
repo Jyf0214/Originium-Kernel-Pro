@@ -1,27 +1,25 @@
 /**
  * 认证页面布局样式
+ * 使用 antd CSS 变量保持与 antd 主题一致
  */
-import { createStaticStyles } from 'antd-style';
+import type { CSSProperties } from 'react';
 
-export const authStyles = createStaticStyles(({ css, cssVar }) => ({
-  outer: css`
-    position: relative;
-  `,
-  innerDark: css`
-    position: relative;
-    overflow: hidden;
-    border: 1px solid ${cssVar.colorBorderSecondary};
-    border-radius: ${cssVar.borderRadius};
-    background: ${cssVar.colorBgContainer};
-  `,
-  innerLight: css`
-    position: relative;
-    overflow: hidden;
-    border: 1px solid ${cssVar.colorBorder};
-    border-radius: ${cssVar.borderRadius};
-    background: ${cssVar.colorBgContainer};
-  `,
-  divider: css`
-    height: 24px;
-  `,
-}));
+export const authStyles = {
+  outer: {
+    position: 'relative',
+  } satisfies CSSProperties,
+  innerDark: {
+    position: 'relative',
+    overflow: 'hidden',
+    border: '1px solid var(--ant-color-border-secondary)',
+    borderRadius: 'var(--ant-border-radius)',
+    background: 'var(--ant-color-bg-container)',
+  } satisfies CSSProperties,
+  innerLight: {
+    position: 'relative',
+    overflow: 'hidden',
+    border: '1px solid var(--ant-color-border)',
+    borderRadius: 'var(--ant-border-radius)',
+    background: 'var(--ant-color-bg-container)',
+  } satisfies CSSProperties,
+} as const;

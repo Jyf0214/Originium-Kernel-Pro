@@ -154,9 +154,9 @@ const nextConfig: NextConfig = {
     ],
   },
   output: 'standalone',
-  transpilePackages: ['antd', 'antd-style', '@ant-design/icons', 'motion'],
+  transpilePackages: ['antd', 'motion'],
   experimental: {
-    optimizePackageImports: ['antd', '@ant-design/icons', 'lucide-react', 'motion'],
+    optimizePackageImports: ['antd', 'lucide-react', 'motion'],
   },
   turbopack: {},
   webpack: (

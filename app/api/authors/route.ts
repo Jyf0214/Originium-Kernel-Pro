@@ -6,5 +6,7 @@ export const dynamic = 'force-static';
 /** GET /api/authors — 返回作者列表 */
 export function GET() {
   const authors = getAuthors();
-  return NextResponse.json(authors);
+  return NextResponse.json(authors, {
+    headers: { 'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400' },
+  });
 }

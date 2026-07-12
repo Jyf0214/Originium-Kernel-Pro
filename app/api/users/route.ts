@@ -116,13 +116,15 @@ export const GET = apiHandler('GET', { label: '获取用户列表', requireAuth:
     }
   }
 
+  const cacheHeaders = { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' };
+
   if (username) {
     const userData = await getUserByUsernameSearch(db, username);
     if (!userData) {
       logger.warn('GET', '用户不存在', { username });
       return NextResponse.json({ error: '用户不存在' }, { status: 404 });
     }
-    return NextResponse.json(userData);
+    return NextResponse.json(userData, { headers: cacheHeaders });
   }
 
   if (uid) {
@@ -131,7 +133,7 @@ export const GET = apiHandler('GET', { label: '获取用户列表', requireAuth:
       logger.warn('GET', '用户不存在', { uid });
       return NextResponse.json({ error: '用户不存在' }, { status: 404 });
     }
-    return NextResponse.json(userData);
+    return NextResponse.json(userData, { headers: cacheHeaders });
   }
 
   if (session.role !== 'sudo' && session.role !== 'admin') {
@@ -141,5 +143,5 @@ export const GET = apiHandler('GET', { label: '获取用户列表', requireAuth:
 
   const allUsers = await listAllUsers(db);
   logger.info('GET', '获取用户列表成功', { count: allUsers.length });
-  return NextResponse.json(allUsers);
+  return NextResponse.json(allUsers, { headers: cacheHeaders });
 });

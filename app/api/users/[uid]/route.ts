@@ -62,6 +62,8 @@ export const GET = apiHandler('GET', { label: '获取用户信息', requireAdmin
     userGroup: user.userGroup,
     status: user.status,
     avatar,
+  }, {
+    headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' },
   });
 });
 

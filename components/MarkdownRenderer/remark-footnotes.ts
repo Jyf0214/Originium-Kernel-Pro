@@ -7,6 +7,7 @@
  * 本插件负责：收集定义 → 替换引用为上标链接 → 追加脚注区块。
  */
 import type { Plugin } from 'unified';
+import { escapeHtml } from '@/lib/utils';
 
 /* ── 类型 ── */
 
@@ -148,12 +149,3 @@ export const remarkFootnotes: Plugin = () => {
     });
   };
 };
-
-/** 转义 HTML 特殊字符，防止 XSS */
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}

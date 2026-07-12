@@ -20,5 +20,7 @@ export const GET = apiHandler('GET', { label: 'Web Vitals 状态', requireSudo: 
     migrated: true,
     message: 'Web Vitals 数据已迁移到 Vercel Analytics Dashboard',
     dashboard: 'https://vercel.com/.analytics',
+  }, {
+    headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' },
   });
 });

@@ -24,6 +24,8 @@ export const GET = apiHandler(
     return NextResponse.json({
       configured,
       folderCount: folders.length,
+    }, {
+      headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=120' },
     })
   }
 )

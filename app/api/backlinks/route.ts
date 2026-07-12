@@ -38,5 +38,7 @@ export const GET = apiHandler('GET', { label: '后向链接查询', requireAuth:
   const backlinks = getBacklinks(section, slug);
   const outgoing = getOutgoingReferences(section, slug);
 
-  return NextResponse.json({ backlinks, outgoing });
+  return NextResponse.json({ backlinks, outgoing }, {
+    headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' },
+  });
 });

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ComponentType } from 'react';
 import type { HighlightConfig, HighlighterInstance, HighlighterProps } from './types';
-import { resolveTheme } from './renderer-config';
+import { resolveTheme } from './utils';
 
 /** 解析后的高亮配置 + 异步加载的语法高亮器实例 */
 export interface UseMarkdownConfigResult {

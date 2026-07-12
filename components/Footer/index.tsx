@@ -54,7 +54,7 @@ export default function Footer({ staticConfig, staticSocial }: FooterProps) {
     <footer className="relative overflow-hidden">
       {/* 顶部渐变过渡 — 从页面背景色过渡到页脚色 */}
       <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-zinc-50 dark:from-zinc-900 to-transparent pointer-events-none z-10" />
-      <div className="relative bg-zinc-50 dark:bg-zinc-900">
+      <div className="relative bg-zinc-50 dark:bg-zinc-800">
       <div className="relative max-w-5xl mx-auto px-6 pt-0 md:pt-16 pb-0 space-y-8">
         {/* 1. 链接组（移动端隐藏，仅桌面端显示） */}
         <motion.div

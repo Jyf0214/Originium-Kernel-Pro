@@ -35,6 +35,7 @@ import type {
   ListDirectoryOptions,
   FileContent,
 } from './storage-provider'
+import { normalizePath } from './acl'
 
 /**
  * B2 鉴权结果（用于获取 region 和 S3 endpoint）
@@ -168,13 +169,6 @@ async function getS3Client(): Promise<S3Client> {
   return client
 }
 
-/**
- * 标准化 B2 key 路径（去除前导/尾随斜杠，空串代表根）
- */
-function normalizeKey(path: string): string {
-  return path.replace(/^[\\/]+|[\\/]+$/g, '')
-}
-
 /** 根据文件扩展名猜测 Content-Type */
 function guessContentType(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase()
@@ -293,7 +287,7 @@ export class B2Provider implements StorageProvider {
    */
   async listDirectory(dirPath: string, _options?: ListDirectoryOptions): Promise<FileStat[]> {
     const client = await getS3Client()
-    const prefix = normalizeKey(dirPath)
+    const prefix = normalizePath(dirPath)
     const fullPrefix = prefix ? `${prefix}/` : ''
 
     const entries: FileStat[] = []
@@ -334,7 +328,7 @@ export class B2Provider implements StorageProvider {
     filePath: string,
     options?: { signal?: AbortSignal }
   ): Promise<FileContent> {
-    const key = normalizeKey(filePath)
+    const key = normalizePath(filePath)
     if (!key) {
       throw new Error('B2: 不能读取根路径')
     }
@@ -415,7 +409,7 @@ export class B2Provider implements StorageProvider {
     data: FileContent,
     options?: { headers?: Record<string, string> }
   ): Promise<void> {
-    const key = normalizeKey(filePath)
+    const key = normalizePath(filePath)
     if (!key) {
       throw new Error('B2: 不能写入根路径')
     }
@@ -437,7 +431,7 @@ export class B2Provider implements StorageProvider {
    * 创建目录（B2 无原生目录，上传 .keep 占位文件）
    */
   async createDirectory(dirPath: string, options?: { recursive?: boolean }): Promise<void> {
-    const key = normalizeKey(dirPath)
+    const key = normalizePath(dirPath)
     if (!key) return
 
     if (options?.recursive) {
@@ -456,7 +450,7 @@ export class B2Provider implements StorageProvider {
    * 删除文件
    */
   async deleteFile(filePath: string): Promise<void> {
-    const key = normalizeKey(filePath)
+    const key = normalizePath(filePath)
     if (!key) {
       throw new Error('B2: 不能删除根路径')
     }
@@ -472,7 +466,7 @@ export class B2Provider implements StorageProvider {
    * 删除目录（递归删除所有对象 + .keep 占位文件）
    */
   async deleteDirectory(dirPath: string): Promise<void> {
-    const key = normalizeKey(dirPath)
+    const key = normalizePath(dirPath)
     if (!key) return
 
     const client = await getS3Client()
@@ -519,8 +513,8 @@ export class B2Provider implements StorageProvider {
    * 目录移动: 递归复制所有子对象到新前缀，再递归删除旧前缀。
    */
   async moveFile(fromPath: string, toPath: string): Promise<void> {
-    const fromKey = normalizeKey(fromPath)
-    const toKey = normalizeKey(toPath)
+    const fromKey = normalizePath(fromPath)
+    const toKey = normalizePath(toPath)
     if (!fromKey || !toKey) {
       throw new Error('B2: 不能移动根路径')
     }
@@ -620,7 +614,7 @@ export class B2Provider implements StorageProvider {
    * 获取文件/目录元信息
    */
   async stat(path: string): Promise<FileStat> {
-    const key = normalizeKey(path)
+    const key = normalizePath(path)
 
     if (!key) {
       return {

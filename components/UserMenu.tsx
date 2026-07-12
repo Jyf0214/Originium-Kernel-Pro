@@ -6,7 +6,7 @@ import { useBuildTimeAvatar } from '@/hooks/use-build-time-avatar';
 import { useI18n } from '@/hooks/use-i18n';
 import { Button } from '@/components/ui/Button';
 import { Dropdown, type MenuProps } from 'antd';
-import { SettingOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Settings, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { showCuteLogoutConfirm } from '@/components/ui/CuteLogout';
 
@@ -31,7 +31,7 @@ export function UserMenu() {
     {
       key: 'settings',
       label: t('nav.settings'),
-      icon: <SettingOutlined />,
+      icon: <Settings size={14} />,
     },
     {
       type: 'divider',
@@ -39,7 +39,7 @@ export function UserMenu() {
     {
       key: 'logout',
       label: t('nav.logout'),
-      icon: <LogoutOutlined />,
+      icon: <LogOut size={14} />,
       danger: true,
     },
   ];

@@ -15,5 +15,7 @@ import { apiHandler } from '@/lib/api-handler';
 
 export const GET = apiHandler('GET', { label: 'wiki-link映射', requireAuth: true }, () => {
   const map = buildWikiLinkMap();
-  return NextResponse.json(map);
+  return NextResponse.json(map, {
+    headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' },
+  });
 });
