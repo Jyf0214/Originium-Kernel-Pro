@@ -23,14 +23,43 @@ export function HeadInjector({ content }: { content: string }) {
     }
     nodesRef.current = [];
 
-    // 创建临时容器解析 HTML，将子节点逐个注入 head
-    const container = document.createElement('div');
-    container.innerHTML = content;
+    // 使用 DOMParser 进行二次消毒：仅允许安全标签通过
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(`<head>${content}</head>`, 'text/html');
+    const head = doc.head;
+    const ALLOWED_TAGS = new Set(['META', 'LINK', 'STYLE', 'TITLE', 'SCRIPT']);
+    const ALLOWED_ATTRS: Record<string, Set<string>> = {
+      META: new Set(['charset', 'name', 'content', 'http-equiv']),
+      LINK: new Set(['rel', 'href', 'type', 'media', 'as', 'crossorigin']),
+      STYLE: new Set(['type', 'media']),
+      TITLE: new Set(),
+      SCRIPT: new Set(['type', 'src', 'async', 'defer']),
+    };
+
     const injected: Node[] = [];
-    while (container.firstChild) {
-      const child = container.firstChild;
-      document.head.appendChild(child);
-      injected.push(child);
+    while (head.firstChild) {
+      const child = head.firstChild;
+      if (child.nodeType === Node.ELEMENT_NODE) {
+        const el = child as Element;
+        const tag = el.tagName;
+        if (!ALLOWED_TAGS.has(tag)) {
+          head.removeChild(child);
+          continue;
+        }
+        // 移除不在白名单中的属性
+        const allowed = ALLOWED_ATTRS[tag];
+        if (allowed) {
+          const attrs = Array.from(el.attributes);
+          for (const attr of attrs) {
+            if (!allowed.has(attr.name.toLowerCase())) {
+              el.removeAttribute(attr.name);
+            }
+          }
+        }
+      }
+      const next = head.removeChild(child);
+      document.head.appendChild(next);
+      injected.push(next);
     }
     nodesRef.current = injected;
 
