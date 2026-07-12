@@ -18,7 +18,7 @@ export function useTocActive(headings: HeadingRef[]): string {
 
   // 序列化 headings 内容作为稳定的依赖键，避免引用变化导致不必要的 observer 重建
   const headingsKey = useMemo(() => JSON.stringify(headings), [headings]);
-  const prevKeyRef = useRef<string>(headingsKey);
+  const prevKeyRef = useRef<string>('');
 
   useEffect(() => {
     if (headings.length === 0) return;

@@ -19,7 +19,12 @@ interface DraftData {
 
 function loadLocalDraft(id: string): DraftData | null {
   const raw = safeGetItem(LS_KEY_PREFIX + id);
-  return raw ? JSON.parse(raw) : null;
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
 }
 
 function saveLocalDraft(id: string, data: DraftData): void {
