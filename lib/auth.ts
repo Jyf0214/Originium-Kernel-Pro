@@ -250,9 +250,16 @@ async function isSessionRevoked(uid: string, sv: number): Promise<boolean> {
     return cached.revoked
   }
 
-  const { getDb } = await import('@/lib/db');
-  const db = getDb();
-  const currentSv = await db.get(`user:sv:${uid}`);
+  let currentSv: string | number | null = null;
+  try {
+    const { getDb } = await import('@/lib/db');
+    const db = getDb();
+    currentSv = await db.get(`user:sv:${uid}`);
+  } catch (err) {
+    // 数据库临时故障时降级为"未吊销"（fail-open），避免所有用户被锁定
+    console.error(`[auth] 会话版本查询失败，降级放行 uid=${uid}:`, err);
+    return false;
+  }
   const revoked = currentSv !== null && currentSv !== undefined && Number(currentSv) !== sv;
 
   svCache.set(uid, { sv, revoked, ts: now })

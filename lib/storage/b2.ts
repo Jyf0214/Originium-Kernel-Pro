@@ -207,7 +207,7 @@ async function toBuffer(data: FileContent): Promise<Buffer> {
   if (data && typeof data === 'object' && 'data' in data) {
     return toBuffer(data.data)
   }
-  return Buffer.from(String(data))
+  throw new Error(`toBuffer: 不支持的数据类型 ${typeof data}`)
 }
 
 /** 向 entries 添加目录条目（去重） */

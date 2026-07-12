@@ -28,13 +28,17 @@ function loadLocalDraft(id: string): DraftData | null {
 function saveLocalDraft(id: string, data: DraftData): void {
   try {
     localStorage.setItem(LS_KEY_PREFIX + id, JSON.stringify(data));
-  } catch {}
+  } catch (err) {
+    console.warn('本地草稿保存失败:', err);
+  }
 }
 
 function removeLocalDraft(id: string): void {
   try {
     localStorage.removeItem(LS_KEY_PREFIX + id);
-  } catch {}
+  } catch (err) {
+    console.warn('本地草稿删除失败:', err);
+  }
 }
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';

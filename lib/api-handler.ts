@@ -26,9 +26,9 @@ function recordMetric(entry: MetricEntry) {
   metricsBuffer.push(entry);
 }
 
-/** 获取只读副本（供 metrics 端点读取） */
+/** 获取只读快照副本（供 metrics 端点读取），避免并发修改导致不一致 */
 export function getMetricsSnapshot(): readonly MetricEntry[] {
-  return metricsBuffer;
+  return [...metricsBuffer];
 }
 
 /* ---------- apiHandler 本体 ---------- */

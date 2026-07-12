@@ -30,6 +30,7 @@ const logger = createApiLogger('/api/storage/upload')
 /** 被禁止的文件扩展名（可执行、可注入脚本、或其他高风险类型） */
 const BLOCKED_EXTENSIONS = new Set([
   '.svg', '.svgz',
+  '.html', '.htm', '.hta', '.xhtml',
   '.php', '.php3', '.php4', '.php5', '.phtml',
   '.exe', '.msi', '.bat', '.cmd', '.com', '.pif',
   '.sh', '.bash', '.zsh', '.csh', '.ksh',
