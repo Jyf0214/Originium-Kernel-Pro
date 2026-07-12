@@ -45,8 +45,16 @@ export function getClientIp(req: NextRequest): string {
   }
   const realIp = req.headers.get('x-real-ip');
   if (realIp) return realIp;
-  // 无法识别 IP 时使用随机标识，避免多实例下共享桶
-  return `anon:${crypto.randomUUID().slice(0, 8)}`;
+  // 使用请求特征组合生成稳定的匿名标识符，避免每次请求生成新 UUID 导致限流失效
+  const ua = req.headers.get('user-agent') ?? '';
+  const lang = req.headers.get('accept-language') ?? '';
+  // 简单哈希：取前 16 字符的 hex digest
+  let hash = 0;
+  const seed = `${ua}|${lang}`;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
+  }
+  return `anon:${Math.abs(hash).toString(16).padStart(8, '0')}`;
 }
 
 /**
