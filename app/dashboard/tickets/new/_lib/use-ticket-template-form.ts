@@ -131,7 +131,7 @@ export function useTicketTemplateForm() {
       });
       if (res.ok) {
         message.success(t('tickets.saveSuccess'));
-        router.push('/admin/tickets');
+        router.push('/dashboard/tickets');
         return;
       }
       const err = await res.json();
