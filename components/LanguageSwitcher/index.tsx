@@ -7,16 +7,16 @@ import { tooltipVariants, tooltipTransition } from '@/components/ui/motion';
 import { useI18n } from '@/hooks/use-i18n';
 import { Button } from '@/components/ui/Button';
 
+const LOCALES = [
+  { code: 'zh-CN' as const, name: '中文' },
+  { code: 'en' as const, name: 'EN' },
+];
+
 export default function LanguageSwitcher() {
   const [isOpen, setIsOpen] = useState(false);
   const { locale, setLocale } = useI18n();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const locales = [
-    { code: 'zh-CN' as const, name: '中文' },
-    { code: 'en' as const, name: 'EN' },
-  ];
 
   const handleSwitch = (code: 'zh-CN' | 'en') => {
     setLocale(code);
@@ -39,7 +39,7 @@ export default function LanguageSwitcher() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, handleClickOutside]);
 
-  const currentLang = locales.find(l => l.code === locale) ?? locales[0]!;
+  const currentLang = LOCALES.find(l => l.code === locale) ?? LOCALES[0]!;
 
   return (
     <div ref={wrapperRef} className="relative">
@@ -64,7 +64,7 @@ export default function LanguageSwitcher() {
             exit="exit"
             transition={tooltipTransition}
           >
-            {locales.map(l => (
+            {LOCALES.map(l => (
               <Button
                 key={l.code}
                 onClick={() => handleSwitch(l.code)}

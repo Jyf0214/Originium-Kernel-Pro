@@ -104,39 +104,7 @@ export function ConfettiEffect({ enabled = false, trigger = false }: ConfettiEff
   if (!enabled) return null;
 
   return (
-    <>
-      {/* 内联样式表：彩带动画关键帧 */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-            .confetti-piece {
-              position: fixed;
-              top: -20px;
-              pointer-events: none;
-              z-index: 9998;
-              will-change: transform;
-              opacity: 0;
-              animation: confetti-fall var(--confetti-duration) ease-in forwards;
-              animation-delay: var(--confetti-delay);
-            }
-            @keyframes confetti-fall {
-              0% {
-                opacity: 1;
-                transform: translateY(0) translateX(0) rotate(0deg) scale(1);
-              }
-              30% {
-                opacity: 1;
-              }
-              100% {
-                opacity: 0;
-                transform: translateY(100vh) translateX(var(--confetti-drift)) rotate(var(--confetti-rotation)) scale(0.5);
-              }
-            }
-          `,
-        }}
-      />
-      {/* 彩带容器 */}
-      <div ref={containerRef} className="fixed inset-0 z-[9998] pointer-events-none overflow-hidden" aria-hidden="true">
+    <div ref={containerRef} className="fixed inset-0 z-[9998] pointer-events-none overflow-hidden" aria-hidden="true">
         {pieces.map((p) => (
           <div
             key={p.id}
@@ -153,6 +121,5 @@ export function ConfettiEffect({ enabled = false, trigger = false }: ConfettiEff
           />
         ))}
       </div>
-    </>
   );
 }

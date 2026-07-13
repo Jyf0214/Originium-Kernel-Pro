@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { escapeHtml } from '@/lib/utils';
 
 interface MailOptions {
   to: string;
@@ -72,4 +73,33 @@ export async function sendMail(options: MailOptions): Promise<boolean> {
     console.error('[mail] 发送邮件失败:', error instanceof Error ? error.message : String(error));
     return false;
   }
+}
+
+/** 生成密码重置邮件 HTML */
+export function generateResetEmailHtml(resetLink: string, appName = 'Originium Kernel'): string {
+  const safeResetLink = escapeHtml(resetLink);
+  const safeAppName = escapeHtml(appName);
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f5;margin:0;padding:0}
+.container{max-width:600px;margin:40px auto;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow:hidden}
+.header{background:linear-gradient(135deg,#1a1a1a,#333);padding:40px 32px;text-align:center}
+.header h1{color:#fff;font-size:24px;margin:0}
+.content{padding:40px 32px}
+.content p{color:#666;font-size:16px;line-height:1.6;margin:0 0 24px}
+.button{display:inline-block;background:#1a1a1a;color:#fff!important;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:16px;font-weight:600}
+.footer{padding:24px 32px;border-top:1px solid #f0f0f0;text-align:center}
+.footer p{color:#999;font-size:14px;margin:0}
+</style></head><body>
+<div class="container">
+<div class="header"><h1>${safeAppName}</h1></div>
+<div class="content">
+<p>您好，</p>
+<p>我们收到了您的密码重置请求。请点击下方按钮重置您的密码：</p>
+<p style="text-align:center"><a href="${safeResetLink}" class="button">重置密码</a></p>
+<p>此链接将在 1 小时后失效。如果您没有请求重置密码，请忽略此邮件。</p>
+<p style="color:#999;font-size:12px;word-break:break-all">如果按钮无法点击，请复制链接：${safeResetLink}</p>
+</div>
+<div class="footer"><p>${safeAppName} © ${new Date().getFullYear()}</p></div>
+</div></body></html>`;
 }

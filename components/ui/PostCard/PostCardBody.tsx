@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Pin, Calendar, Clock } from 'lucide-react';
 import { Tag } from '@/components/ui/Tag';
 import { Avatar } from '@/components/Avatar';
+import { formatPostDate } from '@/lib/formatDate';
 import type { PostItem } from './types';
 
 function PostCardBodyFooter({
@@ -36,9 +37,7 @@ function PostCardBodyFooter({
         {post.date && (
           <span className="flex items-center gap-0.5">
             <Calendar size={10} />
-            <span>
-              {new Date(post.date).toLocaleDateString(locale, { month: 'short', day: 'numeric' })}
-            </span>
+            <span>{formatPostDate(post.date, locale)}</span>
           </span>
         )}
       </div>

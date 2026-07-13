@@ -12,6 +12,7 @@ import { MusicPlayerWrapper } from '../components/MusicPlayer/MusicPlayerWrapper
 import { loadConfig, hasDatabase } from '@/lib/config';
 import { ThirdPartyScripts } from '@/components/ThirdPartyScripts';
 import { EffectsManager } from '@/components/effects/dynamic';
+import FooterWrapper from '@/components/Footer/FooterWrapper';
 
 export const metadata: Metadata = {
   title: 'Originium Kernel',
@@ -87,6 +88,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
                     </Suspense>
               </RouteTransition>
             </div>
+            <FooterWrapper />
           </AuthProvider>
           <MusicPlayerWrapper />
         </Providers>

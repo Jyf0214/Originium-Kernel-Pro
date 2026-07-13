@@ -1,7 +1,6 @@
 import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
 import Link from 'next/link';
 import { ArrowLeft, Hash } from 'lucide-react';
-import FooterWrapper from '@/components/Footer/FooterWrapper';
 import type { Metadata } from 'next';
 import { Tag } from '@/components/ui/Tag';
 
@@ -153,7 +152,6 @@ export default async function TagPage({ params }: PageProps) {
           </Link>
         </div>
       </main>
-      <FooterWrapper />
     </div>
   );
 }

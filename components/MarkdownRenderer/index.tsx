@@ -51,6 +51,10 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap, watermark }:
     index: 0,
   });
 
+  // 使用 ref 存储 lightbox state 和 setter，消除对 setLightbox 的依赖
+  const lightboxRef = useRef({ state: lightbox, setter: setLightbox });
+  lightboxRef.current = { state: lightbox, setter: setLightbox };
+
   // 每次渲染时重置，img 组件按顺序 push 构建完整数组
   const imagesRef = useRef<string[]>([]);
 
@@ -74,7 +78,8 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap, watermark }:
         className="cursor-pointer hover:opacity-80 transition-opacity"
         onClick={() => {
           // 快照而非引用，防止后续 ref 重置影响 lightbox 图片列表
-          setLightbox({ open: true, images: [...imagesRef.current], index });
+          const { state, setter } = lightboxRef.current;
+          setter({ open: true, images: [...state.images, src], index });
         }}
       >
         <div className="relative">
@@ -88,7 +93,7 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap, watermark }:
         </div>
       </div>
     );
-  }, [watermark, setLightbox]);
+  }, [watermark]);
 
   // 每次渲染前重置 ref
   imagesRef.current = [];

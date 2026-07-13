@@ -119,7 +119,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
                 groups.map((group, groupIndex) => {
                   const groupOffset = groups.slice(0, groupIndex).reduce((sum, g) => sum + g.results.length, 0);
                   return (
-                    <div key={group.type}>
+                    <div key={`${group.type}-${groupIndex}`}>
                       {/* 分组标题 */}
                       <div className="px-6 py-2.5">
                         <h3 className={SECTION_TITLE_CLASS}>

@@ -1,6 +1,6 @@
 import { type InputHTMLAttributes, memo, forwardRef, useId } from 'react';
 import { cn } from '@/lib/ui';
-import { sizeStyles, roundedStyles, ringStyles, FormControl, type FormSize, type FormRounded, type FormRing } from './form-styles';
+import { roundedStyles, sizeStyles, ringStyles, FormControl, type FormSize, type FormRounded, type FormRing } from './form-styles';
 
 export type InputSize = FormSize;
 export type InputRounded = FormRounded;

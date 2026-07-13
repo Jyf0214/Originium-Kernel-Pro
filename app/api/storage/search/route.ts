@@ -170,22 +170,23 @@ async function scanDir(ctx: ScanContext, dirPath: string, depth: number): Promis
     return
   }
 
-  for (const entry of entries) {
+  // 并发扫描：所有条目并行处理，目录递归 + 文件读取全部并发
+  await Promise.all(entries.map(async (entry) => {
     if (ctx.truncated.value) return
 
     if (entry.type === 'directory') {
       const subPath = dirPath ? `${dirPath}/${entry.filename}` : entry.filename
       await scanDir(ctx, subPath, depth + 1)
-      continue
+      return
     }
 
-    if (!isSearchable(entry.filename)) continue
+    if (!isSearchable(entry.filename)) return
 
     const relativePath = dirPath ? `${dirPath}/${entry.filename}` : entry.filename
     try {
       const raw = await ctx.getContent(relativePath)
       const content = contentToString(raw)
-      if (!content) continue
+      if (!content) return
 
       const matches = extractMatches(content, ctx.keyword)
       if (matches.length > 0) {
@@ -198,7 +199,7 @@ async function scanDir(ctx: ScanContext, dirPath: string, depth: number): Promis
     } catch {
       // 单个文件读取失败，跳过
     }
-  }
+  }))
 }
 
 /* ---------- API 路由 ---------- */

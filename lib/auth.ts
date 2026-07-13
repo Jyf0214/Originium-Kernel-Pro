@@ -390,3 +390,41 @@ export function requireApiKeyPermission(
     { status: 403 },
   );
 }
+
+/** 生成唯一用户 ID */
+export function generateUID(): string {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const randomStr = crypto.randomBytes(3).toString('hex').substring(0, 5).toUpperCase();
+  return `UID-${timestamp}-${randomStr}`;
+}
+
+/** 生成 API 密钥 sk-xxx */
+export function generateApiKey(): string {
+  const random = crypto.randomBytes(32).toString('base64url');
+  return `sk-${random}`;
+}
+
+const MIN_PASSWORD_LENGTH = 8;
+
+/** 密码强度校验 */
+export function validatePasswordStrength(password: string): { valid: true } | { valid: false; reasons: string[] } {
+  const reasons: string[] = [];
+
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    reasons.push(`密码长度不能少于 ${MIN_PASSWORD_LENGTH} 位`);
+  }
+  if (!/[A-Z]/.test(password)) {
+    reasons.push('密码必须包含至少 1 个大写字母');
+  }
+  if (!/[a-z]/.test(password)) {
+    reasons.push('密码必须包含至少 1 个小写字母');
+  }
+  if (!/[0-9]/.test(password)) {
+    reasons.push('密码必须包含至少 1 个数字');
+  }
+
+  if (reasons.length > 0) {
+    return { valid: false, reasons };
+  }
+  return { valid: true };
+}

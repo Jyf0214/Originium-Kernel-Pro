@@ -218,3 +218,8 @@ export function checkCustomPageAccess(
       return false;
   }
 }
+
+/** 将权限对象序列化为 JSON 字符串 */
+export function serializePermissions(permissions: ApiKeyPermissions): string {
+  return JSON.stringify(permissions);
+}

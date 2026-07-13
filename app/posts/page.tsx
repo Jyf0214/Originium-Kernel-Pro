@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import { PostListClient } from './PostListClient';
 import PostNavigation from '@/components/PostNavigation';
-import FooterWrapper from '@/components/Footer/FooterWrapper';
 import type { Metadata } from 'next';
 import navigationData from '@/data/navigation.json';
 
@@ -81,7 +80,6 @@ export default async function PostsPage() {
           </div>
         </div>
       </main>
-      <FooterWrapper />
     </div>
   );
 }

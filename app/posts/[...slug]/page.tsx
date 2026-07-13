@@ -16,7 +16,6 @@ import { PostSidebar } from './_components/PostSidebar';
 import { JsonLd } from '@/components/JsonLd';
 import { PostPageProvider } from '@/contexts/PostPageContext';
 import type { Crumb } from './_components/PostBreadcrumb';
-import FooterWrapper from '@/components/Footer/FooterWrapper';
 
 interface PageProps {
   params: Promise<{ slug: string[] }>;
@@ -94,7 +93,6 @@ export default async function PostDetailPage({ params }: PageProps) {
           </div>
         </div>
       </main>
-      <FooterWrapper />
     </div>
   );
 }

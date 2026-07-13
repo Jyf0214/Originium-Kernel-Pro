@@ -147,3 +147,6 @@ export async function getUserAvatar(): Promise<string | null> {
   const config = await loadConfig();
   return config.avatar?.url || null;
 }
+
+/** getUserAvatar 的别名，兼容旧版 API */
+export const getUserAvatarAsync = getUserAvatar;

@@ -5,12 +5,13 @@
  */
 import dynamic from 'next/dynamic';
 import type { MarkdownRendererProps } from './types';
+import { LoadingFallback } from '@/components/ui/LoadingFallback';
 
 const MarkdownRenderer = dynamic(
   () => import('./index').then((mod) => mod.MarkdownRenderer),
   {
     ssr: false,
-    loading: () => <div className="animate-pulse bg-zinc-100 dark:bg-zinc-800 rounded-xl h-32" />,
+    loading: () => <LoadingFallback />,
   },
 );
 

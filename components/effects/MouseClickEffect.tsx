@@ -90,39 +90,6 @@ export function MouseClickEffect({ enabled = false }: { enabled?: boolean }) {
   if (!enabled) return null;
 
   return (
-    <>
-      {/* 内联样式表：emoji 动画关键帧 */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-            .mouse-click-emoji {
-              position: fixed;
-              pointer-events: none;
-              z-index: 9999;
-              font-size: 20px;
-              will-change: transform, opacity;
-              animation: mouse-click-pop ${ANIMATION_DURATION}ms ease-out forwards;
-              transform: translate(-50%, -50%);
-            }
-            @keyframes mouse-click-pop {
-              0% {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(0);
-              }
-              40% {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1.2) translateY(-10px);
-              }
-              100% {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(0.3) translateY(-60px);
-              }
-            }
-          `,
-        }}
-      />
-      {/* DOM 容器，用于挂载动态生成的 emoji */}
-      <div ref={containerRef} className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden" />
-    </>
+    <div ref={containerRef} className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden" />
   );
 }
