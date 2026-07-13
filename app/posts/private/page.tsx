@@ -2,7 +2,6 @@ import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { getSession } from '@/lib/auth';
 import { getAuthorByName } from '@/lib/authors';
 import { PostListClient } from '../PostListClient';
-import FooterWrapper from '@/components/Footer/FooterWrapper';
 import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 
@@ -68,7 +67,6 @@ export default async function PrivatePostsPage() {
         <p className="text-zinc-400 dark:text-zinc-500 text-lg mb-12">仅登录用户可见的私人帖子</p>
         <PostListClient posts={posts} groups={groups} />
       </main>
-      <FooterWrapper />
     </div>
   );
 }

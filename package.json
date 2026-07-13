@@ -33,6 +33,7 @@
     "@prisma/client": "^6.19.2",
     "antd": "^6.1.1",
     "clsx": "^2.1.1",
+    "diff": "^9.0.0",
     "gray-matter": "^4.0.3",
     "jose": "^6.2.2",
     "js-yaml": "^4.2.0",
@@ -43,6 +44,7 @@
     "next": "^16.2.9",
     "nodemailer": "^9.0.2",
     "octokit": "^5.0.5",
+    "otplib": "^13.4.1",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
@@ -51,6 +53,7 @@
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
+    "svix": "^1.96.1",
     "tailwind-merge": "^3.3.1",
     "webdav": "^5.10.0",
     "zod": "^4.4.3"

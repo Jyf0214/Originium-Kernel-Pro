@@ -4,6 +4,11 @@
  */
 import { type ReactNode } from 'react';
 
+/* ── 常量 ── */
+
+/** 音频扩展名列表 */
+const AUDIO_EXTENSIONS = ['mp3', 'ogg', 'wav', 'flac', 'aac'] as const;
+
 /* ── URL 匹配规则 ── */
 
 /** 匹配视频/音频 URL 的正则 */
@@ -16,7 +21,7 @@ export function MediaEmbed({ href, children }: { href?: string; children?: React
   if (!href || !MEDIA_URL_RE.test(href)) return <a href={href}>{children}</a>;
 
   const ext = href.match(/\.(\w+)(\?.*)?$/)?.[1]?.toLowerCase() ?? '';
-  const isAudio = ['mp3', 'ogg', 'wav', 'flac', 'aac'].includes(ext);
+  const isAudio = AUDIO_EXTENSIONS.some((e) => e === ext);
 
   if (isAudio) {
     return (

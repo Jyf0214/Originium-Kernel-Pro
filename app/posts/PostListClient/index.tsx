@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { LayoutGrid, List, AlignJustify } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
@@ -39,12 +39,7 @@ function getSavedLayout(): LayoutMode {
 
 export function PostListClient({ posts, groups, coverConfig }: PostListClientProps) {
   const { t, locale } = useI18n();
-  const [layout, setLayout] = useState<LayoutMode>('grid');
-
-  // 挂载时从 localStorage 恢复布局偏好
-  useEffect(() => {
-    setLayout(getSavedLayout());
-  }, []);
+  const [layout, setLayout] = useState<LayoutMode>(() => getSavedLayout());
 
   const handleLayoutChange = useCallback((mode: LayoutMode) => {
     setLayout(mode);

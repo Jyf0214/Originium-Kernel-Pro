@@ -203,4 +203,16 @@ export const ApiErr = {
   notFound: (msg = '资源不存在') => NextResponse.json({ error: msg }, { status: 404 }),
   badRequest: (msg = '请求参数错误') => NextResponse.json({ error: msg }, { status: 400 }),
   serverError: (msg = '服务器内部错误') => NextResponse.json({ error: msg }, { status: 500 }),
+  /**
+   * 结构化错误响应，携带错误码和可选的详细信息
+   * 便于前端统一处理错误、展示定位信息和错误上报
+   */
+  structured: (
+    message: string,
+    code: string,
+    details?: Record<string, unknown>,
+  ) => NextResponse.json(
+    { error: message, code, ...(details ? { details } : {}) },
+    { status: 400 },
+  ),
 };

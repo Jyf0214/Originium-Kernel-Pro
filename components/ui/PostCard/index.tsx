@@ -6,6 +6,7 @@ import { Calendar } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 import { Tag } from '@/components/ui/Tag';
+import { formatPostDate } from '@/lib/formatDate';
 import type { PostItem, CoverConfig } from './types';
 import { PostCardCover } from './PostCardCover';
 import { PostCardBody } from './PostCardBody';
@@ -60,12 +61,7 @@ export const PostCard = React.memo(function PostCard({
           {post.date && (
             <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 dark:text-zinc-500 flex-shrink-0">
               <Calendar size={12} />
-              <span>
-                {new Date(post.date).toLocaleDateString(locale, {
-                  month: 'short',
-                  day: 'numeric',
-                })}
-              </span>
+              <span>{formatPostDate(post.date, locale)}</span>
             </div>
           )}
         </div>

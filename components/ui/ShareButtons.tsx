@@ -98,6 +98,10 @@ function buildPlatforms(title: string, url: string): Record<string, PlatformDef>
 
 const SHARE_WINDOW_FEATURES = 'noopener,noreferrer,width=600,height=500';
 
+/** 分享按钮基础样式 */
+const BTN_BASE_CLASS =
+  'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500 transition-colors text-sm text-zinc-600 dark:text-zinc-400';
+
 function ShareButtonsInner({ title, url, config, locale: _locale }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
@@ -174,16 +178,13 @@ function ShareButtonsInner({ title, url, config, locale: _locale }: ShareButtons
     .map((s) => platforms[s])
     .filter((p): p is PlatformDef => p !== undefined);
 
-  const btnBaseClass =
-    'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500 transition-colors text-sm text-zinc-600 dark:text-zinc-400';
-
   return (
     <>
       {/* 复制链接 */}
       <button
         type="button"
         onClick={handleCopyLink}
-        className={`${btnBaseClass} ${
+        className={`${BTN_BASE_CLASS} ${
           copied
             ? '!border-green-300 !bg-green-50 !text-green-600'
             : ''
@@ -202,7 +203,7 @@ function ShareButtonsInner({ title, url, config, locale: _locale }: ShareButtons
               <button
                 type="button"
                 onClick={() => setWechatHintOpen((prev) => !prev)}
-                className={btnBaseClass}
+                className={BTN_BASE_CLASS}
                 title={platform.name}
               >
                 {platform.icon}
@@ -249,7 +250,7 @@ function ShareButtonsInner({ title, url, config, locale: _locale }: ShareButtons
             key={platform.id}
             type="button"
             onClick={() => handleShare(platform.shareUrl)}
-            className={btnBaseClass}
+            className={BTN_BASE_CLASS}
             title={platform.name}
           >
             {platform.icon}

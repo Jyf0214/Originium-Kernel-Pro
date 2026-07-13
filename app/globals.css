@@ -403,6 +403,83 @@ pre:hover .code-copy-btn {
   animation: fadeInUp 0.5s ease-out 0.3s both;
 }
 
+/* ── Effects 组件全局动画 ── */
+
+/* 粒子浮动动画 — BackgroundParticles */
+@keyframes particle-float-0 {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(var(--drift-x), calc(var(--drift-y) * -0.5)); }
+  50% { transform: translate(calc(var(--drift-x) * -0.3), var(--drift-y)); }
+  75% { transform: translate(calc(var(--drift-x) * -0.8), calc(var(--drift-y) * -0.3)); }
+}
+@keyframes particle-float-1 {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(calc(var(--drift-x) * -0.6), calc(var(--drift-y) * 0.7)); }
+  50% { transform: translate(var(--drift-x), calc(var(--drift-y) * -0.4)); }
+  75% { transform: translate(calc(var(--drift-x) * 0.4), var(--drift-y)); }
+}
+@keyframes particle-float-2 {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(calc(var(--drift-x) * -1), calc(var(--drift-y) * -0.6)); }
+  66% { transform: translate(calc(var(--drift-x) * 0.5), calc(var(--drift-y) * 0.8)); }
+}
+@keyframes particle-float-3 {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(calc(var(--drift-x) * 0.7), calc(var(--drift-y) * -1)); }
+  50% { transform: translate(calc(var(--drift-x) * -0.5), calc(var(--drift-y) * 0.5)); }
+  80% { transform: translate(calc(var(--drift-x) * -0.9), calc(var(--drift-y) * -0.2)); }
+}
+
+/* 彩带下落动画 — ConfettiEffect */
+.confetti-piece {
+  position: fixed;
+  top: -20px;
+  pointer-events: none;
+  z-index: 9998;
+  will-change: transform;
+  opacity: 0;
+  animation: confetti-fall var(--confetti-duration) ease-in forwards;
+  animation-delay: var(--confetti-delay);
+}
+@keyframes confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translateY(0) translateX(0) rotate(0deg) scale(1);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) translateX(var(--confetti-drift)) rotate(var(--confetti-rotation)) scale(0.5);
+  }
+}
+
+/* 点击 emoji 动画 — MouseClickEffect */
+.mouse-click-emoji {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  font-size: 20px;
+  will-change: transform, opacity;
+  transform: translate(-50%, -50%);
+  animation: mouse-click-pop 800ms ease-out forwards;
+}
+@keyframes mouse-click-pop {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2) translateY(-10px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) translateY(-60px);
+  }
+}
+
 /* ── Loading 组件动画（替代 styled-jsx） ── */
 
 /* 弹跳点动画 — LoadingText */

@@ -53,39 +53,7 @@ export function BackgroundParticles({ enabled = false }: { enabled?: boolean }) 
   if (!enabled) return null;
 
   return (
-    <>
-      {/* 内联样式表：粒子浮动动画 */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-            @keyframes particle-float-0 {
-              0%, 100% { transform: translate(0, 0); }
-              25% { transform: translate(var(--drift-x), calc(var(--drift-y) * -0.5)); }
-              50% { transform: translate(calc(var(--drift-x) * -0.3), var(--drift-y)); }
-              75% { transform: translate(calc(var(--drift-x) * -0.8), calc(var(--drift-y) * -0.3)); }
-            }
-            @keyframes particle-float-1 {
-              0%, 100% { transform: translate(0, 0); }
-              25% { transform: translate(calc(var(--drift-x) * -0.6), calc(var(--drift-y) * 0.7)); }
-              50% { transform: translate(var(--drift-x), calc(var(--drift-y) * -0.4)); }
-              75% { transform: translate(calc(var(--drift-x) * 0.4), var(--drift-y)); }
-            }
-            @keyframes particle-float-2 {
-              0%, 100% { transform: translate(0, 0); }
-              33% { transform: translate(calc(var(--drift-x) * -1), calc(var(--drift-y) * -0.6)); }
-              66% { transform: translate(calc(var(--drift-x) * 0.5), calc(var(--drift-y) * 0.8)); }
-            }
-            @keyframes particle-float-3 {
-              0%, 100% { transform: translate(0, 0); }
-              20% { transform: translate(calc(var(--drift-x) * 0.7), calc(var(--drift-y) * -1)); }
-              50% { transform: translate(calc(var(--drift-x) * -0.5), calc(var(--drift-y) * 0.5)); }
-              80% { transform: translate(calc(var(--drift-x) * -0.9), calc(var(--drift-y) * -0.2)); }
-            }
-          `,
-        }}
-      />
-      {/* 粒子容器：固定在视口背景，不响应鼠标事件 */}
-      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden" aria-hidden="true">
+    <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden" aria-hidden="true">
         {particles.map((p) => (
           <div
             key={p.id}
@@ -104,6 +72,5 @@ export function BackgroundParticles({ enabled = false }: { enabled?: boolean }) 
           />
         ))}
       </div>
-    </>
   );
 }

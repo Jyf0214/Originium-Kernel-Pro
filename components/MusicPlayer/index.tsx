@@ -214,6 +214,15 @@ export function MusicPlayer() {
   const current = songs[currentIndex];
   const enabled = musicConfig?.enable ?? false;
 
+  const songsRef = useRef(songs);
+  songsRef.current = songs;
+
+  const playingRef = useRef(playing);
+  playingRef.current = playing;
+
+  const currentIndexRef = useRef(currentIndex);
+  currentIndexRef.current = currentIndex;
+
   useEffect(() => {
     if (!enabled) return;
     const audio = new Audio();
@@ -223,7 +232,10 @@ export function MusicPlayer() {
 
     const onTimeUpdate = () => setProgress(audio.currentTime);
     const onLoadedMetadata = () => setDuration(audio.duration);
-    const onEnded = () => setCurrentIndex((prev) => (prev + 1) % songs.length);
+    const onEnded = () => {
+      const currentSongs = songsRef.current;
+      setCurrentIndex((prev) => (prev + 1) % currentSongs.length);
+    };
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
 
@@ -242,8 +254,8 @@ export function MusicPlayer() {
       audio.pause();
       audioRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, songs.length]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled]);
 
   useEffect(() => {
     const audio = audioRef.current;
