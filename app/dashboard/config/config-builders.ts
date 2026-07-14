@@ -90,7 +90,6 @@ export interface ConfigState {
   copyright: { enable: boolean; decode: boolean; authorHref: string; license: string; licenseUrl: string; authorLink: string };
   reward: { enable: boolean; qrCodes: { img: string; link: string; text: string }[] };
   postEdit: { enable: boolean; github: string | false };
-  clerk: { enable: boolean };
   music: { enable: boolean; autoPlay: boolean; songs: { name: string; artist: string; url: string }[] };
 }
 
@@ -348,11 +347,6 @@ export function buildFooterConfig(data: Record<string, unknown>): ConfigState['f
   };
 }
 
-export function buildClerkConfig(data: Record<string, unknown>): ConfigState['clerk'] {
-  const d = data.clerk as Record<string, unknown> | undefined;
-  return { enable: (d?.enable as boolean) ?? false };
-}
-
 export function buildMusicConfig(data: Record<string, unknown>): ConfigState['music'] {
   const d = data.music as Record<string, unknown> | undefined;
   return {
@@ -385,7 +379,6 @@ export function buildConfigState(data: Record<string, unknown>): ConfigState {
     share: buildShareConfig(data),
     mainTone: buildMainToneConfig(data),
     footer: buildFooterConfig(data),
-    clerk: buildClerkConfig(data),
     music: buildMusicConfig(data),
   };
 }

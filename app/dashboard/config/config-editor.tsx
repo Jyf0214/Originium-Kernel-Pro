@@ -34,7 +34,6 @@ const sections = [
   { id: 'section-maintone', label: '主色调' },
   { id: 'section-footer', label: '页脚' },
   { id: 'section-loading', label: '加载动画' },
-  { id: 'section-clerk', label: 'Clerk 认证' },
   { id: 'section-music', label: '背景音乐' },
 ];
 

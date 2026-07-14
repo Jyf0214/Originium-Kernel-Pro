@@ -23,7 +23,6 @@ import {
   Pipette,
   PanelBottom,
   Loader2,
-  Lock,
   Music,
   Sparkles,
   type LucideIcon,
@@ -361,15 +360,6 @@ export default function ConfigFormBody({
         onNavLoadingChange={handleNavLoadingChange}
         onSlogansChange={handleSlogansChange}
       />
-
-      <ConfigSection id="section-clerk" title="Clerk 认证" icon={Lock} color="bg-violet-600">
-        <ToggleField
-          label="启用 Clerk"
-          description="使用 Clerk 作为第三方认证服务"
-          checked={config.clerk.enable}
-          onChange={v => onConfigChange({ ...config, clerk: { enable: v } })}
-        />
-      </ConfigSection>
 
       <ConfigSection id="section-music" title="背景音乐" icon={Music} color="bg-fuchsia-500">
         <ToggleField

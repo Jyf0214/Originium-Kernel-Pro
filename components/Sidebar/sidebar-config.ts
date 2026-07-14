@@ -31,7 +31,6 @@ export const menuItems: MenuItem[] = [
   { key: 'sidebar.systemConfig', icon: Settings, href: '/dashboard/config', group: 'admin', roles: ['sudo'], requiresDb: true },
   { key: 'sidebar.configPreview', icon: Eye, href: '/dashboard/config/preview', group: 'admin', roles: ['sudo'], requiresDb: true },
   { key: 'sidebar.envVariables', icon: Activity, href: '/dashboard/env', group: 'admin', roles: ['sudo'], requiresDb: true },
-  { key: 'sidebar.userManagement', icon: Users, href: '/dashboard/users', group: 'admin', roles: ['sudo'], requiresDb: true },
   { key: 'sidebar.tickets', icon: FileText, href: '/dashboard/tickets', group: 'admin', roles: ['sudo'], requiresDb: true },
   { key: 'sidebar.writeArticle', icon: FileText, href: '/dashboard/tickets/new', group: 'admin', roles: ['sudo'], requiresDb: true },
   { key: 'sidebar.contentStats', icon: BarChart3, href: '/dashboard/stats', group: 'admin', roles: ['sudo'], requiresDb: true },

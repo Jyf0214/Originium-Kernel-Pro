@@ -88,7 +88,6 @@
     "emailSent": "邮件已发送",
     "resendEmail": "重新发送",
     "backToLogin": "返回登录",
-    "clerkLogin": "使用 Clerk 登录",
     "or": "或",
     "inputVerificationCode": "请输入验证码"
   },
@@ -404,10 +403,6 @@
         "name": "定时任务",
         "desc": "/api/cleanup 等内部接口的鉴权共享密钥。未设置时这些接口将返回 401。"
       },
-      "clerk": {
-        "name": "Clerk 第三方登录",
-        "desc": "可选的 Clerk OAuth / 社交登录集成。不设置时自动禁用 Clerk，回退到本地认证。"
-      },
       "system": {
         "name": "系统 / 构建",
         "desc": "构建期与运行时注入的变量。NODE_ENV / VERCEL_* 由平台自动设置；SKIP_DB_INIT / DISABLE_HMR 仅供开发者使用。"
@@ -461,11 +456,6 @@
       },
       "cron": {
         "CRON_SECRET": "调用 /api/cleanup 时 Authorization: Bearer 头中的共享密钥。未设置时该端点返回 401。"
-      },
-      "clerk": {
-        "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "Clerk 公钥（前端可见）。与 CLERK_SECRET_KEY 同时设置时启用 Clerk。",
-        "CLERK_SECRET_KEY": "Clerk 私钥（仅服务端），用于校验会话和调用 Clerk API。",
-        "CLERK_WEBHOOK_SECRET": "用于校验 /api/webhooks/clerk 收到的 Svix Webhook 签名密钥。"
       },
       "system": {
         "SKIP_DB_INIT": "开发者标志。设为 true 时，scripts/db-init.mjs 跳过初始化 / push 步骤。",

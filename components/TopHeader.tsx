@@ -12,7 +12,6 @@ const breadcrumbMap: Record<string, string> = {
   '/dashboard/config/preview': 'sidebar.configPreview',
   '/dashboard/env': 'sidebar.envVariables',
   '/dashboard/tickets': 'sidebar.tickets',
-  '/dashboard/users': 'sidebar.userManagement',
   '/posts': 'sidebar.posts',
   '/faces': 'sidebar.faces',
   '/editor': 'sidebar.writeArticle',

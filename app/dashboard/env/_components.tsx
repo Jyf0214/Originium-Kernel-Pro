@@ -18,7 +18,6 @@ import {
   Mail,
   MessageCircle,
   Clock,
-  Users,
   Settings,
   Info,
   Sparkles,
@@ -68,7 +67,6 @@ export const groupIcons: Record<string, React.ElementType> = {
   storage: HardDrive,
   smtp: Mail,
   cron: Clock,
-  clerk: Users,
   system: Settings,
 };
 
@@ -82,7 +80,6 @@ export const groupOrder: string[] = [
   'storage',
   'smtp',
   'cron',
-  'clerk',
   'system',
 ];
 

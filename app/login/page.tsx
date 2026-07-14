@@ -8,9 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { ChevronRight, Key, Lock, Mail } from 'lucide-react';
 import { useAuth, TwoFactorRequiredError } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
-import { ClerkAuthProvider } from '@/components/ClerkAuthProvider';
 import { GlobalLoading } from '@/components/Loading';
-import { ClerkLoginSection } from '@/components/ClerkLoginSection';
 import AuthCard from '@/components/AuthCard';
 import AuthLayout from '@/components/AuthLayout';
 
@@ -26,7 +24,7 @@ function sanitizeCallbackUrl(url: string | null): string {
 }
 
 /**
- * 登录表单 — 三种方式:账号密码 / API 密钥 / Clerk
+ * 登录表单 — 两种方式:账号密码 / API 密钥
  */
 function LoginForm() {
   const [loading, setLoading] = useState(false);
@@ -41,7 +39,6 @@ function LoginForm() {
   const { t } = useI18n();
 
   const callbackUrl = sanitizeCallbackUrl(searchParams?.get('callbackUrl') ?? null);
-  const clerkAvailable = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -110,12 +107,6 @@ function LoginForm() {
     borderRadius: 12,
   };
 
-  const clerkSection = clerkAvailable ? (
-    <ClerkAuthProvider>
-      <ClerkLoginSection />
-    </ClerkAuthProvider>
-  ) : null;
-
   const renderEmailStep = () => (
     <AuthCard
       footer={
@@ -162,7 +153,6 @@ function LoginForm() {
           />
         </Form.Item>
       </Form>
-      {clerkSection}
     </AuthCard>
   );
 
@@ -213,7 +203,6 @@ function LoginForm() {
           />
         </Form.Item>
       </Form>
-      {clerkSection}
     </AuthCard>
   );
 

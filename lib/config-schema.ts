@@ -374,14 +374,6 @@ export const zFooterConfig = z.object({
 });
 
 // ============================================================================
-// ClerkConfig
-// ============================================================================
-
-export const zClerkConfig = z.object({
-  enable: z.boolean().default(false),
-});
-
-// ============================================================================
 // MusicConfig
 // ============================================================================
 
@@ -431,7 +423,6 @@ export const zAppConfig = z.object({
   share: withFullDefault(zShareConfig),
   mainTone: withFullDefault(zMainToneConfig),
   footer: withFullDefault(zFooterConfig),
-  clerk: withFullDefault(zClerkConfig),
   music: withFullDefault(zMusicConfig),
 }).strict();
 
@@ -676,10 +667,6 @@ export interface FooterConfig {
   typedText?: string[];
 }
 
-export interface ClerkConfig {
-  enable: boolean;
-}
-
 export interface MusicItem {
   name: string;
   artist: string;
@@ -721,6 +708,5 @@ export interface AppConfig {
   share?: ShareConfig;
   mainTone?: MainToneConfig;
   footer?: FooterConfig;
-  clerk?: ClerkConfig;
   music?: MusicConfig;
 }

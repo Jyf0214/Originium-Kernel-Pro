@@ -20,7 +20,6 @@
  *   - app/diary/              日记
  *   - app/faces/              人物/联系人
  *   - app/editor/             编辑器
- *   - app/clerk/              Clerk 认证
  *   - app/[user]/             用户主页
  *   - app/[user]/[article]    用户文章
  *   - app/article/            文章视图
@@ -87,11 +86,10 @@ const DB_ROUTE_PATHS = [
   'app/login',
   'app/forgot-password',
   'app/reset-password',
-  // ── 认证依赖（日记、人物、编辑器、Clerk、用户页） ──
+  // ── 认证依赖（日记、人物、编辑器、用户页） ──
   'app/diary',
   'app/faces',
   'app/editor',
-  'app/clerk',
   'app/[user]',
   'app/[user]/[article]',
   'app/article',
@@ -133,7 +131,6 @@ const GITHUB_PAGES_REMOVE_PATHS = [
   'app/[user]',
   'app/diary',
   'app/faces',
-  'app/clerk',
   'app/dashboard',
   'app/login',
   'app/forgot-password',
