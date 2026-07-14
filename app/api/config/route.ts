@@ -105,7 +105,6 @@ function mergeAppConfig(
     share: mergeSection(base.share, override.share),
     mainTone: mergeSection(base.mainTone, override.mainTone),
     footer: mergeSection(base.footer, override.footer),
-    clerk: override.clerk ?? base.clerk,
   };
 }
 

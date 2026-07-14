@@ -145,8 +145,8 @@ const uniqueRoutes = [...new Set(allRouteRefs.map((r) => r.route))];
 
 describe('路由缺失检查', () => {
   test(`扫描到 ${uniqueRoutes.length} 个唯一前端路由引用`, () => {
-    // 至少应扫描到 20+ 个路由（健全性检查）
-    expect(uniqueRoutes.length).toBeGreaterThanOrEqual(20);
+    // 至少应扫描到 15+ 个路由（健全性检查）
+    expect(uniqueRoutes.length).toBeGreaterThanOrEqual(15);
   });
 
   test('所有被引用的前端路由必须有对应的 page 文件', () => {

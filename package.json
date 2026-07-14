@@ -86,10 +86,7 @@
     "vite": "^7.3.6",
     "vitest": "^4.1.9"
   },
-  "optionalDependencies": {
-    "@clerk/localizations": "^4.5.7",
-    "@clerk/nextjs": "^7.2.9"
-  },
+  "optionalDependencies": {},
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix"

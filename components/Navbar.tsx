@@ -6,8 +6,6 @@ import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { UserMenu } from '@/components/UserMenu';
 import { Hitokoto } from '@/components/Hitokoto';
-import { ClerkAuthProvider } from '@/components/ClerkAuthProvider';
-import { ClerkLoginSection } from '@/components/ClerkLoginSection';
 import { Button } from '@/components/ui/Button';
 import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
@@ -72,12 +70,10 @@ function DrawerLink({
 /* ── 抽屉底部工具栏 ── */
 
 function DrawerToolbar({
-  clerkAvailable,
   databaseConfigured,
   t,
   onClose,
 }: {
-  clerkAvailable: boolean;
   databaseConfigured: boolean;
   t: (key: string) => string;
   onClose: () => void;
@@ -95,11 +91,6 @@ function DrawerToolbar({
           </Button>
         </Link>
       ) : null}
-      {clerkAvailable && !user && databaseConfigured && (
-        <ClerkAuthProvider>
-          <ClerkLoginSection variant="compact" />
-        </ClerkAuthProvider>
-      )}
     </div>
   );
 }
@@ -110,7 +101,6 @@ function DrawerContent({
   pathname,
   navConfig,
   time,
-  clerkAvailable,
   databaseConfigured,
   t,
   closeDrawer,
@@ -118,7 +108,6 @@ function DrawerContent({
   pathname: string;
   navConfig: NavConfig | null;
   time: string;
-  clerkAvailable: boolean;
   databaseConfigured: boolean;
   t: (key: string) => string;
   closeDrawer: () => void;
@@ -187,7 +176,6 @@ function DrawerContent({
         )}
         <Hitokoto />
         <DrawerToolbar
-          clerkAvailable={clerkAvailable}
           databaseConfigured={databaseConfigured}
           t={t}
           onClose={closeDrawer}
@@ -281,7 +269,6 @@ function useNavbarState(navConfigProp?: NavConfig) {
 
 export function Navbar({ navConfig: navConfigProp, databaseConfigured = true }: NavbarProps) {
   const { t } = useI18n();
-  const { clerkAvailable } = useAuth();
   const pathname = usePathname();
   const { mode, cycle } = useThemeMode();
   const state = useNavbarState(navConfigProp);
@@ -353,7 +340,6 @@ export function Navbar({ navConfig: navConfigProp, databaseConfigured = true }: 
           pathname={pathname}
           navConfig={state.navConfig}
           time={state.time}
-          clerkAvailable={clerkAvailable}
           databaseConfigured={databaseConfigured}
           t={t}
           closeDrawer={state.closeDrawer}

@@ -271,31 +271,6 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
         },
       ],
     },
-    clerk: {
-      name: 'Clerk 第三方登录',
-      nameKey: 'env.groups.clerk',
-      descriptionKey: 'env.groups.clerk.desc',
-      variables: [
-        {
-          name: 'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
-          isSet: !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-          required: false,
-          descriptionKey: 'env.vars.clerk.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
-        },
-        {
-          name: 'CLERK_SECRET_KEY',
-          isSet: !!process.env.CLERK_SECRET_KEY,
-          required: false,
-          descriptionKey: 'env.vars.clerk.CLERK_SECRET_KEY',
-        },
-        {
-          name: 'CLERK_WEBHOOK_SECRET',
-          isSet: !!process.env.CLERK_WEBHOOK_SECRET,
-          required: false,
-          descriptionKey: 'env.vars.clerk.CLERK_WEBHOOK_SECRET',
-        },
-      ],
-    },
     system: {
       name: '系统 / 构建',
       nameKey: 'env.groups.system',

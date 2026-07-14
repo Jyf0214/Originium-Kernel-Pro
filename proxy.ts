@@ -35,8 +35,7 @@ function isDbRequiredPath(pathname: string): boolean {
  *
  * 功能：
  * 1. 数据库未配置时，拦截所有需要数据库的路由（返回 503）
- * 2. Clerk 可选：仅在配置了环境变量时启用 Clerk 中间件
- * 3. 认证检查由各页面/API 自行处理
+ * 2. 认证检查由各页面/API 自行处理
  */
 export const config = {
   matcher: [
@@ -44,7 +43,7 @@ export const config = {
   ],
 };
 
-export default async function proxy(req: NextRequest) {
+export default function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
   // 数据库未配置时，拦截后台高级功能路由
@@ -61,20 +60,5 @@ export default async function proxy(req: NextRequest) {
     return NextResponse.redirect(homeUrl);
   }
 
-  // Clerk 可选集成
-  const clerkAvailable =
-    !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && !!process.env.CLERK_SECRET_KEY;
-
-  if (!clerkAvailable) {
-    return NextResponse.next();
-  }
-
-  try {
-    const { clerkMiddleware } = await import('@clerk/nextjs/server');
-    const handler = clerkMiddleware(() => NextResponse.next()) as unknown as (req: NextRequest) => Promise<NextResponse>;
-    return handler(req);
-	} catch (error) {
-		console.error('Clerk 中间件加载失败，跳过 Clerk 处理:', error);
-		return NextResponse.next();
-	}
+  return NextResponse.next();
 }

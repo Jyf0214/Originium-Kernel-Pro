@@ -88,7 +88,6 @@
     "emailSent": "Email sent",
     "resendEmail": "Resend",
     "backToLogin": "Back to Login",
-    "clerkLogin": "Login with Clerk",
     "or": "or",
     "inputVerificationCode": "Please enter verification code"
   },
@@ -404,10 +403,6 @@
         "name": "Scheduled Jobs",
         "desc": "Shared secret for authenticating calls to /api/cleanup and similar internal endpoints. Unset disables the endpoints."
       },
-      "clerk": {
-        "name": "Clerk Third-Party Login",
-        "desc": "Optional Clerk integration for OAuth / social login. Leaving these unset disables Clerk entirely and falls back to local auth."
-      },
       "system": {
         "name": "System / Build",
         "desc": "Build- and runtime-injected variables. NODE_ENV / VERCEL_* are auto-set; SKIP_DB_INIT / DISABLE_HMR are developer-only."
@@ -461,11 +456,6 @@
       },
       "cron": {
         "CRON_SECRET": "Shared secret required by the Authorization: Bearer header on /api/cleanup. Unset disables the endpoint with a 401."
-      },
-      "clerk": {
-        "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "Clerk publishable key (frontend-visible). When set together with CLERK_SECRET_KEY, Clerk is enabled.",
-        "CLERK_SECRET_KEY": "Clerk secret key (server-side only) for verifying sessions and calling the Clerk API.",
-        "CLERK_WEBHOOK_SECRET": "Signing secret used to verify Svix webhooks from Clerk on /api/webhooks/clerk."
       },
       "system": {
         "SKIP_DB_INIT": "Developer-only flag. When set to true, scripts/db-init.mjs skips the init / push step.",

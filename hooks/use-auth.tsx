@@ -32,7 +32,6 @@ interface AuthContextType {
   login: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
-  clerkAvailable: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,7 +40,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { t } = useI18n();
-  const clerkAvailable = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const refresh = useCallback(async (timeoutMs = 10000) => {
@@ -152,8 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     logout,
     refresh,
-    clerkAvailable,
-  }), [user, loading, login, logout, refresh, clerkAvailable]);
+  }), [user, loading, login, logout, refresh]);
 
   return (
     <AuthContext.Provider value={contextValue}>

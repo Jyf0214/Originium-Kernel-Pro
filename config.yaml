@@ -175,8 +175,6 @@ footer:
   badges: []
   typedTextPrefix: ''
   typedText: []
-clerk:
-  enable: false
 music:
   enable: false
   autoPlay: false

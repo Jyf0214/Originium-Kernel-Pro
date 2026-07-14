@@ -19,8 +19,6 @@ model User {
   role          String    @default("user")
   userGroup     String?   @map("user_group")
   status        String    @default("active")
-  clerkId       String?   @unique @map("clerk_id")
-  clerkLinkedAt DateTime? @map("clerk_linked_at")
   twoFactorSecret  String?   @map("two_factor_secret")
   twoFactorEnabled Boolean   @default(false) @map("two_factor_enabled")
   createdAt     DateTime  @default(now()) @map("created_at")

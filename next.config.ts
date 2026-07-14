@@ -39,7 +39,6 @@ export type {
   FooterLinkGroup,
   FooterBadge,
   FooterConfig,
-  ClerkConfig,
 } from './lib/config-schema';
 
 /**
@@ -98,7 +97,7 @@ const nextConfig: NextConfig = {
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data: https: blob:",
             "font-src 'self'",
-            "connect-src 'self' https://vitals.vercel-insights.com https://*.clerk.accounts.dev https://clerk.accounts.dev",
+            "connect-src 'self' https://vitals.vercel-insights.com",
             "frame-src https://giscus.app",
             "frame-ancestors 'none'",
             "base-uri 'self'",
