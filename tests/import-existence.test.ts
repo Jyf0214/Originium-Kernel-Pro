@@ -215,6 +215,8 @@ for (const filePath of allFiles) {
   for (const imp of imports) {
     // 跳过第三方包
     if (isThirdParty(imp.source)) continue;
+    // 跳过构建时生成的文件（data/ 目录由 prebuild 脚本异步生成）
+    if (imp.source.startsWith('@/data/')) continue;
 
     const resolved = resolveImportPath(filePath, imp.source);
 
