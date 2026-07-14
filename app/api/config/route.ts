@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { loadConfig, clearConfigCache, type AppConfig } from '@/lib/config';
 import { getFileFromGithub, updateFileInGithub } from '@/lib/github';
+import { getSession } from '@/lib/auth';
 import { apiHandler } from '@/lib/api-handler';
 import { createApiLogger } from '@/lib/api-logger';
 import { zAppConfig } from '@/lib/config-schema';
@@ -8,6 +9,111 @@ import { logAudit } from '@/lib/audit';
 import yaml from 'js-yaml';
 
 const logger = createApiLogger('/api/config');
+
+// 内存缓存：避免每次请求都调用 GitHub API
+type ConfigResponse = AppConfig & {
+  githubConfigured?: boolean;
+  _remoteConfig?: string;
+  _remoteConfigStatus?: string;
+  _remoteConfigError?: string;
+  [key: string]: unknown;
+};
+let configCache: { data: ConfigResponse; timestamp: number } | null = null;
+const CACHE_TTL = 5 * 60 * 1000; // 5 分钟
+
+/**
+ * GET /api/config — 读取站点配置
+ * 管理员返回完整配置（含 access 规则和 GitHub 状态），
+ * 未认证用户剥离敏感字段。
+ */
+export async function GET() {
+  try {
+    return await handleConfigGet();
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    logger.error('GET', '获取配置失败', { error: msg });
+    return NextResponse.json({ error: '获取配置失败' }, { status: 500 });
+  }
+}
+
+async function handleConfigGet() {
+  const now = Date.now();
+  if (configCache && now - configCache.timestamp < CACHE_TTL) {
+    logger.info('GET', '使用缓存配置');
+    return buildConfigResponse(configCache.data);
+  }
+
+  logger.info('GET', '读取配置');
+  const githubRepo = process.env.GITHUB_REPO;
+  const githubToken = process.env.GITHUB_TOKEN;
+
+  let config = await loadConfig();
+  let remoteConfigRaw = '';
+  let remoteConfigStatus = '';
+  let remoteConfigError = '';
+
+  if (githubRepo && githubToken) {
+    try {
+      const remote = await getFileFromGithub(githubRepo, githubToken, 'config.yaml');
+      if (remote) {
+        remoteConfigRaw = remote.content;
+        remoteConfigStatus = 'ok';
+        const parsed = yaml.load(remote.content) as AppConfig | null;
+        if (parsed) {
+          const result = zAppConfig.safeParse(parsed);
+          if (result.success) {
+            config = result.data;
+          } else {
+            logger.warn('GET', '远程 YAML Zod 校验失败，回退到本地配置', { issues: result.error.issues.map(i => i.path.join('.')) });
+          }
+        }
+        logger.info('GET', '远程配置已获取并作为主配置');
+      } else {
+        remoteConfigStatus = 'not_found';
+        logger.info('GET', '远程 config.yaml 不存在，使用本地配置');
+      }
+    } catch (error) {
+      remoteConfigStatus = 'error';
+      remoteConfigError = error instanceof Error ? error.message : '未知错误';
+      logger.error('GET', '获取远程配置失败，使用本地配置', { error: remoteConfigError });
+    }
+  } else {
+    logger.info('GET', 'GitHub 未配置，使用本地配置');
+  }
+
+  const response: ConfigResponse = {
+    ...config,
+    _remoteConfig: remoteConfigRaw,
+    _remoteConfigStatus: remoteConfigStatus,
+  };
+
+  if (githubRepo) {
+    response.githubConfigured = true;
+  }
+  if (remoteConfigError) {
+    response._remoteConfigError = remoteConfigError;
+  }
+
+  logger.info('GET', '配置读取成功', { source: remoteConfigStatus || 'local' });
+  configCache = { data: response, timestamp: Date.now() };
+
+  return buildConfigResponse(response);
+}
+
+/** 未认证用户剥离 access 规则、githubConfigured 和 _remoteConfig 等内部字段 */
+async function buildConfigResponse(config: Record<string, unknown>) {
+  const session = await getSession();
+  if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
+    const { access: _access, githubConfigured: _gc, _remoteConfig: _rc, _remoteConfigStatus: _rs, _remoteConfigError: _re, ...safeConfig } = config;
+    return NextResponse.json(safeConfig, {
+      headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
+    });
+  }
+  const { _remoteConfig: _rc, _remoteConfigStatus: _rs, _remoteConfigError: _re, ...adminConfig } = config;
+  return NextResponse.json(adminConfig, {
+    headers: { 'Cache-Control': 'private, no-cache, no-store' },
+  });
+}
 
 /**
  * 通用配置段合并:override 存在时以 base 为基础展开 override。
