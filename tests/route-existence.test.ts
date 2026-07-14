@@ -94,14 +94,16 @@ function extractRoutesFromFile(filePath: string): { route: string; line: number 
   const found: { route: string; line: number }[] = [];
 
   for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
+    const line = lines[i];
+    if (!line) continue;
+    const trimmed = line.trim();
     // 跳过纯注释行
     if (trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) continue;
 
     for (const pattern of ROUTE_PATTERNS) {
       pattern.lastIndex = 0;
       let match;
-      while ((match = pattern.exec(lines[i])) !== null) {
+      while ((match = pattern.exec(line)) !== null) {
         const route = match[1];
         if (!route) continue;
         // 仅处理前端路由（以 / 开头）

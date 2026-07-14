@@ -17,7 +17,7 @@ const ROOT = path.resolve(__dirname, '..');
  * - 路径别名 @/* 的内部路径（由 TypeScript 编译器保证）
  */
 
-const SKIP_DIRS = new Set(['node_modules', '.next', '.git', 'dist', '.vercel']);
+const SKIP_DIRS = new Set(['node_modules', '.next', '.git', 'dist', '.vercel', 'data']);
 const SOURCE_EXTS = ['.ts', '.tsx'];
 
 /** 递归收集源文件 */
