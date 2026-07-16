@@ -175,7 +175,6 @@
     "originiumKernel": "Originium Kernel",
     "configPreview": "配置预览",
     "returnDashboard": "返回用户面板",
-    "customPages": "自定义页面",
     "fileManager": "文件管理",
     "contentStats": "内容统计",
     "auditLogs": "审计日志",
@@ -790,28 +789,5 @@
     "keyNoKeysHint": "创建一个密钥以开始使用 API 访问",
     "keyUnauthorized": "未授权",
     "keyUnauthorizedHint": "需要管理员权限"
-  },
-  "page": {
-    "title": "自定义页面",
-    "guest": "游客",
-    "guestLoginPrompt": "登录后查看个性化内容",
-    "notConfigured": "自定义页面未配置",
-    "notConfiguredDesc": "请在 .env.local 中设置 STORAGE_TYPE 及相关环境变量（WebDAV 需 WEBDAV_URL/USER/PASS，B2 需 B2_* 系列变量）后重启服务,并在存储后端 pages/ 目录下放置 HTML 文件。",
-    "notFound": "页面不存在",
-    "loadError": "页面加载失败",
-    "loading": "加载中",
-    "passwordRequired": "此页面需要密码",
-    "passwordPlaceholder": "请输入密码",
-    "passwordSubmit": "进入",
-    "wrongPassword": "密码错误,请重试",
-    "showPassword": "显示密码",
-    "hidePassword": "隐藏密码",
-    "indexTitle": "自定义页面",
-    "indexSubtitle": "由远程存储后端 `pages/` 目录驱动（WebDAV 或 B2）。",
-    "indexEmpty": "暂无可用页面",
-    "indexEmptyHint": "在存储后端（WebDAV 或 B2）`pages/` 目录下放置 `.html` 文件后会自动列出。",
-    "indexFolder": "目录",
-    "indexPrivateBadge": "私有",
-    "indexPublicBadge": "公开"
   }
 }

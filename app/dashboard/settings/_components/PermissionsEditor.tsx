@@ -5,22 +5,15 @@ import {
   PERMISSION_GROUPS,
   type ApiKeyPermissions,
   type PermissionAction,
-  type CustomPagesPermission,
 } from '@/lib/api-key-permissions';
-
-export interface StorageFolderItem {
-  path: string;
-  public: boolean;
-}
 
 interface PermissionsEditorProps {
   permissions: ApiKeyPermissions;
   onChange: (p: ApiKeyPermissions) => void;
-  folders: StorageFolderItem[];
   className?: string;
 }
 
-export function PermissionsEditor({ permissions, onChange, folders, className = '' }: PermissionsEditorProps) {
+export function PermissionsEditor({ permissions, onChange, className = '' }: PermissionsEditorProps) {
   const toggleAction = (action: PermissionAction) => {
     onChange({
       ...permissions,
@@ -78,78 +71,6 @@ export function PermissionsEditor({ permissions, onChange, folders, className = 
         ))}
       </div>
 
-      {/* 自定义页面访问控制 */}
-      <div className="mt-4 pt-3 border-t border-zinc-100">
-        <p className="text-xs font-medium text-zinc-600 uppercase tracking-wide mb-2">自定义页面访问</p>
-        <div className="flex gap-2 mb-3">
-          {([
-            { value: 'all' as const, label: '全部' },
-            { value: 'readonly' as const, label: '只读' },
-            { value: 'folders' as const, label: '指定文件夹' },
-          ]).map(opt => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => {
-                const cp: CustomPagesPermission = {
-                  mode: opt.value,
-                  allowedFolders: opt.value === 'folders' ? (permissions.customPages?.allowedFolders ?? []) : [],
-                };
-                onChange({ ...permissions, customPages: opt.value === 'all' ? null : cp });
-              }}
-              className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
-                (opt.value === 'all' && !permissions.customPages) ||
-                (permissions.customPages?.mode === opt.value)
-                  ? 'bg-blue-50 border-blue-200 text-blue-700 font-medium'
-                  : 'bg-zinc-50 border-zinc-200 text-zinc-500 hover:border-zinc-300'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
-        {/* 文件夹选择(仅 mode=folders 时显示) */}
-        {permissions.customPages?.mode === 'folders' && (
-          <div className="space-y-1.5">
-            {folders.length === 0 ? (
-              <p className="text-xs text-zinc-400">暂无文件夹</p>
-            ) : (
-              folders.map(f => (
-                <label
-                  key={f.path}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors ${
-                    permissions.customPages?.allowedFolders.includes(f.path)
-                      ? 'bg-blue-50 border-blue-200'
-                      : 'bg-zinc-50 border-zinc-100 hover:border-zinc-200'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={permissions.customPages?.allowedFolders.includes(f.path) ?? false}
-                    onChange={() => {
-                      if (!permissions.customPages) return;
-                      const current = permissions.customPages.allowedFolders;
-                      const next = current.includes(f.path)
-                        ? current.filter(p => p !== f.path)
-                        : [...current, f.path];
-                      onChange({
-                        ...permissions,
-                        customPages: { ...permissions.customPages, allowedFolders: next },
-                      });
-                    }}
-                    className="rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-zinc-700 font-mono">{f.path || '/'}</span>
-                  {f.public && (
-                    <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded">公开</span>
-                  )}
-                </label>
-              ))
-            )}
-          </div>
-        )}
-      </div>
     </div>
   );
 }

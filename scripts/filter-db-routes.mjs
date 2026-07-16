@@ -23,7 +23,6 @@
  *   - app/[user]/             用户主页
  *   - app/[user]/[article]    用户文章
  *   - app/article/            文章视图
- *   - app/page/               自定义页面
  *   - app/files/              文件管理
  *   - app/tickets/            工单
  *   - app/api/auth/           认证 API
@@ -32,7 +31,6 @@
  *   - app/api/faces/          人物 API
  *   - app/api/user/           用户信息 API
  *   - app/api/users/          用户列表 API
- *   - app/api/page/           自定义页面 API
  *   - app/api/tickets/        工单 API
  *   - app/api/github/         GitHub 同步 API
  *   - app/api/webhooks/       Webhook API
@@ -93,8 +91,7 @@ const DB_ROUTE_PATHS = [
   'app/[user]',
   'app/[user]/[article]',
   'app/article',
-  // ── 存储 / 自定义页面 / 工单 / 文件管理 ──
-  'app/page',
+  // ── 存储 / 工单 / 文件管理 ──
   'app/files',
   'app/tickets',
   // ── API：认证 / 管理 ──
@@ -113,8 +110,6 @@ const DB_ROUTE_PATHS = [
   'app/api/tickets',
   'app/api/github',
   'app/api/webhooks',
-  // ── API：存储 / 自定义页面 ──
-  'app/api/page',
 ];
 
 /** 需要在 GitHub Pages 部署时移除的路由目录（相对于 ROOT）
@@ -137,7 +132,6 @@ const GITHUB_PAGES_REMOVE_PATHS = [
   'app/reset-password',
   'app/editor',
   'app/tickets',
-  'app/page',
   'app/article',
   // ── 私有帖子页（使用 cookies，无法静态导出） ──
   'app/posts/private',

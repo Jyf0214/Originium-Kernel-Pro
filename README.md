@@ -1,6 +1,6 @@
 # Originium Kernel
 
-一个基于 Next.js 16 构建的现代内容发布平台，支持文章管理、GitHub 同步、用户系统、工单系统、人脸画廊、WebDAV 存储池与自定义 HTML 页面等功能。
+一个基于 Next.js 16 构建的现代内容发布平台，支持文章管理、GitHub 同步、用户系统、工单系统、人脸画廊与 WebDAV 存储池等功能。
 
 ## 核心功能
 
@@ -14,7 +14,6 @@
 - **文章删除申请** - 普通用户可对私密 Posts 发起删除申请，管理员审批
 - **回收站** - 文章删除后进入回收站，30 天缓冲期可恢复
 - **存储池（WebDAV / Backblaze B2）** - 通过环境变量 `STORAGE_TYPE` 切换存储后端：WebDAV（Nextcloud / 群晖 / 坚果云等）或 Backblaze B2（S3 兼容，支持 Cloudflare CDN 免费出口流量）。支持文件夹级 ACL、公开/私有访问与目录密码
-- **自定义 HTML 页面** - 构建时从远端存储同步到本地 `./pages/`，通过沙箱 iframe 渲染，支持目录密码保护
 - **全局搜索** - `Ctrl/Cmd+K` 唤起搜索面板，跨文章/Posts/Faces/页面
 - **密码重置** - 基于 SMTP 邮件的密码重置功能
 - **系统配置** - 站点标题、描述、背景图片、自定义 CSS/Head、加载动画等可配置
@@ -39,8 +38,6 @@
 | `/faces/[...slug]` | Face 详情 | 公开 |
 | `/article/[id]` | 文章详情（id 路由） | 公开 |
 | `/article/view` | 文章查看（通过查询参数） | 公开 |
-| `/page` | 自定义 HTML 页面索引 | 公开 |
-| `/page/[...path]` | 自定义 HTML 页面渲染（沙箱 iframe） | 公开 / 目录密码 |
 | `/files/[...path]` | WebDAV 公开读代理 | 公开 / 登录（按 ACL） |
 | `/[user]` | 用户主页 | 公开 |
 | `/[user]/[article]` | 用户文章详情 | 公开 |
@@ -237,7 +234,7 @@
 ## 环境变量
 
 > **URL 解析顺序**（详见 `const/url.ts`）：`APP_URL` → `VERCEL_PROJECT_PRODUCTION_URL`（warn）→ `VERCEL_URL`（warn）→ 抛错。
-> **存储后端切换**（`STORAGE_TYPE`）：`webdav`（默认）或 `backblaze`，决定存储池与自定义页面使用哪个后端。
+> **存储后端切换**（`STORAGE_TYPE`）：`webdav`（默认）或 `backblaze`，决定存储池使用哪个后端。
 > **WebDAV 启用判定**（`lib/webdav.ts → isWebDavConfigured`）：`WEBDAV_URL` / `WEBDAV_USER` / `WEBDAV_PASS` 三者必须同时存在。
 > **Backblaze B2 启用判定**（`lib/storage/b2.ts → isB2Configured`）：`B2_KEY_ID` / `B2_APP_KEY` / `B2_BUCKET` 三者必须同时存在。
 
@@ -260,7 +257,7 @@
 | `SMTP_PASS` | SMTP 密码 | 否 | - |
 | `SMTP_FROM` | 发件人邮箱地址 | 否 | - |
 | `SMTP_SECURE` | 是否使用 SSL（布尔值） | 否 | 自动（端口 465 时为 true） |
-| `WEBDAV_URL` | WebDAV 服务器地址（如 `https://dav.example.com/remote.php/dav/files/user`）。缺省时整个存储池与自定义页面功能降级为不可用 | 否(WebDAV 模式) | - |
+| `WEBDAV_URL` | WebDAV 服务器地址（如 `https://dav.example.com/remote.php/dav/files/user`）。缺省时存储池功能降级为不可用 | 否(WebDAV 模式) | - |
 | `WEBDAV_USER` | WebDAV 用户名 | 否 | - |
 | `WEBDAV_PASS` | WebDAV 密码 | 否 | - |
 | `STORAGE_TYPE` | 存储后端类型：`webdav`（默认）或 `backblaze` | 否 | `webdav` |
@@ -320,10 +317,9 @@ npm run start
 | `npm run db:migrate` | 运行数据库迁移（dev） |
 | `npm run db:studio` | 启动 Prisma Studio |
 | `npm run db:init` | 初始化数据库（种子数据） |
-| `npm run sync:pages` | 从 WebDAV 同步自定义 HTML 页面到本地 `./pages/`（`prebuild` 自动调用） |
 | `npm run clean` | 清理 Next.js 构建缓存 |
 
-> **构建前置依赖**：执行 `npm run build` 时会先运行 `prebuild` 钩子（`sync:pages`），该脚本会调用 WebDAV 读取 `pages/` 目录并写入本地。如果未配置 `WEBDAV_*` 三项，sync 脚本会跳过同步并打 warning；构建继续进行，但 `/page` 与 `/page/[...path]` 路由将无可用内容。
+> **构建前置依赖**：执行 `npm run build` 时会先运行 `prebuild` 钩子。
 
 ## 用户角色
 
@@ -343,7 +339,7 @@ npm run start
 | `OriginiumKV` | `originium_kv` | `key` (id), `value?`, `expiry?` (BigInt), `createdAt` | 通用 KV 存储（草稿、计数器等） |
 | `Diary` | `diaries` | `id`, `title`, `content`, `tags` (`String[]`), `group?` (默认 `默认`), `references` (Json, 默认 `[]`), `date`, `pinned` (默认 `false`), `status` (默认 `published`), `scheduledAt?` | 日记（数据库独占，不依赖文件系统或 GitHub） |
 | `Request` | `requests` | `id`, `userId`, `userName`, `postSlug`, `postTitle`, `reason?`, `status` (默认 `pending`) | 文章删除申请 |
-| `StorageFolder` | `storage_folders` | `path` (id, 无前/后斜杠), `public` (默认 `false`), `description?`, `password?`（scrypt 哈希） | WebDAV 顶层文件夹元数据 + 自定义页面 ACL |
+| `StorageFolder` | `storage_folders` | `path` (id, 无前/后斜杠), `public` (默认 `false`), `description?`, `password?`（scrypt 哈希） | WebDAV 顶层文件夹元数据 |
 | `ApiKey` | `api_keys` | `id`, `uid`, `key` (unique, sk-xxx), `name`, `permissions?`, `lastUsed?` | API 密钥（替代 Cookie 的无状态认证） |
 | `ShareLink` | `share_links` | `id` (auto), `token` (unique), `path`, `password?`, `expiresAt` | 存储池文件/文件夹的有时效分享链接 |
 | `AuditLog` | `audit_logs` | `id` (auto), `action`, `target`, `detail?`, `userId` | 不可篡改的操作审计日志 |
@@ -381,7 +377,7 @@ auth:
   allowRegistration: true
 ```
 
-WebDAV 存储池与自定义页面的元数据（`StorageFolder`）不入 `config.yaml`，统一持久化在 Prisma `storage_folders` 表，通过 `/dashboard/storage` 管理。
+WebDAV 存储池的元数据（`StorageFolder`）不入 `config.yaml`，统一持久化在 Prisma `storage_folders` 表，通过 `/dashboard/storage` 管理。
 
 ## License
 

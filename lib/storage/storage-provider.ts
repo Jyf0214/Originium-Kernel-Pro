@@ -2,7 +2,7 @@
  * 存储提供者统一接口
  *
  * 抽象 WebDAV / Backblaze B2 等不同后端为统一操作接口。
- * 上层 API 路由、page-source、sync-pages 脚本均通过此接口访问存储，
+ * 上层 API 路由均通过此接口访问存储，
  * 不再直接耦合具体后端实现。
  *
  * 设计原则:
@@ -164,16 +164,3 @@ export function isStorageConfigured(): boolean {
   )
 }
 
-/**
- * 检查自定义页面实验性功能是否已启用
- *
- * 需同时满足：
- * 1. 环境变量 CUSTOM_PAGES_ENABLED=true（显式开启实验性功能）
- * 2. 存储后端已配置（isStorageConfigured）
- *
- * 两个条件缺一不可：未启用时前端不显示入口，路由不渲染，API 返回 503。
- */
-export function isCustomPagesEnabled(): boolean {
-  if (process.env.CUSTOM_PAGES_ENABLED !== 'true') return false
-  return isStorageConfigured()
-}
