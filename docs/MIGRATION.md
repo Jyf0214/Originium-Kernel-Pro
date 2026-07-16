@@ -295,7 +295,6 @@ vercel --prod
 - [ ] 调用 `/api/storage/folders`，确认 `StorageFolder` 元数据**未变**（文件本身未动）
 - [ ] 抽查 3 个文件：**下载**（通过 `/files/[...path]` 公开代理），确认内容一致
 - [ ] 上传一个新文件，确认能写
-- [ ] 触发 `npm run sync:pages`（或 `prebuild` 钩子），确认能从新 WebDAV 同步自定义页面
 
 ### 3.3 路径一致性
 

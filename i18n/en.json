@@ -175,7 +175,6 @@
     "originiumKernel": "Originium Kernel",
     "configPreview": "Config Preview",
     "returnDashboard": "Back to Dashboard",
-    "customPages": "Custom Pages",
     "fileManager": "File Manager",
     "contentStats": "Content Stats",
     "auditLogs": "Audit Logs",
@@ -790,28 +789,5 @@
     "keyNoKeysHint": "Create a key to start using API access",
     "keyUnauthorized": "Unauthorized",
     "keyUnauthorizedHint": "Admin access required"
-  },
-  "page": {
-    "title": "Custom Page",
-    "guest": "Guest",
-    "guestLoginPrompt": "Login to view personalized content",
-    "notConfigured": "Custom pages not configured",
-    "notConfiguredDesc": "Please set WEBDAV_URL, WEBDAV_USER, WEBDAV_PASS for WebDAV backends, or set STORAGE_TYPE=b2 with B2_* variables for B2 backend, in .env.local and restart, then place HTML files in pages/.",
-    "notFound": "Page not found",
-    "loadError": "Failed to load page",
-    "loading": "Loading",
-    "passwordRequired": "This page requires a password",
-    "passwordPlaceholder": "Please enter the password",
-    "passwordSubmit": "Enter",
-    "wrongPassword": "Wrong password, please try again",
-    "showPassword": "Show password",
-    "hidePassword": "Hide password",
-    "indexTitle": "Custom Pages",
-    "indexSubtitle": "Driven by the storage backend's `pages/` directory (WebDAV or B2).",
-    "indexEmpty": "No custom pages yet",
-    "indexEmptyHint": "Place `.html` files under the `pages/` directory in your configured storage backend (WebDAV or B2) and they will appear here automatically.",
-    "indexFolder": "Folder",
-    "indexPrivateBadge": "Private",
-    "indexPublicBadge": "Public"
   }
 }

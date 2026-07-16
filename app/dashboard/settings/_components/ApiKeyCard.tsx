@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Copy, Key, Plus, Trash2, AlertCircle, Loader2, ChevronDown, ChevronRight, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ProCard } from '@/components/ui/ProCard';
-import { PermissionsEditor, type StorageFolderItem } from './PermissionsEditor';
+import { PermissionsEditor } from './PermissionsEditor';
 import { PERMISSION_GROUPS, type ApiKeyPermissions } from '@/lib/api-key-permissions';
 
 interface ApiKeyItem {
@@ -18,7 +18,6 @@ interface ApiKeyItem {
 /** 检查权限是否为"全部权限" */
 function isFullPermissions(p: ApiKeyPermissions | null | undefined): boolean {
   if (!p) return true;
-  if (p.customPages) return false;
   return Object.values(p.actions).every(Boolean);
 }
 
@@ -28,7 +27,6 @@ function createFullPermissions(): ApiKeyPermissions {
     actions: Object.fromEntries(
       PERMISSION_GROUPS.flatMap(g => g.actions.map(a => [a.key, true]))
     ) as ApiKeyPermissions['actions'],
-    customPages: null,
   };
 }
 
@@ -52,9 +50,6 @@ export function ApiKeyCard() {
   const [showCreatePermissions, setShowCreatePermissions] = useState(false);
   const [newKeyPermissions, setNewKeyPermissions] = useState<ApiKeyPermissions>(createFullPermissions());
 
-  // 文件夹列表(用于自定义页面权限)
-  const [folders, setFolders] = useState<StorageFolderItem[]>([]);
-
   const loadKeys = useCallback(async () => {
     try {
       const res = await fetch('/api/auth/api-keys');
@@ -73,22 +68,9 @@ export function ApiKeyCard() {
     }
   }, []);
 
-  const loadFolders = useCallback(async () => {
-    try {
-      const res = await fetch('/api/storage/folders');
-      if (res.ok) {
-        const data = await res.json();
-        setFolders(Array.isArray(data) ? data : []);
-      }
-    } catch {
-      // 忽略文件夹加载失败
-    }
-  }, []);
-
   useEffect(() => {
     void loadKeys();
-    void loadFolders();
-  }, [loadKeys, loadFolders]);
+  }, [loadKeys]);
 
   const handleGenerate = async () => {
     if (generating) return;
@@ -259,7 +241,6 @@ export function ApiKeyCard() {
           <PermissionsEditor
             permissions={newKeyPermissions}
             onChange={setNewKeyPermissions}
-            folders={folders}
             className="mt-3"
           />
         )}
@@ -380,7 +361,6 @@ export function ApiKeyCard() {
                     <PermissionsEditor
                       permissions={editingPermissions}
                       onChange={setEditingPermissions}
-                      folders={folders}
                     />
                     <div className="flex justify-end mt-3 pt-3 border-t border-zinc-100">
                       <Button

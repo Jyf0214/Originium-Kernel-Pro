@@ -14,8 +14,6 @@ import type { SessionPayload } from '@/lib/auth';
 export type PermissionAction =
   // 文章
   | 'posts_read' | 'posts_write' | 'posts_delete'
-  // 自定义页面
-  | 'pages_read' | 'pages_write' | 'pages_delete'
   // 媒体文件
   | 'media_read' | 'media_write' | 'media_delete'
   // 文件存储
@@ -38,14 +36,6 @@ export const PERMISSION_GROUPS: {
       { key: 'posts_read', label: '查看文章' },
       { key: 'posts_write', label: '创建/编辑文章' },
       { key: 'posts_delete', label: '删除文章' },
-    ],
-  },
-  {
-    label: '自定义页面',
-    actions: [
-      { key: 'pages_read', label: '查看页面' },
-      { key: 'pages_write', label: '创建/编辑页面' },
-      { key: 'pages_delete', label: '删除页面' },
     ],
   },
   {
@@ -80,23 +70,11 @@ export const PERMISSION_GROUPS: {
   },
 ];
 
-/* ---------- 自定义页面访问模式 ---------- */
-
-/** 自定义页面访问控制 */
-export interface CustomPagesPermission {
-  /** 访问模式: all=全部, readonly=只读, folders=指定文件夹 */
-  mode: 'all' | 'readonly' | 'folders';
-  /** mode='folders' 时允许访问的文件夹路径列表(StorageFolder.path) */
-  allowedFolders: string[];
-}
-
 /* ---------- 完整权限结构 ---------- */
 
 export interface ApiKeyPermissions {
   /** 操作级别权限(key → 是否允许) */
   actions: Record<PermissionAction, boolean>;
-  /** 自定义页面文件夹级别访问控制(null=不限制) */
-  customPages: CustomPagesPermission | null;
 }
 
 /* ---------- 默认值 ---------- */
@@ -114,7 +92,6 @@ function createAllActions(): Record<PermissionAction, boolean> {
 
 export const DEFAULT_PERMISSIONS: ApiKeyPermissions = {
   actions: createAllActions(),
-  customPages: null,
 };
 
 /** 空权限(全部禁止) */
@@ -130,7 +107,6 @@ function createEmptyActions(): Record<PermissionAction, boolean> {
 
 export const EMPTY_PERMISSIONS: ApiKeyPermissions = {
   actions: createEmptyActions(),
-  customPages: { mode: 'all', allowedFolders: [] },
 };
 
 /* ---------- 权限工具函数 ---------- */
@@ -175,48 +151,6 @@ export function hasPermission(
   if (!session.permissions) return true;
   // 检查具体操作
   return !!session.permissions.actions[action];
-}
-
-/**
- * 检查自定义页面访问权限
- *
- * @param keyId API 密钥 ID，null 表示 Cookie 认证
- * @param permissions 权限配置
- * @param folderPath 要访问的文件夹路径
- * @param isWrite 是否为写操作
- * @returns 是否允许
- */
-export function checkCustomPageAccess(
-  keyId: string | null,
-  permissions: ApiKeyPermissions | null | undefined,
-  folderPath: string,
-  isWrite: boolean,
-): boolean {
-  // Cookie 认证，不受限制
-  if (keyId === null) return true;
-  // 无权限配置，全部权限
-  if (!permissions) return true;
-  // 自定义页面权限未设置，不限制
-  if (!permissions.customPages) return true;
-
-  const cp = permissions.customPages;
-
-  switch (cp.mode) {
-    case 'all':
-      return true;
-    case 'readonly':
-      return !isWrite;
-    case 'folders':
-      if (isWrite) {
-        // 写操作需要 pages_write 权限 + 文件夹在允许列表中
-        return !!permissions.actions.pages_write
-          && cp.allowedFolders.some(f => folderPath === f || folderPath.startsWith(`${f}/`));
-      }
-      // 读操作只需要文件夹在允许列表中
-      return cp.allowedFolders.some(f => folderPath === f || folderPath.startsWith(`${f}/`));
-    default:
-      return false;
-  }
 }
 
 /** 将权限对象序列化为 JSON 字符串 */

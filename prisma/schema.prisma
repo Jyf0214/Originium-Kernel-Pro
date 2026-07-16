@@ -128,7 +128,7 @@ model ShareLink {
 model AuditLog {
   id        Int      @id @default(autoincrement())
   action    String   // 操作类型: config.update, user.delete, storage.upload 等
-  target    String   // 操作对象: "config" / "user:123" / "storage:pages/hello.html"
+  target    String   // 操作对象
   detail    String?  // 操作详情(JSON 字符串)
   userId    String   @map("user_id") // 操作者
   createdAt DateTime @default(now()) @map("created_at")

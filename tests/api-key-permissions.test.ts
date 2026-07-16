@@ -7,7 +7,6 @@
  * - EMPTY_PERMISSIONS 全部为 false
  * - parsePermissions: null/undefined、无效 JSON、缺少 actions、有效 JSON
  * - hasPermission: Cookie 认证、无权限配置、有权限配置
- * - checkCustomPageAccess: Cookie、无权限、无 customPages、all/readonly/folders 读写、默认分支
  * - serializePermissions: 序列化往返
  */
 
@@ -18,7 +17,6 @@ import {
   EMPTY_PERMISSIONS,
   parsePermissions,
   hasPermission,
-  checkCustomPageAccess,
   serializePermissions,
 } from '@/lib/api-key-permissions';
 import type {
@@ -67,13 +65,6 @@ describe('PERMISSION_GROUPS', () => {
     expect(keys).toContain('posts_delete');
   });
 
-  test('包含自定义页面相关权限', () => {
-    const keys = PERMISSION_GROUPS.flatMap(g => g.actions.map(a => a.key));
-    expect(keys).toContain('pages_read');
-    expect(keys).toContain('pages_write');
-    expect(keys).toContain('pages_delete');
-  });
-
   test('包含媒体文件权限', () => {
     const keys = PERMISSION_GROUPS.flatMap(g => g.actions.map(a => a.key));
     expect(keys).toContain('media_read');
@@ -111,10 +102,6 @@ describe('DEFAULT_PERMISSIONS', () => {
       expect(DEFAULT_PERMISSIONS.actions[key]).toBe(true);
     }
   });
-
-  test('customPages 为 null', () => {
-    expect(DEFAULT_PERMISSIONS.customPages).toBeNull();
-  });
 });
 
 /* ---------- 常量: EMPTY_PERMISSIONS ---------- */
@@ -126,13 +113,6 @@ describe('EMPTY_PERMISSIONS', () => {
     for (const key of allKeys) {
       expect(EMPTY_PERMISSIONS.actions[key]).toBe(false);
     }
-  });
-
-  test('customPages 为 mode=all 的对象', () => {
-    expect(EMPTY_PERMISSIONS.customPages).toEqual({
-      mode: 'all',
-      allowedFolders: [],
-    });
   });
 });
 
@@ -169,13 +149,11 @@ describe('parsePermissions', () => {
   test('有效 JSON 且包含 actions 返回解析对象', () => {
     const input = JSON.stringify({
       actions: { posts_read: true, posts_write: false },
-      customPages: null,
     });
     const result = parsePermissions(input);
     expect(result).not.toBeNull();
     expect(result!.actions.posts_read).toBe(true);
     expect(result!.actions.posts_write).toBe(false);
-    expect(result!.customPages).toBeNull();
   });
 
   test('仅包含 actions 的有效 JSON 也能正确解析', () => {
@@ -217,9 +195,6 @@ describe('hasPermission', () => {
           posts_read: true,
           posts_write: false,
           posts_delete: false,
-          pages_read: false,
-          pages_write: false,
-          pages_delete: false,
           media_read: false,
           media_write: false,
           media_delete: false,
@@ -231,7 +206,6 @@ describe('hasPermission', () => {
           stats_read: false,
           search: false,
         },
-        customPages: null,
       },
     };
     expect(hasPermission(session, 'posts_read', 'key-1')).toBe(true);
@@ -245,9 +219,6 @@ describe('hasPermission', () => {
           posts_read: true,
           posts_write: false,
           posts_delete: false,
-          pages_read: false,
-          pages_write: false,
-          pages_delete: false,
           media_read: false,
           media_write: false,
           media_delete: false,
@@ -259,7 +230,6 @@ describe('hasPermission', () => {
           stats_read: false,
           search: false,
         },
-        customPages: null,
       },
     };
     expect(hasPermission(session, 'posts_write', 'key-1')).toBe(false);
@@ -271,167 +241,9 @@ describe('hasPermission', () => {
       ...baseSession,
       permissions: {
         actions: {} as Record<PermissionAction, boolean>,
-        customPages: null,
       },
     };
     expect(hasPermission(session, 'posts_read', 'key-1')).toBe(false);
-  });
-});
-
-/* ---------- checkCustomPageAccess ---------- */
-
-describe('checkCustomPageAccess', () => {
-  const fullPermissions: ApiKeyPermissions = {
-    actions: {
-      posts_read: true,
-      posts_write: true,
-      posts_delete: true,
-      pages_read: true,
-      pages_write: true,
-      pages_delete: true,
-      media_read: true,
-      media_write: true,
-      media_delete: true,
-      storage_read: true,
-      storage_write: true,
-      storage_delete: true,
-      settings_read: true,
-      settings_write: true,
-      stats_read: true,
-      search: true,
-    },
-    customPages: null,
-  };
-
-  const readOnlyPermissions: ApiKeyPermissions = {
-    ...fullPermissions,
-    customPages: { mode: 'readonly', allowedFolders: [] },
-  };
-
-  const folderPermissions: ApiKeyPermissions = {
-    actions: {
-      ...fullPermissions.actions,
-      pages_write: true,
-    },
-    customPages: {
-      mode: 'folders',
-      allowedFolders: ['blog', 'projects/nested'],
-    },
-  };
-
-  const folderNoWritePermissions: ApiKeyPermissions = {
-    actions: {
-      ...fullPermissions.actions,
-      pages_write: false,
-    },
-    customPages: {
-      mode: 'folders',
-      allowedFolders: ['blog'],
-    },
-  };
-
-  describe('keyId 为 null（Cookie 认证）', () => {
-    test('始终返回 true', () => {
-      expect(checkCustomPageAccess(null, fullPermissions, 'any', true)).toBe(true);
-      expect(checkCustomPageAccess(null, fullPermissions, 'any', false)).toBe(true);
-      expect(checkCustomPageAccess(null, readOnlyPermissions, 'any', true)).toBe(true);
-    });
-  });
-
-  describe('permissions 为 null/undefined', () => {
-    test('null 权限返回 true', () => {
-      expect(checkCustomPageAccess('key-1', null, 'blog', true)).toBe(true);
-    });
-
-    test('undefined 权限返回 true', () => {
-      expect(checkCustomPageAccess('key-1', undefined, 'blog', false)).toBe(true);
-    });
-  });
-
-  describe('customPages 为 null', () => {
-    test('返回 true（不限制）', () => {
-      expect(checkCustomPageAccess('key-1', fullPermissions, 'blog', true)).toBe(true);
-      expect(checkCustomPageAccess('key-1', fullPermissions, 'blog', false)).toBe(true);
-    });
-  });
-
-  describe('mode: all', () => {
-    test('读操作返回 true', () => {
-      expect(checkCustomPageAccess('key-1', readOnlyPermissions, 'blog', false)).toBe(true);
-    });
-
-    test('写操作也返回 true（mode=all 但 permissions 是 readonly，注意 mode=all 才放行）', () => {
-      const allMode: ApiKeyPermissions = {
-        ...fullPermissions,
-        customPages: { mode: 'all', allowedFolders: [] },
-      };
-      expect(checkCustomPageAccess('key-1', allMode, 'blog', true)).toBe(true);
-    });
-  });
-
-  describe('mode: readonly', () => {
-    test('读操作返回 true', () => {
-      expect(checkCustomPageAccess('key-1', readOnlyPermissions, 'blog', false)).toBe(true);
-    });
-
-    test('写操作返回 false', () => {
-      expect(checkCustomPageAccess('key-1', readOnlyPermissions, 'blog', true)).toBe(false);
-    });
-  });
-
-  describe('mode: folders — 读操作', () => {
-    test('文件夹精确匹配允许', () => {
-      expect(checkCustomPageAccess('key-1', folderPermissions, 'blog', false)).toBe(true);
-    });
-
-    test('嵌套路径匹配允许', () => {
-      expect(checkCustomPageAccess('key-1', folderPermissions, 'projects/nested', false)).toBe(true);
-    });
-
-    test('嵌套子路径匹配允许（前缀 + /）', () => {
-      expect(checkCustomPageAccess('key-1', folderPermissions, 'projects/nested/deep', false)).toBe(true);
-    });
-
-    test('不在允许列表的文件夹返回 false', () => {
-      expect(checkCustomPageAccess('key-1', folderPermissions, 'private', false)).toBe(false);
-    });
-
-    test('前缀但无分隔符不匹配', () => {
-      // 'blog-other' 不应匹配 'blog'
-      expect(checkCustomPageAccess('key-1', folderPermissions, 'blog-other', false)).toBe(false);
-    });
-  });
-
-  describe('mode: folders — 写操作', () => {
-    test('pages_write=true 且文件夹在列表中返回 true', () => {
-      expect(checkCustomPageAccess('key-1', folderPermissions, 'blog', true)).toBe(true);
-    });
-
-    test('pages_write=true 但文件夹不在列表中返回 false', () => {
-      expect(checkCustomPageAccess('key-1', folderPermissions, 'private', true)).toBe(false);
-    });
-
-    test('pages_write=false 即使文件夹在列表中也返回 false', () => {
-      expect(checkCustomPageAccess('key-1', folderNoWritePermissions, 'blog', true)).toBe(false);
-    });
-
-    test('pages_write=false 且文件夹不在列表中返回 false', () => {
-      expect(checkCustomPageAccess('key-1', folderNoWritePermissions, 'other', true)).toBe(false);
-    });
-
-    test('嵌套路径写操作匹配', () => {
-      expect(checkCustomPageAccess('key-1', folderPermissions, 'projects/nested/file', true)).toBe(true);
-    });
-  });
-
-  describe('未知 mode（防御性）', () => {
-    test('未知 mode 返回 false', () => {
-      const unknownMode: ApiKeyPermissions = {
-        ...fullPermissions,
-        customPages: { mode: 'unknown' as 'all', allowedFolders: [] },
-      };
-      expect(checkCustomPageAccess('key-1', unknownMode, 'blog', false)).toBe(false);
-    });
   });
 });
 
@@ -442,14 +254,12 @@ describe('serializePermissions', () => {
     const json = serializePermissions(DEFAULT_PERMISSIONS);
     const parsed = JSON.parse(json);
     expect(parsed.actions).toEqual(DEFAULT_PERMISSIONS.actions);
-    expect(parsed.customPages).toBeNull();
   });
 
   test('序列化 EMPTY_PERMISSIONS 并可反序列化', () => {
     const json = serializePermissions(EMPTY_PERMISSIONS);
     const parsed = JSON.parse(json);
     expect(parsed.actions).toEqual(EMPTY_PERMISSIONS.actions);
-    expect(parsed.customPages).toEqual(EMPTY_PERMISSIONS.customPages);
   });
 
   test('序列化自定义权限', () => {
@@ -458,9 +268,6 @@ describe('serializePermissions', () => {
         posts_read: true,
         posts_write: false,
         posts_delete: false,
-        pages_read: true,
-        pages_write: true,
-        pages_delete: false,
         media_read: false,
         media_write: false,
         media_delete: false,
@@ -472,7 +279,6 @@ describe('serializePermissions', () => {
         stats_read: false,
         search: false,
       },
-      customPages: { mode: 'folders', allowedFolders: ['blog'] },
     };
     const json = serializePermissions(custom);
     const parsed = JSON.parse(json);

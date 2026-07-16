@@ -10,10 +10,9 @@ import TopHeader from '@/components/TopHeader';
 interface DashboardLayoutClientProps {
   children: React.ReactNode;
   databaseConfigured: boolean;
-  customPagesEnabled: boolean;
 }
 
-export default function DashboardLayoutClient({ children, databaseConfigured, customPagesEnabled }: DashboardLayoutClientProps) {
+export default function DashboardLayoutClient({ children, databaseConfigured }: DashboardLayoutClientProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -38,7 +37,7 @@ export default function DashboardLayoutClient({ children, databaseConfigured, cu
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} storageConfigured={customPagesEnabled} databaseConfigured={databaseConfigured} />
+      <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} databaseConfigured={databaseConfigured} />
       <div className="flex-1 flex flex-col min-h-screen bg-zinc-50">
         <TopHeader onMenuClick={openSidebar} />
         <main className="flex-1">{children}</main>

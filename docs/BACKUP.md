@@ -31,7 +31,7 @@
 | 配置文件 | 本地 + GitHub | `config.yaml` | `/admin/config`（写入本地），`/api/github/sync`（推送到 GitHub） | 否（不含 token / 密码） |
 | 数据库 | PostgreSQL | `users`, `user_groups`, `diaries`, `originium_kv`, `requests`, `storage_folders` | `/api/*` 中所有持久化路由 | 是（`User.password` 哈希、`StorageFolder.password` 明文） |
 | 内容仓库 | GitHub 仓库 | `posts/`, `faces/` 子目录（Markdown + 资源） | `/api/github/sync`、`/api/github` | 否 |
-| 文件池 | WebDAV 远端 | 任意目录与文件（自定义 HTML 页面、用户上传文件等） | `/api/storage/upload/[...path]`、`/api/storage/folder/*` | 否（凭据在环境变量） |
+| 文件池 | WebDAV 远端 | 任意目录与文件（用户上传文件等） | `/api/storage/upload/[...path]`、`/api/storage/folder/*` | 否（凭据在环境变量） |
 
 ### 1.2 配置文件（`config.yaml`）
 
@@ -70,11 +70,10 @@
 - 由 `WEBDAV_URL` / `WEBDAV_USER` / `WEBDAV_PASS` 三个环境变量联合启用（参见 `lib/webdav.ts → isWebDavConfigured`）。
 - 客户端封装：`lib/webdav.ts → getWebDavClient()`（基于 `webdav` npm 包），单例缓存避免每次请求都重建连接。
 - 数据用途：
-  - 自定义 HTML 页面（`./pages/` 下的源文件，构建时通过 `scripts/sync-pages.mjs` 同步到本地）
   - 用户上传文件（`/admin/storage` 上传，单文件 ≤ 50 MB）
   - 任何第三方应用场景（Nextcloud / 群晖 / 坚果云 / 任意兼容 WebDAV 1.0/2.0 的服务）
 - 元数据层：`StorageFolder` 表只存文件夹级 ACL（`public`、`description`、`password`），**不存文件清单也不存文件内容**——所有文件实体都仅在 WebDAV 远端。
-- **风险点**：远端服务不可用时，**存储池与自定义页面同时降级为不可用**（README 中已说明），但数据库仍可独立工作。
+- **风险点**：远端服务不可用时，**存储池降级为不可用**（README 中已说明），但数据库仍可独立工作。
 
 ### 1.6 平台隐式资源
 
@@ -539,7 +538,7 @@ fi
 | # | 风险 | 触发条件 | 影响 | 缓解措施 |
 |---|------|----------|------|----------|
 | 1 | **GitHub 仓库被设为 private** | `GITHUB_REPO` 指向的仓库可见性变更 | `GITHUB_TOKEN` 权限失效；`/api/github` 全部 401；`/api/github/sync` 同步失败 | 启用 GitHub 镜像仓库（`originium-backup`）作为冗余；Token 单独管理；设置 GitHub 仓库 visibility 变更告警（`webhook` → Slack） |
-| 2 | **WebDAV 凭据过期 / 服务下线** | WebDAV 服务商修改密码策略 / 主动下线 | 存储池与自定义 HTML 页面同时不可用；`/admin/storage` 显示 NOT_CONFIGURED | 凭据到期前 14 天日历提醒；服务下线时切换到备用 WebDAV（详见 MIGRATION.md §2）；配置二级 WebDAV 镜像（远期） |
+| 2 | **WebDAV 凭据过期 / 服务下线** | WebDAV 服务商修改密码策略 / 主动下线 | 存储池不可用；`/admin/storage` 显示 NOT_CONFIGURED | 凭据到期前 14 天日历提醒；服务下线时切换到备用 WebDAV（详见 MIGRATION.md §2）；配置二级 WebDAV 镜像（远期） |
 | 3 | **数据库服务商单点故障**（Vercel Postgres 区域故障） | 区域级不可用 | 整站 502 | 跨区主从或读写分离；季度验证只读副本可用；准备 Neon / Supabase 作为热切换目标（迁移步骤见 MIGRATION.md §1） |
 | 4 | **`config.yaml` GitHub 同步冲突** | 多人同时编辑 / 离线编辑后 push | 本地配置被覆盖 / 推送失败 | `useGitHubConfigSync` Hook 已实现冲突检测；定期从 GitHub 拉取到本地；如果冲突，参考 UI 提示手动合并 |
 | 5 | **`AUTH_SECRET` 泄漏 / 轮换** | 密钥日志泄漏 / 主动轮换 | 现有 JWT 全部失效，所有用户需重新登录；管理员密码 reset token 失效 | 轮换后立即部署；保留旧密钥 24h 用于验证迁移；监控异常登录告警（`app/api/auth/login` 失败次数） |
