@@ -3,8 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT = path.resolve(__dirname, '..');
-const ZH_PATH = path.join(ROOT, 'i18n/zh-CN.json');
-const EN_PATH = path.join(ROOT, 'i18n/en.json');
+const ZH_PATH = path.join(ROOT, 'src/i18n/zh-CN.json');
+const EN_PATH = path.join(ROOT, 'src/i18n/en.json');
 
 type FlatDict = Record<string, string>;
 
@@ -62,10 +62,10 @@ describe('i18n 双字典一致性', () => {
 describe.skip('i18n 未使用 key 检测(参考用)', () => {
   it('列出未被代码引用的 i18n key', () => {
     const searchRoots = [
-      path.join(ROOT, 'app'),
-      path.join(ROOT, 'components'),
-      path.join(ROOT, 'hooks'),
-      path.join(ROOT, 'lib'),
+      path.join(ROOT, 'src/app'),
+      path.join(ROOT, 'src/components'),
+      path.join(ROOT, 'src/hooks'),
+      path.join(ROOT, 'src/lib'),
     ];
     const files = searchRoots.flatMap(d => listAllFiles(d));
 
@@ -93,8 +93,8 @@ describe.skip('i18n 未使用 key 检测(参考用)', () => {
 describe.skip('i18n 硬编码中文字符串检测(参考用,新代码不应有)', () => {
   it('列出 admin/storage 下硬编码的中文字符串行', () => {
     const dirs = [
-      path.join(ROOT, 'app/admin/storage'),
-      path.join(ROOT, 'components/admin'),
+      path.join(ROOT, 'src/app/admin/storage'),
+      path.join(ROOT, 'src/components/admin'),
     ].filter(d => fs.existsSync(d));
     const files = dirs.flatMap(d => listAllFiles(d));
 

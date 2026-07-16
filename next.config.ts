@@ -39,7 +39,7 @@ export type {
   FooterLinkGroup,
   FooterBadge,
   FooterConfig,
-} from './lib/config-schema';
+} from './src/lib/config-schema';
 
 /**
  * 构建期 URL 健康检查

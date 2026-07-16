@@ -3,7 +3,7 @@
 import React from 'react';
 import { useI18n } from '@/hooks/use-i18n';
 import ToggleField from '@/components/ui/ToggleField';
-import type { AccessConfig } from '@/next.config';
+import type { AccessConfig } from '@/lib/config-schema';
 
 /** 访问控制模块类型 */
 export type AccessModule = 'posts' | 'faces' | 'diary';

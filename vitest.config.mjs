@@ -13,7 +13,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': __dirname,
+      '@': path.join(__dirname, 'src'),
+      '@/data': path.join(__dirname, 'data'),
     },
   },
   coverage: {
