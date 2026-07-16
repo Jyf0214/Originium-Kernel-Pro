@@ -1,23 +1,18 @@
 import type { StatCardData } from '../_lib/types';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 /** 渲染趋势箭头 SVG */
 function TrendIcon({ card }: { card: StatCardData }) {
   if (!card.trend) return null;
   if (card.trend.direction === 'up') {
     return (
-      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-        <path
-          d="M5 1L9 5H6V9H4V5H1L5 1Z"
-          className={card.trend.rate >= 50 ? 'fill-emerald-500' : 'fill-amber-500'}
-        />
-      </svg>
+      <TrendingUp
+        size={10}
+        className={card.trend.rate >= 50 ? 'text-emerald-500' : 'text-amber-500'}
+      />
     );
   }
-  return (
-    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-      <path d="M5 9L1 5H4V1H6V5H9L5 9Z" className="fill-red-400" />
-    </svg>
-  );
+  return <TrendingDown size={10} className="text-red-400" />;
 }
 
 /** 单个统计卡(图标 + 数值 + 趋势 + 进度条) */

@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
-import { Menu } from 'lucide-react';
+import { Menu, ChevronRight } from 'lucide-react';
 
 const breadcrumbMap: Record<string, string> = {
   '/dashboard': 'dashboard.title',
@@ -56,9 +56,7 @@ export function TopHeader({ onMenuClick }: TopHeaderProps) {
         <span className="hover:text-zinc-600 transition-colors shrink-0">{t('dashboard.title') || '控制台'}</span>
         {breadcrumb && (
           <>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-300 shrink-0">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
+            <ChevronRight size={14} className="text-zinc-300 shrink-0" />
             <span className={`font-medium truncate ${isAdminPage ? 'text-amber-600' : 'text-zinc-700 dark:text-zinc-300'}`}>
               {breadcrumb}
             </span>
