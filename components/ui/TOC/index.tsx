@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { TOCProps, TocHeading, TocNode } from './toc-types';
 import { useTocActive } from './use-toc-active';
+import { List } from 'lucide-react';
 import { TocItem } from './TocItem';
 import { slugify } from '@/lib/slugify';
 import { Hitokoto } from '@/components/Hitokoto';
@@ -111,23 +112,7 @@ function TOCInner({ content, config, locale }: TOCProps) {
           className="group"
         >
           <summary className="w-12 h-12 bg-white dark:bg-zinc-800 rounded-2xl shadow-lg border border-zinc-100 dark:border-zinc-700 flex items-center justify-center cursor-pointer list-none text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:shadow-xl transition-all">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="8" y1="6" x2="21" y2="6" />
-              <line x1="8" y1="12" x2="21" y2="12" />
-              <line x1="8" y1="18" x2="21" y2="18" />
-              <line x1="3" y1="6" x2="3.01" y2="6" />
-              <line x1="3" y1="12" x2="3.01" y2="12" />
-              <line x1="3" y1="18" x2="3.01" y2="18" />
-            </svg>
+            <List size={20} />
           </summary>
           <div className={`absolute right-0 w-64 max-h-80 overflow-y-auto bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-zinc-100 dark:border-zinc-700 p-4 ${
             isShortScreen ? 'top-full' : 'bottom-16'
