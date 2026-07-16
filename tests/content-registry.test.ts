@@ -6,7 +6,7 @@ import {
   getBacklinks,
   getOutgoingReferences,
   buildWikiLinkMap,
-} from '../lib/content-registry';
+} from '../src/lib/content-registry';
 
 describe('extractWikiLinks', () => {
   test('应从文本中提取 [[标题]] 引用', () => {

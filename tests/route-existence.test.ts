@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 const ROOT = path.resolve(__dirname, '..');
-const APP_DIR = path.join(ROOT, 'app');
+const APP_DIR = path.join(ROOT, 'src/app');
 
 /**
  * 路由缺失检查测试
@@ -128,10 +128,10 @@ function extractRoutesFromFile(filePath: string): { route: string; line: number 
 // ── 收集所有路由引用（describe 块内共享） ──
 
 const sourceFiles = [
-  ...collectFiles(path.join(ROOT, 'app'), ['.tsx', '.ts']),
-  ...collectFiles(path.join(ROOT, 'components'), ['.tsx', '.ts']),
-  ...collectFiles(path.join(ROOT, 'hooks'), ['.tsx', '.ts']),
-  ...collectFiles(path.join(ROOT, 'lib'), ['.ts']),
+  ...collectFiles(path.join(ROOT, 'src/app'), ['.tsx', '.ts']),
+  ...collectFiles(path.join(ROOT, 'src/components'), ['.tsx', '.ts']),
+  ...collectFiles(path.join(ROOT, 'src/hooks'), ['.tsx', '.ts']),
+  ...collectFiles(path.join(ROOT, 'src/lib'), ['.ts']),
 ];
 
 const allRouteRefs: { route: string; file: string; line: number }[] = [];

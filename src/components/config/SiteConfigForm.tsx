@@ -4,7 +4,7 @@ import React from 'react';
 import { Select } from 'antd';
 import { useI18n } from '@/hooks/use-i18n';
 import FormField from '@/components/ui/FormField';
-import type { SiteConfig } from '@/next.config';
+import type { SiteConfig } from '@/lib/config-schema';
 
 /** 站点配置表单属性 */
 export interface SiteConfigFormProps {

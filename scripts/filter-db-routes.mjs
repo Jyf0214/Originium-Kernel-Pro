@@ -80,36 +80,36 @@ function loadEnvLocal() {
 /** 需要在无数据库时移除的路由目录（相对于 ROOT） */
 const DB_ROUTE_PATHS = [
   // ── 后台管理 ──
-  'app/dashboard',
-  'app/login',
-  'app/forgot-password',
-  'app/reset-password',
+  'src/app/dashboard',
+  'src/app/login',
+  'src/app/forgot-password',
+  'src/app/reset-password',
   // ── 认证依赖（日记、人物、编辑器、用户页） ──
-  'app/diary',
-  'app/faces',
-  'app/editor',
-  'app/[user]',
-  'app/[user]/[article]',
-  'app/article',
+  'src/app/diary',
+  'src/app/faces',
+  'src/app/editor',
+  'src/app/[user]',
+  'src/app/[user]/[article]',
+  'src/app/article',
   // ── 存储 / 工单 / 文件管理 ──
-  'app/files',
-  'app/tickets',
+  'src/app/files',
+  'src/app/tickets',
   // ── API：认证 / 管理 ──
-  'app/api/auth',
-  'app/api/admin',
+  'src/app/api/auth',
+  'src/app/api/admin',
   // ── API：认证依赖 ──
-  'app/api/diary',
-  'app/api/faces',
-  'app/api/user',
-  'app/api/users',
-  'app/api/cleanup',
-  'app/api/recycle-bin',
-  'app/api/feedback',
-  'app/api/requests',
-  'app/api/ticket-templates',
-  'app/api/tickets',
-  'app/api/github',
-  'app/api/webhooks',
+  'src/app/api/diary',
+  'src/app/api/faces',
+  'src/app/api/user',
+  'src/app/api/users',
+  'src/app/api/cleanup',
+  'src/app/api/recycle-bin',
+  'src/app/api/feedback',
+  'src/app/api/requests',
+  'src/app/api/ticket-templates',
+  'src/app/api/tickets',
+  'src/app/api/github',
+  'src/app/api/webhooks',
 ];
 
 /** 需要在 GitHub Pages 部署时移除的路由目录（相对于 ROOT）
@@ -120,21 +120,21 @@ const DB_ROUTE_PATHS = [
  */
 const GITHUB_PAGES_REMOVE_PATHS = [
   // ── 整个 API 目录 ──
-  'app/api',
+  'src/app/api',
   // ── 需要运行时服务的页面路由 ──
-  'app/files',
-  'app/[user]',
-  'app/diary',
-  'app/faces',
-  'app/dashboard',
-  'app/login',
-  'app/forgot-password',
-  'app/reset-password',
-  'app/editor',
-  'app/tickets',
-  'app/article',
+  'src/app/files',
+  'src/app/[user]',
+  'src/app/diary',
+  'src/app/faces',
+  'src/app/dashboard',
+  'src/app/login',
+  'src/app/forgot-password',
+  'src/app/reset-password',
+  'src/app/editor',
+  'src/app/tickets',
+  'src/app/article',
   // ── 私有帖子页（使用 cookies，无法静态导出） ──
-  'app/posts/private',
+  'src/app/posts/private',
 ];
 
 function hasDatabase() {

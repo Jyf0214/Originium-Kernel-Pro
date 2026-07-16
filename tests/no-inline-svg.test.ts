@@ -58,7 +58,7 @@ interface SvgViolation {
 
 // ── 主测试逻辑 ──
 
-const SCAN_DIRS = ['app', 'components'].map((d) => path.join(ROOT, d));
+const SCAN_DIRS = ['app', 'components'].map((d) => path.join(ROOT, 'src', d));
 const allFiles = SCAN_DIRS.flatMap((dir) => collectFiles(dir));
 const violations: SvgViolation[] = [];
 

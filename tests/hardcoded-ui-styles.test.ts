@@ -100,7 +100,7 @@ const PATTERNS: readonly Pattern[] = [
   },
 ];
 
-const SCAN_ROOTS = ['app', 'components'] as const;
+const SCAN_ROOTS = ['src/app', 'src/components'] as const;
 const EXCLUDE_DIR_NAMES = new Set([
   'node_modules',
   '.next',
@@ -130,7 +130,9 @@ function listFiles(dir: string): string[] {
 function isExcludedPath(relativePath: string): boolean {
   // 排除 components/ui/(组件库自身)
   const segments = relativePath.split(path.sep);
-  if (segments[0] === 'components' && segments[1] === 'ui') return true;
+  // 支持 src/components/ui 和 components/ui 两种路径
+  const uiIdx = segments.indexOf('components');
+  if (uiIdx >= 0 && segments[uiIdx + 1] === 'ui') return true;
   return false;
 }
 

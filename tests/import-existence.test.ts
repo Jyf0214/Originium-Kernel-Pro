@@ -124,8 +124,11 @@ function isThirdParty(source: string): boolean {
 
 /** 将 @/ 别名解析为绝对路径 */
 function resolveAlias(source: string): string {
+  if (source.startsWith('@/data/')) {
+    return path.join(ROOT, 'data', source.slice(7));
+  }
   if (source.startsWith('@/')) {
-    return path.join(ROOT, source.slice(2));
+    return path.join(ROOT, 'src', source.slice(2));
   }
   return source;
 }
@@ -193,7 +196,7 @@ function escapeRegex(s: string): string {
 
 // ── 主测试逻辑 ──
 
-const SCAN_DIRS = ['app', 'components', 'hooks', 'lib'].map((d) => path.join(ROOT, d));
+const SCAN_DIRS = ['app', 'components', 'hooks', 'lib'].map((d) => path.join(ROOT, 'src', d));
 
 const allFiles = SCAN_DIRS.flatMap((dir) =>
   fs.existsSync(dir) ? collectFiles(dir) : [],

@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest';
-import { extractWikiLinksFromContent } from '../app/diary/_components/diary-utils';
-import type { WikiLinkMap } from '../components/MarkdownRenderer/types';
+import { extractWikiLinksFromContent } from '../src/app/diary/_components/diary-utils';
+import type { WikiLinkMap } from '../src/components/MarkdownRenderer/types';
 
 describe('extractWikiLinksFromContent', () => {
   const mockMap: WikiLinkMap = {
