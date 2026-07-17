@@ -52,7 +52,7 @@ export const DEFAULT_FOOTER_BADGES: FooterBadge[] = [
   { name: 'TypeScript', url: 'https://www.typescriptlang.org/' },
 ];
 
-export const DEFAULT_FOOTER_TYPED_TEXTS = ['Next.js 驱动', 'TypeScript 构建', '用心守护'];
+export const DEFAULT_FOOTER_TYPED_TEXTS = ['用心记录每一天', '文字是最长情的告白', '生活需要仪式感'];
 
 // ─── Default Value Resolver ──────────────────────────
 // 将配置中的各字段统一解析为最终值，缺失时使用默认值兜底。
@@ -83,7 +83,7 @@ export function resolveDefaults(config: FooterConfigData | null): ResolvedFooter
     links: resolveList(config?.links, DEFAULT_FOOTER_LINKS),
     badges: resolveList(config?.badges, DEFAULT_FOOTER_BADGES),
     typedText: resolveList(config?.typedText, DEFAULT_FOOTER_TYPED_TEXTS),
-    typedTextPrefix: resolveVal(config?.typedTextPrefix, '本站由 '),
+    typedTextPrefix: resolveVal(config?.typedTextPrefix, ''),
     owner: resolveVal(owner, { enable: true, since: 2026 }),
     author: resolveVal(owner?.author, 'Jyf0214'),
     customText: resolveVal(config?.customText, ''),
