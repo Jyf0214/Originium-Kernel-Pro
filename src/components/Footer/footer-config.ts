@@ -37,12 +37,6 @@ export const DEFAULT_FOOTER_LINKS: FooterLinkGroup[] = [
       { name: '通讯录', url: '/faces' },
     ],
   },
-  {
-    group: '协议',
-    items: [
-      { name: 'CC BY-NC-SA 4.0', url: 'https://creativecommons.org/licenses/by-nc-sa/4.0/' },
-    ],
-  },
 ];
 
 export const DEFAULT_FOOTER_BADGES: FooterBadge[] = [
