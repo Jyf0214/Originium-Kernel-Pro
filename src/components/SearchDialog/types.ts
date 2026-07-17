@@ -22,12 +22,6 @@ export interface SearchGroup {
   results: SearchResult[];
 }
 
-/** /api/search 接口响应结构 */
-export interface SearchResponse {
-  results: SearchResult[];
-  groups: SearchGroup[];
-}
-
 /** 搜索对话框属性 */
 export interface SearchDialogProps {
   open: boolean;

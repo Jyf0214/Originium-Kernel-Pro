@@ -1,12 +1,12 @@
 // SearchDialog 搜索状态与快捷键 hook
-// 封装：搜索状态、防抖请求、键盘导航、ESC 关闭、body 滚动锁、初始聚焦、搜索历史。
+// 封装：搜索状态、客户端搜索（直接读取 data/search-index.json）、键盘导航、ESC 关闭、body 滚动锁、初始聚焦、搜索历史。
 
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { showError } from '@/lib/error';
-import type { SearchGroup, SearchResponse, SearchResult } from './types';
+import type { SearchGroup, SearchResult } from './types';
 
 export interface UseSearchOptions {
   /** 对话框是否打开 */
@@ -62,6 +62,108 @@ function saveHistory(term: string) {
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)));
 }
 
+/** 搜索索引条目类型 */
+interface SearchIndexItem {
+  slug: string;
+  title: string;
+  description: string;
+  tags: string[];
+  content: string;
+}
+
+/** 模块级索引缓存，避免重复 fetch */
+let cachedIndex: SearchIndexItem[] | null = null;
+let indexFetchPromise: Promise<SearchIndexItem[]> | null = null;
+
+/** 加载搜索索引（单例 fetch + 缓存） */
+async function loadSearchIndex(): Promise<SearchIndexItem[]> {
+  if (cachedIndex) return cachedIndex;
+  if (indexFetchPromise) return indexFetchPromise;
+
+  indexFetchPromise = fetch('/data/search-index.json')
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json() as Promise<SearchIndexItem[]>;
+    })
+    .then((data) => {
+      cachedIndex = data;
+      return data;
+    })
+    .catch((err) => {
+      indexFetchPromise = null;
+      throw err;
+    });
+
+  return indexFetchPromise;
+}
+
+/** 相关性评分（与原 API 逻辑一致） */
+function calcRelevance(item: SearchIndexItem, query: string): number {
+  const q = query.toLowerCase();
+  const title = item.title.toLowerCase();
+  const desc = item.description.toLowerCase();
+
+  // 标题完全匹配
+  if (title === q) return 100;
+  // 标题包含查询词
+  if (title.includes(q)) return 80;
+  // 标题以查询词开头
+  if (title.startsWith(q)) return 70;
+  // 标签匹配
+  if (item.tags.some((t) => t.toLowerCase().includes(q))) return 60;
+  // 描述包含
+  if (desc.includes(q)) return 40;
+  // 内容包含
+  if (item.content.toLowerCase().includes(q)) return 20;
+
+  return 0;
+}
+
+/** 客户端搜索（在索引中做字符串匹配） */
+function searchLocal(index: SearchIndexItem[], query: string): SearchResult[] {
+  const q = query.toLowerCase().trim();
+  if (!q) return [];
+
+  return index
+    .map((item) => {
+      const score = calcRelevance(item, q);
+      if (score === 0) return null;
+
+      // 生成匹配预览：从描述或内容中提取包含查询词的片段
+      let matchPreview = '';
+      const desc = item.description;
+      const content = item.content;
+      const lowerDesc = desc.toLowerCase();
+      const lowerContent = content.toLowerCase();
+      const idx = lowerDesc.indexOf(q);
+      if (idx >= 0) {
+        const start = Math.max(0, idx - 30);
+        const end = Math.min(desc.length, idx + q.length + 60);
+        matchPreview = (start > 0 ? '...' : '') + desc.slice(start, end) + (end < desc.length ? '...' : '');
+      } else {
+        const cIdx = lowerContent.indexOf(q);
+        if (cIdx >= 0) {
+          const start = Math.max(0, cIdx - 30);
+          const end = Math.min(content.length, cIdx + q.length + 60);
+          matchPreview = (start > 0 ? '...' : '') + content.slice(start, end) + (end < content.length ? '...' : '');
+        }
+      }
+
+      return {
+        id: item.slug,
+        type: 'post' as const,
+        slug: item.slug,
+        title: item.title,
+        description: item.description,
+        tags: item.tags,
+        matchPreview,
+        score,
+      };
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== null)
+    .sort((a, b) => b.score - a.score);
+}
+
 export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -93,8 +195,8 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
     }
   }, [open]);
 
-  // ── 防抖搜索（AbortController 防止旧请求覆盖新结果） ──
-  const performSearch = useCallback(async (q: string, signal?: AbortSignal) => {
+  // ── 防抖客户端搜索 ──
+  const performSearch = useCallback(async (q: string) => {
     const trimmed = q.trim();
     if (!trimmed) {
       setResults([]);
@@ -109,28 +211,23 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
     setSelectedIndex(-1);
 
     try {
-      const res = await fetch(
-        `/api/search?q=${encodeURIComponent(trimmed)}`,
-        { signal },
-      );
-      if (res.ok) {
-        const data: SearchResponse = await res.json();
-        setResults(data.results ?? []);
-        setGroups(data.groups ?? []);
+      const index = await loadSearchIndex();
+      const matched = searchLocal(index, trimmed);
+
+      setResults(matched);
+
+      // 按类型分组（当前只有 post 类型）
+      if (matched.length > 0) {
+        setGroups([{ type: 'post', label: '文章', results: matched }]);
       } else {
-        setResults([]);
         setGroups([]);
-        showError(`搜索请求失败（HTTP ${res.status}）`);
       }
     } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') return;
       setResults([]);
       setGroups([]);
-      showError(`搜索出错：${err instanceof Error ? err.message : '网络异常'}`);
+      showError(`搜索索引加载失败：${err instanceof Error ? err.message : '网络异常'}`);
     } finally {
-      if (!signal?.aborted) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   }, []);
 
@@ -139,17 +236,14 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
       clearTimeout(debounceRef.current);
     }
 
-    const controller = new AbortController();
-
     debounceRef.current = setTimeout(() => {
-      void performSearch(query, controller.signal);
+      void performSearch(query);
     }, SEARCH_DEBOUNCE_MS);
 
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
-      controller.abort();
     };
   }, [query, performSearch]);
 
@@ -171,7 +265,6 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
         return;
       }
 
-      // 仅在有搜索结果时处理方向键
       if (flatResults.length === 0) return;
 
       if (e.key === 'ArrowDown') {
