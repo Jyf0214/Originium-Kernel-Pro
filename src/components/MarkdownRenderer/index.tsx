@@ -12,7 +12,6 @@ import { remarkFootnotes } from './remark-footnotes';
 import { Lightbox } from '@/components/ui/LightboxDynamic';
 import { LazyImage } from '@/components/ui/LazyImage';
 import type { MarkdownRendererProps, WikiLinkMap } from './types';
-import type { Pluggable } from 'unified';
 
 /** 模块级插件数组，避免每次渲染创建新数组 */
 const remarkPlugins = [remarkGfm, remarkMath, remarkFootnotes];
@@ -45,7 +44,7 @@ interface LightboxState {
 }
 
 export function MarkdownRenderer({ content, highlight, wikiLinkMap, watermark }: MarkdownRendererProps) {
-  const { cfg, rehypePlugin } = useMarkdownConfig(highlight);
+  const { cfg, highlighter } = useMarkdownConfig(highlight);
   const [lightbox, setLightbox] = useState<LightboxState>({
     open: false,
     images: [],
@@ -59,19 +58,13 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap, watermark }:
   // 每次渲染时重置，img 组件按顺序 push 构建完整数组
   const imagesRef = useRef<string[]>([]);
 
-  const components = useMemo(() => buildComponents(cfg), [cfg]);
+  const components = useMemo(() => buildComponents(cfg, highlighter), [cfg, highlighter]);
 
   // 预处理 wiki-link：[[标题]] → [标题](url)
   const processedContent = useMemo(
     () => preprocessWikiLinks(content, wikiLinkMap),
     [content, wikiLinkMap],
   );
-
-  // 合并 rehype 插件列表
-  const allRehypePlugins = useMemo(
-    () => [...rehypePlugins, ...(rehypePlugin ?? [])],
-    [rehypePlugin],
-  ) as Pluggable[];
 
   // 覆盖 img 组件，收集图片并处理点击，使用 LazyImage 懒加载
   const imgComponent = useCallback((props: Record<string, unknown>) => {
@@ -122,7 +115,7 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap, watermark }:
     ">
       <ReactMarkdown
         remarkPlugins={remarkPlugins}
-        rehypePlugins={allRehypePlugins}
+        rehypePlugins={rehypePlugins}
         components={{ ...components, img: imgComponent as never }}
       >
         {processedContent}

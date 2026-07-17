@@ -1,18 +1,10 @@
 'use client';
 
-import React, { useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Copy, Check, ChevronDown, ChevronUp, WrapText } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { Tag } from '@/components/ui/Tag';
-import type { HighlightConfig } from './types';
-import { extractTextContent } from './utils';
-
-/** 从 rehype-pretty-code 生成的 figure+pre 元素中提取纯文本代码 */
-function getCodeText(pre: React.ReactElement): string {
-  const props = pre.props as Record<string, unknown> | undefined;
-  const children = props?.children as React.ReactNode;
-  return extractTextContent(children).replace(/\n$/, '');
-}
+import type { HighlightConfig, HighlighterInstance } from './types';
 
 function CodeToolbar({
   language,
@@ -42,7 +34,7 @@ function CodeToolbar({
   return (
     <div className="flex items-center justify-between px-4 py-1.5 bg-zinc-800 rounded-t-2xl border-b border-zinc-700">
       <div className="flex items-center gap-2">
-        {cfg.lang && language && (
+        {cfg.lang && (
           <Tag size="xs" variant="dark">
             {language}
           </Tag>
@@ -96,60 +88,37 @@ function CodeToolbar({
   );
 }
 
-/**
- * 代码块组件 — 包装 rehype-pretty-code 生成的高亮 HTML，添加交互工具栏。
- * 接收 figure 内的 pre 元素（已含 Shiki 高亮 HTML），提取语言和文本用于工具栏功能，
- * 保留原始高亮 HTML 用于显示。
- */
-export function CodeBlock({
+function HighlightedCodeBlock({
   children,
+  language,
+  highlighter,
   cfg,
+  collapsed,
+  wrap,
+  copied,
+  copyError,
+  exceedsLimit,
+  onCopy,
+  onToggleCollapse,
+  onToggleWrap,
 }: {
-  children: ReactNode;
+  children: string;
+  language: string;
+  highlighter: HighlighterInstance;
   cfg: HighlightConfig;
+  collapsed: boolean;
+  wrap: boolean;
+  copied: boolean;
+  copyError: boolean;
+  exceedsLimit: boolean;
+  onCopy: () => void;
+  onToggleCollapse: () => void;
+  onToggleWrap: () => void;
 }) {
-  const [copied, setCopied] = useState(false);
-  const [copyError, setCopyError] = useState(false);
-  const [collapsed, setCollapsed] = useState(cfg.shrink);
-  const [wrap, setWrap] = useState(cfg.wordWrap);
-  const copiedTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const errorTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  useEffect(() => {
-    return () => {
-      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
-      if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
-    };
-  }, []);
-
-  // 从 rehype-pretty-code 生成的 pre 元素提取信息
-  const preElement = children as React.ReactElement;
-  const preProps = preElement.props as Record<string, unknown> | undefined;
-  const language = (preProps?.['data-language'] as string) ?? '';
-  const codeText = getCodeText(preElement);
-
-  const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(codeText).then(() => {
-      setCopied(true);
-      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
-      copiedTimerRef.current = setTimeout(() => setCopied(false), 2000);
-    }).catch(() => {
-      setCopyError(true);
-      if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
-      errorTimerRef.current = setTimeout(() => setCopyError(false), 2000);
-    });
-  }, [codeText]);
-
-  const exceedsLimit = cfg.heightLimit > 0 && codeText.length > cfg.heightLimit;
-
-  // 使用 cloneElement 保留 rehype-pretty-code 在 pre 上设置的全部属性
-  // （style 含 Shiki 背景色，data-language/data-theme 含元数据）
-  const wrappedPre = React.cloneElement(preElement as React.ReactElement<Record<string, unknown>>, {
-    className: `${wrap ? '' : 'overflow-x-auto'} ${collapsed ? 'max-h-40 overflow-hidden' : ''} rounded-b-2xl border border-zinc-800 border-t-0`,
-  });
+  const lineCount = cfg.lineNumbers ? children.replace(/\n$/, '').split('\n').length : 0;
 
   return (
-    <div className="relative group my-8">
+    <div className={`relative group my-8 ${collapsed ? 'max-h-40 overflow-hidden' : ''}`}>
       <CodeToolbar
         language={language}
         cfg={cfg}
@@ -159,19 +128,88 @@ export function CodeBlock({
         wrap={wrap}
         exceedsLimit={exceedsLimit}
         showWrap
-        onCopy={handleCopy}
-        onToggleCollapse={() => setCollapsed(!collapsed)}
-        onToggleWrap={() => setWrap(!wrap)}
+        onCopy={onCopy}
+        onToggleCollapse={onToggleCollapse}
+        onToggleWrap={onToggleWrap}
       />
-      {wrappedPre}
+      <div className={`${wrap ? '' : 'overflow-x-auto'} rounded-b-2xl border border-zinc-800 border-t-0 flex`}>
+        {cfg.lineNumbers && (
+          <div className="shrink-0 select-none py-4 pl-4 pr-2 text-right text-xs leading-[1.6] text-zinc-600 border-r border-zinc-700/50">
+            {Array.from({ length: lineCount }, (_, i) => (
+              <div key={i}>{i + 1}</div>
+            ))}
+          </div>
+        )}
+        <highlighter.Component
+          style={highlighter.style}
+          language={language}
+          PreTag="div"
+          className={`!p-4 !m-0 !bg-transparent ${cfg.lineNumbers ? '!flex-1 !min-w-0' : ''}`}
+          {...(wrap ? { wrapLines: true, lineProps: { style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' } } } : {})}
+        >
+          {children.replace(/\n$/, '')}
+        </highlighter.Component>
+      </div>
     </div>
   );
 }
 
-/**
- * 无语法高亮的代码块 — 含一键复制按钮，用于无语言标识的代码块。
- * 保留原有视觉样式，与 rehype-pretty-code 高亮块保持一致的圆角和间距。
- */
+function PlainCodeBlock({
+  children,
+  language,
+  cfg,
+  collapsed,
+  copied,
+  copyError,
+  exceedsLimit,
+  onCopy,
+  onToggleCollapse,
+}: {
+  children: string;
+  language: string;
+  cfg: HighlightConfig;
+  collapsed: boolean;
+  copied: boolean;
+  copyError: boolean;
+  exceedsLimit: boolean;
+  onCopy: () => void;
+  onToggleCollapse: () => void;
+}) {
+  const codeText = children.replace(/\n$/, '');
+  const lineCount = cfg.lineNumbers ? codeText.split('\n').length : 0;
+
+  return (
+    <div className={`relative group my-8 ${collapsed ? 'max-h-40 overflow-hidden' : ''}`}>
+      <CodeToolbar
+        language={language}
+        cfg={cfg}
+        copied={copied}
+        copyError={copyError}
+        collapsed={collapsed}
+        wrap={false}
+        exceedsLimit={exceedsLimit}
+        showWrap={false}
+        onCopy={onCopy}
+        onToggleCollapse={onToggleCollapse}
+        onToggleWrap={() => undefined}
+      />
+      <div className="bg-zinc-900 rounded-b-2xl border border-zinc-800 border-t-0 overflow-x-auto flex">
+        {cfg.lineNumbers && (
+          <div className="shrink-0 select-none py-4 pl-4 pr-2 text-right text-xs leading-[1.6] text-zinc-600 border-r border-zinc-700/50">
+            {Array.from({ length: lineCount }, (_, i) => (
+              <div key={i}>{i + 1}</div>
+            ))}
+          </div>
+        )}
+        <pre className="p-4 text-sm text-zinc-300 m-0 flex-1 min-w-0">
+          <code>{codeText}</code>
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+/** 无语法高亮的代码块——含一键复制按钮（带 ✓ 反馈），用于无语言标识的代码块 */
 export function UnhighlightedCodeBlock({
   lang,
   codeText,
@@ -184,6 +222,7 @@ export function UnhighlightedCodeBlock({
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  // 组件卸载时清理定时器，避免对已卸载组件调用 setState
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -216,5 +255,79 @@ export function UnhighlightedCodeBlock({
         <code>{children}</code>
       </pre>
     </div>
+  );
+}
+
+export function CodeBlock({
+  children,
+  language,
+  highlighter,
+  cfg,
+}: {
+  children: string;
+  language: string;
+  highlighter: HighlighterInstance | null;
+  cfg: HighlightConfig;
+}) {
+  const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
+  const [collapsed, setCollapsed] = useState(cfg.shrink);
+  const [wrap, setWrap] = useState(cfg.wordWrap);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const errorTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // 组件卸载时清理定时器，避免对已卸载组件调用 setState
+  useEffect(() => {
+    return () => {
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+      if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    };
+  }, []);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(children).then(() => {
+      setCopied(true);
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+      copiedTimerRef.current = setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      setCopyError(true);
+      if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+      errorTimerRef.current = setTimeout(() => setCopyError(false), 2000);
+    });
+  }, [children]);
+
+  const exceedsLimit = cfg.heightLimit > 0 && children.length > cfg.heightLimit;
+
+  if (highlighter) {
+    return (
+      <HighlightedCodeBlock
+        children={children}
+        language={language}
+        highlighter={highlighter}
+        cfg={cfg}
+        collapsed={collapsed}
+        wrap={wrap}
+        copied={copied}
+        copyError={copyError}
+        exceedsLimit={exceedsLimit}
+        onCopy={handleCopy}
+        onToggleCollapse={() => setCollapsed(!collapsed)}
+        onToggleWrap={() => setWrap(!wrap)}
+      />
+    );
+  }
+
+  return (
+    <PlainCodeBlock
+      children={children}
+      language={language}
+      cfg={cfg}
+      collapsed={collapsed}
+      copied={copied}
+      copyError={copyError}
+      exceedsLimit={exceedsLimit}
+      onCopy={handleCopy}
+      onToggleCollapse={() => setCollapsed(!collapsed)}
+    />
   );
 }

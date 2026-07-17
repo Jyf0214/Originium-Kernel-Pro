@@ -93,7 +93,7 @@ const nextConfig: NextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
           { key: 'Content-Security-Policy', value: [
             "default-src 'self'",
-            `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${process.env.NODE_ENV !== 'production' ? " 'unsafe-eval'" : ''} https://giscus.app`,
+            `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV !== 'production' ? " 'unsafe-eval'" : ''} https://giscus.app`,
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data: https: blob:",
             "font-src 'self'",
