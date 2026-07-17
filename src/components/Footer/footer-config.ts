@@ -85,7 +85,7 @@ export function resolveDefaults(config: FooterConfigData | null): ResolvedFooter
     typedText: resolveList(config?.typedText, DEFAULT_FOOTER_TYPED_TEXTS),
     typedTextPrefix: resolveVal(config?.typedTextPrefix, '本站由 '),
     owner: resolveVal(owner, { enable: true, since: 2026 }),
-    author: resolveVal(owner?.author, 'Originium Kernel'),
+    author: resolveVal(owner?.author, 'Jyf0214'),
     customText: resolveVal(config?.customText, ''),
     runtimeEnable: resolveVal(config?.runtime?.enable, false),
     launchTime: resolveVal(config?.runtime?.launchTime, ''),
