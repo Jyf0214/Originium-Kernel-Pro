@@ -4,7 +4,18 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { tooltipVariants, tooltipTransition } from '@/components/ui/motion';
 import { Link, Check } from 'lucide-react';
-import { TwitterIcon, WeiboIcon, QQIcon, WeChatIcon } from '@/components/ui/SocialIcons';
+import {
+  TwitterIcon,
+  FacebookIcon,
+  WeiboIcon,
+  QQIcon,
+  WeChatIcon,
+  TelegramIcon,
+  WhatsAppIcon,
+  RedditIcon,
+  LinkedInIcon,
+  EmailIcon,
+} from '@/components/ui/SocialIcons';
 
 export interface ShareButtonsProps {
   /** 文章标题 */
@@ -38,6 +49,12 @@ function buildPlatforms(title: string, url: string): Record<string, PlatformDef>
       icon: <TwitterIcon size={16} />,
       shareUrl: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
     },
+    facebook: {
+      id: 'facebook',
+      name: 'Facebook',
+      icon: <FacebookIcon size={16} />,
+      shareUrl: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+    },
     weibo: {
       id: 'weibo',
       name: '微博',
@@ -55,6 +72,36 @@ function buildPlatforms(title: string, url: string): Record<string, PlatformDef>
       name: '微信',
       icon: <WeChatIcon size={16} />,
       shareUrl: '',
+    },
+    telegram: {
+      id: 'telegram',
+      name: 'Telegram',
+      icon: <TelegramIcon size={16} />,
+      shareUrl: `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`,
+    },
+    whatsapp: {
+      id: 'whatsapp',
+      name: 'WhatsApp',
+      icon: <WhatsAppIcon size={16} />,
+      shareUrl: `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`,
+    },
+    reddit: {
+      id: 'reddit',
+      name: 'Reddit',
+      icon: <RedditIcon size={16} />,
+      shareUrl: `https://reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`,
+    },
+    linkedin: {
+      id: 'linkedin',
+      name: 'LinkedIn',
+      icon: <LinkedInIcon size={16} />,
+      shareUrl: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+    },
+    email: {
+      id: 'email',
+      name: 'Email',
+      icon: <EmailIcon size={16} />,
+      shareUrl: `mailto:?subject=${encodedTitle}&body=${encodedUrl}`,
     },
   };
 }
@@ -119,7 +166,11 @@ function ShareButtonsInner({ title, url, config, locale: _locale }: ShareButtons
   }, [url, setDelayedReset]);
 
   const handleShare = useCallback((shareUrl: string) => {
-    window.open(shareUrl, '_blank', SHARE_WINDOW_FEATURES);
+    if (shareUrl.startsWith('mailto:')) {
+      window.location.href = shareUrl;
+    } else {
+      window.open(shareUrl, '_blank', SHARE_WINDOW_FEATURES);
+    }
   }, []);
 
   const handleWechatCopy = useCallback(async () => {
@@ -135,7 +186,7 @@ function ShareButtonsInner({ title, url, config, locale: _locale }: ShareButtons
 
   if (!config.enable) return null;
 
-  const sites = config.sites ?? ['twitter', 'weibo', 'qq', 'wechat'];
+  const sites = config.sites ?? ['twitter', 'facebook', 'weibo', 'wechat', 'qq', 'telegram', 'whatsapp', 'reddit', 'linkedin', 'email'];
   const platforms = buildPlatforms(title, url);
   const visiblePlatforms = sites
     .map((s) => platforms[s])
