@@ -24,9 +24,7 @@ article header h1 {
   color: var(--main-tone, #18181b) !important;
 }
 
-.prose h1,
-.prose h2,
-.prose h3 {
+.prose h1 {
   color: var(--main-tone, #18181b);
 }
 
