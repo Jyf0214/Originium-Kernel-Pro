@@ -12,7 +12,7 @@ import { getRelatedPosts } from './_lib/related-posts';
 import { buildTocConfig, computeWordStats } from './_lib/post-page-config';
 import { PostDetailBody } from './_components/PostDetailBody';
 import { PostCoverSection } from './_components/PostCoverSection';
-import { PostSidebar } from './_components/PostSidebar';
+import { PostSidebarTrigger, PostSidebarDesktop } from './_components/PostSidebar';
 import { JsonLd } from '@/components/JsonLd';
 import { PostPageProvider } from '@/contexts/PostPageContext';
 import type { Crumb } from './_components/PostBreadcrumb';
@@ -80,12 +80,18 @@ export default async function PostDetailPage({ params }: PageProps) {
       <main className={`flex-1 max-w-6xl 2xl:max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-16 ${file.meta.cover ? '' : 'pt-8'}`}>
         <div className="lg:flex lg:gap-8 items-start">
           <div className="flex-1 min-w-0">
+            {/* 移动端目录按钮 — 在文章内容之前 */}
+            <PostSidebarTrigger
+              content={file.content}
+              headingCount={viewModel.headingCount}
+              tocConfig={viewModel.tocConfig}
+            />
             <PostPageProvider>
               <PostDetailBody {...viewModel} omitHeader={!!file.meta.cover} />
             </PostPageProvider>
           </div>
           <div className="animate-sidebar-slidein">
-            <PostSidebar
+            <PostSidebarDesktop
               content={file.content}
               headingCount={viewModel.headingCount}
               tocConfig={viewModel.tocConfig}

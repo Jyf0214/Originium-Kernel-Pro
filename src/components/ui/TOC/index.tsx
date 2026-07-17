@@ -9,9 +9,12 @@ import { slugify } from '@/lib/slugify';
 import { Hitokoto } from '@/components/Hitokoto';
 
 export type { TOCConfig, TOCProps, TocHeading, TocNode, TocItemProps } from './toc-types';
+export { TocItem } from './TocItem';
+export { useTocActive } from './use-toc-active';
+export { slugify } from '@/lib/slugify';
 
 // 将扁平的标题列表按 level 构造成嵌套树
-function buildTree(items: TocHeading[]): TocNode[] {
+export function buildTree(items: TocHeading[]): TocNode[] {
   const root: TocNode[] = [];
   const stack: TocNode[] = [];
 
@@ -45,7 +48,7 @@ function buildTree(items: TocHeading[]): TocNode[] {
  * - 滚动时通过 IntersectionObserver 高亮当前标题
  * - 少于 3 个标题时不渲染
  */
-function TOCInner({ content, config, locale }: TOCProps) {
+function TOCInner({ content, config, locale, showMobileUI = true }: TOCProps) {
   const [mobileOpen, setMobileOpen] = useState(config?.expand ?? false);
   const [isShortScreen, setIsShortScreen] = useState(false);
 
@@ -105,33 +108,35 @@ function TOCInner({ content, config, locale }: TOCProps) {
       </nav>
 
       {/* 移动端：折叠面板 */}
-      <div className="lg:hidden fixed bottom-6 right-6 z-50">
-        <details
-          open={mobileOpen}
-          onToggle={(e) => setMobileOpen((e.target as HTMLDetailsElement).open)}
-          className="group"
-        >
-          <summary className="w-12 h-12 bg-white dark:bg-zinc-800 rounded-2xl shadow-lg border border-zinc-100 dark:border-zinc-700 flex items-center justify-center cursor-pointer list-none text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:shadow-xl transition-all">
-            <List size={20} />
-          </summary>
-          <div className={`absolute right-0 w-64 max-h-80 overflow-y-auto bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-zinc-100 dark:border-zinc-700 p-4 ${
-            isShortScreen ? 'top-full' : 'bottom-16'
-          }`}>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-3">
-              {label}
-            </h4>
-            <TocItem
-              items={tree}
-              activeId={activeId}
-              numbering={config?.number}
-              onLinkClick={handleLinkClick}
-            />
-            <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-700">
-              <Hitokoto />
+      {showMobileUI && (
+        <div className="lg:hidden fixed bottom-6 right-6 z-50">
+          <details
+            open={mobileOpen}
+            onToggle={(e) => setMobileOpen((e.target as HTMLDetailsElement).open)}
+            className="group"
+          >
+            <summary className="w-12 h-12 bg-white dark:bg-zinc-800 rounded-2xl shadow-lg border border-zinc-100 dark:border-zinc-700 flex items-center justify-center cursor-pointer list-none text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:shadow-xl transition-all">
+              <List size={20} />
+            </summary>
+            <div className={`absolute right-0 w-64 max-h-80 overflow-y-auto bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-zinc-100 dark:border-zinc-700 p-4 ${
+              isShortScreen ? 'top-full' : 'bottom-16'
+            }`}>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-3">
+                {label}
+              </h4>
+              <TocItem
+                items={tree}
+                activeId={activeId}
+                numbering={config?.number}
+                onLinkClick={handleLinkClick}
+              />
+              <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-700">
+                <Hitokoto />
+              </div>
             </div>
-          </div>
-        </details>
-      </div>
+          </details>
+        </div>
+      )}
     </>
   );
 }
