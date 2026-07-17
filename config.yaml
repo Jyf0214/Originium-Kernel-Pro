@@ -174,7 +174,10 @@ footer:
   links: []
   badges: []
   typedTextPrefix: ''
-  typedText: []
+  typedText:
+    - 用心记录每一天
+    - 文字是最长情的告白
+    - 生活需要仪式感
 music:
   enable: false
   autoPlay: false
