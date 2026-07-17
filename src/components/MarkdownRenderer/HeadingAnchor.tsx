@@ -2,20 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'lucide-react';
 import type { CodeProps } from './types';
 import { slugify } from '@/lib/slugify';
-
-/** 从 React children 中提取纯文本，用于生成标题 id */
-export function extractTextContent(children: React.ReactNode): string {
-  if (typeof children === 'string' || typeof children === 'number') {
-    return String(children);
-  }
-  if (Array.isArray(children)) {
-    return children.map((child) => extractTextContent(child)).join('');
-  }
-  if (React.isValidElement(children)) {
-    return extractTextContent((children.props as { children?: React.ReactNode }).children);
-  }
-  return '';
-}
+import { extractTextContent } from './utils';
 
 /** 创建带锚点 id 的标题组件（h2/h3 额外支持悬停复制链接） */
 export function createHeading(level: 1 | 2 | 3 | 4 | 5 | 6) {
