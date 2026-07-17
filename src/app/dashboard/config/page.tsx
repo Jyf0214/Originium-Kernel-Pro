@@ -63,7 +63,7 @@ export default function ConfigPage() {
     postEdit: { enable: false, github: false },
     share: { sharejs: { enable: true, sites: 'facebook,twitter,wechat,weibo,qq' }, addtoany: { enable: false, item: 'facebook,twitter,wechat,sina_weibo,email,copy_link' } },
     mainTone: { enable: false, mode: 'api' },
-    footer: { owner: { enable: true, since: 2020, author: '' }, customText: '', runtime: { enable: false, launchTime: '04/01/2021 00:00:00' }, socialLinks: [], links: [], badges: [], typedTextPrefix: '', typedText: [] },
+    footer: { owner: { enable: true, since: 2026, author: '' }, customText: '', runtime: { enable: false, launchTime: '04/01/2021 00:00:00' }, socialLinks: [], links: [], badges: [], typedTextPrefix: '', typedText: [] },
     music: { enable: false, autoPlay: false, songs: [] },
   });
   const [loading, setLoading] = useState(true);

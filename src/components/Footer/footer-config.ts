@@ -84,7 +84,7 @@ export function resolveDefaults(config: FooterConfigData | null): ResolvedFooter
     badges: resolveList(config?.badges, DEFAULT_FOOTER_BADGES),
     typedText: resolveList(config?.typedText, DEFAULT_FOOTER_TYPED_TEXTS),
     typedTextPrefix: resolveVal(config?.typedTextPrefix, '本站由 '),
-    owner: resolveVal(owner, { enable: true, since: 2020 }),
+    owner: resolveVal(owner, { enable: true, since: 2026 }),
     author: resolveVal(owner?.author, 'Originium Kernel'),
     customText: resolveVal(config?.customText, ''),
     runtimeEnable: resolveVal(config?.runtime?.enable, false),

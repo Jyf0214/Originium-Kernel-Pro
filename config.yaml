@@ -156,7 +156,7 @@ mainTone:
 footer:
   owner:
     enable: true
-    since: 2020
+    since: 2026
     author: ''
   customText: ''
   runtime:

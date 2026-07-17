@@ -69,8 +69,8 @@ export default function FooterConfig({ config, onChange }: FooterConfigProps) {
         <FormField
           label="起始年份"
           value={String(config.owner.since)}
-          onChange={v => onChange({ ...config, owner: { ...config.owner, since: parseInt(v) || 2020 } })}
-          placeholder="2020"
+          onChange={v => onChange({ ...config, owner: { ...config.owner, since: parseInt(v) || 2026 } })}
+          placeholder="2026"
         />
         <FormField
           label="作者名称"

@@ -313,7 +313,7 @@ export function buildMainToneConfig(data: Record<string, unknown>): ConfigState[
 }
 
 const FOOTER_DEFAULTS = {
-  owner: { enable: false, since: 2020, author: '' },
+  owner: { enable: false, since: 2026, author: '' },
   customText: '',
   runtime: { enable: false, launchTime: '04/01/2021 00:00:00' },
   socialLinks: [] as { name: string; icon: string }[],

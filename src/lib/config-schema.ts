@@ -333,7 +333,7 @@ export const zMainToneConfig = z.object({
 
 export const zFooterOwnerConfig = z.object({
   enable: z.boolean().default(true),
-  since: z.number().int().nonnegative().default(2020),
+  since: z.number().int().nonnegative().default(2026),
   author: z.string().optional(),
 });
 
