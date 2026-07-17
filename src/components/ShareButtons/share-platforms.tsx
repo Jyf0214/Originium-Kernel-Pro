@@ -7,6 +7,10 @@ import {
   WeChatIcon,
   QQIcon,
   TelegramIcon,
+  WhatsAppIcon,
+  RedditIcon,
+  LinkedInIcon,
+  EmailIcon,
 } from '@/components/ui/SocialIcons';
 
 /* ============================================================
@@ -69,6 +73,42 @@ function buildPlatforms(): Record<string, PlatformDef> {
       shareUrl: (url, title) =>
         `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
     },
+    whatsapp: {
+      id: 'whatsapp',
+      name: 'WhatsApp',
+      color: '#25D366',
+      hoverColor: '#128C7E',
+      icon: <WhatsAppIcon size={20} />,
+      shareUrl: (url, title) =>
+        `https://api.whatsapp.com/send?text=${encodeURIComponent(title + ' ' + url)}`,
+    },
+    reddit: {
+      id: 'reddit',
+      name: 'Reddit',
+      color: '#FF4500',
+      hoverColor: '#CC3700',
+      icon: <RedditIcon size={20} />,
+      shareUrl: (url, title) =>
+        `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`,
+    },
+    linkedin: {
+      id: 'linkedin',
+      name: 'LinkedIn',
+      color: '#0A66C2',
+      hoverColor: '#004182',
+      icon: <LinkedInIcon size={20} />,
+      shareUrl: (url) =>
+        `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+    },
+    email: {
+      id: 'email',
+      name: 'Email',
+      color: '#EA4335',
+      hoverColor: '#D33426',
+      icon: <EmailIcon size={20} />,
+      shareUrl: (url, title) =>
+        `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`,
+    },
   };
 }
 
@@ -84,7 +124,7 @@ function getPlatforms(): Record<string, PlatformDef> {
    ============================================================ */
 
 function parsePlatformsFromConfig(config?: ShareConfig): string[] {
-  if (!config) return ['twitter', 'facebook', 'weibo', 'wechat', 'qq', 'telegram'];
+  if (!config) return ['twitter', 'facebook', 'weibo', 'wechat', 'qq', 'telegram', 'whatsapp', 'reddit', 'linkedin', 'email'];
 
   if (config.sharejs?.enable && config.sharejs.sites) {
     return config.sharejs.sites.split(',').map(s => s.trim()).filter(Boolean);
@@ -99,13 +139,16 @@ function parsePlatformsFromConfig(config?: ShareConfig): string[] {
       wechat: 'wechat',
       qq: 'qq',
       telegram: 'telegram',
-      copy_link: 'copy',
+      whatsapp: 'whatsapp',
+      reddit: 'reddit',
+      linkedin: 'linkedin',
       email: 'email',
+      copy_link: 'copy',
     };
     return config.addtoany.item.split(',').map(s => mapping[s.trim()] ?? s.trim()).filter(Boolean);
   }
 
-  return ['twitter', 'facebook', 'weibo', 'wechat', 'qq', 'telegram'];
+  return ['twitter', 'facebook', 'weibo', 'wechat', 'qq', 'telegram', 'whatsapp', 'reddit', 'linkedin', 'email'];
 }
 
 /* ============================================================

@@ -157,7 +157,7 @@ postEdit:
 share:
   sharejs:
     enable: true
-    sites: facebook,twitter,wechat,weibo,qq
+    sites: facebook,twitter,wechat,weibo,qq,telegram,whatsapp,reddit,linkedin,email
   addtoany:
     enable: false
     item: facebook,twitter,wechat,sina_weibo,email,copy_link
