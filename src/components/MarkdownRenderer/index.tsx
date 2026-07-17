@@ -100,13 +100,10 @@ export function MarkdownRenderer({ content, highlight, wikiLinkMap, watermark }:
 
   return (
     <div className="markdown-content prose prose-zinc dark:prose-invert max-w-none overflow-x-auto
-      prose-headings:tracking-tight
-      prose-h1:text-4xl prose-h1:font-black prose-h1:mb-8 prose-h1:mt-16
-      prose-h2:text-[1.5rem] prose-h2:font-bold prose-h2:mb-6 prose-h2:mt-14 prose-h2:pb-3 prose-h2:border-b prose-h2:border-zinc-200 dark:prose-h2:border-zinc-700 prose-h2:text-zinc-900 dark:prose-h2:text-zinc-100
-      prose-h3:text-[1.2rem] prose-h3:font-semibold prose-h3:mb-4 prose-h3:mt-10 prose-h3:pl-3 prose-h3:border-l-[3px] prose-h3:border-zinc-900 dark:prose-h3:border-zinc-300 prose-h3:text-zinc-800 dark:prose-h3:text-zinc-200
-      prose-h4:text-[1rem] prose-h4:font-medium prose-h4:mb-3 prose-h4:mt-8 prose-h4:text-zinc-600 dark:prose-h4:text-zinc-400
-      prose-h5:text-[0.9rem] prose-h5:font-medium prose-h5:mb-2 prose-h5:mt-6 prose-h5:text-zinc-500 dark:prose-h5:text-zinc-400
-      prose-h6:text-sm prose-h6:font-medium prose-h6:mb-2 prose-h6:mt-6 prose-h6:text-zinc-400 dark:prose-h6:text-zinc-500
+      prose-headings:tracking-tight prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100
+      prose-h2:mt-14 prose-h2:mb-6 prose-h2:pb-3 prose-h2:border-b prose-h2:border-zinc-200 dark:prose-h2:border-zinc-700
+      prose-h3:mt-10 prose-h3:mb-4 prose-h3:pl-3 prose-h3:border-l-[3px] prose-h3:border-zinc-900 dark:prose-h3:border-zinc-300
+      prose-h4:mt-8 prose-h4:mb-3 prose-h4:text-zinc-600 dark:prose-h4:text-zinc-400
       prose-p:leading-[1.7] prose-p:text-[15px]
       prose-a:font-semibold prose-a:underline prose-a:decoration-zinc-300 dark:prose-a:decoration-zinc-600 prose-a:underline-offset-2 hover:prose-a:decoration-zinc-900 dark:hover:prose-a:decoration-zinc-300
       prose-strong:font-bold
