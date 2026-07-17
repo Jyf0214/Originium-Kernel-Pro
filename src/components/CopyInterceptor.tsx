@@ -12,6 +12,21 @@ interface CopyInterceptorProps {
   authorInfo?: AuthorInfo | null;
 }
 
+function buildCopyrightText(copyrightCfg: { license?: string; licenseUrl?: string; copyTemplate?: { authorLine: string; licensePrefix: string; sourcePrefix: string } }, location?: string): string {
+  const template = copyrightCfg.copyTemplate;
+  let text = `\n\n---\n${template?.authorLine ?? '本文著作权归作者所有'}`;
+  if (copyrightCfg.license) {
+    text += `\n${template?.licensePrefix ?? '许可协议: '}${copyrightCfg.license}`;
+    if (copyrightCfg.licenseUrl) {
+      text += ` (${copyrightCfg.licenseUrl})`;
+    }
+  }
+  if (location) {
+    text += `\n${template?.sourcePrefix ?? '来源: '}${location}`;
+  }
+  return text;
+}
+
 export default function CopyInterceptor({ articleRef, authorName, authorInfo }: CopyInterceptorProps) {
   const { config } = useConfig();
   const cfg = config?.copy;
@@ -34,18 +49,7 @@ export default function CopyInterceptor({ articleRef, authorName, authorInfo }: 
       message.info('已复制到剪贴板');
 
       if (cfg.copyright?.enable && selectedText.length >= limit && copyrightCfg) {
-        let copyrightText = `\n\n---\n本文著作权归作者所有`;
-        if (copyrightCfg.license) {
-          copyrightText += `\n许可协议: ${copyrightCfg.license}`;
-          if (copyrightCfg.licenseUrl) {
-            copyrightText += ` (${copyrightCfg.licenseUrl})`;
-          }
-        }
-        if (location) {
-          copyrightText += `\n来源: ${location}`;
-        }
-
-        e.clipboardData?.setData('text/plain', selectedText + copyrightText);
+        e.clipboardData?.setData('text/plain', selectedText + buildCopyrightText(copyrightCfg, location));
         e.preventDefault();
       }
     };

@@ -21,6 +21,8 @@ function toFooterConfigData(appConfig: AppConfig): FooterConfigData | undefined 
     badges: footer.badges,
     typedTextPrefix: footer.typedTextPrefix,
     typedText: footer.typedText,
+    typedTextSpeed: footer.typedTextSpeed,
+    scrollToTopText: footer.scrollToTopText,
   };
 }
 
@@ -40,6 +42,7 @@ export default async function FooterWrapper() {
   const appConfig = await loadConfig();
   const staticConfig = toFooterConfigData(appConfig);
   const staticSocial = extractSocialData(appConfig);
+  const copyrightConfig = appConfig.copyright ? { license: appConfig.copyright.license, licenseUrl: appConfig.copyright.licenseUrl } : undefined;
 
-  return <Footer staticConfig={staticConfig} staticSocial={staticSocial} />;
+  return <Footer staticConfig={staticConfig} staticSocial={staticSocial} copyrightConfig={copyrightConfig} />;
 }

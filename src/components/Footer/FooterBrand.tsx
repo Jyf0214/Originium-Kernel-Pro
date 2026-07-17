@@ -11,16 +11,22 @@ import { Tag } from '@/components/ui/Tag';
 export interface FooterRuntimeStatusProps {
   launchTime: string;
   enable: boolean;
+  timeFormat?: string;
+  onlineHours?: { start: number; end: number };
+  statusText?: { online: string; offline: string };
 }
 
 /**
- * 运行时状态：每秒刷新运行时间，并根据本地小时数（9-18）显示在线/休息中标签。
+ * 运行时状态：每秒刷新运行时间，并根据本地小时数显示在线/休息中标签。
  * 用 React.memo 包裹，防止父组件重渲染时连带重渲染此组件
  * （内部有每秒 setInterval 触发 setState）。
  */
 export const FooterRuntimeStatus = React.memo(function FooterRuntimeStatus({
   launchTime,
   enable,
+  timeFormat = '本站已运行 {days} 天 {hours} 小时 {minutes} 分 {seconds} 秒',
+  onlineHours = { start: 9, end: 18 },
+  statusText = { online: '在线', offline: '休息中' },
 }: FooterRuntimeStatusProps) {
   const [text, setText] = useState('');
   const [isOnline, setIsOnline] = useState(true);
@@ -37,10 +43,16 @@ export const FooterRuntimeStatus = React.memo(function FooterRuntimeStatus({
       const hours = Math.floor((diff % 86400000) / 3600000);
       const minutes = Math.floor((diff % 3600000) / 60000);
       const seconds = Math.floor((diff % 60000) / 1000);
-      setText(`本站已运行 ${days} 天 ${hours} 小时 ${minutes} 分 ${seconds} 秒`);
+      setText(
+        timeFormat
+          .replace('{days}', String(days))
+          .replace('{hours}', String(hours))
+          .replace('{minutes}', String(minutes))
+          .replace('{seconds}', String(seconds)),
+      );
 
       const hour = now.getHours();
-      setIsOnline(hour >= 9 && hour < 18);
+      setIsOnline(hour >= onlineHours.start && hour < onlineHours.end);
     };
 
     update();
@@ -61,7 +73,7 @@ export const FooterRuntimeStatus = React.memo(function FooterRuntimeStatus({
       clearInterval(timer);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [enable, launchTime]);
+  }, [enable, launchTime, timeFormat, onlineHours]);
 
   if (!text) return null;
 
@@ -74,7 +86,7 @@ export const FooterRuntimeStatus = React.memo(function FooterRuntimeStatus({
         size="sm"
         className={isOnline ? 'bg-green-100 text-green-700 border-green-200' : ''}
       >
-        {isOnline ? '在线' : '休息中'}
+        {isOnline ? statusText.online : statusText.offline}
       </Tag>
     </div>
   );
