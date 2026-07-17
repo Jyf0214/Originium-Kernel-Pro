@@ -43,7 +43,7 @@ export const Pagination = memo(function Pagination({
           size="sm"
           autoLoading={false}
           iconOnly
-          className={page === currentPage ? 'shadow-lg shadow-zinc-900/20' : 'border border-zinc-200'}
+          className={page === currentPage ? 'shadow-sm shadow-zinc-900/10' : 'border border-zinc-200'}
           onClick={() => onPageChange(page)}
         >
           {page}
