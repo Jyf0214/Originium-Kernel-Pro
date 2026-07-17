@@ -11,12 +11,13 @@ import { ArrowUp } from 'lucide-react';
 interface TypedTextProps {
   prefix?: string;
   texts: string[];
+  speed?: { type: number; delete: number; pause: number };
 }
 
 /**
  * 打字机效果：逐字显示 / 删除，并在 texts 之间循环。
  */
-function TypedText({ prefix, texts }: TypedTextProps) {
+function TypedText({ prefix, texts, speed }: TypedTextProps) {
   const [displayed, setDisplayed] = useState('');
   const [textIndex, setTextIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
@@ -28,6 +29,10 @@ function TypedText({ prefix, texts }: TypedTextProps) {
     const currentText = texts[textIndex];
     if (!currentText) return;
 
+    const typeSpeed = speed?.type ?? 100;
+    const deleteSpeed = speed?.delete ?? 50;
+    const pauseTime = speed?.pause ?? 2000;
+
     const timeout = setTimeout(
       () => {
         if (!isDeleting) {
@@ -35,8 +40,8 @@ function TypedText({ prefix, texts }: TypedTextProps) {
             setDisplayed(currentText.slice(0, charIndex + 1));
             setCharIndex((prev) => prev + 1);
           } else {
-            // 完整显示后停顿 2 秒开始删除
-            const pause = setTimeout(() => setIsDeleting(true), 2000);
+            // 完整显示后停顿后开始删除
+            const pause = setTimeout(() => setIsDeleting(true), pauseTime);
             currentPauseRef.current = pause;
           }
         } else {
@@ -49,7 +54,7 @@ function TypedText({ prefix, texts }: TypedTextProps) {
           }
         }
       },
-      isDeleting ? 50 : 100,
+      isDeleting ? deleteSpeed : typeSpeed,
     );
 
     return () => {
@@ -59,6 +64,7 @@ function TypedText({ prefix, texts }: TypedTextProps) {
         currentPauseRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [charIndex, isDeleting, textIndex, texts]);
 
   if (!texts.length) return null;
@@ -80,6 +86,10 @@ export interface FooterBarProps {
   customText: string;
   typedTextPrefix?: string;
   typedText?: string[];
+  typedTextSpeed?: { type: number; delete: number; pause: number };
+  scrollToTopText?: string;
+  license?: string;
+  licenseUrl?: string;
 }
 
 /**
@@ -91,6 +101,10 @@ export function FooterBar({
   customText,
   typedTextPrefix,
   typedText,
+  typedTextSpeed,
+  scrollToTopText,
+  license,
+  licenseUrl,
 }: FooterBarProps) {
   const year = new Date().getFullYear();
 
@@ -109,28 +123,28 @@ export function FooterBar({
             </span>
           )}
           <a
-            href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+            href={licenseUrl ?? 'https://creativecommons.org/licenses/by-nc-sa/4.0/'}
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-zinc-900 transition-colors duration-300 text-xs shrink-0"
-            title="CC BY-NC-SA 4.0"
+            title={license ?? 'CC BY-NC-SA 4.0'}
           >
-            CC BY-NC-SA 4.0
+            {license ?? 'CC BY-NC-SA 4.0'}
           </a>
         </div>
 
         {/* 右侧：打字机 + 自定义文字 + 回到顶部 */}
         <div className="text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-4 min-w-0 overflow-hidden">
           {typedText && typedText.length > 0 && (
-            <TypedText prefix={typedTextPrefix} texts={typedText} />
+            <TypedText prefix={typedTextPrefix} texts={typedText} speed={typedTextSpeed} />
           )}
           {customText && <span>{customText}</span>}
           <button
             type="button"
             onClick={handleScrollTop}
             className="shrink-0 w-7 h-7 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-600 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-            title="回到顶部"
-            aria-label="回到顶部"
+            title={scrollToTopText ?? '回到顶部'}
+            aria-label={scrollToTopText ?? '回到顶部'}
           >
             <ArrowUp size={14} />
           </button>

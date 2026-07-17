@@ -131,6 +131,17 @@ copyright:
   license: CC BY-NC-SA 4.0
   licenseUrl: https://creativecommons.org/licenses/by-nc-sa/4.0/
   authorLink: /
+  labels:
+    authorSection: 本文作者
+    authorPrefix: '作者: '
+    sourcePrefix: '来源: '
+    licensePrefix: '许可: '
+    original: 原创
+    reprint: 转载
+  copyTemplate:
+    authorLine: 本文著作权归作者所有
+    licensePrefix: '许可协议: '
+    sourcePrefix: '来源: '
 reward:
   enable: true
   qrCodes:
@@ -162,6 +173,13 @@ footer:
   runtime:
     enable: false
     launchTime: 04/01/2021 00:00:00
+    timeFormat: '本站已运行 {days} 天 {hours} 小时 {minutes} 分 {seconds} 秒'
+    onlineHours:
+      start: 9
+      end: 18
+    statusText:
+      online: 在线
+      offline: 休息中
   socialLinks:
     - name: Github
       icon: Github
@@ -178,6 +196,11 @@ footer:
     - 用心记录每一天
     - 文字是最长情的告白
     - 生活需要仪式感
+  typedTextSpeed:
+    type: 100
+    delete: 50
+    pause: 2000
+  scrollToTopText: 回到顶部
 music:
   enable: false
   autoPlay: false

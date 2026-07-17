@@ -32,6 +32,9 @@ interface FooterOwnerConfig {
 interface FooterRuntimeConfig {
   enable: boolean;
   launchTime: string;
+  timeFormat?: string;
+  onlineHours?: { start: number; end: number };
+  statusText?: { online: string; offline: string };
 }
 
 interface FooterConfigData {
@@ -43,6 +46,8 @@ interface FooterConfigData {
   badges?: BadgeItem[];
   typedTextPrefix?: string;
   typedText?: string[];
+  typedTextSpeed?: { type: number; delete: number; pause: number };
+  scrollToTopText?: string;
 }
 
 interface FooterConfigProps {
@@ -310,6 +315,37 @@ export default function FooterConfig({ config, onChange }: FooterConfigProps) {
           type="textarea"
           rows={4}
           placeholder={'ZhouZBoss\n欢迎来访'}
+        />
+        <div className="grid grid-cols-3 gap-3">
+          <FormField
+            label="打字速度 (ms)"
+            value={String(config.typedTextSpeed?.type ?? 100)}
+            onChange={v => onChange({ ...config, typedTextSpeed: { ...config.typedTextSpeed, type: parseInt(v) || 100, delete: config.typedTextSpeed?.delete ?? 50, pause: config.typedTextSpeed?.pause ?? 2000 } })}
+            placeholder="100"
+          />
+          <FormField
+            label="删除速度 (ms)"
+            value={String(config.typedTextSpeed?.delete ?? 50)}
+            onChange={v => onChange({ ...config, typedTextSpeed: { ...config.typedTextSpeed, type: config.typedTextSpeed?.type ?? 100, delete: parseInt(v) || 50, pause: config.typedTextSpeed?.pause ?? 2000 } })}
+            placeholder="50"
+          />
+          <FormField
+            label="停顿时间 (ms)"
+            value={String(config.typedTextSpeed?.pause ?? 2000)}
+            onChange={v => onChange({ ...config, typedTextSpeed: { ...config.typedTextSpeed, type: config.typedTextSpeed?.type ?? 100, delete: config.typedTextSpeed?.delete ?? 50, pause: parseInt(v) || 2000 } })}
+            placeholder="2000"
+          />
+        </div>
+      </div>
+
+      {/* 回到顶部 */}
+      <div className="border-t border-zinc-100 pt-4 space-y-4">
+        <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">其他</h3>
+        <FormField
+          label="回到顶部按钮提示"
+          value={config.scrollToTopText ?? '回到顶部'}
+          onChange={v => onChange({ ...config, scrollToTopText: v })}
+          placeholder="回到顶部"
         />
       </div>
     </div>

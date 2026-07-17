@@ -12,6 +12,9 @@ export interface FooterOwnerConfig {
 export interface FooterRuntimeConfig {
   enable: boolean;
   launchTime: string;
+  timeFormat?: string;
+  onlineHours?: { start: number; end: number };
+  statusText?: { online: string; offline: string };
 }
 
 /** 社交链接条目（来自配置） */
@@ -49,6 +52,8 @@ export interface FooterConfigData {
   badges?: FooterBadge[];
   typedTextPrefix?: string;
   typedText?: string[];
+  typedTextSpeed?: { type: number; delete: number; pause: number };
+  scrollToTopText?: string;
 }
 
 /** 解析后的社交条目（name + url + icon 名称） */

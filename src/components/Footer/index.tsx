@@ -25,9 +25,10 @@ const footerSectionVariants = {
 interface FooterProps {
   staticConfig?: FooterConfigData;
   staticSocial?: Record<string, string>;
+  copyrightConfig?: { license?: string; licenseUrl?: string };
 }
 
-export default function Footer({ staticConfig, staticSocial }: FooterProps) {
+export default function Footer({ staticConfig, staticSocial, copyrightConfig }: FooterProps) {
   const { config, error } = useFooterConfig(staticConfig, staticSocial);
 
   // 解析后的最终值
@@ -36,11 +37,16 @@ export default function Footer({ staticConfig, staticSocial }: FooterProps) {
     badges,
     typedText,
     typedTextPrefix,
+    typedTextSpeed,
+    scrollToTopText,
     owner,
     author,
     customText,
     runtimeEnable,
     launchTime,
+    timeFormat,
+    onlineHours,
+    statusText,
   } = resolveDefaults(config);
 
   return (
@@ -79,7 +85,13 @@ export default function Footer({ staticConfig, staticSocial }: FooterProps) {
           viewport={{ once: true, margin: '-60px' }}
           className="hidden md:block"
         >
-          <FooterRuntimeStatus launchTime={launchTime} enable={runtimeEnable} />
+          <FooterRuntimeStatus
+            launchTime={launchTime}
+            enable={runtimeEnable}
+            timeFormat={timeFormat}
+            onlineHours={onlineHours}
+            statusText={statusText}
+          />
         </motion.div>
 
         {/* 间隔（仅桌面端） */}
@@ -93,6 +105,10 @@ export default function Footer({ staticConfig, staticSocial }: FooterProps) {
         customText={customText}
         typedTextPrefix={typedTextPrefix}
         typedText={typedText}
+        typedTextSpeed={typedTextSpeed}
+        scrollToTopText={scrollToTopText}
+        license={copyrightConfig?.license}
+        licenseUrl={copyrightConfig?.licenseUrl}
       />
 
       {/* 错误提示：仅在完全无法加载配置时显示 */}
