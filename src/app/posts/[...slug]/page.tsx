@@ -10,6 +10,7 @@ import { getSiteUrl } from '@/const/url';
 import { isPrivateSlug } from './_lib/post-utils';
 import { getRelatedPosts } from './_lib/related-posts';
 import { buildTocConfig, computeWordStats } from './_lib/post-page-config';
+import { renderMarkdownToHtml } from '@/lib/markdown-render';
 import { PostDetailBody } from './_components/PostDetailBody';
 import { PostCoverSection } from './_components/PostCoverSection';
 import { PostSidebarTrigger, PostSidebarDesktop } from './_components/PostSidebar';
@@ -113,6 +114,9 @@ async function buildViewModel(
   const stats = computeWordStats(content);
   const tocConfig = buildTocConfig(appConfig);
   const wikiLinkMap = buildWikiLinkMap();
+
+  // 构建时预渲染 Markdown → HTML（使 curl / AI 爬虫可获取完整正文）
+  const htmlContent = await renderMarkdownToHtml(content, { wikiLinkMap });
   const backlinks = getBacklinks('posts', fullPath);
   const outgoingRefs = getOutgoingReferences('posts', fullPath);
   const authorName = typeof meta.author === 'string' ? meta.author : '';
@@ -161,6 +165,7 @@ async function buildViewModel(
     tocConfig,
     appConfig,
     wikiLinkMap,
+    htmlContent,
     backlinks,
     outgoingRefs,
     authorInfo,
