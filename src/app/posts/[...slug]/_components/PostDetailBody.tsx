@@ -12,7 +12,6 @@ import { ScrollToTop } from '@/components/ui/ScrollToTop';
 import { Tag } from '@/components/ui/Tag';
 import { SeriesNavigation } from '@/components/SeriesNavigation';
 import { PostBreadcrumb, type Crumb } from './PostBreadcrumb';
-import { PostHeader } from './PostHeader';
 import { PostRelated } from './PostRelated';
 import { PostAdjacent } from './PostAdjacent';
 import { PostNavigationShortcuts } from '@/components/PostNavigationShortcuts';
@@ -86,7 +85,6 @@ export function PostDetailBody({
   backlinks,
   outgoingRefs,
   translations,
-  omitHeader,
   authorInfo,
   isEncrypted,
   isHidden,
@@ -109,8 +107,6 @@ export function PostDetailBody({
   backlinks?: BacklinkInfo[];
   outgoingRefs?: RegistryEntry[];
   translations?: Record<string, string>;
-  /** 有封面时跳过 PostHeader（封面已在卡片外单独渲染） */
-  omitHeader?: boolean;
   authorInfo?: AuthorInfo | null;
   /** 文章是否加密（需要密码才能查看内容） */
   isEncrypted?: boolean;
@@ -150,18 +146,6 @@ export function PostDetailBody({
       {/* 文章内容容器 — 卡片样式 */}
       <div className="relative">
       <article className="bg-white dark:bg-zinc-800 rounded-3xl border border-zinc-100 dark:border-zinc-700 p-6 sm:p-8 md:p-10 lg:p-12 animate-card-slidein">
-        {!omitHeader && (
-          <PostHeader
-            type={file.meta.type}
-            tags={file.meta.tags}
-            title={file.meta.title}
-            author={file.meta.author}
-            date={file.meta.date}
-            cover={file.meta.cover}
-            authorInfo={authorInfo}
-          />
-        )}
-
         {/* 隐藏文章标识 — 仅展示标签 */}
         {isHidden && (
           <div className="mb-6">
@@ -206,7 +190,19 @@ export function PostDetailBody({
           ) : (
             <>
               <div
-                className="prose prose-zinc dark:prose-invert max-w-none"
+                className="prose prose-zinc dark:prose-invert max-w-none overflow-x-auto
+                  prose-headings:tracking-tight prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100
+                  prose-h2:mt-14 prose-h2:mb-6 prose-h2:pb-3 prose-h2:border-b prose-h2:border-zinc-200 dark:prose-h2:border-zinc-700
+                  prose-h3:mt-10 prose-h3:mb-4 prose-h3:pl-3 prose-h3:border-l-[3px] prose-h3:border-zinc-900 dark:prose-h3:border-zinc-300
+                  prose-h4:mt-8 prose-h4:mb-3 prose-h4:text-zinc-600 dark:prose-h4:text-zinc-400
+                  prose-p:leading-[1.7] prose-p:text-[15px]
+                  prose-a:font-semibold prose-a:underline prose-a:decoration-zinc-300 dark:prose-a:decoration-zinc-600 prose-a:underline-offset-2 hover:prose-a:decoration-zinc-900 dark:hover:prose-a:decoration-zinc-300
+                  prose-strong:font-bold
+                  prose-code:bg-zinc-100 dark:prose-code:bg-zinc-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-[0.875em] prose-code:font-normal prose-code:before:content-none prose-code:after:content-none
+                  prose-blockquote:border-zinc-900 dark:prose-blockquote:border-zinc-400 prose-blockquote:bg-zinc-50 dark:prose-blockquote:bg-zinc-800 prose-blockquote:rounded-r-2xl prose-blockquote:py-1 prose-blockquote:not-italic
+                  prose-li:text-[15px]
+                  prose-img:rounded-2xl prose-img:border prose-img:border-zinc-100 dark:prose-img:border-zinc-700
+                  prose-hr:border-zinc-100 dark:prose-hr:border-zinc-700 prose-hr:my-12"
                 dangerouslySetInnerHTML={{ __html: htmlContent ?? '' }}
               />
               <ClientEnhancer containerRef={contentRef} />

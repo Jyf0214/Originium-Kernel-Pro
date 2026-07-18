@@ -105,7 +105,7 @@ export function CoverHero({
   dateStr?: string;
   typeStr?: string;
   tagsArr: string[];
-  coverStr: string;
+  coverStr?: string;
   /** 全屏宽模式：去掉负 margin 和圆角，封面撑满视口 */
   fullBleed?: boolean;
   authorInfo?: AuthorInfo | null;
@@ -124,17 +124,24 @@ export function CoverHero({
           willChange: 'transform',
         }}
       >
-        <Image
-          src={coverStr}
-          alt=""
-          fill
-          sizes="100vw"
-          className="absolute inset-0 object-cover scale-110"
-          style={{
-            filter: fullBleed ? 'blur(8px) brightness(0.55)' : 'blur-sm',
-          }}
-          priority
-        />
+        {coverStr ? (
+          <Image
+            src={coverStr}
+            alt=""
+            fill
+            sizes="100vw"
+            className="absolute inset-0 object-cover scale-110"
+            style={{
+              filter: fullBleed ? 'blur(8px) brightness(0.55)' : 'blur-sm',
+            }}
+            priority
+          />
+        ) : (
+          <div
+            className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 scale-110"
+            style={{ filter: 'blur(0px) brightness(0.55)' }}
+          />
+        )}
         {/* 渐变遮罩层 — 从底部到顶部的暗度过渡 */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
         {/* 暗角效果 — 四周渐暗，聚焦中心 */}
@@ -216,80 +223,6 @@ export function CoverHero({
   );
 }
 
-/* ── 简洁头部（无封面） ── */
-
-function SimpleHeader({
-  titleStr,
-  authorStr,
-  dateStr,
-  typeStr,
-  tagsArr,
-  authorInfo,
-}: {
-  titleStr: string;
-  authorStr?: string;
-  dateStr?: string;
-  typeStr?: string;
-  tagsArr: string[];
-  authorInfo?: AuthorInfo | null;
-}) {
-  return (
-    <motion.header
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="mb-12"
-    >
-      {typeStr && (
-        <motion.div variants={itemVariants} className="mb-4">
-          <TypeBadge typeStr={typeStr} variant="light" />
-        </motion.div>
-      )}
-      {tagsArr.length > 0 && (
-        <motion.div variants={itemVariants} className="flex flex-wrap gap-2 mb-4">
-          {tagsArr.map((tag) => (
-            <span key={tag} className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-100 dark:bg-zinc-700/60 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-600">
-              {tag}
-            </span>
-          ))}
-        </motion.div>
-      )}
-      <motion.h1
-        variants={itemVariants}
-        className="text-3xl sm:text-4xl md:text-[3.5rem] font-black tracking-tight text-zinc-900 dark:text-zinc-100 mb-6 leading-[1.1]"
-      >
-        {titleStr}
-      </motion.h1>
-      {(authorStr ?? dateStr) && (
-        <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-4 text-sm">
-          {authorStr && (
-            <div className="flex items-center gap-2">
-              <AuthorAvatar
-                authorInfo={authorInfo}
-                name={authorStr}
-                ringClass="ring-2 ring-zinc-200 dark:ring-zinc-600"
-                fallbackBg="bg-zinc-100 dark:bg-zinc-700"
-                fallbackIconClass="text-zinc-500 dark:text-zinc-400"
-              />
-              <span className="font-medium text-zinc-700 dark:text-zinc-300">{authorInfo?.nickname ?? authorStr}</span>
-            </div>
-          )}
-          {dateStr && (
-            <time className="flex items-center gap-1.5 text-zinc-400 dark:text-zinc-500">
-              <Calendar size={13} />
-              {new Date(dateStr).toLocaleDateString('zh-CN', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </time>
-          )}
-        </motion.div>
-      )}
-    </motion.header>
-  );
-}
-
 export function PostHeader({ type, tags, title, author, date, cover, authorInfo }: PostHeaderProps) {
   const typeStr = typeof type === 'string' && (type === 'original' || type === 'reprint') ? type : undefined;
   const titleStr = typeof title === 'string' ? title : '';
@@ -298,9 +231,5 @@ export function PostHeader({ type, tags, title, author, date, cover, authorInfo 
   const coverStr = typeof cover === 'string' ? cover : undefined;
   const tagsArr: string[] = Array.isArray(tags) ? tags.filter((t): t is string => typeof t === 'string') : [];
 
-  if (coverStr) {
-    return <CoverHero titleStr={titleStr} authorStr={authorStr} dateStr={dateStr} typeStr={typeStr} tagsArr={tagsArr} coverStr={coverStr} authorInfo={authorInfo} />;
-  }
-
-  return <SimpleHeader titleStr={titleStr} authorStr={authorStr} dateStr={dateStr} typeStr={typeStr} tagsArr={tagsArr} authorInfo={authorInfo} />;
+  return <CoverHero titleStr={titleStr} authorStr={authorStr} dateStr={dateStr} typeStr={typeStr} tagsArr={tagsArr} coverStr={coverStr} authorInfo={authorInfo} />;
 }

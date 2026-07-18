@@ -31,8 +31,6 @@ export function PostCoverSection({
   const coverStr = typeof cover === 'string' ? cover : undefined;
   const tagsArr: string[] = Array.isArray(tags) ? tags.filter((t): t is string => typeof t === 'string') : [];
 
-  if (!coverStr) return null;
-
   return (
     <div className="w-full animate-cover-fadein">
       <CoverHero
