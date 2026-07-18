@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { ArrowLeft, QrCode } from 'lucide-react';
 import Link from 'next/link';
-import { LazyMarkdownRenderer as MarkdownRenderer } from '@/components/MarkdownRenderer/dynamic';
+import { ClientEnhancer } from '@/components/MarkdownRenderer/ClientEnhancer';
 import { ArticleEncryption } from '@/components/ArticleEncryption';
 import { ReadingProgressBar } from '@/components/ui/ReadingProgressBar';
 import { ContinueReadingPrompt } from '@/components/ui/ContinueReadingPrompt';
@@ -80,9 +80,9 @@ export function PostDetailBody({
   wordCount,
   readingTime,
   showWordCount,
-  highlight,
+  highlight: _highlight,
   appConfig,
-  wikiLinkMap,
+  wikiLinkMap: _wikiLinkMap,
   backlinks,
   outgoingRefs,
   translations,
@@ -92,6 +92,7 @@ export function PostDetailBody({
   isHidden,
   passwordHash,
   seriesInfo,
+  htmlContent,
 }: {
   file: { content: string; meta: Record<string, unknown> };
   fullPath: string;
@@ -119,9 +120,12 @@ export function PostDetailBody({
   passwordHash?: string;
   /** 系列文章导航信息 */
   seriesInfo?: { seriesName: string; articles: { slug: string; title: string; isCurrent: boolean }[] };
+  /** 构建时预渲染的 HTML 内容 */
+  htmlContent?: string;
 }) {
   const [qrOpen, setQrOpen] = useState(false);
   const [decrypted, setDecrypted] = useState<string | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const { t } = useI18n();
   const { progress, savedPosition, restorePosition, dismissPosition } = useScrollProgress(fullPath);
   const titleStr = typeof file.meta.title === 'string' ? file.meta.title : '';
@@ -191,7 +195,7 @@ export function PostDetailBody({
           <ArticleExpiredBanner date={file.meta.date} slug={fullPath} />
         )}
 
-        <div>
+        <div ref={contentRef}>
           {/* 加密文章：显示密码验证界面；验证成功后显示内容 */}
           {isEncrypted && decrypted === null ? (
             <ArticleEncryption
@@ -200,11 +204,13 @@ export function PostDetailBody({
               onDecrypted={setDecrypted}
             />
           ) : (
-            <MarkdownRenderer
-              content={isEncrypted ? (decrypted ?? '') : file.content}
-              highlight={highlight}
-              wikiLinkMap={wikiLinkMap}
-            />
+            <>
+              <div
+                className="prose prose-zinc dark:prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: htmlContent ?? '' }}
+              />
+              <ClientEnhancer containerRef={contentRef} />
+            </>
           )}
         </div>
 
