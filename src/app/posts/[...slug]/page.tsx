@@ -87,7 +87,7 @@ export default async function PostDetailPage({ params }: PageProps) {
               tocConfig={viewModel.tocConfig}
             />
             <PostPageProvider>
-              <PostDetailBody {...viewModel} omitHeader={!!file.meta.cover} />
+              <PostDetailBody {...viewModel} />
             </PostPageProvider>
           </div>
           <div className="animate-sidebar-slidein">
