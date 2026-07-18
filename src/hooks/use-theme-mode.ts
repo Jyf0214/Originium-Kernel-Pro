@@ -38,13 +38,13 @@ function applyClass(dark: boolean) {
  * - 在 <html> 元素上设置 / 移除 class="dark"
  */
 export function useThemeMode() {
-  const [mode, setModeState] = useState<ThemeMode>('system');
+  const [mode, setModeState] = useState<ThemeMode>('light');
   const [systemDark, setSystemDark] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // 初始化：读取 localStorage + 监听系统偏好
+  // 初始化：读取 localStorage + 监听系统偏好；无有效值时默认浅色
   useEffect(() => {
-    let initial: ThemeMode = 'system';
+    let initial: ThemeMode = 'light';
     const saved = safeGetItem(STORAGE_KEY) as ThemeMode | null;
     if (saved && ['light', 'dark', 'system'].includes(saved)) {
       initial = saved;

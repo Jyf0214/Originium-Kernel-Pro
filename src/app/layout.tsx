@@ -51,7 +51,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
         {/* 暗色模式 FOUC 防护：在 React hydration 前读取 localStorage 并应用 dark 类 */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var m=localStorage.getItem('theme-mode');var d=m==='dark'||(m!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches);if(d)document.documentElement.classList.add('dark')}catch(e){}})()`,
+            __html: `(function(){try{var m=localStorage.getItem('theme-mode');if(m==='dark')document.documentElement.classList.add('dark')}catch(e){}})()`,
           }}
         />
         {/* 字体大小：从构建时配置读取 fontSize 并设置 CSS 变量 */}
