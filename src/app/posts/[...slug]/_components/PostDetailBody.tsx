@@ -202,7 +202,8 @@ export function PostDetailBody({
                   prose-blockquote:border-zinc-900 dark:prose-blockquote:border-zinc-400 prose-blockquote:bg-zinc-50 dark:prose-blockquote:bg-zinc-800 prose-blockquote:rounded-r-2xl prose-blockquote:py-1 prose-blockquote:not-italic
                   prose-li:text-[15px]
                   prose-img:rounded-2xl prose-img:border prose-img:border-zinc-100 dark:prose-img:border-zinc-700
-                  prose-hr:border-zinc-100 dark:prose-hr:border-zinc-700 prose-hr:my-12"
+                  prose-hr:border-zinc-100 dark:prose-hr:border-zinc-700 prose-hr:my-12
+                  prose-pre:bg-zinc-50 dark:prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-zinc-200 dark:prose-pre:border-zinc-700 prose-pre:rounded-xl prose-pre:shadow-sm"
                 dangerouslySetInnerHTML={{ __html: htmlContent ?? '' }}
               />
               <ClientEnhancer containerRef={contentRef} />
