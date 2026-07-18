@@ -2,8 +2,8 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, ListMusic, X, Music } from 'lucide-react';
 import { tooltipVariants, tooltipTransition } from '@/components/ui/motion';
-import { Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, ListMusic, X } from 'lucide-react';
 import { useConfig } from '@/hooks/use-config';
 
 function formatTime(sec: number): string {
@@ -54,7 +54,7 @@ function PlaylistPanel({
             }`}
           >
             <span className={`text-xs w-5 text-center ${i === currentIndex ? 'text-zinc-900 dark:text-zinc-100 font-bold' : 'text-zinc-400'}`}>
-              {i === currentIndex && playing ? '♪' : i + 1}
+              {i === currentIndex && playing ? <Music size={12} className="inline-block" /> : i + 1}
             </span>
             <div className="flex-1 min-w-0">
               <div className={`text-sm truncate ${i === currentIndex ? 'text-zinc-900 dark:text-zinc-100 font-medium' : 'text-zinc-700 dark:text-zinc-300'}`}>

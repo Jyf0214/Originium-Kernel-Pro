@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
-import { Server } from 'lucide-react';
+import { Server, Lightbulb } from 'lucide-react';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 import { PageContainer } from '@/components/ui/PageContainer';
@@ -154,7 +154,7 @@ export default function EnvStatusPage() {
 
       <div className="mt-4 bg-blue-50 border border-blue-100 rounded-2xl p-6 flex items-start gap-3">
         <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-          <span className="text-blue-600 text-sm">💡</span>
+          <span className="text-blue-600"><Lightbulb size={16} /></span>
         </div>
         <div>
           <p className="text-blue-800 text-sm font-medium">

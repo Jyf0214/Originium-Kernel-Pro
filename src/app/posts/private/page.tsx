@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { getAuthorByName } from '@/lib/authors';
 import { PostListClient } from '../PostListClient';
 import { redirect } from 'next/navigation';
+import { Lock } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -61,8 +62,9 @@ export default async function PrivatePostsPage() {
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12 md:py-20">
-        <h1 className="text-5xl md:text-7xl font-display font-black tracking-tighter text-zinc-900 dark:text-zinc-100 mb-4">
-          🔒 私人内容
+        <h1 className="text-5xl md:text-7xl font-display font-black tracking-tighter text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-3">
+          <Lock className="w-10 h-10 md:w-14 md:h-14" />
+          私人内容
         </h1>
         <p className="text-zinc-400 dark:text-zinc-500 text-lg mb-12">仅登录用户可见的私人帖子</p>
         <PostListClient posts={posts} groups={groups} />

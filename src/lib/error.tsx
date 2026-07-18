@@ -5,6 +5,7 @@
 
 import { message } from 'antd';
 import { Button } from '@/components/ui/Button';
+import { Clipboard } from 'lucide-react';
 
 const copiedKey = 'copied-feedback';
 
@@ -30,7 +31,8 @@ export function showError(msg: string, duration = 4) {
           }}
           title="点击复制错误信息"
         >
-          📋复制
+          <Clipboard size={14} className="inline-block mr-1" />
+          复制
         </Button>
       </span>
     ),
