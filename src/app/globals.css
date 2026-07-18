@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* 使用 class 控制深色模式（而非 media query） */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -21,19 +22,35 @@ body {
 
 /* 文章主色调：使用封面提取的主色调 */
 article header h1 {
-  color: var(--main-tone, #18181b) !important;
+  color: var(--main-tone, #18181b);
+}
+
+.dark article header h1 {
+  color: var(--main-tone, #f4f4f5);
 }
 
 .prose h1 {
   color: var(--main-tone, #18181b);
 }
 
+.dark .prose h1 {
+  color: var(--main-tone, #f4f4f5);
+}
+
 .prose a {
   color: var(--main-tone, #18181b);
 }
 
+.dark .prose a {
+  color: var(--main-tone, #93c5fd);
+}
+
 .prose blockquote {
   border-left-color: var(--main-tone, #18181b);
+}
+
+.dark .prose blockquote {
+  border-left-color: var(--main-tone, #a1a1aa);
 }
 
 /* 按钮轻加载动画 — 柔和的呼吸脉冲，配合 opacity 变淡 */
@@ -68,6 +85,10 @@ article header h1 {
   line-height: 1;
 }
 
+.dark .anchor-copy-btn {
+  color: var(--main-tone, #a1a1aa);
+}
+
 .group:hover > .anchor-copy-btn {
   opacity: 0.4;
 }
@@ -75,6 +96,10 @@ article header h1 {
 .anchor-copy-btn:hover {
   opacity: 1 !important;
   background: rgba(0, 0, 0, 0.05);
+}
+
+.dark .anchor-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* 标题锚点复制 Toast */

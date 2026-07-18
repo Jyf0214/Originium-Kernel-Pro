@@ -7,6 +7,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { useMarkdownConfig } from './use-markdown-config';
+import { useThemeMode } from '@/hooks/use-theme-mode';
 import { buildComponents } from './renderer-config';
 import { remarkFootnotes } from './remark-footnotes';
 import { Lightbox } from '@/components/ui/LightboxDynamic';
@@ -44,7 +45,8 @@ interface LightboxState {
 }
 
 export function MarkdownRenderer({ content, highlight, wikiLinkMap, watermark }: MarkdownRendererProps) {
-  const { cfg, highlighter } = useMarkdownConfig(highlight);
+  const { isDark } = useThemeMode();
+  const { cfg, highlighter } = useMarkdownConfig(highlight, isDark);
   const [lightbox, setLightbox] = useState<LightboxState>({
     open: false,
     images: [],

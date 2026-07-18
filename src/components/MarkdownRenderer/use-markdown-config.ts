@@ -12,15 +12,16 @@ export interface UseMarkdownConfigResult {
 
 /**
  * 解析 highlight 配置并按需加载语法高亮模块。
- * - cfg.theme 变化时重新加载高亮主题。
+ * - 根据 isDark 动态选择 light/dark 主题。
  * - 加载失败时降级为 null，由 CodeBlock 走 PlainCodeBlock 路径。
  * - 使用 mountedRef 丢弃卸载后的异步结果，使用 themeRef 丢弃过时的主题结果。
  */
 export function useMarkdownConfig(
   highlightProp: HighlightConfig | undefined,
+  isDark: boolean,
 ): UseMarkdownConfigResult {
+  const effectiveTheme = isDark ? 'dark' : (highlightProp?.theme ?? 'light');
   const cfg: HighlightConfig = {
-    theme: 'dark',
     copy: true,
     lang: true,
     shrink: false,
@@ -28,6 +29,7 @@ export function useMarkdownConfig(
     wordWrap: true,
     lineNumbers: false,
     ...highlightProp,
+    theme: effectiveTheme,
   };
 
   const [highlighter, setHighlighter] = useState<HighlighterInstance | null>(null);
