@@ -93,9 +93,9 @@ export function buildComponents(
         );
       }
 
-      // 行内代码
+      // 行内代码 — 轻量 badge 风格，不打断段落阅读流
       return (
-        <code className="bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 px-1.5 py-0.5 rounded-md text-[0.875em] font-mono font-medium" {...props}>
+        <code className="bg-zinc-100/80 dark:bg-zinc-800/60 text-pink-600 dark:text-pink-400 px-[0.3em] py-[0.15em] rounded text-[0.875em] font-mono border border-zinc-200/60 dark:border-zinc-700/40" {...props}>
           {children}
         </code>
       );
