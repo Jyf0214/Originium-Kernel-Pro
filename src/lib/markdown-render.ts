@@ -102,11 +102,11 @@ function rehypeMermaid(): any {
 }
 
 const INLINE_CODE_CLASSES = [
-  'bg-zinc-100/80', 'dark:bg-zinc-800/60',
-  'text-pink-600', 'dark:text-pink-400',
-  'px-[0.3em]', 'py-[0.15em]',
-  'rounded', 'text-[0.875em]', 'font-mono',
-  'border', 'border-zinc-200/60', 'dark:border-zinc-700/40',
+  '!bg-zinc-100/80', 'dark:!bg-zinc-800/60',
+  '!text-pink-600', 'dark:!text-pink-400',
+  '!px-[0.3em]', '!py-[0.15em]',
+  '!rounded', '!text-[0.875em]', '!font-mono',
+  '!border', '!border-zinc-200/60', 'dark:!border-zinc-700/40',
 ];
 
 function rehypeInlineCodeStyle(): any {
