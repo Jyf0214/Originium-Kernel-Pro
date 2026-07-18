@@ -81,7 +81,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
         <Providers>
           <AuthProvider>
             <Navbar navConfig={config.nav} siteTitle={config.site.title} databaseConfigured={hasDatabase()} />
-            <div id="main-content" tabIndex={-1}>
+            <div id="main-content" className="flex-1" tabIndex={-1}>
               <RouteTransition>
                     <Suspense>
                       {children}
