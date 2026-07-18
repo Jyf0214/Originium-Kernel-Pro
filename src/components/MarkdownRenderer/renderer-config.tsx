@@ -95,7 +95,7 @@ export function buildComponents(
 
       // 行内代码
       return (
-        <code className="bg-zinc-100 text-zinc-800 px-1.5 py-0.5 rounded-md text-[0.875em] font-mono font-medium" {...props}>
+        <code className="bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 px-1.5 py-0.5 rounded-md text-[0.875em] font-mono font-medium" {...props}>
           {children}
         </code>
       );

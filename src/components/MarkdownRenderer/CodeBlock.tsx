@@ -32,7 +32,7 @@ function CodeToolbar({
   onToggleWrap: () => void;
 }) {
   return (
-    <div className="flex items-center justify-between px-4 py-1.5 bg-zinc-800 rounded-t-2xl border-b border-zinc-700">
+    <div className="flex items-center justify-between px-4 py-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-t-2xl border-b border-zinc-200 dark:border-zinc-700">
       <div className="flex items-center gap-2">
         {cfg.lang && (
           <Tag size="xs" variant="dark">
@@ -132,9 +132,9 @@ function HighlightedCodeBlock({
         onToggleCollapse={onToggleCollapse}
         onToggleWrap={onToggleWrap}
       />
-      <div className={`${wrap ? '' : 'overflow-x-auto'} rounded-b-2xl border border-zinc-800 border-t-0 flex`}>
+      <div className={`${wrap ? '' : 'overflow-x-auto'} rounded-b-2xl border border-zinc-200 dark:border-zinc-800 border-t-0 flex`}>
         {cfg.lineNumbers && (
-          <div className="shrink-0 select-none py-4 pl-4 pr-2 text-right text-xs leading-[1.6] text-zinc-600 border-r border-zinc-700/50">
+          <div className="shrink-0 select-none py-4 pl-4 pr-2 text-right text-xs leading-[1.6] text-zinc-400 dark:text-zinc-600 border-r border-zinc-200 dark:border-zinc-700/50">
             {Array.from({ length: lineCount }, (_, i) => (
               <div key={i}>{i + 1}</div>
             ))}
@@ -193,15 +193,15 @@ function PlainCodeBlock({
         onToggleCollapse={onToggleCollapse}
         onToggleWrap={() => undefined}
       />
-      <div className="bg-zinc-900 rounded-b-2xl border border-zinc-800 border-t-0 overflow-x-auto flex">
+      <div className="bg-zinc-50 dark:bg-zinc-900 rounded-b-2xl border border-zinc-200 dark:border-zinc-800 border-t-0 overflow-x-auto flex">
         {cfg.lineNumbers && (
-          <div className="shrink-0 select-none py-4 pl-4 pr-2 text-right text-xs leading-[1.6] text-zinc-600 border-r border-zinc-700/50">
+          <div className="shrink-0 select-none py-4 pl-4 pr-2 text-right text-xs leading-[1.6] text-zinc-400 dark:text-zinc-600 border-r border-zinc-200 dark:border-zinc-700/50">
             {Array.from({ length: lineCount }, (_, i) => (
               <div key={i}>{i + 1}</div>
             ))}
           </div>
         )}
-        <pre className="p-4 text-sm text-zinc-300 m-0 flex-1 min-w-0">
+        <pre className="p-4 text-sm text-zinc-700 dark:text-zinc-300 m-0 flex-1 min-w-0">
           <code>{codeText}</code>
         </pre>
       </div>
@@ -241,10 +241,10 @@ export function UnhighlightedCodeBlock({
 
   return (
     <div className="relative group my-8">
-      <pre className="bg-zinc-900 rounded-2xl p-4 text-sm text-zinc-300 overflow-x-auto">
+      <pre className="bg-zinc-50 dark:bg-zinc-900 rounded-2xl p-4 text-sm text-zinc-700 dark:text-zinc-300 overflow-x-auto">
         {lang && <span className="code-lang-badge">{lang}</span>}
         <button
-          className="absolute top-2 right-2 flex items-center gap-1 rounded-md bg-zinc-700 px-2 py-1 text-xs text-zinc-400 opacity-0 transition-opacity hover:bg-zinc-600 hover:text-zinc-200 group-hover:opacity-100"
+          className="absolute top-2 right-2 flex items-center gap-1 rounded-md bg-zinc-200 dark:bg-zinc-700 px-2 py-1 text-xs text-zinc-500 dark:text-zinc-400 opacity-0 transition-opacity hover:bg-zinc-300 dark:hover:bg-zinc-600 hover:text-zinc-700 dark:hover:text-zinc-200 group-hover:opacity-100"
           onClick={handleCopy}
           title="复制代码"
           aria-label="复制代码"
