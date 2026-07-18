@@ -66,19 +66,17 @@ export default async function PostDetailPage({ params }: PageProps) {
         slug={fullPath}
         wordCount={viewModel.wordCount}
       />
-      {/* 全屏宽封面 — 正常文档流，导航栏绝对定位叠加在上方 */}
-      {file.meta.cover && (
-        <PostCoverSection
-          title={file.meta.title}
-          author={file.meta.author}
-          date={file.meta.date}
-          type={file.meta.type}
-          tags={file.meta.tags}
-          cover={file.meta.cover}
-          authorInfo={viewModel.authorInfo}
-        />
-      )}
-      <main className={`flex-1 max-w-6xl 2xl:max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-16 ${file.meta.cover ? '' : 'pt-8'}`}>
+      {/* 全屏宽封面 — 所有帖子统一渲染，无 cover 时用渐变背景 */}
+      <PostCoverSection
+        title={file.meta.title}
+        author={file.meta.author}
+        date={file.meta.date}
+        type={file.meta.type}
+        tags={file.meta.tags}
+        cover={file.meta.cover}
+        authorInfo={viewModel.authorInfo}
+      />
+      <main className="flex-1 max-w-6xl 2xl:max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-16">
         <div className="lg:flex lg:gap-8 items-start">
           <div className="flex-1 min-w-0">
             {/* 移动端目录按钮 — 在文章内容之前 */}
@@ -88,7 +86,7 @@ export default async function PostDetailPage({ params }: PageProps) {
               tocConfig={viewModel.tocConfig}
             />
             <PostPageProvider>
-              <PostDetailBody {...viewModel} omitHeader={!!file.meta.cover} />
+              <PostDetailBody {...viewModel} />
             </PostPageProvider>
           </div>
           <div className="animate-sidebar-slidein">
