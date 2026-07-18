@@ -4,7 +4,6 @@ import { useRef } from 'react';
 import { motion, type Variants } from 'motion/react';
 import Image from 'next/image';
 import { Calendar, User } from 'lucide-react';
-import { Tag } from '@/components/ui/Tag';
 import { useCoverParallax } from '@/hooks/useCoverParallax';
 import { EASE_STANDARD } from '@/components/ui/motion';
 import type { AuthorInfo } from '@/types/author';
@@ -247,17 +246,17 @@ function SimpleHeader({
         </motion.div>
       )}
       {tagsArr.length > 0 && (
-        <motion.div variants={itemVariants} className="flex flex-wrap gap-2 mb-5">
+        <motion.div variants={itemVariants} className="flex flex-wrap gap-2 mb-4">
           {tagsArr.map((tag) => (
-            <Tag key={tag} variant="dark" size="md">
+            <span key={tag} className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-100 dark:bg-zinc-700/60 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-600">
               {tag}
-            </Tag>
+            </span>
           ))}
         </motion.div>
       )}
       <motion.h1
         variants={itemVariants}
-        className="text-4xl md:text-[3.5rem] font-black tracking-tight text-zinc-900 dark:text-zinc-100 mb-8 leading-[1.1]"
+        className="text-3xl sm:text-4xl md:text-[3.5rem] font-black tracking-tight text-zinc-900 dark:text-zinc-100 mb-6 leading-[1.1]"
       >
         {titleStr}
       </motion.h1>
@@ -272,7 +271,7 @@ function SimpleHeader({
                 fallbackBg="bg-zinc-100 dark:bg-zinc-700"
                 fallbackIconClass="text-zinc-500 dark:text-zinc-400"
               />
-              <span className="font-semibold text-zinc-700 dark:text-zinc-300">{authorInfo?.nickname ?? authorStr}</span>
+              <span className="font-medium text-zinc-700 dark:text-zinc-300">{authorInfo?.nickname ?? authorStr}</span>
             </div>
           )}
           {dateStr && (
