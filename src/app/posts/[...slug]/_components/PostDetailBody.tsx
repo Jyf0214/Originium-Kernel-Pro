@@ -86,6 +86,7 @@ export function PostDetailBody({
   backlinks,
   outgoingRefs,
   translations,
+  omitHeader,
   authorInfo,
   isEncrypted,
   isHidden,
@@ -107,6 +108,8 @@ export function PostDetailBody({
   backlinks?: BacklinkInfo[];
   outgoingRefs?: RegistryEntry[];
   translations?: Record<string, string>;
+  /** 有封面时跳过 PostHeader（封面已在卡片外单独渲染） */
+  omitHeader?: boolean;
   authorInfo?: AuthorInfo | null;
   /** 文章是否加密（需要密码才能查看内容） */
   isEncrypted?: boolean;
@@ -143,15 +146,17 @@ export function PostDetailBody({
       {/* 文章内容容器 — 卡片样式 */}
       <div className="relative">
       <article className="bg-white dark:bg-zinc-800 rounded-3xl border border-zinc-100 dark:border-zinc-700 p-6 sm:p-8 md:p-10 lg:p-12 animate-card-slidein">
-        <PostHeader
-          type={file.meta.type}
-          tags={file.meta.tags}
-          title={file.meta.title}
-          author={file.meta.author}
-          date={file.meta.date}
-          cover={file.meta.cover}
-          authorInfo={authorInfo}
-        />
+        {!omitHeader && (
+          <PostHeader
+            type={file.meta.type}
+            tags={file.meta.tags}
+            title={file.meta.title}
+            author={file.meta.author}
+            date={file.meta.date}
+            cover={file.meta.cover}
+            authorInfo={authorInfo}
+          />
+        )}
 
         {/* 隐藏文章标识 — 仅展示标签 */}
         {isHidden && (
