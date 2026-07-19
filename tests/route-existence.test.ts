@@ -28,10 +28,12 @@ const ROUTE_PATTERNS: RegExp[] = [
   /pathname\s*={1,2}\s*['"`](\/[^'"`?#]+)/g,
 ];
 
-/** 检查目录下是否有 page.tsx 或 page.ts */
+/** 检查目录下是否有 page.tsx / page.ts / page.blog.tsx / page.blog.ts */
 function hasPageFile(dir: string): boolean {
   return fs.existsSync(path.join(dir, 'page.tsx'))
-    || fs.existsSync(path.join(dir, 'page.ts'));
+    || fs.existsSync(path.join(dir, 'page.ts'))
+    || fs.existsSync(path.join(dir, 'page.blog.tsx'))
+    || fs.existsSync(path.join(dir, 'page.blog.ts'));
 }
 
 /** 检查目录内是否有 [...x] 或 [[...x]] catch-all 子目录含 page 文件 */
