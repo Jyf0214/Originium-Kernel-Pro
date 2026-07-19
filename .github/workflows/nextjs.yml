@@ -48,6 +48,10 @@ jobs:
         with:
           node-version: "20"
           cache: ${{ steps.detect-package-manager.outputs.manager }}
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        with:
+          static_site_generator: next
       - name: Restore cache
         uses: actions/cache@v4
         with:
@@ -60,10 +64,13 @@ jobs:
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
       - name: Generate static data
         run: node scripts/generate-navigation.mjs && node scripts/generate-site-config-ts.mjs && node scripts/generate-version.mjs
+      - name: Filter routes for GitHub Pages
+        run: node scripts/filter-db-routes.mjs
       - name: Build with Next.js
-        run: ${{ steps.detect-package-manager.outputs.runner }} next build --webpack
-        env:
-          NEXT_STATIC_EXPORT: 'true'
+        run: ${{ steps.detect-package-manager.outputs.runner }} next build
+      - name: Restore routes
+        run: node scripts/restore-db-routes.mjs
+        if: always()
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
