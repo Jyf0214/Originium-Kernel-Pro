@@ -62,31 +62,31 @@ export const PostCardBody = React.memo(function PostCardBody({
     'rounded-b-2xl sm:rounded-b-[2rem]';
 
   return (
-    <div className={`px-4 sm:px-5 py-3 sm:py-4 flex-1 flex flex-col overflow-hidden ${bodyRoundClass}`}>
+    <div className={`px-4 sm:px-5 py-3 sm:py-4 flex-1 flex flex-col overflow-hidden min-h-[180px] ${bodyRoundClass}`}>
       {post.pinned && (
-        <div className="inline-flex items-center gap-1.5 mb-3 self-start bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700 px-2.5 py-1 rounded-lg">
-          <Pin size={10} className="text-amber-400/80" />
+        <div className="inline-flex items-center gap-1.5 mb-2 self-start bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700 px-2 py-0.5 rounded-md">
+          <Pin size={8} className="text-amber-400/80" />
           <Tag size="xs" variant="dark">
             {t('home.pinned')}
           </Tag>
         </div>
       )}
       {post.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-3">
+        <div className="flex flex-wrap gap-1 mb-2">
           {post.tags.slice(0, 3).map((tag) => (
-            <Tag key={tag} variant="light" size="md">
+            <Tag key={tag} variant="light" size="xs">
               {tag}
             </Tag>
           ))}
         </div>
       )}
       <Link href={`/posts${post.slug}`} className="block group/title">
-        <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2 leading-snug group-hover/title:text-zinc-600 dark:group-hover/title:text-zinc-300 transition-colors duration-200">
+        <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-1.5 line-clamp-2 leading-snug group-hover/title:text-zinc-600 dark:group-hover/title:text-zinc-300 transition-colors duration-200">
           {post.title}
         </h2>
       </Link>
       {post.description && (
-        <p className="text-zinc-400 text-sm line-clamp-2 mb-3 leading-relaxed">
+        <p className="text-zinc-400 text-xs line-clamp-2 mb-2 leading-relaxed">
           {post.description}
         </p>
       )}
