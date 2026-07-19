@@ -141,8 +141,6 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['antd', 'lucide-react', 'motion'],
   },
-  // 静态导出模式下禁用 Turbopack（pageExtensions 需要 Webpack）
-  ...(isStaticExport ? {} : { turbopack: {} }),
   // pageExtensions：控制哪些文件被识别为路由入口
   // 静态导出模式：仅识别 .blog.tsx / .blog.ts（只构建博客页面）
   // 正常模式：识别所有 .tsx / .ts / .jsx / .js（完整应用）
