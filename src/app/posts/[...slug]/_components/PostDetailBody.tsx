@@ -96,7 +96,7 @@ export function PostDetailBody({
   fullPath: string;
   fullUrl: string;
   relatedPosts: RelatedPost[];
-  adjacentPosts: { prev?: { slug: string; title: string } | null; next?: { slug: string; title: string } | null };
+  adjacentPosts: { prev?: { slug: string; title: string; cover?: string } | null; next?: { slug: string; title: string; cover?: string } | null };
   breadcrumbs: Crumb[];
   wordCount: number;
   readingTime: number;
