@@ -29,8 +29,8 @@ const isGitHubActions = process.env.GITHUB_ACTIONS === 'true';
 
 let exitCode = 0;
 try {
-  // 2. 执行 Next.js 构建
-  run('next build');
+  // 2. 执行 Next.js 构建，明确使用 webpack（项目不支持 Turbopack）
+  run('next build --webpack');
 } catch {
   exitCode = 1;
 } finally {
