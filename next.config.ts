@@ -146,7 +146,7 @@ const nextConfig: NextConfig = {
   // 正常模式：识别所有 .tsx / .ts / .jsx / .js（完整应用）
   pageExtensions: isStaticExport
     ? ['blog.tsx', 'blog.ts']
-    : ['tsx', 'ts', 'jsx', 'js'],
+    : ['tsx', 'ts', 'jsx', 'js', 'blog.tsx', 'blog.ts'],
   webpack: (
     config: {
       watchOptions?: { ignored?: RegExp };
