@@ -78,86 +78,77 @@ if (
 
 // PWA 配置：Service Worker 位于 public/sw.js，通过 components/PWARegister.tsx 静默注册
 // manifest.json 位于 public/manifest.json，无需 Next.js 插件介入
+
+// 静态导出模式：通过环境变量 NEXT_STATIC_EXPORT 控制
+// 静态导出时，仅识别 .blog.tsx / .blog.ts 文件为路由入口，自动忽略所有非博客页面
+const isStaticExport = process.env.NEXT_STATIC_EXPORT === 'true';
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'X-DNS-Prefetch-Control', value: 'on' },
-          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-          { key: 'Content-Security-Policy', value: [
-            "default-src 'self'",
-            `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV !== 'production' ? " 'unsafe-eval'" : ''} https://giscus.app`,
-            "style-src 'self' 'unsafe-inline'",
-            "img-src 'self' data: https: blob:",
-            "font-src 'self'",
-            "connect-src 'self' https://vitals.vercel-insights.com",
-            "frame-src https://giscus.app",
-            "frame-ancestors 'none'",
-            "base-uri 'self'",
-            "form-action 'self'",
-          ].join('; ') },
-          // 跨域安全增强头
-          { key: 'X-XSS-Protection', value: '1; mode=block' },
-          { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
-          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
-          // 注意：未添加 Cross-Origin-Embedder-Policy: require-corp
-          // 该头会阻止加载未设置 CORS 的跨域图片（如 picsum.photos、GitHub 头像等），
-          // 导致站内图片加载失败，因此在此省略。
-        ],
-      },
-    ];
-  },
+  // 静态导出模式下不支持自定义 headers
+  ...(!isStaticExport && {
+    headers() {
+      return [
+        {
+          source: '/(.*)',
+          headers: [
+            { key: 'X-Frame-Options', value: 'DENY' },
+            { key: 'X-Content-Type-Options', value: 'nosniff' },
+            { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+            { key: 'X-DNS-Prefetch-Control', value: 'on' },
+            { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+            { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+            { key: 'Content-Security-Policy', value: [
+              "default-src 'self'",
+              `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV !== 'production' ? " 'unsafe-eval'" : ''} https://giscus.app`,
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https: blob:",
+              "font-src 'self'",
+              "connect-src 'self' https://vitals.vercel-insights.com",
+              "frame-src https://giscus.app",
+              "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join('; ') },
+            { key: 'X-XSS-Protection', value: '1; mode=block' },
+            { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
+            { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+          ],
+        },
+      ];
+    },
+  }),
   images: {
+    // 静态导出模式下禁用图片优化
+    ...(isStaticExport && { unoptimized: true }),
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 天缓存
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'picsum.photos',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'raw.githubusercontent.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'avatars.githubusercontent.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'i.imgur.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'avatar.vercel.sh',
-        port: '',
-        pathname: '/**',
-      },
+      { protocol: 'https', hostname: 'picsum.photos', port: '', pathname: '/**' },
+      { protocol: 'https', hostname: 'raw.githubusercontent.com', port: '', pathname: '/**' },
+      { protocol: 'https', hostname: 'avatars.githubusercontent.com', port: '', pathname: '/**' },
+      { protocol: 'https', hostname: 'i.imgur.com', port: '', pathname: '/**' },
+      { protocol: 'https', hostname: 'avatar.vercel.sh', port: '', pathname: '/**' },
     ],
   },
-  output: 'standalone',
+  // 静态导出模式：output: 'export' + trailingSlash
+  // 正常模式：output: 'standalone'
+  output: isStaticExport ? 'export' : 'standalone',
+  trailingSlash: isStaticExport,
   transpilePackages: ['antd', 'motion'],
   experimental: {
     optimizePackageImports: ['antd', 'lucide-react', 'motion'],
   },
-  turbopack: {},
+  // 静态导出模式下禁用 Turbopack（pageExtensions 需要 Webpack）
+  ...(isStaticExport ? {} : { turbopack: {} }),
+  // pageExtensions：控制哪些文件被识别为路由入口
+  // 静态导出模式：仅识别 .blog.tsx / .blog.ts（只构建博客页面）
+  // 正常模式：识别所有 .tsx / .ts / .jsx / .js（完整应用）
+  pageExtensions: isStaticExport
+    ? ['blog.tsx', 'blog.ts']
+    : ['tsx', 'ts', 'jsx', 'js'],
   webpack: (
     config: {
       watchOptions?: { ignored?: RegExp };
@@ -173,7 +164,6 @@ const nextConfig: NextConfig = {
     }
 
     // 生产环境: 移除 console 语句减小 bundle 体积
-    // TerserPlugin 位于 optimization.minimizer 数组中, 逐个匹配并注入 drop_console
     if (!dev && Array.isArray(config.optimization?.minimizer)) {
       for (const plugin of config.optimization.minimizer) {
         if (!plugin?.options) continue;
