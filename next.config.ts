@@ -138,6 +138,7 @@ const nextConfig: NextConfig = {
   output: isStaticExport ? 'export' : 'standalone',
   trailingSlash: isStaticExport,
   transpilePackages: ['antd', 'motion'],
+  turbopack: {},
   experimental: {
     optimizePackageImports: ['antd', 'lucide-react', 'motion'],
   },
