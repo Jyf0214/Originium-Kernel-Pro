@@ -343,8 +343,8 @@ export function getAllSlugs(section: 'posts' | 'faces' | 'diary'): string[] {
  * 仅考虑公开文章，用于文章详情页的上下篇导航
  */
 export function getAdjacentPosts(currentSlug: string): {
-  prev: { slug: string; title: string } | null;
-  next: { slug: string; title: string } | null;
+  prev: { slug: string; title: string; cover?: string } | null;
+  next: { slug: string; title: string; cover?: string } | null;
 } {
   const allFiles = getContentFiles('posts');
   const indexes = getContentIndexes('posts');
@@ -360,7 +360,7 @@ export function getAdjacentPosts(currentSlug: string): {
   const nextFile = currentIndex > 0 ? publicFiles[currentIndex - 1] : null;
 
   return {
-    prev: prevFile ? { slug: prevFile.slug, title: prevFile.meta.title } : null,
-    next: nextFile ? { slug: nextFile.slug, title: nextFile.meta.title } : null,
+    prev: prevFile ? { slug: prevFile.slug, title: prevFile.meta.title, cover: prevFile.meta.cover } : null,
+    next: nextFile ? { slug: nextFile.slug, title: nextFile.meta.title, cover: nextFile.meta.cover } : null,
   };
 }
