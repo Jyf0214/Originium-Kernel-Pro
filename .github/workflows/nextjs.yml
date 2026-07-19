@@ -65,7 +65,7 @@ jobs:
       - name: Generate static data
         run: node scripts/generate-navigation.mjs && node scripts/generate-site-config-ts.mjs && node scripts/generate-version.mjs
       - name: Build with Next.js
-        run: ${{ steps.detect-package-manager.outputs.runner }} next build
+        run: ${{ steps.detect-package-manager.outputs.runner }} next build --webpack
         env:
           NEXT_STATIC_EXPORT: 'true'
       - name: Upload artifact
