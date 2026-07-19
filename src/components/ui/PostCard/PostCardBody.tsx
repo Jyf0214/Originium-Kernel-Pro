@@ -50,19 +50,31 @@ export const PostCardBody = React.memo(function PostCardBody({
   locale,
   t,
   position,
+  hasCover,
 }: {
   post: PostItem;
   locale: string;
   t: (key: string) => string;
   position?: string;
+  hasCover?: boolean;
 }) {
+  const isRowLayout = position === 'left' || position === 'right';
+
   const bodyRoundClass =
     position === 'right' ? 'rounded-l-2xl sm:rounded-l-[2rem]' :
     position === 'left' ? 'rounded-r-2xl sm:rounded-r-[2rem]' :
     'rounded-b-2xl sm:rounded-b-[2rem]';
 
+  const glassClass = hasCover && !isRowLayout
+    ? 'bg-white/80 dark:bg-zinc-900/70 backdrop-blur-md border-t border-white/20 dark:border-white/10'
+    : '';
+
+  const borderClass = hasCover && isRowLayout
+    ? ''
+    : 'border border-zinc-100 dark:border-zinc-700';
+
   return (
-    <div className={`px-4 sm:px-5 py-3 sm:py-4 flex-1 flex flex-col overflow-hidden min-h-[180px] ${bodyRoundClass}`}>
+    <div className={`px-4 sm:px-5 py-3 sm:py-4 flex-1 flex flex-col overflow-hidden min-h-[180px] z-10 ${bodyRoundClass} ${glassClass} ${borderClass}`}>
       {post.pinned && (
         <div className="inline-flex items-center gap-1.5 mb-2 self-start bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700 px-2 py-0.5 rounded-md">
           <Pin size={8} className="text-amber-400/80" />
