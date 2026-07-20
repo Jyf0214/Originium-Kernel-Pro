@@ -80,7 +80,6 @@ if (
 // manifest.json 位于 public/manifest.json，无需 Next.js 插件介入
 
 // 静态导出模式：通过环境变量 NEXT_STATIC_EXPORT 控制
-// 静态导出时，仅识别 .blog.tsx / .blog.ts 文件为路由入口，自动忽略所有非博客页面
 const isStaticExport = process.env.NEXT_STATIC_EXPORT === 'true';
 
 const nextConfig: NextConfig = {

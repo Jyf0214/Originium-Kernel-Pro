@@ -1,8 +1,9 @@
 # Deploy blog to GitHub Pages (static export)
 #
 # 通过 NEXT_STATIC_EXPORT=true 环境变量启用静态导出模式，
-# pageExtensions 会自动只识别 .blog.tsx 文件为路由入口，
-# 非博客页面（dashboard、login、api 等）不会被构建。
+# 控制 output: 'export'、trailingSlash、images.unoptimized 等配置。
+# filter-db-routes.mjs 在构建前移除所有数据库依赖路由目录，
+# configure-pages@v5 自动注入 output: 'export' 和 images.unoptimized。
 #
 name: Deploy Next.js site to Pages
 
