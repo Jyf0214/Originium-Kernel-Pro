@@ -5,6 +5,7 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 
 import { FooterLinkGroups, FooterBadges } from './FooterLinks';
@@ -30,6 +31,11 @@ interface FooterProps {
 
 export default function Footer({ staticConfig, staticSocial, copyrightConfig }: FooterProps) {
   const { config, error } = useFooterConfig(staticConfig, staticSocial);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 解析后的最终值
   const {
@@ -58,7 +64,7 @@ export default function Footer({ staticConfig, staticSocial, copyrightConfig }: 
         {/* 1. 链接组（移动端隐藏，仅桌面端显示） */}
         <motion.div
           variants={footerSectionVariants}
-          initial="hidden"
+          initial={mounted ? "hidden" : "visible"}
           whileInView="visible"
           viewport={{ once: true, margin: '-60px' }}
           className="hidden md:block"
@@ -69,7 +75,7 @@ export default function Footer({ staticConfig, staticSocial, copyrightConfig }: 
         {/* 2. 技术栈徽章（移动端隐藏） */}
         <motion.div
           variants={footerSectionVariants}
-          initial="hidden"
+          initial={mounted ? "hidden" : "visible"}
           whileInView="visible"
           viewport={{ once: true, margin: '-60px' }}
           className="hidden md:block"
@@ -80,7 +86,7 @@ export default function Footer({ staticConfig, staticSocial, copyrightConfig }: 
         {/* 3. 运行时状态（移动端隐藏） */}
         <motion.div
           variants={footerSectionVariants}
-          initial="hidden"
+          initial={mounted ? "hidden" : "visible"}
           whileInView="visible"
           viewport={{ once: true, margin: '-60px' }}
           className="hidden md:block"

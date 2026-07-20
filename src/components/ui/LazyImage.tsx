@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { ImageOff } from 'lucide-react';
 import { useNetworkAware } from '@/hooks/use-network-aware';
-import { Skeleton } from '@/components/ui/Skeleton';
 
 /**
  * 800x450 灰色矩形 SVG（base64），用作 next/image blur placeholder
@@ -98,9 +97,6 @@ export function LazyImage({
 
   return (
     <div ref={containerRef} className="relative" style={containerStyle} onClick={onClick}>
-      {status === 'idle' && (
-        <Skeleton className="absolute inset-0 rounded-xl" />
-      )}
       {isInView && (
         <Image
           src={src}

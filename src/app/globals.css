@@ -4,6 +4,14 @@
 /* 使用 class 控制深色模式（而非 media query） */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* 兜底：若客户端 JS 水合失败，2 秒后强制显示所有被 motion 初始隐藏的内容 */
+@keyframes force-visible {
+  to {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 /* 全局基础字号：由 CSS 变量控制，FontSizeProvider 从配置读取并动态设置 */
 html {
   font-size: var(--base-font-size, 15px);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, type Variants } from 'motion/react';
 import Image from 'next/image';
 import { Calendar, User } from 'lucide-react';
@@ -112,6 +112,11 @@ export function CoverHero({
 }) {
   const coverRef = useRef<HTMLDivElement>(null);
   const parallax = useCoverParallax(coverRef);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <header className={`relative overflow-hidden ${fullBleed ? 'aspect-video mb-0' : '-m-6 sm:-m-8 md:-m-10 lg:-m-12 mb-12 rounded-t-3xl'}`}>
@@ -170,7 +175,7 @@ export function CoverHero({
       {/* 内容区 — 入场动画 */}
       <motion.div
         variants={containerVariants}
-        initial="hidden"
+        initial={mounted ? "hidden" : "visible"}
         animate="visible"
         className="relative z-10 flex flex-col justify-end aspect-video p-8 sm:p-10"
       >
