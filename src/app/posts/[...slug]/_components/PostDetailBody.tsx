@@ -18,6 +18,12 @@ import { PostNavigationShortcuts } from '@/components/PostNavigationShortcuts';
 import { TranslationSwitcher } from '@/components/TranslationSwitcher';
 import { PostSidebarCard } from '@/components/PostSidebarCard';
 import { ArticleExpiredBanner } from '@/components/ArticleExpiredBanner';
+import { CopyrightNotice } from '@/components/ui/CopyrightNotice';
+import ShareButtons from '@/components/ui/ShareButtons';
+import QRCodeDialog from '@/components/ui/QRCodeDialog';
+import { PostLikeButton } from '@/components/PostLikeButton';
+import { Hitokoto } from '@/components/Hitokoto';
+import { BacklinkPanel } from '@/components/BacklinkPanel';
 import type { RelatedPost } from '../_lib/related-posts';
 import type { FrontendConfig } from '@/hooks/use-config';
 import type { WikiLinkMap } from '@/components/MarkdownRenderer/types';
@@ -29,43 +35,10 @@ import { useI18n } from '@/hooks/use-i18n';
 import { useScrollProgress } from '@/hooks/use-scroll-progress';
 import { useSetPostTitle } from '@/contexts/PostPageContext';
 
-/** 骨架屏加载组件 */
-const SkeletonLoading = () => (
-  <div className="animate-pulse space-y-3 py-8">
-    <div className="h-4 bg-zinc-100 dark:bg-zinc-800 rounded w-3/4" />
-    <div className="h-4 bg-zinc-100 dark:bg-zinc-800 rounded w-1/2" />
-    <div className="h-4 bg-zinc-100 dark:bg-zinc-800 rounded w-2/3" />
-  </div>
-);
-
-// ── 首屏以下重型组件懒加载（ssr: false） ──────────────────────────
-const LazyBacklinkPanel = dynamic(
-  () => import('@/components/BacklinkPanel').then((m) => m.BacklinkPanel),
-  { ssr: false, loading: SkeletonLoading },
-);
+// 评论区保留动态加载（需要客户端 OAuth）
 const LazyGiscus = dynamic(
   () => import('@/components/Comments/Giscus').then((m) => m.Giscus),
-  { ssr: false, loading: SkeletonLoading },
-);
-const LazyCopyrightNotice = dynamic(
-  () => import('@/components/ui/CopyrightNotice').then((m) => m.CopyrightNotice),
-  { ssr: false, loading: SkeletonLoading },
-);
-const LazyShareButtons = dynamic(
-  () => import('@/components/ui/ShareButtons'),
-  { ssr: false, loading: SkeletonLoading },
-);
-const LazyQRCodeDialog = dynamic(
-  () => import('@/components/ui/QRCodeDialog'),
-  { ssr: false, loading: SkeletonLoading },
-);
-const LazyPostLikeButton = dynamic(
-  () => import('@/components/PostLikeButton').then((m) => m.PostLikeButton),
-  { ssr: false, loading: SkeletonLoading },
-);
-const LazyHitokoto = dynamic(
-  () => import('@/components/Hitokoto').then((m) => m.Hitokoto),
-  { ssr: false, loading: SkeletonLoading },
+  { ssr: false },
 );
 
 // eslint-disable-next-line complexity
@@ -212,7 +185,7 @@ export function PostDetailBody({
         </div>
 
         {/* 关联引用面板 */}
-        <LazyBacklinkPanel
+        <BacklinkPanel
           section="posts"
           slug={fullPath}
           initialBacklinks={backlinks}
@@ -237,7 +210,7 @@ export function PostDetailBody({
 
       {/* 作者信息 — 单独容器 */}
       <div className="mt-12">
-        <LazyCopyrightNotice
+        <CopyrightNotice
           author={(file.meta.author as string | undefined) ?? (appConfig.footer?.owner as { author?: string } | undefined)?.author ?? ''}
           title={file.meta.title as string}
           slug={fullPath}
@@ -249,7 +222,7 @@ export function PostDetailBody({
 
       {/* 分享按钮 + 点赞 — 紧跟作者 */}
       <div className="mt-8 flex flex-wrap items-center gap-2 sm:gap-3">
-        <LazyShareButtons
+        <ShareButtons
           title={file.meta.title as string}
           url={fullUrl}
           config={buildShareConfig(appConfig)}
@@ -263,15 +236,15 @@ export function PostDetailBody({
           <QrCode size={16} />
           二维码
         </button>
-        <LazyPostLikeButton slug={fullPath} />
+        <PostLikeButton slug={fullPath} />
       </div>
 
       {/* 一言 — 文章底部 */}
       <div className="mt-10">
-        <LazyHitokoto />
+        <Hitokoto />
       </div>
 
-      <LazyQRCodeDialog
+      <QRCodeDialog
         open={qrOpen}
         url={fullUrl}
         title={file.meta.title as string}

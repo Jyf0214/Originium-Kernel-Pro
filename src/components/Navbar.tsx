@@ -197,21 +197,8 @@ function useNavbarState(navConfigProp?: NavConfig) {
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
   useEffect(() => {
+    // 静态导出模式：navConfig 始终通过 props 传入，无需 fetch
     if (navConfigProp) return;
-    const controller = new AbortController();
-    const fetchNav = async () => {
-      try {
-        const res = await fetch('/api/config', { signal: controller.signal });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.nav) setNavConfig(data.nav);
-        }
-      } catch (err) {
-        if (err instanceof DOMException && err.name === 'AbortError') return;
-      }
-    };
-    void fetchNav();
-    return () => controller.abort();
   }, [navConfigProp]);
 
   useEffect(() => {

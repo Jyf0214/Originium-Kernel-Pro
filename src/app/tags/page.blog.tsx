@@ -9,7 +9,6 @@ export const metadata: Metadata = {
   description: '浏览所有标签及关联文章数量',
 };
 
-export const revalidate = 300; // 5 分钟 ISR
 
 /**
  * 计算标签云的字号和颜色

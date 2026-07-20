@@ -10,7 +10,6 @@ export const metadata: Metadata = {
   description: '按标签浏览所有文章',
 };
 
-export const revalidate = 300; // 5 分钟 ISR
 
 /**
  * 独立标签页 — 服务端组件，从文件系统读取帖子并提取标签

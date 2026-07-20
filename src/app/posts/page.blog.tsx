@@ -13,7 +13,6 @@ export const metadata: Metadata = {
   description: '浏览所有公开帖子',
 };
 
-export const revalidate = 300; // 5 分钟 ISR
 
 /**
  * 帖子列表页 — 服务端组件，直接从文件系统读取
