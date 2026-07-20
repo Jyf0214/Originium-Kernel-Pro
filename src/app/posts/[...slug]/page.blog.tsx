@@ -24,7 +24,6 @@ interface PageProps {
 
 // 静态导出模式：所有公开文章预渲染为静态 HTML
 // 私有文章在构建时也会被预渲染，但不包含实际内容
-export const revalidate = 600;
 
 export function generateStaticParams() {
   const slugs = getAllSlugs('posts');

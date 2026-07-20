@@ -29,7 +29,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export const revalidate = 300; // 5 分钟 ISR
 
 export default async function TagPage({ params }: PageProps) {
   const { tag } = await params;
