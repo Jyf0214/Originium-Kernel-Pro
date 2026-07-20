@@ -74,6 +74,10 @@ jobs:
       - name: Restore routes
         run: node scripts/restore-db-routes.mjs
         if: always()
+      - name: Stamp SW cache version
+        run: |
+          HASH=$(echo "${{ github.sha }}" | cut -c1-7)
+          sed -i "s/originium-v1/originium-${HASH}/g" out/sw.js
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
