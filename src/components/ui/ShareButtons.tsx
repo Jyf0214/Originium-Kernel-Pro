@@ -112,7 +112,15 @@ const SHARE_WINDOW_FEATURES = 'noopener,noreferrer,width=600,height=500';
 const BTN_BASE_CLASS =
   'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500 transition-colors text-sm text-zinc-600 dark:text-zinc-400';
 
-function ShareButtonsInner({ title, url, config, locale: _locale }: ShareButtonsProps) {
+function ShareButtonsInner({ title, url: initialUrl, config, locale: _locale }: ShareButtonsProps) {
+  // 静态导出模式：getSiteUrl() 在构建时返回 example.com 占位值，
+  // 客户端挂载后使用 window.location 获取真实 URL
+  const [resolvedUrl, setResolvedUrl] = useState(initialUrl);
+  useEffect(() => {
+    setResolvedUrl(window.location.origin + window.location.pathname);
+  }, []);
+
+  const url = resolvedUrl;
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
   const [wechatHintOpen, setWechatHintOpen] = useState(false);
