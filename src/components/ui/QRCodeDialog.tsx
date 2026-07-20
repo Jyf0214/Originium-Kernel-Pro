@@ -17,7 +17,15 @@ export interface QRCodeDialogProps {
   onClose: () => void;
 }
 
-export default function QRCodeDialog({ open, url, title, onClose }: QRCodeDialogProps) {
+export default function QRCodeDialog({ open, url: initialUrl, title, onClose }: QRCodeDialogProps) {
+  // 静态导出模式：getSiteUrl() 在构建时返回 example.com 占位值，
+  // 客户端挂载后使用 window.location 获取真实 URL
+  const [resolvedUrl, setResolvedUrl] = useState(initialUrl);
+  useEffect(() => {
+    setResolvedUrl(window.location.origin + window.location.pathname);
+  }, []);
+
+  const url = resolvedUrl;
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
   const { t } = useI18n();
