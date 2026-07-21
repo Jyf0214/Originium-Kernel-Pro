@@ -6,7 +6,7 @@
    pkgs.curl
    pkgs.gh
    pkgs.wget
-   pkgs.nodejs_22
+   pkgs.nodejs_24
    pkgs.python313
    pkgs.docker
    pkgs.rclone     
