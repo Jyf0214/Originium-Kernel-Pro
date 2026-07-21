@@ -300,15 +300,15 @@ export default function ConfigFormBody({
         />
         <div className="mt-4 pt-4 border-t border-zinc-100 space-y-4">
           <FormField
-            label="自定义 Favicon 路径"
+            label="自定义网站图标"
             value={config.appearance.favicon ?? ''}
             onChange={v => onConfigChange({
               ...config,
               appearance: { ...config.appearance, favicon: v },
             })}
-            placeholder="/img/custom-favicon.ico"
+            placeholder="/img/my-icon.png"
           />
-          <p className="text-xs text-zinc-400 -mt-2">填写 public 目录下的路径（如 /img/favicon.ico），留空使用默认。</p>
+          <p className="text-xs text-zinc-400 -mt-2">填写 public 目录下的图片路径（如 /img/icon.png），构建时自动生成 favicon.ico / favicon.svg / icon-192.png / icon-512.png。留空使用默认图标。</p>
           <FormField
             label="全局基础字号（px）"
             value={String(config.appearance.fontSize ?? 15)}

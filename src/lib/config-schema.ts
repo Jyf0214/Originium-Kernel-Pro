@@ -67,7 +67,7 @@ export const zAppearanceConfig = z.object({
   fontSize: z.number().int().positive().default(16),
   favicon: z.string().refine(
     (v) => v === '' || v.startsWith('/'),
-    { message: 'favicon 必须是本地路径(以 / 开头),不支持外部 URL' },
+    { message: 'favicon 必须是 public 目录下的本地路径(以 / 开头),不支持外部 URL' },
   ).default(''),
   background: withFullDefault(z.object({
     url: z.string().default(''),

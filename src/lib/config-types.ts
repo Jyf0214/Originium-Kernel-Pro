@@ -21,7 +21,7 @@ export interface SiteConfig {
 export interface AppearanceConfig {
   /** 全局基础字号(px),默认 16,可在网页端配置 */
   fontSize?: number;
-  /** 自定义 favicon 路径,仅允许本地路径(如 /favicon.ico),默认使用浏览器默认 */
+  /** 自定义网站图标源图片路径(public 目录下),构建时自动生成 favicon.ico / favicon.svg / icon-192.png / icon-512.png,留空使用默认图标 */
   favicon?: string;
   background: {
     url: string;
