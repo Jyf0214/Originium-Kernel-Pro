@@ -224,7 +224,10 @@ async function main() {
 
     console.log('[数据库初始化] ✓ 全部完成')
   } catch (error) {
-    console.log('[数据库初始化] ⚠️ 初始化跳过:', error.message?.split('\n')[0])
+    console.error('[数据库初始化] ⚠️ 初始化跳过')
+    console.error('[数据库初始化] 错误类型:', error?.constructor?.name ?? typeof error)
+    console.error('[数据库初始化] 错误信息:', error?.message ?? String(error))
+    if (error?.stack) console.error('[数据库初始化] 堆栈:', error.stack.split('\n').slice(0, 5).join('\n'))
   }
 }
 
