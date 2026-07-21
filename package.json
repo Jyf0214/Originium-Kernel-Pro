@@ -23,7 +23,7 @@
     "build": "NEXT_TELEMETRY_DISABLED=1 npm run check && npm run test && npm run db:generate && ALLOW_DB_PUSH=1 npm run db:init:seed && (node scripts/generate-search-index.mjs & node scripts/generate-tags.mjs & node scripts/generate-version.mjs & wait) && node scripts/build-wrapper.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "analyze": "ANALYZE=true next build",
+    "analyze": "ANALYZE=true node scripts/build-wrapper.mjs",
     "bundle-check": "node scripts/check-bundle-size.mjs",
     "start": "next start",
     "clean": "next clean",

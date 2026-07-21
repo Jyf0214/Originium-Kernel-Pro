@@ -65,15 +65,10 @@ jobs:
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
       - name: Generate static data
         run: node scripts/generate-navigation.mjs && node scripts/generate-site-config-ts.mjs && node scripts/generate-version.mjs
-      - name: Filter routes for GitHub Pages
-        run: node scripts/filter-db-routes.mjs
-      - name: Build with Next.js
-        run: ${{ steps.detect-package-manager.outputs.runner }} next build --webpack
+      - name: Build with Next.js (static export via webpack)
+        run: ${{ steps.detect-package-manager.outputs.runner }} node scripts/build-wrapper.mjs
         env:
           NEXT_STATIC_EXPORT: 'true'
-      - name: Restore routes
-        run: node scripts/restore-db-routes.mjs
-        if: always()
       - name: Stamp SW cache version
         run: |
           HASH=$(echo "${{ github.sha }}" | cut -c1-7)
