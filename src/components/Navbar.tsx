@@ -189,17 +189,14 @@ function DrawerContent({
 
 function useNavbarState(navConfigProp?: NavConfig) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [navConfig, setNavConfig] = useState<NavConfig | null>(navConfigProp ?? null);
   const [time, setTime] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
-  useEffect(() => {
-    // 静态导出模式：navConfig 始终通过 props 传入，无需 fetch
-    if (navConfigProp) return;
-  }, [navConfigProp]);
+  // 静态导出模式：navConfig 始终通过 props 传入
+  const navConfig = navConfigProp ?? null;
 
   useEffect(() => {
     if (!navConfig?.clock) return;
