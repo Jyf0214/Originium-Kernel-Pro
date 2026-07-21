@@ -117,8 +117,17 @@ async function main() {
       return;
     }
 
-    const { PrismaClient } = await import('@prisma/client')
-    const prisma = new PrismaClient()
+    const { PrismaClient } = await import('../prisma/generated/prisma/client.js')
+    const { PrismaPg } = await import('@prisma/adapter-pg')
+
+    const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING
+    let prisma
+    if (databaseUrl) {
+      const adapter = new PrismaPg({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } })
+      prisma = new PrismaClient({ adapter })
+    } else {
+      prisma = new PrismaClient()
+    }
 
     const users = await prisma.originiumKV.findMany({
       where: { key: { startsWith: 'user:uid:' } }

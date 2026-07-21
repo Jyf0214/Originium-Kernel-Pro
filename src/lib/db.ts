@@ -2,7 +2,8 @@
  * 统一数据库接口 - 使用 Prisma
  * 支持 Supabase/PostgreSQL
  */
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '../../prisma/generated/prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
 
 // 屏蔽 Prisma 广告
 process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS = 'true'
@@ -29,35 +30,40 @@ export function hasDatabase(): boolean {
 }
 
 // 创建 Prisma 客户端单例
-   
+
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
+  prisma: PrismaClient | null | undefined
 }
 
-function createPrismaClient(): PrismaClient {
+function createPrismaClient(): PrismaClient | null {
   const url = getDatabaseUrl()
-  
-  // 构建时可能没有 URL，返回一个空客户端
+
+  // 构建时可能没有 URL，返回 null
   if (!url) {
-    return new PrismaClient()
+    return null
   }
-  
+
   // 自动添加 sslmode 参数
   let finalUrl = url
   if (url.startsWith('postgres') && !url.includes('sslmode')) {
     const separator = url.includes('?') ? '&' : '?'
     finalUrl = `${url}${separator}sslmode=require`
   }
-  
+
+  const adapter = new PrismaPg({
+    connectionString: finalUrl,
+    ssl: { rejectUnauthorized: false },
+  })
+
   return new PrismaClient({
-    datasources: {
-      db: { url: finalUrl }
-    },
+    adapter,
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   })
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient()
+// Prisma 7 强制要求 driver adapter，无 DATABASE_URL 时返回 null。
+// 所有 API 路由均通过 hasDatabase() / getDb() 守卫，不会在 prisma=null 时访问。
+export const prisma = (globalForPrisma.prisma ?? createPrismaClient()) as unknown as PrismaClient
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma

@@ -9,10 +9,15 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   _PrismaClient: vi.fn(),
+  _PrismaPg: vi.fn(),
 }))
 
-vi.mock('@prisma/client', () => ({
+vi.mock('../prisma/generated/prisma/client', () => ({
   PrismaClient: mocks._PrismaClient,
+}))
+
+vi.mock('@prisma/adapter-pg', () => ({
+  PrismaPg: mocks._PrismaPg,
 }))
 
 function createMockPrisma() {
@@ -534,6 +539,7 @@ describe('PrismaClient URL 处理', () => {
   beforeEach(() => {
     // 清除 mock 的调用记录，避免上一个测试的 constructorCall 残留
     mocks._PrismaClient.mockClear()
+    mocks._PrismaPg.mockClear()
   })
 
   afterEach(() => {
@@ -543,48 +549,52 @@ describe('PrismaClient URL 处理', () => {
   test('postgres URL 自动添加 sslmode=require', async () => {
     process.env.DATABASE_URL = 'postgres://localhost:5432/test'
     resetDbModules()
+    mocks._PrismaPg.mockImplementation(function (opts: { connectionString: string }) { return { connectionString: opts.connectionString } })
     mocks._PrismaClient.mockImplementation(function () { return createMockPrisma() })
     await import('@/lib/db')
 
-    const constructorCall = mocks._PrismaClient.mock.calls[0]
-    const config = constructorCall?.[0] as { datasources: { db: { url: string } } }
-    expect(config?.datasources?.db?.url).toContain('sslmode=require')
+    const pgCall = mocks._PrismaPg.mock.calls[0]
+    const config = pgCall?.[0] as { connectionString: string }
+    expect(config?.connectionString).toContain('sslmode=require')
   })
 
   test('已含 sslmode 的 URL 不重复添加', async () => {
     process.env.DATABASE_URL = 'postgres://localhost:5432/test?sslmode=disable'
     resetDbModules()
+    mocks._PrismaPg.mockImplementation(function (opts: { connectionString: string }) { return { connectionString: opts.connectionString } })
     mocks._PrismaClient.mockImplementation(function () { return createMockPrisma() })
     await import('@/lib/db')
 
-    const constructorCall = mocks._PrismaClient.mock.calls[0]
-    const config = constructorCall?.[0] as { datasources: { db: { url: string } } }
-    expect(config?.datasources?.db?.url).toBe('postgres://localhost:5432/test?sslmode=disable')
+    const pgCall = mocks._PrismaPg.mock.calls[0]
+    const config = pgCall?.[0] as { connectionString: string }
+    expect(config?.connectionString).toBe('postgres://localhost:5432/test?sslmode=disable')
   })
 
   test('非 postgres URL 不添加 sslmode', async () => {
     process.env.DATABASE_URL = 'mysql://localhost:3306/test'
     resetDbModules()
+    mocks._PrismaPg.mockImplementation(function (opts: { connectionString: string }) { return { connectionString: opts.connectionString } })
     mocks._PrismaClient.mockImplementation(function () { return createMockPrisma() })
     await import('@/lib/db')
 
-    const constructorCall = mocks._PrismaClient.mock.calls[0]
-    const config = constructorCall?.[0] as { datasources: { db: { url: string } } }
-    expect(config?.datasources?.db?.url).toBe('mysql://localhost:3306/test')
+    const pgCall = mocks._PrismaPg.mock.calls[0]
+    const config = pgCall?.[0] as { connectionString: string }
+    expect(config?.connectionString).toBe('mysql://localhost:3306/test')
   })
 
   test('带查询参数的 postgres URL 用 & 分隔 sslmode', async () => {
     process.env.DATABASE_URL = 'postgres://localhost:5432/test?connect_timeout=10'
     resetDbModules()
+    mocks._PrismaPg.mockImplementation(function (opts: { connectionString: string }) { return { connectionString: opts.connectionString } })
     mocks._PrismaClient.mockImplementation(function () { return createMockPrisma() })
     await import('@/lib/db')
 
-    const constructorCall = mocks._PrismaClient.mock.calls[0]
-    const config = constructorCall?.[0] as { datasources: { db: { url: string } } }
-    expect(config?.datasources?.db?.url).toContain('&sslmode=require')
+    const pgCall = mocks._PrismaPg.mock.calls[0]
+    const config = pgCall?.[0] as { connectionString: string }
+    expect(config?.connectionString).toContain('&sslmode=require')
   })
 
-  test('无数据库 URL 时 PrismaClient 不传 datasources', async () => {
+  test('无数据库 URL 时不创建 adapter', async () => {
     process.env = {
       ...savedEnv,
       DATABASE_URL: undefined,
@@ -593,11 +603,12 @@ describe('PrismaClient URL 处理', () => {
       POSTGRES_URL_NON_POOLING: undefined,
     }
     resetDbModules()
+    mocks._PrismaPg.mockImplementation(function (opts: { connectionString: string }) { return { connectionString: opts.connectionString } })
     mocks._PrismaClient.mockImplementation(function () { return createMockPrisma() })
     await import('@/lib/db')
 
-    // 无 URL 时 createPrismaClient 调用 new PrismaClient() 不传参数
-    const constructorCall = mocks._PrismaClient.mock.calls[0]
-    expect(constructorCall).toEqual([])
+    // 无 URL 时 createPrismaClient 返回 null，不调用 PrismaClient
+    expect(mocks._PrismaClient).not.toHaveBeenCalled()
+    expect(mocks._PrismaPg).not.toHaveBeenCalled()
   })
 })
