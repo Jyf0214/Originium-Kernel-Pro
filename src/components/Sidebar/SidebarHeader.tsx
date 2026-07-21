@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
@@ -12,8 +13,15 @@ export default function SidebarHeader({ showCloseButton, onClose, collapsed }: S
   return (
     <div className={`${collapsed ? 'px-3 justify-center' : 'px-5 justify-between'} py-6 flex items-center border-b border-zinc-50/50 dark:border-zinc-800/50`}>
       <Link href="/" className="flex items-center gap-3 group no-underline">
-        <div className="w-9 h-9 bg-zinc-900 dark:bg-zinc-100 rounded-xl flex items-center justify-center shadow-lg shadow-zinc-200 dark:shadow-zinc-700 group-hover:scale-105 transition-transform duration-300 shrink-0 ui-interactive">
-          <span className="text-white font-black text-lg tracking-tighter">OK</span>
+        <div className="w-9 h-9 rounded-xl overflow-hidden shadow-lg shadow-zinc-200 dark:shadow-zinc-700 group-hover:scale-105 transition-transform duration-300 shrink-0 ui-interactive">
+          <Image
+            src="/favicon.svg"
+            alt="网站图标"
+            width={36}
+            height={36}
+            unoptimized
+            className="w-full h-full object-cover"
+          />
         </div>
         {!collapsed && (
           <div className="flex flex-col">
