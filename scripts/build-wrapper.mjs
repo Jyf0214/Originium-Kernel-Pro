@@ -29,8 +29,13 @@ const isGitHubActions = process.env.GITHUB_ACTIONS === 'true';
 
 let exitCode = 0;
 try {
-  // 2. 执行 Next.js 构建（强制使用 webpack，避免 turbopack 水合兼容性问题）
-  run('next build --webpack');
+  // 静态导出模式：必须使用 webpack（turbopack 的 getAssetPrefix() 在异步脚本中
+  // 读取 document.currentScript.src 为 null，导致水合失败，所有交互失效）
+  // 服务器部署模式：使用 turbopack，构建速度显著提升
+  const isStaticExport = process.env.NEXT_STATIC_EXPORT === 'true';
+  const buildCmd = isStaticExport ? 'next build --webpack' : 'next build';
+  console.log(`[build-wrapper] 构建模式: ${isStaticExport ? '静态导出 (webpack)' : '服务器部署 (turbopack)'}`);
+  run(buildCmd);
 } catch {
   exitCode = 1;
 } finally {
