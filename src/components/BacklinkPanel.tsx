@@ -42,7 +42,7 @@ function renderLinkTags(
         <Link
           key={`${item.section}-${item.slug}`}
           href={contentUrl(item.section, item.slug)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-50 hover:bg-zinc-100 border border-zinc-100 hover:border-zinc-200 rounded-lg text-xs text-zinc-600 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-100 dark:border-zinc-700/50 hover:border-zinc-200 dark:hover:border-zinc-600 rounded-lg text-xs text-zinc-600 dark:text-zinc-400 transition-colors"
         >
           <span className="text-zinc-400 text-[10px]">{sectionLabel(item.section)}</span>
           <span>{item.title}</span>
@@ -107,8 +107,8 @@ export function BacklinkPanel({
 
   if (loading) {
     return (
-      <div className="mt-8 pt-6 border-t border-zinc-100">
-        <div className="flex items-center gap-2 text-sm text-zinc-400">
+      <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-700">
+        <div className="flex items-center gap-2 text-sm text-zinc-400 dark:text-zinc-500">
           <GitBranch size={14} className="animate-pulse" />
           <span>加载关联引用...</span>
         </div>
@@ -124,15 +124,15 @@ export function BacklinkPanel({
   if (!hasOutgoing && !hasBacklinks) return null;
 
   return (
-    <div className="mt-8 pt-6 border-t border-zinc-100">
+    <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-700">
       <div className="flex items-center gap-2 mb-4">
-        <GitBranch size={16} className="text-zinc-400" />
-        <h3 className="text-sm font-semibold text-zinc-700">关联引用</h3>
+        <GitBranch size={16} className="text-zinc-400 dark:text-zinc-500" />
+        <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">关联引用</h3>
       </div>
 
       {hasOutgoing && (
         <div className="mb-4">
-          <p className="text-xs font-medium text-zinc-400 mb-2 flex items-center gap-1">
+          <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 mb-2 flex items-center gap-1">
             <ArrowUpRight size={12} />
             引用了
           </p>
@@ -142,7 +142,7 @@ export function BacklinkPanel({
 
       {hasBacklinks && (
         <div>
-          <p className="text-xs font-medium text-zinc-400 mb-2 flex items-center gap-1">
+          <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 mb-2 flex items-center gap-1">
             <ArrowDownLeft size={12} />
             被引用
           </p>

@@ -139,6 +139,30 @@ function rehypeInlineCodeStyle(): any {
 
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
+/* ── 标题层级偏移 ── */
+
+/**
+ * 将所有标题层级下移 offset 级（h1→h2, h2→h3, ...），
+ * 用于 CoverHero 已占用 H1 时避免页面出现两个 H1。
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- hast 树遍历必须用 any
+function rehypeHeadingOffset(offset: number): any {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (tree: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function walk(node: any) {
+      if (!node || typeof node !== 'object') return;
+      if (node.type === 'element' && /^h[1-6]$/.test(node.tagName)) {
+        const level = parseInt(node.tagName[1], 10);
+        const newLevel = Math.min(level + offset, 6);
+        node.tagName = `h${newLevel}`;
+      }
+      if (Array.isArray(node.children)) node.children.forEach(walk);
+    }
+    walk(tree);
+  };
+}
+
 /* ── 主渲染函数 ── */
 
 export interface RenderMarkdownOptions {
@@ -161,6 +185,7 @@ export async function renderMarkdownToHtml(
     .use(rehypeKatex)
     .use(rehypePrismPlus, { showLineNumbers: true, ignoreMissing: true })
     .use(rehypeInlineCodeStyle)
+    .use(rehypeHeadingOffset, 1)
     .use(rehypeMermaid)
     .use(rehypeStringify);
 

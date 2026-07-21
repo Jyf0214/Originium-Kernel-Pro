@@ -44,9 +44,11 @@ export const Tag = memo<TagProps>(({ children, variant = 'light', size = 'md', c
 
   const classes = cn(
     'inline-block border max-w-full overflow-hidden text-ellipsis whitespace-nowrap',
+    'transition-colors duration-150',
     variantStyles[variant],
     sizeStyles[size],
-    onClick && 'cursor-pointer ui-press transition-opacity',
+    onClick && 'cursor-pointer ui-press',
+    !onClick && 'hover:brightness-95 dark:hover:brightness-110',
     className,
   );
 

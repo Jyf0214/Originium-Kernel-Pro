@@ -118,7 +118,7 @@ export function PostDetailBody({
 
       {/* 文章内容容器 — 卡片样式 */}
       <div className="relative">
-      <article className="bg-white dark:bg-zinc-800 rounded-3xl border border-zinc-100 dark:border-zinc-700 p-6 sm:p-8 md:p-10 lg:p-12 animate-card-slidein">
+      <article className="bg-white dark:bg-zinc-800 rounded-3xl border border-zinc-100 dark:border-zinc-700 shadow-sm dark:shadow-zinc-900/50 p-6 sm:p-8 md:p-10 lg:p-12 animate-card-slidein">
         {/* 隐藏文章标识 — 仅展示标签 */}
         {isHidden && (
           <div className="mb-6">
