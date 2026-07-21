@@ -18,6 +18,7 @@ import rehypeRaw from 'rehype-raw';
 import rehypeKatex from 'rehype-katex';
 import rehypePrismPlus from 'rehype-prism-plus';
 import rehypeStringify from 'rehype-stringify';
+import { slugify } from './slugify';
 
 /* ── Wiki 链接预处理 ── */
 
@@ -163,6 +164,41 @@ function rehypeHeadingOffset(offset: number): any {
   };
 }
 
+/* ── 标题锚点 ID ── */
+
+/** 从 hast 节点中提取纯文本（递归） */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- hast 树遍历必须用 any
+function hastTextContent(node: any): string {
+  if (!node || typeof node !== 'object') return '';
+  if (node.type === 'text') return String(node.value ?? '');
+  if (Array.isArray(node.children)) return node.children.map(hastTextContent).join('');
+  return '';
+}
+
+/**
+ * 为所有标题元素添加 id 属性（与 TOC / MarkdownRenderer 共用 slugify），
+ * 使构建时预渲染的 HTML 也能被目录锚点正确跳转。
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- hast 树遍历必须用 any
+function rehypeHeadingIds(): any {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (tree: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function walk(node: any) {
+      if (!node || typeof node !== 'object') return;
+      if (node.type === 'element' && /^h[1-6]$/.test(node.tagName)) {
+        const text = hastTextContent(node).trim();
+        if (text && !node.properties?.id) {
+          node.properties = node.properties || {};
+          node.properties.id = slugify(text);
+        }
+      }
+      if (Array.isArray(node.children)) node.children.forEach(walk);
+    }
+    walk(tree);
+  };
+}
+
 /* ── 主渲染函数 ── */
 
 export interface RenderMarkdownOptions {
@@ -186,6 +222,7 @@ export async function renderMarkdownToHtml(
     .use(rehypePrismPlus, { showLineNumbers: true, ignoreMissing: true })
     .use(rehypeInlineCodeStyle)
     .use(rehypeHeadingOffset, 1)
+    .use(rehypeHeadingIds)
     .use(rehypeMermaid)
     .use(rehypeStringify);
 
