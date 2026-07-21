@@ -39,14 +39,8 @@ export default async function RootLayout({children}: {children: React.ReactNode}
         <link rel="preconnect" href="https://vitals.vercel-insights.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://giscus.app" />
         <link rel="preconnect" href="https://giscus.app" crossOrigin="anonymous" />
-        {config.appearance.favicon?.startsWith('/') ? (
-          <link rel="icon" href={config.appearance.favicon} />
-        ) : (
-          <>
-            <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-            <link rel="icon" href="/favicon.ico" sizes="48x48" />
-          </>
-        )}
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon.ico" sizes="48x48" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
         {/* 暗色模式 FOUC 防护：在 React hydration 前读取 localStorage 并应用 dark 类 */}
         <script
