@@ -20,7 +20,7 @@
     "generate:search-index": "node scripts/generate-search-index.mjs",
     "generate:tags": "node scripts/generate-tags.mjs",
     "generate:version": "node scripts/generate-version.mjs",
-    "build": "NEXT_TELEMETRY_DISABLED=1 npm run check && npm run test && npm run db:generate && ALLOW_DB_PUSH=1 npm run db:init:seed && (node scripts/generate-search-index.mjs & node scripts/generate-tags.mjs & node scripts/generate-version.mjs & wait) && node scripts/build-wrapper.mjs",
+    "build": "NEXT_TELEMETRY_DISABLED=1 npm run check && npm run db:generate && npm run test && ALLOW_DB_PUSH=1 npm run db:init:seed && (node scripts/generate-search-index.mjs & node scripts/generate-tags.mjs & node scripts/generate-version.mjs & wait) && node scripts/build-wrapper.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "analyze": "ANALYZE=true node scripts/build-wrapper.mjs",
