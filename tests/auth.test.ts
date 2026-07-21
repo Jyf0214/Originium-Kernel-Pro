@@ -31,6 +31,19 @@ vi.mock('next/headers', () => ({
   cookies: vi.fn(() => Promise.resolve(mockCookieStore)),
 }));
 
+// Mock @/lib/db — 测试不需要真实数据库连接
+// 返回 prisma: null 的 mock 实例，所有 KV 操作返回 null/undefined
+vi.mock('@/lib/db', () => ({
+  getDb: vi.fn(() => ({
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue(undefined),
+    del: vi.fn().mockResolvedValue(undefined),
+    exists: vi.fn().mockResolvedValue(false),
+    prisma: null,
+  })),
+  hasDatabase: vi.fn(() => false),
+}));
+
 // 绕过 TypeScript 将 NODE_ENV 视为 readonly 的限制 (测试需要临时覆盖)
 function setEnv(key: string, value: string | undefined): void {
   if (value === undefined) {

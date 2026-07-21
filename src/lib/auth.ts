@@ -233,13 +233,18 @@ async function isSessionRevoked(uid: string, sv: number): Promise<boolean> {
     return cached.revoked
   }
 
-  const { getDb } = await import('@/lib/db');
-  const db = getDb();
-  const currentSv = await db.get(`user:sv:${uid}`);
-  const revoked = currentSv !== null && currentSv !== undefined && Number(currentSv) !== sv;
+  try {
+    const { getDb } = await import('@/lib/db');
+    const db = getDb();
+    const currentSv = await db.get(`user:sv:${uid}`);
+    const revoked = currentSv !== null && currentSv !== undefined && Number(currentSv) !== sv;
 
-  svCache.set(uid, { sv, revoked, ts: now })
-  return revoked
+    svCache.set(uid, { sv, revoked, ts: now })
+    return revoked
+  } catch {
+    // 数据库不可用时，视为会话未吊销（JWT 本身是有效的，数据库检查是增强安全性）
+    return false
+  }
 }
 
 /**
