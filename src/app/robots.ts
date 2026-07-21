@@ -21,7 +21,6 @@ export default function robots(): MetadataRoute.Robots {
         '/dashboard',
         '/api',
         '/diary',
-        '/tickets',
         '/editor',
         '/page/private*',
         '/files/*',

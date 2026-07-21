@@ -24,21 +24,18 @@
  *   - app/[user]/[article]    用户文章
  *   - app/article/            文章视图
  *   - app/files/              文件管理
- *   - app/tickets/            工单
  *   - app/api/auth/           认证 API
  *   - app/api/admin/          管理 API
  *   - app/api/diary/          日记 API
  *   - app/api/faces/          人物 API
  *   - app/api/user/           用户信息 API
  *   - app/api/users/          用户列表 API
- *   - app/api/tickets/        工单 API
  *   - app/api/github/         GitHub 同步 API
  *   - app/api/webhooks/       Webhook API
  *   - app/api/cleanup         清理 API
  *   - app/api/recycle-bin     回收站 API
  *   - app/api/feedback        反馈 API
  *   - app/api/requests        请求 API
- *   - app/api/ticket-templates 工单模板 API
  *
  * 有数据库时直接退出，不做任何操作。
  * 构建完成后由 restore-db-routes.mjs 恢复。
@@ -91,9 +88,8 @@ const DB_ROUTE_PATHS = [
   'src/app/[user]',
   'src/app/[user]/[article]',
   'src/app/article',
-  // ── 存储 / 工单 / 文件管理 ──
+  // ── 存储 / 文件管理 ──
   'src/app/files',
-  'src/app/tickets',
   // ── API：认证 / 管理 ──
   'src/app/api/auth',
   'src/app/api/admin',
@@ -106,8 +102,6 @@ const DB_ROUTE_PATHS = [
   'src/app/api/recycle-bin',
   'src/app/api/feedback',
   'src/app/api/requests',
-  'src/app/api/ticket-templates',
-  'src/app/api/tickets',
   'src/app/api/github',
   'src/app/api/webhooks',
 ];
@@ -131,7 +125,6 @@ const GITHUB_PAGES_REMOVE_PATHS = [
   'src/app/forgot-password',
   'src/app/reset-password',
   'src/app/editor',
-  'src/app/tickets',
   'src/app/article',
   // ── 私有帖子页（使用 cookies，无法静态导出） ──
   'src/app/posts/private',
