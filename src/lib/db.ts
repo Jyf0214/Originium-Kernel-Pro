@@ -44,15 +44,17 @@ function createPrismaClient(): PrismaClient | null {
   }
 
   // 自动添加 sslmode 参数
+  // 使用 no-verify 而非 require：SSL 加密仍启用，但跳过服务器证书验证。
+  // 云数据库（Supabase/Neon 等）常使用自签名或自定义 CA 证书，
+  // 构建环境（Vercel CI 等）的系统 CA 证书库可能不包含这些证书。
   let finalUrl = url
   if (url.startsWith('postgres') && !url.includes('sslmode')) {
     const separator = url.includes('?') ? '&' : '?'
-    finalUrl = `${url}${separator}sslmode=require`
+    finalUrl = `${url}${separator}sslmode=no-verify`
   }
 
   const adapter = new PrismaPg({
     connectionString: finalUrl,
-    ssl: { rejectUnauthorized: false },
   })
 
   return new PrismaClient({
