@@ -1,5 +1,10 @@
 #!/usr/bin/env sh
 
+# 优先使用 Nix 安装的 Node.js（Prisma 7 需要 22.12+）
+if [ -d "$HOME/.nix-profile/bin" ]; then
+  export PATH="$HOME/.nix-profile/bin:$PATH"
+fi
+
 echo "🚀 运行 Pre-push 检查..."
 echo ""
 
