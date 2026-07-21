@@ -121,8 +121,15 @@ function DrawerContent({
       {/* 头部 */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
         <Link href="/" className="flex items-center gap-3" onClick={closeDrawer}>
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-zinc-900 to-zinc-700 flex items-center justify-center shadow-sm">
-            <span className="font-bold text-lg leading-none text-white">O</span>
+          <div className="w-9 h-9 rounded-xl overflow-hidden shadow-sm shrink-0">
+            <Image
+              src="/favicon.svg"
+              alt="网站图标"
+              width={36}
+              height={36}
+              unoptimized
+              className="w-full h-full object-cover"
+            />
           </div>
           <span className="font-display font-bold text-lg tracking-tight text-zinc-900 dark:text-zinc-100">
             {t('sidebar.originiumKernel')}
