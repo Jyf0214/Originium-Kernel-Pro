@@ -176,6 +176,8 @@
     "returnDashboard": "返回用户面板",
     "fileManager": "文件管理",
     "contentStats": "内容统计",
+    "analytics": "数据仪表板",
+    "backup": "备份导出",
     "auditLogs": "审计日志",
     "switchToUserMenu": "切换到用户面板菜单",
     "switchToAdminMenu": "返回管理后台菜单",

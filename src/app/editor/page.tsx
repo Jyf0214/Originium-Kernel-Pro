@@ -11,6 +11,7 @@ import { message } from 'antd';
 import { showError } from '@/lib/error';
 import { GlobalLoading } from '@/components/Loading';
 import Link from 'next/link';
+import { MarkdownEditorPanel } from './MarkdownEditorPanel';
 
 function EditorContent() {
   const searchParams = useSearchParams();
@@ -320,12 +321,11 @@ function EditorContent() {
           className="px-4"
         />
 
-        {/* 内容编辑 */}
-        <textarea
+        {/* 内容编辑区 — 支持编辑/预览/分屏三种模式 */}
+        <MarkdownEditorPanel
+          content={content}
+          onContentChange={setContent}
           placeholder={t('editor.contentPlaceholder')}
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className="flex-1 w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-6 text-zinc-800 dark:text-zinc-200 font-mono text-sm resize-none outline-none focus:border-zinc-400 dark:focus:border-zinc-500 transition-colors min-h-[300px] max-h-[70vh]"
         />
       </div>
     </div>

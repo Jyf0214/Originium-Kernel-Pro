@@ -1,9 +1,9 @@
-// SearchResults - 搜索结果列表：单条结果渲染、文本高亮、加载态、键盘选中
+// SearchResults - 搜索结果列表：单条结果渲染、文本高亮、加载态、键盘选中、分页
 
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { BookOpen, FileText } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
+import { BookOpen, FileText, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 
 import { ProCard } from '@/components/ui/ProCard';
@@ -11,6 +11,9 @@ import { Tag } from '@/components/ui/Tag';
 import { cn } from '@/lib/ui';
 
 import type { SearchResult } from './types';
+
+/** 每页显示的结果数量 */
+const PAGE_SIZE = 20;
 
 // ─── Highlight Text ─────────────────────────────────────────────────────────
 
@@ -166,6 +169,67 @@ function SearchResultsSummary({ totalResults, query }: SearchResultsSummaryProps
   );
 }
 
+// ─── Search Results List (带分页) ──────────────────────────────────────────
+
+interface SearchResultsListProps {
+  /** 要显示的结果列表 */
+  results: SearchResult[];
+  /** 搜索关键词 */
+  query: string;
+  /** 关闭对话框回调 */
+  onClose: () => void;
+  /** 键盘导航选中索引 */
+  selectedIndex: number;
+}
+
+/** 搜索结果列表组件 — 支持分页，超过 PAGE_SIZE 条时显示"查看更多"按钮 */
+function SearchResultsList({
+  results,
+  query,
+  onClose,
+  selectedIndex,
+}: SearchResultsListProps) {
+  const [displayCount, setDisplayCount] = React.useState(PAGE_SIZE);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // 搜索关键词变化时重置分页
+  useEffect(() => {
+    setDisplayCount(PAGE_SIZE);
+  }, [query]);
+
+  const visibleResults = results.slice(0, displayCount);
+  const hasMore = displayCount < results.length;
+  const remainingCount = results.length - displayCount;
+
+  return (
+    <div ref={containerRef}>
+      {visibleResults.map((result, idx) => (
+        <SearchResultItem
+          key={result.id}
+          result={result}
+          query={query}
+          onClose={onClose}
+          isSelected={selectedIndex === idx}
+          flatIndex={idx}
+        />
+      ))}
+
+      {/* 加载更多按钮 */}
+      {hasMore && (
+        <div className="px-4 py-3">
+          <button
+            onClick={() => setDisplayCount((prev) => prev + PAGE_SIZE)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl transition-colors"
+          >
+            <ChevronDown size={14} />
+            <span>查看更多（还有 {remainingCount} 条）</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Exports ────────────────────────────────────────────────────────────────
 
-export { HighlightText, SearchLoading, SearchResultItem, SearchResultsSummary };
+export { HighlightText, SearchLoading, SearchResultItem, SearchResultsList, SearchResultsSummary };

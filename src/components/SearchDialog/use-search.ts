@@ -35,6 +35,18 @@ export interface UseSearchReturn {
   clearHistory: () => void;
   /** 搜索历史列表 */
   searchHistory: string[];
+  /** 当前筛选选项 */
+  filters: SearchFilters;
+  /** 设置日期范围筛选 */
+  setDateRange: (range: SearchFilters['dateRange']) => void;
+  /** 设置目录分类筛选 */
+  setCategory: (category: string | null) => void;
+  /** 所有可用的目录分类列表 */
+  availableCategories: string[];
+  /** 搜索错误信息（索引加载失败时） */
+  searchError: string | null;
+  /** 重试搜索 */
+  retrySearch: () => void;
 }
 
 /** 防抖延迟（毫秒） */
@@ -71,30 +83,84 @@ interface SearchIndexItem {
   content: string;
 }
 
+/** 搜索筛选选项 */
+export interface SearchFilters {
+  /** 日期范围：'all' | '30days' | '90days' | '365days' */
+  dateRange: 'all' | '30days' | '90days' | '365days';
+  /** 目录分类筛选：null 表示全部 */
+  category: string | null;
+}
+
+/** 从 slug 中提取目录分类（第一级路径） */
+function extractCategory(slug: string): string {
+  // slug 格式: /分类/文章名 或 /分类/子分类/文章名
+  const parts = slug.replace(/^\//, '').split('/');
+  return parts[0] ?? '其他';
+}
+
+/** 判断条目是否在日期范围内 */
+function _isInDateRange(item: SearchIndexItem, dateRange: SearchFilters['dateRange']): boolean {
+  if (dateRange === 'all') return true;
+
+  // 尝试从 slug 中提取日期（格式: /daily/2024-01-15）
+  const dateMatch = item.slug.match(/(\d{4}-\d{2}-\d{2})/);
+  if (!dateMatch?.[1]) return true; // 无法识别日期的条目始终显示
+
+  const itemDate = new Date(dateMatch[1]);
+  const now = new Date();
+  const diffMs = now.getTime() - itemDate.getTime();
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+  switch (dateRange) {
+    case '30days': return diffDays <= 30;
+    case '90days': return diffDays <= 90;
+    case '365days': return diffDays <= 365;
+    default: return true;
+  }
+}
+
 /** 模块级索引缓存，避免重复 fetch */
 let cachedIndex: SearchIndexItem[] | null = null;
 let indexFetchPromise: Promise<SearchIndexItem[]> | null = null;
 
-/** 加载搜索索引（单例 fetch + 缓存） */
+/** 搜索索引的备用 URL 列表（降级策略） */
+const SEARCH_INDEX_URLS = [
+  '/data/search-index.json',
+  '/api/search-index',
+];
+
+/** 从指定 URL 加载搜索索引 */
+async function fetchSearchIndex(url: string): Promise<SearchIndexItem[]> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json() as Promise<SearchIndexItem[]>;
+}
+
+/** 加载搜索索引（单例 fetch + 缓存 + 降级策略） */
 async function loadSearchIndex(): Promise<SearchIndexItem[]> {
   if (cachedIndex) return cachedIndex;
   if (indexFetchPromise) return indexFetchPromise;
 
-  indexFetchPromise = fetch('/data/search-index.json')
-    .then((res) => {
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.json() as Promise<SearchIndexItem[]>;
-    })
-    .then((data) => {
-      cachedIndex = data;
-      return data;
-    })
-    .catch((err) => {
-      indexFetchPromise = null;
-      throw err;
-    });
+  indexFetchPromise = (async () => {
+    // 依次尝试各个 URL
+    for (const url of SEARCH_INDEX_URLS) {
+      try {
+        const data = await fetchSearchIndex(url);
+        cachedIndex = data;
+        return data;
+      } catch {
+        // 当前 URL 失败，尝试下一个
+        continue;
+      }
+    }
+    // 所有 URL 都失败
+    throw new Error('搜索索引加载失败：所有备用地址均不可用');
+  })();
 
-  return indexFetchPromise;
+  return indexFetchPromise.catch((err) => {
+    indexFetchPromise = null;
+    throw err;
+  });
 }
 
 /** 相关性评分（与原 API 逻辑一致） */
@@ -172,6 +238,9 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
   const [hasSearched, setHasSearched] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [filters, setFilters] = useState<SearchFilters>({ dateRange: 'all', category: null });
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -182,6 +251,7 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
   useEffect(() => {
     if (open) {
       setSearchHistory(loadHistory());
+      setSearchError(null);
       requestAnimationFrame(() => {
         inputRef.current?.focus();
       });
@@ -192,27 +262,67 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
       setLoading(false);
       setHasSearched(false);
       setSelectedIndex(-1);
+      setSearchError(null);
     }
   }, [open]);
 
   // ── 防抖客户端搜索 ──
-  const performSearch = useCallback(async (q: string) => {
+  const performSearch = useCallback(async (q: string, currentFilters: SearchFilters) => {
     const trimmed = q.trim();
     if (!trimmed) {
       setResults([]);
       setGroups([]);
       setHasSearched(false);
       setSelectedIndex(-1);
+      setSearchError(null);
       return;
     }
 
     setLoading(true);
     setHasSearched(true);
     setSelectedIndex(-1);
+    setSearchError(null);
 
     try {
       const index = await loadSearchIndex();
-      const matched = searchLocal(index, trimmed);
+
+      // 提取所有可用的目录分类
+      const categories = new Set<string>();
+      for (const item of index) {
+        const cat = extractCategory(item.slug);
+        categories.add(cat);
+      }
+      setAvailableCategories(Array.from(categories).sort());
+
+      // 应用搜索和筛选
+      let matched = searchLocal(index, trimmed);
+
+      // 应用日期范围筛选
+      if (currentFilters.dateRange !== 'all') {
+        matched = matched.filter((r) => {
+          // 从 SearchResult 的 slug 中判断日期
+          const dateMatch = r.slug.match(/(\d{4}-\d{2}-\d{2})/);
+          if (!dateMatch?.[1]) return true; // 无法识别日期的结果始终保留
+          const itemDate = new Date(dateMatch[1]);
+          const now = new Date();
+          const diffMs = now.getTime() - itemDate.getTime();
+          const diffDays = diffMs / (1000 * 60 * 60 * 24);
+          switch (currentFilters.dateRange) {
+            case '30days': return diffDays <= 30;
+            case '90days': return diffDays <= 90;
+            case '365days': return diffDays <= 365;
+            case 'all': return true;
+          }
+        });
+      }
+
+      // 应用目录分类筛选
+      if (currentFilters.category) {
+        matched = matched.filter((r) => {
+          const cat = extractCategory(r.slug);
+          return cat === currentFilters.category;
+        });
+      }
 
       setResults(matched);
 
@@ -225,7 +335,9 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
     } catch (err) {
       setResults([]);
       setGroups([]);
-      showError(`搜索索引加载失败：${err instanceof Error ? err.message : '网络异常'}`);
+      const errorMsg = err instanceof Error ? err.message : '网络异常';
+      setSearchError(errorMsg);
+      showError(`搜索索引加载失败：${errorMsg}`);
     } finally {
       setLoading(false);
     }
@@ -237,7 +349,7 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
     }
 
     debounceRef.current = setTimeout(() => {
-      void performSearch(query);
+      void performSearch(query, filters);
     }, SEARCH_DEBOUNCE_MS);
 
     return () => {
@@ -245,7 +357,7 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
         clearTimeout(debounceRef.current);
       }
     };
-  }, [query, performSearch]);
+  }, [query, filters, performSearch]);
 
   // ── 搜索成功后保存历史 ──
   useEffect(() => {
@@ -312,6 +424,24 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
     setQuery(tag);
   }, []);
 
+  // ── 设置日期范围筛选 ──
+  const setDateRange = useCallback((range: SearchFilters['dateRange']) => {
+    setFilters((prev) => ({ ...prev, dateRange: range }));
+  }, []);
+
+  // ── 设置目录分类筛选 ──
+  const setCategory = useCallback((category: string | null) => {
+    setFilters((prev) => ({ ...prev, category }));
+  }, []);
+
+  // ── 重试搜索 ──
+  const retrySearch = useCallback(() => {
+    setSearchError(null);
+    if (query.trim()) {
+      void performSearch(query, filters);
+    }
+  }, [query, filters, performSearch]);
+
   return {
     query,
     setQuery,
@@ -326,5 +456,11 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
     handleHistoryClick,
     clearHistory,
     searchHistory,
+    filters,
+    setDateRange,
+    setCategory,
+    availableCategories,
+    searchError,
+    retrySearch,
   };
 }

@@ -7,12 +7,15 @@ import { Providers } from './providers';
 import { Navbar } from '../components/Navbar';
 import { RouteTransition } from '../components/RouteTransition';
 import { PWARegister } from '../components/PWARegister';
+import { PWAInstallPrompt } from '../components/PWAInstallPrompt';
+import { PWAUpdateNotification } from '../components/PWAUpdateNotification';
 import { TabTitleSwitch } from '../components/TabTitleSwitch';
 import { MusicPlayerWrapper } from '../components/MusicPlayer/MusicPlayerWrapper';
 import { loadConfig, hasDatabase } from '@/lib/config';
 import { ThirdPartyScripts } from '@/components/ThirdPartyScripts';
 import { EffectsManager } from '@/components/effects/dynamic';
 import FooterWrapper from '@/components/Footer/FooterWrapper';
+import { MobileTabBar } from '@/components/MobileTabBar';
 
 export const metadata: Metadata = {
   title: 'Originium Kernel',
@@ -42,6 +45,10 @@ export default async function RootLayout({children}: {children: React.ReactNode}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon.ico" sizes="48x48" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
+        {/* RSS/Atom/JSON Feed 自动发现：浏览器和阅读器可自动识别订阅源 */}
+        <link rel="alternate" type="application/rss+xml" title={`${config.site.title} - RSS`} href="/feed.xml" />
+        <link rel="alternate" type="application/atom+xml" title={`${config.site.title} - Atom`} href="/feed.atom" />
+        <link rel="alternate" type="application/feed+json" title={`${config.site.title} - JSON Feed`} href="/feed.json" />
         {/* 暗色模式 FOUC 防护：在 React hydration 前读取 localStorage 并应用 dark 类 */}
         <script
           dangerouslySetInnerHTML={{
@@ -90,6 +97,11 @@ export default async function RootLayout({children}: {children: React.ReactNode}
         <ThirdPartyScripts />
         <EffectsManager />
         <PWARegister />
+        {/* PWA 安装提示和更新通知 */}
+        <PWAInstallPrompt />
+        <PWAUpdateNotification />
+        {/* 移动端底部 Tab 导航栏：仅在 < 768px 屏幕显示 */}
+        <MobileTabBar />
       </body>
     </html>
   );

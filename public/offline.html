@@ -15,6 +15,7 @@
       justify-content: center;
       min-height: 100vh;
       padding: 2rem;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
     .container {
       text-align: center;
@@ -53,6 +54,23 @@
     }
     .retry-btn:active {
       opacity: 0.7;
+    }
+    /* 暗色模式：跟随系统偏好，无需 JavaScript */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #1a1a1a;
+        color: #e4e4e7;
+      }
+      p {
+        color: #a1a1aa;
+      }
+      .retry-btn {
+        background: #27272a;
+        color: #fafafa;
+      }
+      .retry-btn:hover {
+        background: #3f3f46;
+      }
     }
   </style>
 </head>

@@ -604,3 +604,78 @@ pre:hover .code-copy-btn {
     overflow: hidden;
   }
 }
+
+/* ── 高对比度模式 ── */
+
+@media (prefers-contrast: more) {
+  body {
+    background: #000 !important;
+    color: #fff !important;
+  }
+  .dark body {
+    background: #000 !important;
+    color: #fff !important;
+  }
+  *:focus-visible {
+    outline: 3px solid #fff !important;
+    outline-offset: 3px !important;
+  }
+}
+
+/* ── 减少动画模式 ── */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── 全局平滑滚动 ── */
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ── 数学公式自动编号 ── */
+
+.katex-display {
+  position: relative;
+  counter-increment: katex-equation;
+}
+
+.katex-display::before {
+  content: "(" counter(katex-equation) ")";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9em;
+  color: #71717a;
+}
+
+.dark .katex-display::before {
+  color: #a1a1aa;
+}
+
+/* ── Mermaid 图表题注 ── */
+
+.mermaid-caption {
+  text-align: center;
+  font-size: 0.85em;
+  color: #71717a;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.dark .mermaid-caption {
+  color: #a1a1aa;
+}
+
+/* ── PWA 通知入场动画 ── */
+.pwa-notification-enter {
+  animation: fadeInUp 0.3s ease-out both;
+}

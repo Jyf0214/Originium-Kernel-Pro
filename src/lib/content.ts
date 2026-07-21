@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
-import { type ContentFile, type ContentIndex } from '@/types/content';
+import { type ContentFile, type ContentIndex, type ContentMeta } from '@/types/content';
 
 export type { ContentMeta, ContentFile, ContentIndex } from '@/types/content';
 
@@ -240,12 +240,23 @@ export async function getContentFilesAsync(
 }
 
 /**
+ * 检查帖子是否已过定时发布时间
+ * 如果没有 scheduledAt 字段或时间已到，返回 true（已发布）
+ */
+function isPostPublished(meta: ContentMeta): boolean {
+  if (!meta.scheduledAt || typeof meta.scheduledAt !== 'string') return true;
+  const scheduledTime = new Date(meta.scheduledAt).getTime();
+  return Number.isFinite(scheduledTime) && scheduledTime <= Date.now();
+}
+
+/**
  * 过滤公开且未隐藏的文章
  * 统一所有页面的 public + hidden 检查逻辑，避免重复实现导致遗漏
+ * 同时过滤掉 scheduledAt 未到发布时间的帖子
  *
  * @param files 原始文件列表
  * @param indexes 目录索引列表（可选，未提供时自动获取 posts 分区索引）
- * @returns 仅包含公开且未隐藏文章的列表
+ * @returns 仅包含公开且未隐藏、已到发布时间文章的列表
  */
 export function filterPublicFiles(
   files: ContentFile[],
@@ -259,7 +270,9 @@ export function filterPublicFiles(
       (id) => id.slug === dirSlug || (dirSlug === '/' && id.slug === '/'),
     );
     const isPublic = dirIndex ? dirIndex.public : true;
-    return isPublic && !isHidden;
+    // 过滤未到发布时间的帖子
+    const isPublished = isPostPublished(file.meta);
+    return isPublic && !isHidden && isPublished;
   });
 }
 
@@ -313,6 +326,7 @@ export function getContentIndexes(section: 'posts' | 'faces' | 'diary'): Content
  * 获取单个内容文件
  * @param section 内容分区
  * @param slug 内容路径（如 /daily/2024-01）
+ * 对于 posts 分区，会过滤 scheduledAt 未到发布时间的帖子（返回 null，触发 404）
  */
 export function getContentFile(section: 'posts' | 'faces' | 'diary', slug: string): ContentFile | null {
   const rootDir = CONTENT_DIR[section];
@@ -325,17 +339,37 @@ export function getContentFile(section: 'posts' | 'faces' | 'diary', slug: strin
   }
 
   if (!fs.existsSync(filePath)) return null;
-  return parseMarkdownFile(filePath, slug);
+  const file = parseMarkdownFile(filePath, slug);
+
+  // 帖子分区：过滤未到发布时间的帖子，直接返回 null 触发 404
+  if (section === 'posts' && !isPostPublished(file.meta)) {
+    return null;
+  }
+
+  return file;
 }
 
 /**
  * 获取指定分区下所有可用的 slug 列表
  * 用于 generateStaticParams 生成静态页面
+ * 对于 posts 分区，过滤掉 scheduledAt 未到发布时间的帖子
  */
 export function getAllSlugs(section: 'posts' | 'faces' | 'diary'): string[] {
   const rootDir = CONTENT_DIR[section];
   if (!fs.existsSync(rootDir)) return [];
-  return scanMarkdownFiles(rootDir, rootDir);
+  const allSlugs = scanMarkdownFiles(rootDir, rootDir);
+
+  // 帖子分区：过滤未到发布时间的帖子，不生成静态页面
+  if (section === 'posts') {
+    return allSlugs.filter((slug) => {
+      const filePath = path.join(rootDir, slug.slice(1) + '.md');
+      if (!fs.existsSync(filePath)) return false;
+      const file = parseMarkdownFile(filePath, slug);
+      return isPostPublished(file.meta);
+    });
+  }
+
+  return allSlugs;
 }
 
 /**

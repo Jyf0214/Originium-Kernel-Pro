@@ -36,6 +36,8 @@
  *   - app/api/recycle-bin     回收站 API
  *   - app/api/feedback        反馈 API
  *   - app/api/requests        请求 API
+ *   - app/api/article-verify  文章密码验证 API
+ *   - app/api/post-versions   帖子版本历史 API
  *
  * 有数据库时直接退出，不做任何操作。
  * 构建完成后由 restore-db-routes.mjs 恢复。
@@ -104,6 +106,9 @@ const DB_ROUTE_PATHS = [
   'src/app/api/requests',
   'src/app/api/github',
   'src/app/api/webhooks',
+  // ── API：新增功能依赖数据库 ──
+  'src/app/api/article-verify',
+  'src/app/api/post-versions',
 ];
 
 /** 需要在 GitHub Pages 部署时移除的路由目录（相对于 ROOT）

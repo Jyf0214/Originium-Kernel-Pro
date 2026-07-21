@@ -27,6 +27,7 @@ const PROJECT_ROOT = path.resolve(__dirname, '..');
 const POSTS_DIR = path.join(PROJECT_ROOT, 'posts');
 const OUTPUT_DIR = path.join(PROJECT_ROOT, 'data');
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'search-index.json');
+const POPULAR_TAGS_FILE = path.join(OUTPUT_DIR, 'popular-tags.json');
 
 const LOG_PREFIX = '[generate-search-index]';
 
@@ -78,11 +79,30 @@ function main() {
 
   const index = scanFiles(POSTS_DIR, POSTS_DIR);
 
+  // 统计标签频率，生成热门标签列表
+  const tagCounts = new Map();
+  for (const item of index) {
+    for (const tag of item.tags) {
+      const normalized = tag.trim();
+      if (normalized) {
+        tagCounts.set(normalized, (tagCounts.get(normalized) || 0) + 1);
+      }
+    }
+  }
+
+  // 按数量降序排序，取前10个
+  const popularTags = Array.from(tagCounts.entries())
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   fs.writeFileSync(OUTPUT_FILE, JSON.stringify(index, null, 2), 'utf-8');
+  fs.writeFileSync(POPULAR_TAGS_FILE, JSON.stringify(popularTags, null, 2), 'utf-8');
 
   const sizeKB = (Buffer.byteLength(JSON.stringify(index), 'utf-8') / 1024).toFixed(1);
   console.log(`${LOG_PREFIX} 搜索索引已生成: ${index.length} 篇文章, ${sizeKB} KB -> ${path.relative(PROJECT_ROOT, OUTPUT_FILE)}`);
+  console.log(`${LOG_PREFIX} 热门标签已生成: ${popularTags.length} 个 -> ${path.relative(PROJECT_ROOT, POPULAR_TAGS_FILE)}`);
 }
 
 main();

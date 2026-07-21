@@ -7,10 +7,12 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { modalContentVariants, modalTransition } from '@/components/ui/motion';
 
+import { DiarySearchHint } from './DiarySearchHint';
 import { SearchEmpty } from './SearchEmpty';
+import { SearchFilters } from './SearchFilters';
 import { SearchHistory } from './SearchHistory';
 import { SearchInput } from './SearchInput';
-import { SearchResultItem, SearchResultsSummary, SearchLoading } from './SearchResults';
+import { SearchResultsList, SearchResultsSummary, SearchLoading } from './SearchResults';
 import { SearchTags } from './SearchTags';
 import { useSearch } from './use-search';
 import { SECTION_TITLE_CLASS } from './types';
@@ -24,11 +26,7 @@ const listVariants = {
   },
 } as const;
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 8 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' as const } },
-} as const;
-
+// eslint-disable-next-line complexity -- 搜索对话框包含多种交互模式
 export function SearchDialog({ open, onClose }: SearchDialogProps) {
   const {
     query,
@@ -44,6 +42,12 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
     handleHistoryClick,
     clearHistory,
     searchHistory,
+    filters,
+    setDateRange,
+    setCategory,
+    availableCategories,
+    searchError,
+    retrySearch,
   } = useSearch({ open, onClose });
 
   return (
@@ -88,7 +92,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
             </div>
 
             {/* ── 搜索结果区域 ── */}
-            <div className="max-h-[55vh] sm:max-h-[60vh] overflow-y-auto overscroll-contain py-2">
+            <div className="max-h-[55vh] sm:max-h-[60vh] overflow-y-auto overscroll-contain">
               {/* 初始状态：未搜索 — 显示搜索历史 + 热门标签 */}
               {!hasSearched && !query && (
                 <>
@@ -101,17 +105,31 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
                 </>
               )}
 
+              {/* 筛选控件 — 仅在搜索有结果时显示 */}
+              <SearchFilters
+                filters={filters}
+                onDateRangeChange={setDateRange}
+                onCategoryChange={setCategory}
+                categories={availableCategories}
+                visible={hasSearched && !loading}
+              />
+
               {/* 加载中 */}
               {loading && <SearchLoading />}
 
-              {/* 空结果 */}
-              {!loading && hasSearched && results.length === 0 && (
-                <SearchEmpty query={query} />
+              {/* 空结果 / 错误状态 */}
+              {!loading && hasSearched && (results.length === 0 || searchError) && (
+                <SearchEmpty query={query} error={searchError} onRetry={retrySearch} />
               )}
 
               {/* 结果计数 */}
               {!loading && hasSearched && flatResults.length > 0 && (
                 <SearchResultsSummary totalResults={flatResults.length} query={query} />
+              )}
+
+              {/* 日记搜索提示 — 当有搜索查询时显示 */}
+              {!loading && hasSearched && query.trim().length > 0 && (
+                <DiarySearchHint query={query} />
               )}
 
               {/* 结果分组 */}
@@ -130,23 +148,18 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
                         </h3>
                       </div>
 
-                      {/* 分组结果列表 — stagger 进场动画 */}
+                      {/* 分组结果列表 — 使用 SearchResultsList 组件支持分页 */}
                       <motion.div
                         variants={listVariants}
                         initial="hidden"
                         animate="visible"
                       >
-                        {group.results.map((result, idx) => (
-                          <motion.div key={result.id} variants={itemVariants}>
-                            <SearchResultItem
-                              result={result}
-                              query={query}
-                              onClose={onClose}
-                              isSelected={selectedIndex === groupOffset + idx}
-                              flatIndex={groupOffset + idx}
-                            />
-                          </motion.div>
-                        ))}
+                        <SearchResultsList
+                          results={group.results}
+                          query={query}
+                          onClose={onClose}
+                          selectedIndex={selectedIndex - groupOffset}
+                        />
                       </motion.div>
                     </div>
                   );

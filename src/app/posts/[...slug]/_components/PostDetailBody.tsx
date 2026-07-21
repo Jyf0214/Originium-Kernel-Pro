@@ -24,6 +24,7 @@ import QRCodeDialog from '@/components/ui/QRCodeDialog';
 import { PostLikeButton } from '@/components/PostLikeButton';
 import { Hitokoto } from '@/components/Hitokoto';
 import { BacklinkPanel } from '@/components/BacklinkPanel';
+import { PostVersionHistory } from '@/components/PostVersionHistory';
 import type { RelatedPost } from '../_lib/related-posts';
 import type { FrontendConfig } from '@/hooks/use-config';
 import type { WikiLinkMap } from '@/components/MarkdownRenderer/types';
@@ -207,6 +208,15 @@ export function PostDetailBody({
         </div>
       </div>
       </div>
+
+      {/* 版本历史 — 在文章正文与作者信息之间显示 */}
+      {!isEncrypted && (
+        <PostVersionHistory
+          slug={fullPath}
+          title={typeof file.meta.title === 'string' ? file.meta.title : undefined}
+          className="mt-10 max-w-3xl"
+        />
+      )}
 
       {/* 作者信息 — 单独容器 */}
       <div className="mt-12">

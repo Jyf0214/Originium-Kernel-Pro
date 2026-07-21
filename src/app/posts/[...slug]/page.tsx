@@ -15,6 +15,7 @@ import { PostDetailBody } from './_components/PostDetailBody';
 import { PostCoverSection } from './_components/PostCoverSection';
 import { PostSidebarTrigger, PostSidebarDesktop } from './_components/PostSidebar';
 import { JsonLd } from '@/components/JsonLd';
+import { BreadcrumbJsonLd } from '@/components/BreadcrumbJsonLd';
 import { PostPageProvider } from '@/contexts/PostPageContext';
 import type { Crumb } from './_components/PostBreadcrumb';
 
@@ -37,9 +38,24 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const fullPath = '/' + slug.join('/');
   const file = getContentFile('posts', fullPath);
   if (!file) return { title: '未找到' };
+  const siteUrl = getSiteUrl();
+  // 构建 hreflang 多语言 SEO 标签
+  const translations = file.meta.translations ?? {};
+  const languages: Record<string, string> = {};
+  // 当前页面的语言版本
+  const currentLang = typeof file.meta.lang === 'string' ? file.meta.lang : 'zh-CN';
+  languages[currentLang] = `${siteUrl}/posts${fullPath}`;
+  // 翻译版本
+  for (const [lang, translationSlug] of Object.entries(translations)) {
+    languages[lang] = `${siteUrl}/posts${translationSlug}`;
+  }
   return {
     title: `${file.meta.title} - Originium Kernel`,
     description: file.meta.description ?? file.content.slice(0, 160),
+    alternates: {
+      canonical: `${siteUrl}/posts${fullPath}`,
+      ...(Object.keys(languages).length > 1 && { languages }),
+    },
   };
 }
 
@@ -64,6 +80,14 @@ export default async function PostDetailPage({ params }: PageProps) {
         tags={file.meta.tags}
         slug={fullPath}
         wordCount={viewModel.wordCount}
+      />
+      {/* 面包屑结构化数据：帮助搜索引擎理解页面层级 */}
+      <BreadcrumbJsonLd
+        items={[
+          { name: '首页', url: '/' },
+          { name: '文章', url: '/posts' },
+          ...viewModel.breadcrumbs.map((c) => ({ name: c.label, url: c.href })),
+        ]}
       />
       {/* 全屏宽封面 — 所有帖子统一渲染，无 cover 时用渐变背景 */}
       <PostCoverSection

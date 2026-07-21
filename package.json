@@ -25,6 +25,8 @@
     "test:coverage": "vitest run --coverage",
     "analyze": "ANALYZE=true node scripts/build-wrapper.mjs",
     "bundle-check": "node scripts/check-bundle-size.mjs",
+    "clear-exif": "node scripts/clear-exif.mjs",
+    "lighthouse": "npx serve out -l 8080 & sleep 2 && npx lhci autorun; kill %1",
     "start": "next start",
     "clean": "next clean",
     "prepare": "husky"

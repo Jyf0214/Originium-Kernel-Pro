@@ -124,7 +124,46 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+  // 通知客户端 SW 已更新
+  if (event.data && event.data.type === 'SW_UPDATED') {
+    self.clients.matchAll().then((clients) => {
+      clients.forEach((client) => {
+        client.postMessage({ type: 'SW_UPDATED' });
+      });
+    });
+  }
 });
+
+// 后台同步：离线时缓存的请求在网络恢复后自动重发
+const SYNC_QUEUE_CACHE = 'originium-sync-queue-v1';
+
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-pending-requests') {
+    event.waitUntil(syncPendingRequests());
+  }
+});
+
+async function syncPendingRequests() {
+  const cache = await caches.open(SYNC_QUEUE_CACHE);
+  const requests = await cache.keys();
+  for (const request of requests) {
+    try {
+      const body = await cache.match(request);
+      if (body) {
+        const clonedBody = await body.clone().text();
+        const data = JSON.parse(clonedBody);
+        await fetch(request.url, {
+          method: data.method || 'POST',
+          headers: data.headers || { 'Content-Type': 'application/json' },
+          body: data.body,
+        });
+        await cache.delete(request);
+      }
+    } catch {
+      // 网络仍不可用，保留在队列中
+    }
+  }
+}
 
 // 请求拦截与路由分发
 self.addEventListener('fetch', (event) => {

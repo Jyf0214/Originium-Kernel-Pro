@@ -60,6 +60,7 @@ async function tryRenderMermaid(code: string): Promise<string | null> {
 /* eslint-disable @typescript-eslint/no-explicit-any -- unified hast AST 遍历必须用 any */
 
 function rehypeMermaid(): any {
+  // eslint-disable-next-line complexity -- Mermaid 渲染逻辑包含多种 SVG 消毒和替换路径
   return async (tree: any) => {
     const visits: { node: any; parent: any; index: number }[] = [];
 
@@ -92,8 +93,20 @@ function rehypeMermaid(): any {
       const textNode = code?.children?.[0];
       const mermaidCode = String(textNode?.value ?? '');
       const svg = await tryRenderMermaid(mermaidCode);
+      // 支持 Mermaid 图表题注：代码块后紧跟的 blockquote 作为 caption
+      const nextSibling = v.parent?.children?.[v.index + 1];
+      const captionText = nextSibling?.type === 'element' && nextSibling.tagName === 'blockquote'
+        ? hastTextContent(nextSibling).trim()
+        : '';
+      if (captionText && nextSibling) {
+        // 移除作为题注的 blockquote
+        v.parent.children.splice(v.index + 1, 1);
+      }
+      const figcaption = captionText
+        ? [{ type: 'element', tagName: 'p', properties: { className: ['mermaid-caption'] }, children: [{ type: 'text', value: captionText }] }]
+        : [];
       const replacement = svg
-        ? { type: 'element', tagName: 'div', properties: { className: ['my-8', 'overflow-x-auto'], style: { maxWidth: '100%' } }, children: [{ type: 'raw', value: `<div class="flex justify-center">${svg}</div>` }] }
+        ? { type: 'element', tagName: 'figure', properties: { className: ['my-8', 'overflow-x-auto'], style: { maxWidth: '100%' } }, children: [{ type: 'raw', value: `<div class="flex justify-center">${svg}</div>` }, ...figcaption] }
         : { type: 'element', tagName: 'pre', properties: { className: ['mermaid'] }, children: [{ type: 'text', value: mermaidCode }] };
       if (v.parent?.children && Array.isArray(v.parent.children)) {
         v.parent.children[v.index] = replacement;

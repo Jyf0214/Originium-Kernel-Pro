@@ -176,6 +176,8 @@
     "returnDashboard": "Back to Dashboard",
     "fileManager": "File Manager",
     "contentStats": "Content Stats",
+    "analytics": "Analytics Dashboard",
+    "backup": "Backup & Export",
     "auditLogs": "Audit Logs",
     "switchToUserMenu": "Switch to User Menu",
     "switchToAdminMenu": "Back to Admin Menu",
