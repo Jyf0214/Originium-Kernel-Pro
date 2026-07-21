@@ -64,7 +64,7 @@ async function main() {
     let finalUrl = databaseUrl
     if (databaseUrl.startsWith('postgres') && !databaseUrl.includes('sslmode')) {
       const separator = databaseUrl.includes('?') ? '&' : '?'
-      finalUrl = `${databaseUrl}${separator}sslmode=require&ssl=true`
+      finalUrl = `${databaseUrl}${separator}sslmode=no-verify`
     }
     process.env.DATABASE_URL = finalUrl
 
@@ -117,13 +117,13 @@ async function main() {
       return;
     }
 
-    const { PrismaClient } = await import('../prisma/generated/prisma/client.js')
+    const { PrismaClient } = await import('../prisma/generated/prisma/client')
     const { PrismaPg } = await import('@prisma/adapter-pg')
 
     const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING
     let prisma
     if (databaseUrl) {
-      const adapter = new PrismaPg({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } })
+      const adapter = new PrismaPg({ connectionString: databaseUrl })
       prisma = new PrismaClient({ adapter })
     } else {
       prisma = new PrismaClient()
