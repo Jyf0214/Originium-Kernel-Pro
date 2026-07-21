@@ -62,9 +62,14 @@ async function main() {
   
   if (databaseUrl) {
     let finalUrl = databaseUrl
-    if (databaseUrl.startsWith('postgres') && !databaseUrl.includes('sslmode')) {
-      const separator = databaseUrl.includes('?') ? '&' : '?'
-      finalUrl = `${databaseUrl}${separator}sslmode=no-verify`
+    if (databaseUrl.startsWith('postgres')) {
+      // 替换或添加 sslmode=no-verify：云数据库自签名证书在 CI 环境不被信任
+      if (databaseUrl.includes('sslmode=')) {
+        finalUrl = databaseUrl.replace(/sslmode=[^&]*/, 'sslmode=no-verify')
+      } else {
+        const separator = databaseUrl.includes('?') ? '&' : '?'
+        finalUrl = `${databaseUrl}${separator}sslmode=no-verify`
+      }
     }
     process.env.DATABASE_URL = finalUrl
 
