@@ -82,6 +82,12 @@ if (
 // 静态导出模式：通过环境变量 NEXT_STATIC_EXPORT 控制
 const isStaticExport = process.env.NEXT_STATIC_EXPORT === 'true';
 
+// GitHub Pages 子路径部署：actions/configure-pages 将仓库路径（如 /Originium-Kernel-Pro）
+// 通过 NEXT_PUBLIC_BASE_PATH 环境变量传入，作为 basePath/assetPrefix 使用
+const pagesBasePath = isStaticExport
+  ? (process.env.NEXT_PUBLIC_BASE_PATH ?? undefined)
+  : undefined;
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   // 静态导出模式下不支持自定义 headers
@@ -136,6 +142,12 @@ const nextConfig: NextConfig = {
   // 正常模式：output: 'standalone'
   output: isStaticExport ? 'export' : 'standalone',
   trailingSlash: isStaticExport,
+  // GitHub Pages 子路径部署：configure-pages 生成的 next.config.js 与 "type": "module" 冲突，
+  // 已改为由本文件读取 NEXT_PUBLIC_BASE_PATH 注入 basePath/assetPrefix
+  ...(pagesBasePath && {
+    basePath: pagesBasePath,
+    assetPrefix: pagesBasePath,
+  }),
   transpilePackages: ['antd', 'motion'],
   turbopack: {},
   experimental: {
