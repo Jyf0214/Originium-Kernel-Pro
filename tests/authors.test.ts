@@ -12,10 +12,32 @@
  * - getAuthorByName 无 __default__ 且无匹配时返回 null
  * - getAuthorByName 空字符串返回 null
  * - 缓存行为（连续调用不重新读取文件）
+ *
+ * 数据隔离: 所有用例均通过 mock fs 注入固定 YAML 数据，
+ * 不读取仓库真实的 authors/authors.yaml，避免测试依赖配置文件内容。
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import fs from 'fs';
+
+/** 固定的作者配置数据（与真实配置结构等价，仅作测试夹具） */
+const authorsYaml = `
+- name: "__default__"
+  avatar: "/avatar.jpg"
+  enable: true
+
+- name: "Jyf0214"
+  nickname: "九月风"
+  avatar: "https://avatars.githubusercontent.com/u/169313142?v=4"
+  location: "中国"
+  enable: true
+`;
+
+/** 注入固定的作者配置文件内容 */
+function mockAuthorsFile(yaml: string = authorsYaml) {
+  vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+  vi.spyOn(fs, 'readFileSync').mockReturnValue(yaml);
+}
 
 // 重置模块缓存，避免测试间缓存泄漏
 beforeEach(() => {
@@ -23,32 +45,38 @@ beforeEach(() => {
 });
 
 describe('getAuthors', () => {
-  it('应从 authors.yaml 解析出作者列表', async () => {
+  it('应从 YAML 解析出作者列表', async () => {
+    mockAuthorsFile();
     const { getAuthors } = await import('@/lib/authors');
     const authors = getAuthors();
     expect(Array.isArray(authors)).toBe(true);
     expect(authors.length).toBeGreaterThan(0);
-    // authors.yaml 中有 __default__ 和 Jyf0214 两个条目
+    // 固定数据中包含 __default__ 和 Jyf0214 两个条目
     const names = authors.map((a) => a.name);
     expect(names).toContain('__default__');
     expect(names).toContain('Jyf0214');
+    vi.restoreAllMocks();
   });
 
   it('作者条目应包含 nickname 和 avatar 字段', async () => {
+    mockAuthorsFile();
     const { getAuthors } = await import('@/lib/authors');
     const authors = getAuthors();
     const jyf = authors.find((a) => a.name === 'Jyf0214');
     expect(jyf).toBeDefined();
     expect(jyf?.nickname).toBe('九月风');
     expect(jyf?.avatar).toBeTruthy();
+    vi.restoreAllMocks();
   });
 
   it('__default__ 条目的 avatar 应为 /avatar.jpg', async () => {
+    mockAuthorsFile();
     const { getAuthors } = await import('@/lib/authors');
     const authors = getAuthors();
     const def = authors.find((a) => a.name === '__default__');
     expect(def).toBeDefined();
     expect(def?.avatar).toBe('/avatar.jpg');
+    vi.restoreAllMocks();
   });
 
   it('应过滤无 name 字段的条目', async () => {
@@ -59,8 +87,7 @@ describe('getAuthors', () => {
 - nickname: "no-name"
 - name: "also-valid"
 `;
-    vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-    vi.spyOn(fs, 'readFileSync').mockReturnValue(yaml);
+    mockAuthorsFile(yaml);
 
     const { getAuthors } = await import('@/lib/authors');
     const authors = getAuthors();
@@ -78,8 +105,7 @@ describe('getAuthors', () => {
   location: null
   skills: "not-array"
 `;
-    vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-    vi.spyOn(fs, 'readFileSync').mockReturnValue(yaml);
+    mockAuthorsFile(yaml);
 
     const { getAuthors } = await import('@/lib/authors');
     const authors = getAuthors();
@@ -101,8 +127,7 @@ describe('getAuthors', () => {
     - "TypeScript"
     - null
 `;
-    vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-    vi.spyOn(fs, 'readFileSync').mockReturnValue(yaml);
+    mockAuthorsFile(yaml);
 
     const { getAuthors } = await import('@/lib/authors');
     const authors = getAuthors();
@@ -114,28 +139,34 @@ describe('getAuthors', () => {
 
 describe('getAuthors — 缓存行为', () => {
   it('连续调用应返回同一引用（缓存生效）', async () => {
+    mockAuthorsFile();
     const { getAuthors } = await import('@/lib/authors');
     const a = getAuthors();
     const b = getAuthors();
     expect(a).toBe(b);
+    vi.restoreAllMocks();
   });
 });
 
 describe('getAuthorByName', () => {
   it('应精确匹配已知作者', async () => {
+    mockAuthorsFile();
     const { getAuthorByName } = await import('@/lib/authors');
     const author = getAuthorByName('Jyf0214');
     expect(author).not.toBeNull();
     expect(author?.name).toBe('Jyf0214');
     expect(author?.nickname).toBe('九月风');
+    vi.restoreAllMocks();
   });
 
   it('未匹配时应回退到 __default__ 条目', async () => {
+    mockAuthorsFile();
     const { getAuthorByName } = await import('@/lib/authors');
     const author = getAuthorByName('UnknownAuthor');
     expect(author).not.toBeNull();
     expect(author?.name).toBe('__default__');
     expect(author?.avatar).toBe('/avatar.jpg');
+    vi.restoreAllMocks();
   });
 
   it('空字符串应返回 null', async () => {
@@ -148,8 +179,7 @@ describe('getAuthorByName', () => {
 - name: "only-one"
   nickname: "Solo"
 `;
-    vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-    vi.spyOn(fs, 'readFileSync').mockReturnValue(yaml);
+    mockAuthorsFile(yaml);
 
     const { getAuthorByName } = await import('@/lib/authors');
     const author = getAuthorByName('nonexistent');
@@ -159,10 +189,12 @@ describe('getAuthorByName', () => {
   });
 
   it('大小写敏感匹配', async () => {
+    mockAuthorsFile();
     const { getAuthorByName } = await import('@/lib/authors');
-    // authors.yaml 中 name 为 "Jyf0214"，大小写不同应不匹配
-    expect(getAuthorByName('jyf0214')).not.toBeNull(); // 回退到 __default__
-    expect(getAuthorByName('JYF0214')).not.toBeNull(); // 回退到 __default__
+    // 固定数据中 name 为 "Jyf0214"，大小写不同应不匹配并回退到 __default__
+    expect(getAuthorByName('jyf0214')).not.toBeNull();
+    expect(getAuthorByName('JYF0214')).not.toBeNull();
+    vi.restoreAllMocks();
   });
 });
 
