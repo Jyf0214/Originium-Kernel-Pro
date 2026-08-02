@@ -3,6 +3,7 @@ import { getEnvConfig } from '@/lib/env';
 import { Octokit } from 'octokit';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/github');
 
@@ -16,7 +17,7 @@ function validateGithubEnv(): { owner: string; repo: string; octokit: Octokit } 
   const env = getEnvConfig();
   if (!env.githubRepo || !env.githubToken) {
     logger.error('POST', 'GitHub 配置缺失');
-    return NextResponse.json({ error: 'GitHub 配置缺失' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.github.missingConfig') }, { status: 500 });
   }
   const [owner = '', repo = ''] = env.githubRepo.split('/');
   const octokit = new Octokit({ auth: env.githubToken });
@@ -60,7 +61,7 @@ async function executeDeleteAction(
 ): Promise<NextResponse> {
   if (!options.sha) {
     logger.warn('POST', '文件不存在，无法删除', { path });
-    return NextResponse.json({ error: '文件不存在' }, { status: 404 });
+    return NextResponse.json({ error: getTranslate('api.github.fileNotFound') }, { status: 404 });
   }
   await octokit.rest.repos.deleteFile({
     owner, repo, path,
@@ -71,18 +72,18 @@ async function executeDeleteAction(
   return NextResponse.json({ success: true });
 }
 
-export const POST = apiHandler('POST', { label: 'GitHub 操作', requireAdmin: true }, async (req) => {
+export const POST = apiHandler('POST', { label: getTranslate('api.github.operation'), requireAdmin: true }, async (req) => {
   const { action, path, content, message, frontMatter, body } = await req.json();
   logger.info('POST', '开始 GitHub 操作', { action, path });
 
   if (!action || !path) {
     logger.warn('POST', '缺少必需参数');
-    return NextResponse.json({ error: '缺少必需参数' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.github.missingParams') }, { status: 400 });
   }
 
   // 路径穿越防护：拒绝含 .. 或 \ 的路径
   if (typeof path === 'string' && (path.includes('..') || path.includes('\\') || path.startsWith('/'))) {
-    return NextResponse.json({ error: '无效的文件路径' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.storage.invalidFilePath') }, { status: 400 });
   }
 
   const envResult = validateGithubEnv();
@@ -109,23 +110,23 @@ export const POST = apiHandler('POST', { label: 'GitHub 操作', requireAdmin: t
   return NextResponse.json({ success: true, sha: result.data.content?.sha });
 });
 
-export const GET = apiHandler('GET', { label: '读取 GitHub 文件', requireAdmin: true }, async (req) => {
+export const GET = apiHandler('GET', { label: getTranslate('api.github.readFile'), requireAdmin: true }, async (req) => {
   const path = new URL(req.url).searchParams.get('path');
   if (!path) {
     logger.warn('GET', '缺少路径参数');
-    return NextResponse.json({ error: '缺少路径' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.github.missingPath') }, { status: 400 });
   }
 
   // 路径穿越防护：拒绝含 .. 或 \ 的路径
   if (path.includes('..') || path.includes('\\') || path.startsWith('/')) {
-    return NextResponse.json({ error: '无效的文件路径' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.storage.invalidFilePath') }, { status: 400 });
   }
 
   logger.info('GET', '读取 GitHub 文件', { path });
   const env = getEnvConfig();
   if (!env.githubRepo || !env.githubToken) {
     logger.error('GET', 'GitHub 配置缺失');
-    return NextResponse.json({ error: 'GitHub 配置缺失' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.github.missingConfig') }, { status: 500 });
   }
 
   const [owner = '', repo = ''] = env.githubRepo.split('/');
@@ -152,5 +153,5 @@ export const GET = apiHandler('GET', { label: '读取 GitHub 文件', requireAdm
   }
 
   logger.warn('GET', '无效路径', { path });
-  return NextResponse.json({ error: '无效路径' }, { status: 400 });
+  return NextResponse.json({ error: getTranslate('api.github.invalidPath') }, { status: 400 });
 });

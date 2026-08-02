@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { apiHandler } from '@/lib/api-handler';
+import { getTranslate } from '@/i18n/translate';
 
 /**
  * Web Vitals API — 已迁移到 @vercel/analytics
@@ -8,17 +9,17 @@ import { apiHandler } from '@/lib/api-handler';
  * POST: 不再接收自建采集数据，返回 410 Gone
  */
 
-export const POST = apiHandler('POST', { label: 'Web Vitals（已废弃）' }, () => {
+export const POST = apiHandler('POST', { label: getTranslate('api.webVitals.deprecatedLabel') }, () => {
   return NextResponse.json(
-    { error: '自建采集已停用，请使用 @vercel/analytics' },
+    { error: getTranslate('api.webVitals.selfHostingDisabled') },
     { status: 410 },
   );
 });
 
-export const GET = apiHandler('GET', { label: 'Web Vitals 状态', requireSudo: true }, () => {
+export const GET = apiHandler('GET', { label: getTranslate('api.webVitals.statusLabel'), requireSudo: true }, () => {
   return NextResponse.json({
     migrated: true,
-    message: 'Web Vitals 数据已迁移到 Vercel Analytics Dashboard',
+    message: getTranslate('api.webVitals.migrated'),
     dashboard: 'https://vercel.com/.analytics',
   }, {
     headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' },

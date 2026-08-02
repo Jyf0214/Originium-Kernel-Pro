@@ -4,6 +4,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Copy, Check, ChevronDown, ChevronUp, WrapText } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { Tag } from '@/components/ui/Tag';
+import { useI18n } from '@/hooks/use-i18n';
 import type { HighlightConfig, HighlighterInstance } from './types';
 
 function CodeToolbar({
@@ -31,6 +32,7 @@ function CodeToolbar({
   onToggleCollapse: () => void;
   onToggleWrap: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex items-center justify-between px-4 py-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-t-2xl border-b border-zinc-200 dark:border-zinc-700">
       <div className="flex items-center gap-2">
@@ -40,7 +42,7 @@ function CodeToolbar({
           </Tag>
         )}
         {copyError && (
-          <span className="text-xs text-red-400 animate-pulse">复制失败</span>
+          <span className="text-xs text-red-400 animate-pulse">{t('components.markdown.copyFailed')}</span>
         )}
       </div>
       <div className="flex items-center gap-1">
@@ -53,8 +55,8 @@ function CodeToolbar({
             icon={copied ? <Check size={14} /> : <Copy size={14} />}
             className="text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700 ui-press"
             onClick={onCopy}
-            title="复制代码"
-            aria-label="复制代码"
+            title={t('components.markdown.copyCode')}
+            aria-label={t('components.markdown.copyCode')}
           />
         )}
         {showWrap && cfg.wordWrap && (
@@ -66,8 +68,8 @@ function CodeToolbar({
             icon={<WrapText size={14} />}
             className={wrap ? 'text-zinc-200 bg-zinc-700' : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700'}
             onClick={onToggleWrap}
-            title="自动换行"
-            aria-label="自动换行"
+            title={t('components.markdown.wordWrap')}
+            aria-label={t('components.markdown.wordWrap')}
           />
         )}
         {exceedsLimit && (
@@ -79,8 +81,8 @@ function CodeToolbar({
             icon={collapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
             className="text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700 ui-press"
             onClick={onToggleCollapse}
-            title={collapsed ? '展开' : '折叠'}
-            aria-label={collapsed ? '展开代码' : '折叠代码'}
+            title={collapsed ? t('components.markdown.expand') : t('components.markdown.collapse')}
+            aria-label={collapsed ? t('components.markdown.expandCode') : t('components.markdown.collapseCode')}
           />
         )}
       </div>
@@ -221,6 +223,7 @@ export function UnhighlightedCodeBlock({
 }) {
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const { t } = useI18n();
 
   // 组件卸载时清理定时器，避免对已卸载组件调用 setState
   useEffect(() => {
@@ -246,11 +249,11 @@ export function UnhighlightedCodeBlock({
         <button
           className="absolute top-2 right-2 flex items-center gap-1 rounded-md bg-zinc-200 dark:bg-zinc-700 px-2 py-1 text-xs text-zinc-500 dark:text-zinc-400 opacity-0 transition-opacity hover:bg-zinc-300 dark:hover:bg-zinc-600 hover:text-zinc-700 dark:hover:text-zinc-200 group-hover:opacity-100"
           onClick={handleCopy}
-          title="复制代码"
-          aria-label="复制代码"
+          title={t('components.markdown.copyCode')}
+          aria-label={t('components.markdown.copyCode')}
         >
           {copied ? <Check size={14} /> : <Copy size={14} />}
-          {copied ? '已复制' : '复制'}
+          {copied ? t('components.markdown.copied') : t('components.markdown.copy')}
         </button>
         <code>{children}</code>
       </pre>

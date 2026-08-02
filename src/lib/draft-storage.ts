@@ -5,6 +5,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { getDb } from '@/lib/db';
+import { getTranslate } from '@/i18n/translate';
 
 const DRAFTS_DIR = path.join(process.cwd(), 'data', 'drafts');
 
@@ -25,7 +26,7 @@ export async function saveDraft(id: string, content: string): Promise<void> {
   } else {
     // 无数据库时降级到本地文件（仅开发环境）
     if (process.env.NODE_ENV !== 'development') {
-      throw new Error('草稿保存失败: 无可用数据库且当前环境不支持本地文件存储');
+      throw new Error(getTranslate('lib.draftStorage.saveFailed'));
     }
     ensureDraftsDir();
     const filePath = path.join(DRAFTS_DIR, `${id}.md`);

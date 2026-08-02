@@ -8,6 +8,7 @@ import { ApiErr } from '@/lib/api-handler'
 import { createApiLogger } from '@/lib/api-logger'
 import { getDb } from '@/lib/db'
 import { hashPassword } from '@/lib/hash'
+import { getTranslate } from '@/i18n/translate'
 import {
   catchAllHandler,
   databaseNotConfigured,
@@ -59,24 +60,24 @@ function validatePatchFields(parsed: Record<string, unknown>): { error?: NextRes
   const rawPassword = parsed['password']
 
   if (rawPublic !== undefined && typeof rawPublic !== 'boolean') {
-    return { error: ApiErr.badRequest('public 必须是 boolean') }
+    return { error: ApiErr.badRequest(getTranslate('api.storage.publicMustBeBoolean')) }
   }
   if (
     rawDescription !== undefined &&
     rawDescription !== null &&
     typeof rawDescription !== 'string'
   ) {
-    return { error: ApiErr.badRequest('description 必须是 string 或 null') }
+    return { error: ApiErr.badRequest(getTranslate('api.storage.descriptionMustBeString')) }
   }
   if (
     rawPassword !== undefined &&
     rawPassword !== null &&
     typeof rawPassword !== 'string'
   ) {
-    return { error: ApiErr.badRequest('password 必须是 string 或 null') }
+    return { error: ApiErr.badRequest(getTranslate('api.storage.passwordMustBeString')) }
   }
   if (typeof rawPassword === 'string' && rawPassword.length > 128) {
-    return { error: ApiErr.badRequest('password 不能超过 128 字符') }
+    return { error: ApiErr.badRequest(getTranslate('api.storage.passwordTooLong')) }
   }
   return {}
 }
@@ -121,13 +122,13 @@ export const PATCH = catchAllHandler<{ path: string[] }>(
     if (!isValidStoragePath(path)) return invalidPathResponse()
 
     const existing = await readFolderMeta(path)
-    if (!existing) return ApiErr.notFound('文件夹元数据不存在')
+    if (!existing) return ApiErr.notFound(getTranslate('api.storage.folderMetaNotFound'))
 
     let parsed: Record<string, unknown>
     try {
       parsed = (await req.json()) as Record<string, unknown>
     } catch {
-      return ApiErr.badRequest('请求体不是合法 JSON')
+      return ApiErr.badRequest(getTranslate('api.storage.invalidJson'))
     }
 
     const validation = validatePatchFields(parsed)

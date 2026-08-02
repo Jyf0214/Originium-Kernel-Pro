@@ -1,9 +1,10 @@
 import { hasDatabase } from '@/lib/config';
 import { FeatureDisabledView } from '@/components/ui/FeatureDisabledView';
+import { getTranslate } from '@/i18n/translate';
 
 export default function LoginLayout({ children }: { children: React.ReactNode }) {
   if (!hasDatabase()) {
-    return <FeatureDisabledView feature="登录系统" />;
+    return <FeatureDisabledView feature={getTranslate('auth.loginSystem')} />;
   }
   return <>{children}</>;
 }

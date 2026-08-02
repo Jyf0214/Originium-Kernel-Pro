@@ -9,6 +9,7 @@
  */
 import type { FileStat } from 'webdav'
 import { getWebDavClient, isWebDavConfigured } from '@/lib/webdav'
+import { getTranslate } from '@/i18n/translate'
 import type {
   StorageProvider,
   ListDirectoryOptions,
@@ -102,7 +103,7 @@ export class WebDavProvider implements StorageProvider {
     // getDirectoryContents 可能返回 ResponseDataDetailed，只取 FileStat 部分
     if (Array.isArray(result)) {
       // 不应该发生，stat 返回单个对象
-      throw new Error('stat 返回了意外的数组类型')
+      throw new Error(getTranslate('lib.storage.webdavUnexpectedStat'))
     }
     return result as FileStat
   }

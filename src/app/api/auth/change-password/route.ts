@@ -7,6 +7,7 @@ import { createApiLogger } from '@/lib/api-logger';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { headers } from 'next/headers';
 import { logAudit } from '@/lib/audit';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/auth/change-password');
 
@@ -54,48 +55,48 @@ export const POST = apiHandler(
     if (!rl.allowed) {
       logger.warn('POST', '修改密码频率超限', { retryAfterMs: rl.retryAfterMs });
       return NextResponse.json(
-        { error: `请求过于频繁，请在 ${Math.ceil(rl.retryAfterMs / 1000)} 秒后重试` },
+        { error: getTranslate('api.auth.requestTooFrequent', { seconds: Math.ceil(rl.retryAfterMs / 1000) }) },
         { status: 429 },
       );
     }
 
     const session = await getSession();
     if (!session) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 });
+      return NextResponse.json({ error: getTranslate('api.common.notLoggedIn') }, { status: 401 });
     }
 
     const { currentPassword, newPassword } = await req.json();
     if (!currentPassword || !newPassword) {
       logger.warn('POST', '缺少必要参数', { uid: session.uid });
-      return NextResponse.json({ error: '请输入当前密码和新密码' }, { status: 400 });
+      return NextResponse.json({ error: getTranslate('api.auth.requireCurrentAndNewPassword') }, { status: 400 });
     }
 
     const strength = validatePasswordStrength(newPassword);
     if (!strength.valid) {
       logger.warn('POST', '新密码复杂度不足', { uid: session.uid, reasons: strength.reasons });
-      return NextResponse.json({ error: '新密码不符合安全要求', reasons: strength.reasons }, { status: 400 });
+      return NextResponse.json({ error: getTranslate('api.auth.weakNewPassword'), reasons: strength.reasons }, { status: 400 });
     }
 
     const db = getDb();
     const userStr = await db.get(`user:uid:${session.uid}`);
     if (!userStr) {
       logger.warn('POST', '用户不存在', { uid: session.uid });
-      return NextResponse.json({ error: '用户不存在' }, { status: 404 });
+      return NextResponse.json({ error: getTranslate('api.auth.userNotFound') }, { status: 404 });
     }
     const user = JSON.parse(userStr) as Record<string, unknown>;
     if (typeof user.password !== 'string') {
       logger.warn('POST', '用户密码数据异常', { uid: session.uid });
-      return NextResponse.json({ error: '用户密码数据异常，请联系管理员' }, { status: 500 });
+      return NextResponse.json({ error: getTranslate('api.auth.passwordDataCorrupted') }, { status: 500 });
     }
 
     if (!(await verifyPassword(currentPassword, user.password))) {
       logger.warn('POST', '当前密码错误', { uid: session.uid });
-      return NextResponse.json({ error: '当前密码错误' }, { status: 401 });
+      return NextResponse.json({ error: getTranslate('api.auth.currentPasswordWrong') }, { status: 401 });
     }
 
     if (await verifyPassword(newPassword, user.password)) {
       logger.warn('POST', '新密码与当前密码相同', { uid: session.uid });
-      return NextResponse.json({ error: '新密码不能与当前密码相同' }, { status: 400 });
+      return NextResponse.json({ error: getTranslate('api.auth.samePassword') }, { status: 400 });
     }
 
     user.password = await hashPassword(newPassword);
@@ -120,10 +121,10 @@ export const POST = apiHandler(
     }
 
     logger.info('POST', '密码修改成功', { uid: session.uid, revokedKeys: revokedCount });
-    void logAudit('password_change', 'auth', '密码已修改', session.uid);
+    void logAudit('password_change', 'auth', getTranslate('api.auth.changePasswordSuccess'), session.uid);
     return NextResponse.json({
       success: true,
-      message: '密码修改成功',
+      message: getTranslate('api.auth.changePasswordSuccess'),
       revokedSessions: revokedCount,
     });
   },

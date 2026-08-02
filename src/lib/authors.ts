@@ -40,9 +40,11 @@ export function getAuthors(): AuthorInfo[] {
   return cachedAuthors;
 }
 
-/** 根据作者名查找作者信息，未找到返回 null */
+/** 根据作者名查找作者信息，未找到时回退到 __default__ 全局默认条目，仍无则返回 null */
 export function getAuthorByName(name: string): AuthorInfo | null {
   if (!name) return null;
   const authors = getAuthors();
-  return authors.find((a) => a.name === name) ?? null;
+  const author = authors.find((a) => a.name === name);
+  if (author) return author;
+  return authors.find((a) => a.name === '__default__') ?? null;
 }

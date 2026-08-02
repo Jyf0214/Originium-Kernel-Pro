@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { HeroBanner } from '@/components/ui/HeroBanner';
 import type { TravelPlace } from '@/lib/travel';
 import { EASE_STANDARD, staggerDelay } from '@/components/ui/motion';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface TravelContentProps {
   places: TravelPlace[];
@@ -87,13 +88,14 @@ function TimelineItem({
 }
 
 export function TravelContent({ places }: TravelContentProps) {
+  const { t } = useI18n();
   return (
     <div className="min-h-screen flex flex-col bg-white sm:bg-zinc-50 dark:bg-white sm:dark:bg-zinc-900">
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 md:py-20">
         {/* 顶部 Banner */}
         <HeroBanner
-          title="旅行足迹"
-          description="记录走过的每一个地方"
+          title={t('travel.title')}
+          description={t('travel.subtitle')}
           size="compact"
           className="mb-10 sm:mb-14"
         />
@@ -102,8 +104,8 @@ export function TravelContent({ places }: TravelContentProps) {
         {places.length === 0 ? (
           <EmptyState
             icon={<MapPin size={48} className="text-zinc-300 dark:text-zinc-600" />}
-            title="暂无旅行记录"
-            description="还没有添加旅行地点，去探索世界吧"
+            title={t('travel.noPlaces')}
+            description={t('travel.noPlacesHint')}
           />
         ) : (
           /* 时间线布局 */

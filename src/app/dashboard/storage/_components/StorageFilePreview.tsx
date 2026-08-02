@@ -23,6 +23,8 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Tag } from '@/components/ui/Tag';
 import type { WebDavEntry } from '@/lib/storage/types';
+import { useI18n } from '@/hooks/use-i18n';
+import { getTranslate } from '@/i18n/translate';
 import { formatBytes, formatDate } from '../_lib/format';
 
 interface Props {
@@ -57,16 +59,17 @@ function getCategoryIcon(mime: string | null) {
 function getCategoryLabel(mime: string | null): string {
   const cat = getFileCategory(mime);
   switch (cat) {
-    case 'image': return '图片';
-    case 'video': return '视频';
-    case 'audio': return '音频';
-    case 'archive': return '压缩包';
-    case 'text': return '文本';
-    default: return '文件';
+    case 'image': return getTranslate('storage.categoryImage');
+    case 'video': return getTranslate('storage.categoryVideo');
+    case 'audio': return getTranslate('storage.categoryAudio');
+    case 'archive': return getTranslate('storage.categoryArchive');
+    case 'text': return getTranslate('storage.categoryText');
+    default: return getTranslate('storage.categoryFile');
   }
 }
 
 export function StorageFilePreview({ open, entry, appUrl, onClose }: Props) {
+  const { t } = useI18n();
   if (!entry) return null;
 
   const publicUrl = `${appUrl.replace(/\/$/, '')}/files/${entry.basename.replace(/^\/+/, '')}`;
@@ -76,9 +79,9 @@ export function StorageFilePreview({ open, entry, appUrl, onClose }: Props) {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(publicUrl);
-      message.success('URL 已复制到剪贴板');
+      message.success(t('storage.urlCopied'));
     } catch {
-      message.error('复制失败');
+      message.error(t('storage.copyFailed'));
     }
   };
 
@@ -124,23 +127,23 @@ export function StorageFilePreview({ open, entry, appUrl, onClose }: Props) {
       {/* 文件信息 */}
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
-          <span className="text-zinc-500">文件名</span>
+          <span className="text-zinc-500">{t('storage.fileName')}</span>
           <span className="text-zinc-900 font-mono truncate ml-4">{entry.filename}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-zinc-500">大小</span>
+          <span className="text-zinc-500">{t('storage.fileSize')}</span>
           <span className="text-zinc-900">{formatBytes(entry.size)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-zinc-500">类型</span>
-          <span className="text-zinc-900">{entry.mimeType ?? '未知'}</span>
+          <span className="text-zinc-500">{t('storage.fileType')}</span>
+          <span className="text-zinc-900">{entry.mimeType ?? t('storage.unknown')}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-zinc-500">修改时间</span>
+          <span className="text-zinc-500">{t('storage.fileModified')}</span>
           <span className="text-zinc-900">{formatDate(entry.lastModified)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-zinc-500">路径</span>
+          <span className="text-zinc-500">{t('storage.filePath')}</span>
           <span className="text-zinc-900 font-mono text-xs truncate ml-4 max-w-[280px]">{entry.basename}</span>
         </div>
       </div>
@@ -148,13 +151,13 @@ export function StorageFilePreview({ open, entry, appUrl, onClose }: Props) {
       {/* 操作按钮 */}
       <div className="flex justify-end gap-2 mt-5">
         <Button variant="ghost" size="sm" icon={<Copy size={14} />} onClick={handleCopy} autoLoading={false}>
-          复制 URL
+          {t('storage.copyUrl')}
         </Button>
         <Button variant="default" size="sm" icon={<ExternalLink size={14} />} onClick={() => window.open(publicUrl, '_blank')} autoLoading={false}>
-          新窗口打开
+          {t('storage.openInNewWindow')}
         </Button>
         <Button variant="primary" size="sm" icon={<Download size={14} />} onClick={handleDownload} autoLoading={false}>
-          下载
+          {t('storage.download')}
         </Button>
       </div>
     </Modal>

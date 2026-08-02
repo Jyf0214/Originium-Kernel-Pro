@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useI18n } from '@/hooks/use-i18n';
 import {
   Folder,
   ChevronRight,
@@ -48,6 +49,7 @@ interface TreeNodeProps {
 }
 
 function TreeNode({ node, depth, pathname }: TreeNodeProps) {
+  const { t } = useI18n();
   const isActive = pathname === `/posts/${node.slug}` || pathname.startsWith(`/posts/${node.slug}/`);
   const hasChildren = node.children.length > 0;
 
@@ -83,7 +85,7 @@ function TreeNode({ node, depth, pathname }: TreeNodeProps) {
               setExpanded((prev) => !prev);
             }}
             className="shrink-0 p-0.5 rounded hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
-            aria-label={expanded ? '折叠' : '展开'}
+            aria-label={expanded ? t('components.PostNavigation.collapse') : t('components.PostNavigation.expand')}
           >
             {expanded ? (
               <ChevronDown className="w-3.5 h-3.5" />
@@ -120,26 +122,27 @@ function TreeNode({ node, depth, pathname }: TreeNodeProps) {
 // ─── 主组件 ─────────────────────────────────────────────────────────────────
 
 export default function PostNavigation({ initialTree }: PostNavigationProps) {
+  const { t } = useI18n();
   const pathname = usePathname();
   const [tree] = useState<NavigationNode[]>(initialTree);
 
   return (
     <nav
       className="hidden lg:block w-64 shrink-0 sticky top-24 self-start"
-      aria-label="文章导航"
+      aria-label={t('components.PostNavigation.articleNav')}
     >
       <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white/50 dark:bg-zinc-800/50 backdrop-blur p-3">
         {/* 标题栏 */}
         <div className="flex items-center justify-between mb-3 px-2">
           <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-            目录导航
+            {t('components.PostNavigation.directoryNav')}
           </h3>
         </div>
 
         {/* 内容区 */}
         {tree.length === 0 ? (
           <p className="text-sm text-zinc-400 dark:text-zinc-500 text-center py-4">
-            暂无目录
+            {t('components.PostNavigation.noDirectory')}
           </p>
         ) : (
           <div className="space-y-0.5">

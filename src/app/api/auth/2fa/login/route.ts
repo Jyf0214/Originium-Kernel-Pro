@@ -5,6 +5,7 @@ import { verifyTotp } from '@/lib/totp';
 import { getUserAvatarAsync } from '@/lib/config';
 import { createApiLogger } from '@/lib/api-logger';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/auth/2fa/login');
 
@@ -29,11 +30,11 @@ async function resolveTempToken(
 ): Promise<{ ok: true; payload: { uid: string } } | { ok: false; error: NextResponse }> {
   const tempToken = bodyToken ?? cookieToken;
   if (!tempToken) {
-    return { ok: false, error: NextResponse.json({ error: '临时令牌缺失，请重新登录' }, { status: 401 }) };
+    return { ok: false, error: NextResponse.json({ error: getTranslate('api.auth.tempTokenMissing') }, { status: 401 }) };
   }
   const payload = await verifyTempToken(tempToken);
   if (!payload) {
-    return { ok: false, error: NextResponse.json({ error: '临时令牌无效或已过期，请重新登录' }, { status: 401 }) };
+    return { ok: false, error: NextResponse.json({ error: getTranslate('api.auth.tempTokenInvalid') }, { status: 401 }) };
   }
   return { ok: true, payload };
 }
@@ -48,11 +49,11 @@ async function loadUserFor2FA(
   const userStr = await db.get(`user:uid:${uid}`);
   if (!userStr) {
     logger.warn('POST', '用户数据不存在', { uid });
-    return { ok: false, error: NextResponse.json({ error: '用户不存在' }, { status: 404 }) };
+    return { ok: false, error: NextResponse.json({ error: getTranslate('api.auth.userNotFound') }, { status: 404 }) };
   }
   const user = JSON.parse(userStr) as KvUser;
   if (!user.twoFactorEnabled || !user.twoFactorSecret) {
-    return { ok: false, error: NextResponse.json({ error: '该账户未启用双因素认证' }, { status: 400 }) };
+    return { ok: false, error: NextResponse.json({ error: getTranslate('api.auth.twoFactorNotEnabled') }, { status: 400 }) };
   }
   return { ok: true, user };
 }
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
     if (!rl.allowed) {
       logger.warn('POST', '2FA 验证频率超限', { retryAfterMs: rl.retryAfterMs });
       return NextResponse.json(
-        { error: `验证尝试过于频繁，请在 ${Math.ceil(rl.retryAfterMs / 1000)} 秒后重试` },
+        { error: getTranslate('api.auth.verifyTooFrequent', { seconds: Math.ceil(rl.retryAfterMs / 1000) }) },
         { status: 429 },
       );
     }
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
     };
 
     if (!token || typeof token !== 'string') {
-      return NextResponse.json({ error: '请输入验证码' }, { status: 400 });
+      return NextResponse.json({ error: getTranslate('api.auth.enterVerificationCode') }, { status: 400 });
     }
 
     // 解析临时令牌
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
     const valid = verifyTotp(token, user.twoFactorSecret!);
     if (!valid) {
       logger.warn('POST', 'TOTP 验证码错误', { uid: user.uid });
-      return NextResponse.json({ error: '验证码错误，请重试' }, { status: 400 });
+      return NextResponse.json({ error: getTranslate('api.auth.invalidVerificationCode') }, { status: 400 });
     }
 
     // 验证通过，清除临时令牌并创建正式 session
@@ -129,6 +130,6 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logger.error('POST', '2FA 登录失败', { message });
-    return NextResponse.json({ error: '2FA 登录失败' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.auth.twoFactorLoginFailed') }, { status: 500 });
   }
 }

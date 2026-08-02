@@ -1,4 +1,5 @@
 import { message } from 'antd';
+import { getTranslate } from '@/i18n/translate';
 import type { RemoteConfigData } from './types';
 
 export interface SyncAvatarChangesArgs {
@@ -30,11 +31,11 @@ export async function syncAvatarChanges({
   setLoading,
 }: SyncAvatarChangesArgs): Promise<void> {
   if (!githubConfigured) {
-    message.error('GitHub 未配置，无法同步头像');
+    message.error(getTranslate('settings.avatarSync.githubNotConfigured'));
     return;
   }
   const configRes = await fetch('/api/config');
-  if (!configRes.ok) throw new Error('读取配置失败');
+  if (!configRes.ok) throw new Error(getTranslate('settings.avatarSync.configReadFailed'));
   const configResData: RemoteConfigData = await configRes.json();
   const remoteRaw = configResData._remoteConfig ?? '';
   setLoading(false);

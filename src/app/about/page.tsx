@@ -7,42 +7,33 @@ import { Button } from '@/components/ui/Button';
 import { FeedbackForm } from '@/components/FeedbackForm';
 import Footer from '@/components/Footer';
 import { VERSION } from '@/data/version';
+import { getTranslate } from '@/i18n/translate';
 
-const features = [
-  {
-    icon: BookOpen,
-    title: '内容管理',
-    description: '基于 Markdown 的轻量级内容发布系统，支持文章、日记、通讯录等多种内容类型。',
-  },
-  {
-    icon: Shield,
-    title: '安全优先',
-    description: '管理员后台严格隔离，日记内容加密存储，未授权用户无法访问隐私数据。',
-  },
-  {
-    icon: Globe,
-    title: '国际化',
-    description: '内置多语言支持，可根据用户偏好切换界面语言，提供本地化阅读体验。',
-  },
-  {
-    icon: Github,
-    title: 'Git 驱动',
-    description: '内容通过 Git 仓库同步管理，支持版本追溯、协作编辑与持续部署。',
-  },
+const featureKeys = [
+  { icon: BookOpen, titleKey: 'about.contentMgmt', descKey: 'about.contentMgmtDesc' },
+  { icon: Shield, titleKey: 'about.securityFirst', descKey: 'about.securityFirstDesc' },
+  { icon: Globe, titleKey: 'about.international', descKey: 'about.internationalDesc' },
+  { icon: Github, titleKey: 'about.gitDriven', descKey: 'about.gitDrivenDesc' },
 ];
 
 export default function AboutPage() {
+  const features = featureKeys.map((f) => ({
+    icon: f.icon,
+    title: getTranslate(f.titleKey),
+    description: getTranslate(f.descKey),
+  }));
+
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <PageContainer maxWidth="5xl" padding="compact">
         <HeroBanner
-          title="关于"
-          description="了解这个项目 —— 现代内容发布平台"
+          title={getTranslate('about.title')}
+          description={getTranslate('about.desc')}
           align="center"
           size="default"
           buttons={[
             {
-              label: '浏览文章',
+              label: getTranslate('about.browseArticles'),
               variant: 'primary',
               icon: <BookOpen size={16} />,
               href: '/posts',
@@ -53,16 +44,15 @@ export default function AboutPage() {
 
         {/* 项目简介 */}
         <section className="mb-10 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">项目介绍</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">{getTranslate('about.intro')}</h2>
           <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
-            Originium Kernel 是一个基于 Next.js 构建的现代内容发布平台，专注于内容创作与管理的简洁体验。
-            项目采用文件系统作为主要内容存储，数据库仅用于授权验证与最小化运行支撑，确保数据安全与可移植性。
+            {getTranslate('about.introDesc')}
           </p>
         </section>
 
         {/* 功能特点 */}
         <section className="mb-10 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">功能特点</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">{getTranslate('about.features')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {features.map((feature) => {
               const Icon = feature.icon;
@@ -84,7 +74,7 @@ export default function AboutPage() {
 
         {/* 技术栈 */}
         <section className="mb-10 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">技术栈</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">{getTranslate('about.techStack')}</h2>
           <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 p-5 sm:p-6">
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-zinc-600 dark:text-zinc-400">
               <li className="flex items-center gap-2">
@@ -109,7 +99,7 @@ export default function AboutPage() {
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-zinc-900 shrink-0" />
-                motion 动画库
+                {getTranslate('about.motionLib')}
               </li>
             </ul>
           </div>
@@ -119,7 +109,7 @@ export default function AboutPage() {
         {VERSION && (
           <section className="mb-10 sm:mb-12">
             <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 p-5 sm:p-6 text-center">
-              <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-1">当前版本</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-1">{getTranslate('about.currentVersion')}</p>
               <p className="text-lg font-mono font-bold text-zinc-900 dark:text-zinc-100">{VERSION}</p>
             </div>
           </section>
@@ -127,7 +117,7 @@ export default function AboutPage() {
 
         {/* 反馈 */}
         <section className="mb-10 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">反馈与建议</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">{getTranslate('about.feedback')}</h2>
           <FeedbackForm />
         </section>
 
@@ -139,7 +129,7 @@ export default function AboutPage() {
             >
               <Button variant="primary" size="lg" autoLoading={false}>
                 <BookOpen size={16} />
-                浏览文章
+                {getTranslate('about.browseArticles')}
               </Button>
             </Link>
           </div>

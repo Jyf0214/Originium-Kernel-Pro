@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'lucide-react';
 import type { CodeProps } from './types';
 import { slugify } from '@/lib/slugify';
+import { useI18n } from '@/hooks/use-i18n';
 
 /** 从 React children 中提取纯文本，用于生成标题 id */
 export function extractTextContent(children: React.ReactNode): string {
@@ -33,6 +34,7 @@ export function createHeading(level: 1 | 2 | 3 | 4 | 5 | 6) {
     const id = slugify(extractTextContent(children));
     const [toastVisible, setToastVisible] = useState(false);
     const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+    const { t } = useI18n();
 
     // 组件卸载时清理定时器，避免对已卸载组件调用 setState
     useEffect(() => {
@@ -63,8 +65,8 @@ export function createHeading(level: 1 | 2 | 3 | 4 | 5 | 6) {
         {
           onClick: handleCopyAnchor,
           className: 'anchor-copy-btn',
-          'aria-label': '复制标题链接',
-          title: '复制链接',
+          'aria-label': t('components.markdown.copyHeadingLink'),
+          title: t('components.markdown.copyLink'),
         },
         React.createElement(Link, { size: 14, strokeWidth: 2.5 }),
       ),
@@ -72,7 +74,7 @@ export function createHeading(level: 1 | 2 | 3 | 4 | 5 | 6) {
         React.createElement(
           'span',
           { className: 'anchor-copy-toast' },
-          '链接已复制',
+          t('components.markdown.linkCopied'),
         ),
     );
   };

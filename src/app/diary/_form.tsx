@@ -9,6 +9,7 @@ import { useDiaryDraft } from '@/hooks/use-diary-draft';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { Modal } from 'antd';
 import { getConfirmMessage } from '@/lib/kaomoji';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface DiaryFormProps {
   mode: 'new' | 'edit';
@@ -22,10 +23,11 @@ interface DiaryFormProps {
 }
 
 export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialContent, initialTags, initialGroup, initialDate, onSave }: DiaryFormProps) {
+  const { t } = useI18n();
   const [title, setTitle] = React.useState(initialTitle ?? '');
   const [content, setContent] = React.useState(initialContent ?? '');
   const [tags, setTags] = React.useState((initialTags ?? []).join(', '));
-  const [diaryGroup, setDiaryGroup] = React.useState(initialGroup ?? '默认');
+  const [diaryGroup, setDiaryGroup] = React.useState(initialGroup ?? '');
   const [diaryDate, setDiaryDate] = React.useState(initialDate ?? (() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -33,7 +35,7 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
   const [saving, setSaving] = React.useState(false);
   const [recovered, setRecovered] = React.useState(false);
   const [nowTick, setNowTick] = React.useState(Date.now());
-  const [lastSavedSnapshot, setLastSavedSnapshot] = React.useState({ title: initialTitle ?? '', content: initialContent ?? '', tags: (initialTags ?? []).join(', '), group: initialGroup ?? '默认', date: initialDate ?? new Date().toISOString().slice(0, 10) });
+  const [lastSavedSnapshot, setLastSavedSnapshot] = React.useState({ title: initialTitle ?? '', content: initialContent ?? '', tags: (initialTags ?? []).join(', '), group: initialGroup ?? '', date: initialDate ?? new Date().toISOString().slice(0, 10) });
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
   const router = useRouter();
 
@@ -46,19 +48,19 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
     id: draftId,
     title,
     content,
-    tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+    tags: tags.split(',').map((tag) => tag.trim()).filter(Boolean),
     group: diaryGroup,
     date: diaryDate,
     onDraftFound: async (data) => {
       if (!recovered && (data.title || data.content)) {
         const ok = await new Promise<boolean>((resolve) => {
           const msg = getConfirmMessage('restore');
-          const timeStr = data.savedAt ? new Date(data.savedAt).toLocaleString('zh-CN') : '未知时间';
+          const timeStr = data.savedAt ? new Date(data.savedAt).toLocaleString('zh-CN') : t('diary.unknownTime');
           Modal.confirm({
-            title: `${msg.kaomoji} 恢复草稿？`,
-            content: `检测到上次未完成的草稿（${timeStr}），要恢复吗？`,
-            okText: '恢复',
-            cancelText: '不要了',
+            title: `${msg.kaomoji} ${t('diary.restoreDraftQuestion')}`,
+            content: t('diary.draftDetected', { time: timeStr }),
+            okText: t('diary.restore'),
+            cancelText: t('diary.discard'),
             onOk: () => resolve(true),
             onCancel: () => resolve(false),
           });
@@ -118,12 +120,12 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
   }, [title, content, tags, diaryGroup, diaryDate, lastSavedSnapshot]);
 
   const handleSave = async () => {
-    if (!title.trim()) { showError('请输入标题'); return; }
-    if (!content.trim()) { showError('请输入内容'); return; }
+    if (!title.trim()) { showError(t('diary.titleRequired')); return; }
+    if (!content.trim()) { showError(t('diary.contentRequired')); return; }
 
     setSaving(true);
     try {
-      const tagsArr = tags.split(',').map(t => t.trim()).filter(Boolean);
+      const tagsArr = tags.split(',').map(tag => tag.trim()).filter(Boolean);
       const result = await onSave(title.trim(), content.trim(), tagsArr, diaryDate, diaryGroup);
       if (result !== null) {
         setLastSavedSnapshot({ title: title.trim(), content: content.trim(), tags: tagsArr.join(', '), group: diaryGroup, date: diaryDate });
@@ -131,7 +133,7 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
         router.push('/diary');
       }
     } catch {
-      showError('保存失败');
+      showError(t('diary.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -140,19 +142,19 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
   function agoLabel(): string {
     if (!lastSavedAt) return '';
     const secs = Math.floor((nowTick - lastSavedAt.getTime()) / 1000);
-    if (secs < 5) return '刚刚保存';
-    if (secs < 60) return `${secs}秒前保存`;
+    if (secs < 5) return t('diary.savedJustNow');
+    if (secs < 60) return t('diary.savedSecondsAgo', { seconds: secs });
     const mins = Math.floor(secs / 60);
-    if (mins < 60) return `${mins}分钟前保存`;
-    return `${Math.floor(mins / 60)}小时前保存`;
+    if (mins < 60) return t('diary.savedMinutesAgo', { minutes: mins });
+    return t('diary.savedHoursAgo', { hours: Math.floor(mins / 60) });
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">
       <div className="border-b border-zinc-100 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-2">
-          <Button onClick={() => router.push('/diary')} variant="ghost" size="sm" autoLoading={false} icon={<ArrowLeft size={16}/>}>返回</Button>
-          <Button onClick={handleSave} loading={saving} variant="primary" size="md">保存</Button>
+          <Button onClick={() => router.push('/diary')} variant="ghost" size="sm" autoLoading={false} icon={<ArrowLeft size={16}/>}>{t('common.back')}</Button>
+          <Button onClick={handleSave} loading={saving} variant="primary" size="md">{t('common.save')}</Button>
         </div>
       </div>
 
@@ -170,35 +172,35 @@ export default function DiaryForm({ mode: _mode, draftId, initialTitle, initialC
                 <div className="w-3 h-3 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
               )}
               {saveStatus === 'saved' && (
-                <><Cloud size={14} className="text-green-500" /><span>{agoLabel() || '已保存'}</span></>
+                <><Cloud size={14} className="text-green-500" /><span>{agoLabel() || t('diary.saved')}</span></>
               )}
               {saveStatus === 'error' && (
-                <><CloudOff size={14} className="text-red-400" /><span>保存失败</span></>
+                <><CloudOff size={14} className="text-red-400" /><span>{t('diary.saveFailed')}</span></>
               )}
             </div>
           </div>
           <input
             value={diaryGroup}
             onChange={(e) => setDiaryGroup(e.target.value)}
-            placeholder="分类（如：生活, 工作, 技术）"
+            placeholder={t('diary.groupPlaceholder')}
             className="w-full text-sm text-zinc-500 placeholder-zinc-300 bg-transparent border border-zinc-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 transition-all"
           />
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="日记标题"
+            placeholder={t('diary.titlePlaceholder')}
             className="w-full text-2xl sm:text-4xl font-display font-black tracking-tighter text-zinc-900 placeholder-zinc-300 bg-transparent border-none outline-none focus:outline-none"
           />
           <input
             value={tags}
             onChange={(e) => setTags(e.target.value)}
-            placeholder="标签（逗号分隔，如：生活, 工作, 随笔）"
+            placeholder={t('diary.tagsPlaceholder')}
             className="w-full text-sm text-zinc-400 placeholder-zinc-300 bg-transparent border-none outline-none focus:outline-none"
           />
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="写下你的日记..."
+            placeholder={t('diary.contentPlaceholder')}
             rows={18}
             className="w-full text-sm sm:text-base text-zinc-900 placeholder-zinc-300 bg-transparent border-none outline-none focus:outline-none resize-y font-mono leading-relaxed"
           />

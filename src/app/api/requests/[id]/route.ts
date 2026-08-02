@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/auth';
 import { unlink } from 'fs/promises';
 import { join, resolve } from 'path';
 import { createApiLogger } from '@/lib/api-logger';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/requests/[id]');
 
@@ -40,7 +41,7 @@ export async function PATCH(
     if (action !== 'approve' && action !== 'reject') {
       logger.warn('PATCH', '无效操作', { action });
       return NextResponse.json(
-        { error: '无效的操作' },
+        { error: getTranslate('api.requests.invalidAction') },
         { status: 400 }
       );
     }
@@ -54,7 +55,7 @@ export async function PATCH(
     if (!requestRecord) {
       logger.warn('PATCH', '申请不存在', { id });
       return NextResponse.json(
-        { error: '申请不存在' },
+        { error: getTranslate('api.requests.notFound') },
         { status: 404 }
       );
     }
@@ -62,7 +63,7 @@ export async function PATCH(
     if (requestRecord.status !== 'pending') {
       logger.warn('PATCH', '申请已处理', { id, status: requestRecord.status });
       return NextResponse.json(
-        { error: '申请已处理' },
+        { error: getTranslate('api.requests.alreadyProcessed') },
         { status: 400 }
       );
     }
@@ -84,7 +85,7 @@ export async function PATCH(
   } catch (error) {
     logger.error('PATCH', '处理申请失败', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
-      { error: '处理申请失败' },
+      { error: getTranslate('api.requests.processFailed') },
       { status: 500 }
     );
   }

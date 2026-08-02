@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { ProCard } from '@/components/ui/ProCard';
 import { PermissionsEditor } from './PermissionsEditor';
 import { PERMISSION_GROUPS, type ApiKeyPermissions } from '@/lib/api-key-permissions';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface ApiKeyItem {
   id: string;
@@ -31,6 +32,7 @@ function createFullPermissions(): ApiKeyPermissions {
 }
 
 export function ApiKeyCard() {
+  const { t } = useI18n();
   const [keys, setKeys] = useState<ApiKeyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -59,14 +61,14 @@ export function ApiKeyCard() {
         setError(null);
       } else {
         const data = (await res.json()) as { error?: string };
-        setError(data.error ?? `请求失败 (${res.status})`);
+        setError(data.error ?? t('settings.apiKey.requestFailed', { status: res.status }));
       }
     } catch {
-      setError('网络请求失败');
+      setError(t('settings.apiKey.networkFailed'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void loadKeys();
@@ -94,10 +96,10 @@ export function ApiKeyCard() {
         await loadKeys();
       } else {
         const data = (await res.json()) as { error?: string };
-        setError(data.error ?? `生成失败 (${res.status})`);
+        setError(data.error ?? t('settings.apiKey.generateFailed', { status: res.status }));
       }
     } catch {
-      setError('网络请求失败');
+      setError(t('settings.apiKey.networkFailed'));
     } finally {
       setGenerating(false);
     }
@@ -109,7 +111,7 @@ export function ApiKeyCard() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      setError('复制到剪贴板失败');
+      setError(t('settings.apiKey.copyFailed'));
     }
   };
 
@@ -128,10 +130,10 @@ export function ApiKeyCard() {
         }
       } else {
         const data = (await res.json()) as { error?: string };
-        setError(data.error ?? `删除失败 (${res.status})`);
+        setError(data.error ?? t('settings.apiKey.deleteFailed', { status: res.status }));
       }
     } catch {
-      setError('网络请求失败');
+      setError(t('settings.apiKey.networkFailed'));
     } finally {
       setDeletingId(null);
     }
@@ -166,10 +168,10 @@ export function ApiKeyCard() {
         ));
       } else {
         const data = (await res.json()) as { error?: string };
-        setError(data.error ?? `保存失败 (${res.status})`);
+        setError(data.error ?? t('settings.apiKey.savePermissionsFailed', { status: res.status }));
       }
     } catch {
-      setError('网络请求失败');
+      setError(t('settings.apiKey.networkFailed'));
     } finally {
       setSavingPermissions(false);
     }
@@ -187,8 +189,8 @@ export function ApiKeyCard() {
           <Key size={16} className="text-zinc-500" />
         </div>
         <div>
-          <h3 className="text-sm font-semibold text-zinc-900">API 密钥</h3>
-          <p className="text-xs text-zinc-400">用于替代 Cookie 进行 API 认证（Authorization: Bearer sk-xxx）</p>
+          <h3 className="text-sm font-semibold text-zinc-900">{t('settings.apiKey.title')}</h3>
+          <p className="text-xs text-zinc-400">{t('settings.apiKey.desc')}</p>
         </div>
       </div>
 
@@ -206,7 +208,7 @@ export function ApiKeyCard() {
           type="text"
           value={newKeyName}
           onChange={(e) => setNewKeyName(e.target.value)}
-          placeholder="密钥名称（可选）"
+          placeholder={t('settings.apiKey.namePlaceholder')}
           className="flex-1 px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-300"
           onKeyDown={(e) => { if (e.key === 'Enter') void handleGenerate(); }}
         />
@@ -219,9 +221,9 @@ export function ApiKeyCard() {
           loading={generating}
         >
           {generating ? (
-            <><Loader2 size={14} className="inline mr-1 animate-spin" />生成中…</>
+            <><Loader2 size={14} className="inline mr-1 animate-spin" />{t('settings.apiKey.generating')}</>
           ) : (
-            <><span className="hidden sm:inline"><Plus size={14} className="inline mr-1" />生成密钥</span><span className="sm:hidden"><Plus size={14} /></span></>
+            <><span className="hidden sm:inline"><Plus size={14} className="inline mr-1" />{t('settings.apiKey.generate')}</span><span className="sm:hidden"><Plus size={14} /></span></>
           )}
         </Button>
       </div>
@@ -234,7 +236,7 @@ export function ApiKeyCard() {
           className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-700 transition-colors"
         >
           <Shield size={12} />
-          {showCreatePermissions ? '收起权限设置' : '自定义权限（可选）'}
+          {showCreatePermissions ? t('settings.apiKey.collapsePermissions') : t('settings.apiKey.customPermissions')}
           {showCreatePermissions ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
         </button>
         {showCreatePermissions && (
@@ -249,7 +251,7 @@ export function ApiKeyCard() {
       {/* 新密钥明文展示（仅一次） */}
       {showNewKey && (
         <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-          <p className="text-xs text-amber-700 mb-2 font-medium">请立即复制此密钥，关闭后将无法再次查看：</p>
+          <p className="text-xs text-amber-700 mb-2 font-medium">{t('settings.apiKey.createdHint')}</p>
           <div className="flex items-center gap-2">
             <code className="flex-1 text-sm bg-white px-3 py-2 rounded border border-amber-200 font-mono break-all">{showNewKey}</code>
             <button
@@ -265,16 +267,16 @@ export function ApiKeyCard() {
             onClick={() => setShowNewKey(null)}
             className="mt-2 text-xs text-amber-600 hover:underline"
           >
-            我已复制，关闭
+            {t('settings.apiKey.copiedClose')}
           </button>
         </div>
       )}
 
       {/* 密钥列表 */}
       {loading ? (
-        <p className="text-sm text-zinc-400 py-4">加载中…</p>
+        <p className="text-sm text-zinc-400 py-4">{t('settings.apiKey.loading')}</p>
       ) : keys.length === 0 ? (
-        <p className="text-sm text-zinc-400 py-4">暂无 API 密钥</p>
+        <p className="text-sm text-zinc-400 py-4">{t('settings.apiKey.noKeys')}</p>
       ) : (
         <div className="space-y-2">
           {keys.map((k) => {
@@ -291,7 +293,7 @@ export function ApiKeyCard() {
                       type="button"
                       onClick={() => handleExpand(k.id)}
                       className="shrink-0 p-1 hover:bg-zinc-200 rounded transition-colors"
-                      title="展开权限设置"
+                      title={t('settings.apiKey.expandPermissions')}
                     >
                       {isExpanded
                         ? <ChevronDown size={14} className="text-zinc-500" />
@@ -304,13 +306,13 @@ export function ApiKeyCard() {
                         {hasRestrictedPermissions && (
                           <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-medium rounded">
                             <Shield size={10} />
-                            受限
+                            {t('settings.apiKey.restricted')}
                           </span>
                         )}
                       </div>
                       <p className="text-xs text-zinc-400">
-                        创建于 {formatDate(k.createdAt)}
-                        {k.lastUsed && ` · 最后使用 ${formatDate(k.lastUsed)}`}
+                        {t('settings.apiKey.createdAt', { date: formatDate(k.createdAt) })}
+                        {k.lastUsed && t('settings.apiKey.lastUsedAt', { date: formatDate(k.lastUsed) })}
                       </p>
                     </div>
                   </div>
@@ -326,7 +328,7 @@ export function ApiKeyCard() {
                           disabled={isDeleting}
                           className="whitespace-nowrap"
                         >
-                          {isDeleting ? <Loader2 size={12} className="animate-spin" /> : '确认'}
+                          {isDeleting ? <Loader2 size={12} className="animate-spin" /> : t('settings.apiKey.confirm')}
                         </Button>
                         <Button
                           variant="default"
@@ -336,7 +338,7 @@ export function ApiKeyCard() {
                           disabled={isDeleting}
                           className="whitespace-nowrap"
                         >
-                          取消
+                          {t('common.cancel')}
                         </Button>
                       </>
                     ) : (
@@ -347,7 +349,7 @@ export function ApiKeyCard() {
                         autoLoading={false}
                         onClick={() => setConfirmDeleteId(k.id)}
                         disabled={isDeleting}
-                        title="撤销密钥"
+                        title={t('settings.apiKey.revoke')}
                       >
                         <Trash2 size={14} />
                       </Button>
@@ -372,8 +374,8 @@ export function ApiKeyCard() {
                         disabled={savingPermissions}
                       >
                         {savingPermissions ? (
-                          <><Loader2 size={12} className="inline mr-1 animate-spin" />保存中…</>
-                        ) : '保存权限'}
+                          <><Loader2 size={12} className="inline mr-1 animate-spin" />{t('settings.apiKey.saving')}</>
+                        ) : t('settings.apiKey.savePermissions')}
                       </Button>
                     </div>
                   </div>

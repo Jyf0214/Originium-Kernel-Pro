@@ -13,6 +13,7 @@ import { Lock, LockOpen } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { CuteConfirm } from '@/components/ui/CuteConfirm';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface Props {
   hasPassword: boolean;
@@ -48,6 +49,7 @@ export function StorageFolderPasswordSection({
 }: Props) {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const { t } = useI18n();
 
   const trimmed = password.trim();
   const canSubmit = !disabled && !submitting && trimmed.length > 0;
@@ -120,7 +122,7 @@ export function StorageFolderPasswordSection({
         {hasPassword && (
           <CuteConfirm
             category="reset"
-            confirmText="确定要清除密码吗？"
+            confirmText={t('storage.clearPasswordConfirm')}
             okText={okLabel}
             cancelText={cancelLabel}
             okButtonProps={{ danger: true, disabled: disabled || submitting }}

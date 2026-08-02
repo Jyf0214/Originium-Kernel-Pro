@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { useConfig } from '@/hooks/use-config';
 import { message } from 'antd';
 import type { AuthorInfo } from '@/types/author';
+import { useI18n } from '@/hooks/use-i18n';
+import { getTranslate } from '@/i18n/translate';
 
 interface CopyInterceptorProps {
   articleRef: React.RefObject<HTMLDivElement | null>;
@@ -14,21 +16,22 @@ interface CopyInterceptorProps {
 
 function buildCopyrightText(copyrightCfg: { license?: string; licenseUrl?: string; copyTemplate?: { authorLine: string; licensePrefix: string; sourcePrefix: string } }, location?: string): string {
   const template = copyrightCfg.copyTemplate;
-  let text = `\n\n---\n${template?.authorLine ?? '本文著作权归作者所有'}`;
+  let text = `\n\n---\n${template?.authorLine ?? getTranslate('copyInterceptor.defaultAuthorLine')}`;
   if (copyrightCfg.license) {
-    text += `\n${template?.licensePrefix ?? '许可协议: '}${copyrightCfg.license}`;
+    text += `\n${template?.licensePrefix ?? getTranslate('copyInterceptor.licensePrefix')}${copyrightCfg.license}`;
     if (copyrightCfg.licenseUrl) {
       text += ` (${copyrightCfg.licenseUrl})`;
     }
   }
   if (location) {
-    text += `\n${template?.sourcePrefix ?? '来源: '}${location}`;
+    text += `\n${template?.sourcePrefix ?? getTranslate('copyInterceptor.sourcePrefix')}${location}`;
   }
   return text;
 }
 
 export default function CopyInterceptor({ articleRef, authorName, authorInfo }: CopyInterceptorProps) {
   const { config } = useConfig();
+  const { t } = useI18n();
   const cfg = config?.copy;
   const copyrightCfg = config?.copyright;
   const location = authorInfo?.location;
@@ -46,7 +49,7 @@ export default function CopyInterceptor({ articleRef, authorName, authorInfo }: 
 
       const limit = cfg.copyright?.limitCount ?? 50;
 
-      message.info('已复制到剪贴板');
+      message.info(t('copyInterceptor.copied'));
 
       if (cfg.copyright?.enable && selectedText.length >= limit && copyrightCfg) {
         e.clipboardData?.setData('text/plain', selectedText + buildCopyrightText(copyrightCfg, location));
@@ -56,7 +59,7 @@ export default function CopyInterceptor({ articleRef, authorName, authorInfo }: 
 
     el.addEventListener('copy', handleCopy);
     return () => el.removeEventListener('copy', handleCopy);
-  }, [cfg, copyrightCfg, articleRef, authorName, location]);
+  }, [cfg, copyrightCfg, articleRef, authorName, location, t]);
 
   return null;
 }

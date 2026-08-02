@@ -8,33 +8,33 @@ import ConfigFormBody from './config-form-body';
 import type { ConfigState } from './config-builders';
 import { cn } from '@/lib/ui';
 
-/** 侧边导航配置项 */
-const sections = [
-  { id: 'section-general', label: '基本信息' },
-  { id: 'section-auth', label: '认证' },
-  { id: 'section-access', label: '访问控制' },
-  { id: 'section-background', label: '背景' },
-  { id: 'section-custom-css', label: '自定义 CSS' },
-  { id: 'section-custom-head', label: '自定义 Head' },
-  { id: 'section-nav', label: '导航栏' },
-  { id: 'section-mourn', label: '哀悼日' },
-  { id: 'section-highlight', label: '代码高亮' },
-  { id: 'section-copy', label: '复制设置' },
-  { id: 'section-social', label: '社交链接' },
-  { id: 'section-author', label: '作者卡片' },
-  { id: 'section-cover', label: '封面设置' },
-  { id: 'section-error', label: '错误图片' },
-  { id: 'section-postmeta', label: '文章元信息' },
-  { id: 'section-wordcount', label: '字数统计' },
-  { id: 'section-toc', label: '目录' },
-  { id: 'section-copyright', label: '版权信息' },
-  { id: 'section-reward', label: '打赏' },
-  { id: 'section-postedit', label: '在线编辑' },
-  { id: 'section-share', label: '分享' },
-  { id: 'section-maintone', label: '主色调' },
-  { id: 'section-footer', label: '页脚' },
-  { id: 'section-loading', label: '加载动画' },
-  { id: 'section-music', label: '背景音乐' },
+/** 侧边导航配置项 — key 用于 t() 翻译 */
+const sectionKeys = [
+  { id: 'section-general', key: 'general' },
+  { id: 'section-auth', key: 'auth' },
+  { id: 'section-access', key: 'access' },
+  { id: 'section-background', key: 'background' },
+  { id: 'section-custom-css', key: 'customCss' },
+  { id: 'section-custom-head', key: 'customHead' },
+  { id: 'section-nav', key: 'nav' },
+  { id: 'section-mourn', key: 'mourn' },
+  { id: 'section-highlight', key: 'highlight' },
+  { id: 'section-copy', key: 'copy' },
+  { id: 'section-social', key: 'social' },
+  { id: 'section-author', key: 'author' },
+  { id: 'section-cover', key: 'cover' },
+  { id: 'section-error', key: 'error' },
+  { id: 'section-postmeta', key: 'postmeta' },
+  { id: 'section-wordcount', key: 'wordcount' },
+  { id: 'section-toc', key: 'toc' },
+  { id: 'section-copyright', key: 'copyright' },
+  { id: 'section-reward', key: 'reward' },
+  { id: 'section-postedit', key: 'postedit' },
+  { id: 'section-share', key: 'share' },
+  { id: 'section-maintone', key: 'maintone' },
+  { id: 'section-footer', key: 'footer' },
+  { id: 'section-loading', key: 'loading' },
+  { id: 'section-music', key: 'music' },
 ];
 
 function ConfigPageHeader({ t }: { t: (key: string) => string }) {
@@ -51,7 +51,7 @@ function ConfigPageHeader({ t }: { t: (key: string) => string }) {
   );
 }
 
-function RemoteFetchErrorAlert({ error }: { error: string }) {
+function RemoteFetchErrorAlert({ error, t }: { error: string; t: (key: string) => string }) {
   return (
     <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-6 mb-4">
       <div className="flex items-center gap-3 mb-3">
@@ -59,17 +59,17 @@ function RemoteFetchErrorAlert({ error }: { error: string }) {
           <span className="text-red-600 text-xl font-bold">!</span>
         </div>
         <div>
-          <h2 className="text-lg font-bold text-red-800">无法拉取远程配置文件</h2>
+          <h2 className="text-lg font-bold text-red-800">{t('config.remoteFetchError.title')}</h2>
           <p className="text-sm text-red-600">
-            无法从 GitHub 读取 config.yaml，请检查仓库权限和令牌配置
+            {t('config.remoteFetchError.desc')}
           </p>
         </div>
       </div>
       <div className="bg-red-100/50 rounded-xl p-4 font-mono text-xs text-red-700 whitespace-pre-wrap break-all">
-        {error || '未知错误'}
+        {error || t('config.remoteFetchError.unknown')}
       </div>
       <p className="mt-3 text-xs text-red-500">
-        保存功能暂时不可用，请修复后刷新页面重试
+        {t('config.remoteFetchError.hint')}
       </p>
     </div>
   );
@@ -78,7 +78,7 @@ function RemoteFetchErrorAlert({ error }: { error: string }) {
 /**
  * 侧边锚点导航栏 — 仅 lg 以上屏幕显示，固定在左侧
  */
-function SidebarNav({ activeId }: { activeId: string }) {
+function SidebarNav({ activeId, t }: { activeId: string; t: (key: string) => string }) {
   const handleClick = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
@@ -89,7 +89,7 @@ function SidebarNav({ activeId }: { activeId: string }) {
   return (
     <nav className="hidden lg:block fixed left-6 top-1/2 -translate-y-1/2 z-40 w-40 max-h-[70vh] overflow-y-auto scrollbar-thin">
       <div className="space-y-0.5">
-        {sections.map((sec) => (
+        {sectionKeys.map((sec) => (
           <button
             key={sec.id}
             type="button"
@@ -101,7 +101,7 @@ function SidebarNav({ activeId }: { activeId: string }) {
                 : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100',
             )}
           >
-            {sec.label}
+            {t(`config.section.${sec.key}`)}
           </button>
         ))}
       </div>
@@ -133,7 +133,7 @@ export default function ConfigEditor({
   const remoteFetchFailed = !!(remoteConfigStatus === 'error' && githubConfigured);
 
   /** 当前激活的分区 ID（用于侧边导航高亮） */
-  const [activeSection, setActiveSection] = useState<string>(sections[0]?.id ?? '');
+  const [activeSection, setActiveSection] = useState<string>(sectionKeys[0]?.id ?? '');
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   /** 使用 IntersectionObserver 监听各分区进入视口 */
@@ -158,7 +158,7 @@ export default function ConfigEditor({
 
         // 选择可见比例最高的分区作为激活项
         if (visibleSections.size > 0) {
-          let bestId = sections[0]?.id ?? '';
+          let bestId = sectionKeys[0]?.id ?? '';
           let bestRatio = 0;
           visibleSections.forEach((ratio, id) => {
             if (ratio > bestRatio) {
@@ -176,7 +176,7 @@ export default function ConfigEditor({
     );
 
     // 观察所有分区元素
-    sections.forEach((sec) => {
+    sectionKeys.forEach((sec) => {
       const el = document.getElementById(sec.id);
       if (el) {
         observerRef.current?.observe(el);
@@ -213,7 +213,7 @@ export default function ConfigEditor({
   return (
     <div className="min-h-screen bg-zinc-50">
       {/* 侧边锚点导航 */}
-      <SidebarNav activeId={activeSection} />
+      <SidebarNav activeId={activeSection} t={t} />
 
       {/* 主内容区：左侧留出导航空间 */}
       <div className="p-6 lg:pl-56 max-w-4xl mx-auto space-y-4">
@@ -221,13 +221,13 @@ export default function ConfigEditor({
         <ConfigPageHeader t={t} />
 
         {remoteFetchFailed && (
-          <RemoteFetchErrorAlert error={remoteConfigError} />
+          <RemoteFetchErrorAlert error={remoteConfigError} t={t} />
         )}
 
         <ConfigFormBody config={config} onConfigChange={onConfigChange} t={t} />
 
         {/* 底部：GitHub 同步状态 + 保存按钮 */}
-        <ConfigSection title="GitHub 同步" icon={Github} color="bg-zinc-500">
+        <ConfigSection title={t('config.githubSync')} icon={Github} color="bg-zinc-500">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div
               className="px-4 py-3 rounded-xl flex items-center gap-3"
@@ -239,7 +239,7 @@ export default function ConfigEditor({
                 <XCircle size={20} style={{ color: '#faad14' }} />
               )}
               <span className="font-medium text-sm">
-                {githubConfigured ? 'GitHub 已配置，可同步配置文件' : 'GitHub 未配置，仅保存本地'}
+                {githubConfigured ? t('config.githubSyncConfigured') : t('config.githubSyncNotConfigured')}
               </span>
             </div>
             <Button
@@ -250,7 +250,7 @@ export default function ConfigEditor({
               loading={saving}
               disabled={!githubConfigured || remoteFetchFailed}
             >
-              保存配置
+              {t('config.save')}
             </Button>
           </div>
         </ConfigSection>

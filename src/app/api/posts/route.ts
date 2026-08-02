@@ -2,6 +2,7 @@ import { getAccessibleContent } from '@/lib/content-access';
 import { apiHandler } from '@/lib/api-handler';
 import { NextResponse } from 'next/server';
 import { createApiLogger } from '@/lib/api-logger';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/posts');
 
@@ -9,7 +10,7 @@ const logger = createApiLogger('/api/posts');
  * 帖子列表 API — 纯文件系统读取，不查数据库
  * 仅供后台管理使用
  */
-export const GET = apiHandler('GET', { label: '帖子列表' }, async (_req, _ctx, session) => {
+export const GET = apiHandler('GET', { label: getTranslate('api.posts.postList') }, async (_req, _ctx, session) => {
   logger.info('GET', '读取帖子列表');
   const isAuthenticated = !!session;
   const { files: accessibleFiles, indexes: accessibleIndexes } = await getAccessibleContent('posts');

@@ -8,6 +8,7 @@
  */
 import type { Plugin } from 'unified';
 import { escapeHtml } from '@/lib/utils';
+import { getTranslate } from '@/i18n/translate';
 
 /* ── 类型 ── */
 
@@ -132,7 +133,7 @@ export const remarkFootnotes: Plugin = () => {
     const itemsHtml = definitions
       .map(
         (def) =>
-          `<li id="fn-${def.id}" class="mb-2 pl-1"><span class="mr-2 text-xs font-semibold text-zinc-400">[${def.index}]</span>${escapeHtml(def.content)} <a href="#fnref-${def.id}" class="footnote-backref text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors" title="返回正文">↩</a></li>`,
+          `<li id="fn-${def.id}" class="mb-2 pl-1"><span class="mr-2 text-xs font-semibold text-zinc-400">[${def.index}]</span>${escapeHtml(def.content)} <a href="#fnref-${def.id}" class="footnote-backref text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors" title="${getTranslate('components.markdown.footnoteBack')}">↩</a></li>`,
       )
       .join('\n        ');
 

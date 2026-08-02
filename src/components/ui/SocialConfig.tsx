@@ -1,6 +1,7 @@
 import React from 'react';
 import Button from '@/components/ui/Button';
 import { Plus, Trash2 } from 'lucide-react';
+import { useI18n } from '@/hooks/use-i18n';
 
 type SocialConfigData = Record<string, string>;
 
@@ -10,6 +11,7 @@ interface SocialConfigProps {
 }
 
 export default function SocialConfig({ config, onChange }: SocialConfigProps) {
+  const { t } = useI18n();
   const entries = Object.entries(config);
 
   const addEntry = () => {
@@ -38,7 +40,7 @@ export default function SocialConfig({ config, onChange }: SocialConfigProps) {
     <div className="space-y-3">
       {entries.length === 0 && (
         <p className="text-sm text-zinc-400 py-4 text-center bg-zinc-50 rounded-xl">
-          暂无社交链接，点击下方按钮添加
+          {t('components.socialConfig.noLinks')}
         </p>
       )}
 
@@ -48,14 +50,14 @@ export default function SocialConfig({ config, onChange }: SocialConfigProps) {
             type="text"
             value={key}
             onChange={e => updateKey(key, e.target.value)}
-            placeholder="名称 (如 Github)"
+            placeholder={t('components.socialConfig.namePlaceholder')}
             className="w-[140px] h-9 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400"
           />
           <input
             type="text"
             value={value}
             onChange={e => updateValue(key, e.target.value)}
-            placeholder="链接 || 图标 (可选)"
+            placeholder={t('components.socialConfig.linkPlaceholder')}
             className="flex-1 h-9 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400"
           />
           <Button
@@ -71,9 +73,9 @@ export default function SocialConfig({ config, onChange }: SocialConfigProps) {
       ))}
 
       <Button size="sm" icon={<Plus size={14} />} onClick={addEntry} autoLoading={false}>
-        添加社交链接
+        {t('components.socialConfig.addLink')}
       </Button>
-      <p className="text-xs text-zinc-400">格式: 名称: 链接 || 图标 (图标可选，如 fab fa-github)</p>
+      <p className="text-xs text-zinc-400">{t('components.socialConfig.formatHint')}</p>
     </div>
   );
 }

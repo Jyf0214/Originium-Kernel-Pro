@@ -4,6 +4,7 @@ import { getUserAvatar } from '@/lib/config';
 import type { UserRole } from '@/lib/user';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler, getParam } from '@/lib/api-handler';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/users/[uid]');
 
@@ -16,22 +17,22 @@ function validateRoleChange(
   const validRoles: UserRole[] = ['user', 'admin', 'sudo'];
   if (!validRoles.includes(role)) {
     logger.warn('PATCH', '无效角色', { role });
-    return NextResponse.json({ error: '无效的角色' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.users.invalidRole') }, { status: 400 });
   }
   if (session && session.role !== 'sudo') {
     if (role === 'admin' || role === 'sudo') {
       logger.warn('PATCH', '权限不足：admin 不能将用户提升为 admin 或 sudo', { requestedRole: role });
-      return NextResponse.json({ error: '仅超级管理员可以设置管理员或超级管理员角色' }, { status: 403 });
+      return NextResponse.json({ error: getTranslate('api.users.sudoOnlyPromote') }, { status: 403 });
     }
     if (targetUser.role === 'sudo') {
       logger.warn('PATCH', '权限不足：admin 不能降级超级管理员');
-      return NextResponse.json({ error: '仅超级管理员可以修改超级管理员角色' }, { status: 403 });
+      return NextResponse.json({ error: getTranslate('api.users.sudoOnlyModifySudo') }, { status: 403 });
     }
   }
   return null;
 }
 
-export const GET = apiHandler('GET', { label: '获取用户信息', requireAdmin: true }, async (req, context) => {
+export const GET = apiHandler('GET', { label: getTranslate('api.users.getUser'), requireAdmin: true }, async (req, context) => {
   const uid = await getParam(context, 'uid');
   logger.info('GET', '获取用户信息', { uid });
   const db = getDb();
@@ -39,14 +40,14 @@ export const GET = apiHandler('GET', { label: '获取用户信息', requireAdmin
 
   if (!userStr) {
     logger.warn('GET', '用户不存在', { uid });
-    return NextResponse.json({ error: '用户不存在' }, { status: 404 });
+    return NextResponse.json({ error: getTranslate('api.auth.userNotFound') }, { status: 404 });
   }
 
   let user: Record<string, unknown>;
   try {
     user = JSON.parse(userStr);
   } catch {
-    return NextResponse.json({ error: '用户数据损坏' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.user.dataCorrupted') }, { status: 500 });
   }
   const avatar = await getUserAvatar();
 
@@ -65,7 +66,7 @@ export const GET = apiHandler('GET', { label: '获取用户信息', requireAdmin
   });
 });
 
-export const PATCH = apiHandler('PATCH', { label: '更新用户信息', requireAdmin: true }, async (req, context, session) => {
+export const PATCH = apiHandler('PATCH', { label: getTranslate('api.users.updateUser'), requireAdmin: true }, async (req, context, session) => {
   const uid = await getParam(context, 'uid');
   logger.info('PATCH', '更新用户信息', { uid });
   const db = getDb();
@@ -73,14 +74,14 @@ export const PATCH = apiHandler('PATCH', { label: '更新用户信息', requireA
 
   if (!userStr) {
     logger.warn('PATCH', '用户不存在', { uid });
-    return NextResponse.json({ error: '用户不存在' }, { status: 404 });
+    return NextResponse.json({ error: getTranslate('api.auth.userNotFound') }, { status: 404 });
   }
 
   let user: Record<string, unknown>;
   try {
     user = JSON.parse(userStr);
   } catch {
-    return NextResponse.json({ error: '用户数据损坏' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.user.dataCorrupted') }, { status: 500 });
   }
   const body = await req.json();
   const { role, userGroup } = body;

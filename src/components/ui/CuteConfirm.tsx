@@ -2,6 +2,7 @@
 
 import { Popconfirm, type PopconfirmProps } from 'antd';
 import { getConfirmMessage, type ConfirmCategory } from '@/lib/kaomoji';
+import { useI18n } from '@/hooks/use-i18n';
 
 /**
  * 可爱确认弹窗 — 包装 Ant Design Popconfirm，自动添加颜文字
@@ -21,14 +22,15 @@ export function CuteConfirm({
   children,
   ...rest
 }: CuteConfirmProps) {
+  const { t } = useI18n();
   const msg = getConfirmMessage(category);
   const title = `${msg.kaomoji} ${confirmText ?? msg.text}`;
 
   return (
     <Popconfirm
       title={title}
-      okText={okText ?? '确定'}
-      cancelText={cancelText ?? '再想想'}
+      okText={okText ?? t('components.CuteConfirm.ok')}
+      cancelText={cancelText ?? t('components.CuteConfirm.cancel')}
       okButtonProps={{ danger: true }}
       {...rest}
     >

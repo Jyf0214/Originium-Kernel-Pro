@@ -7,6 +7,7 @@ import { List } from 'lucide-react';
 import { TocItem } from './TocItem';
 import { slugify } from '@/lib/slugify';
 import { Hitokoto } from '@/components/Hitokoto';
+import { useI18n } from '@/hooks/use-i18n';
 
 export type { TOCConfig, TOCProps, TocHeading, TocNode, TocItemProps } from './toc-types';
 export { TocItem } from './TocItem';
@@ -49,6 +50,7 @@ export function buildTree(items: TocHeading[]): TocNode[] {
  * - 少于 3 个标题时不渲染
  */
 function TOCInner({ content, config, locale, showMobileUI = true }: TOCProps) {
+  const { t } = useI18n();
   const [mobileOpen, setMobileOpen] = useState(config?.expand ?? false);
   const [isShortScreen, setIsShortScreen] = useState(false);
 
@@ -87,7 +89,7 @@ function TOCInner({ content, config, locale, showMobileUI = true }: TOCProps) {
     setMobileOpen(false);
   };
 
-  const label = locale === 'zh' || locale === 'zh-CN' || locale === 'zh-TW' ? '目录' : 'Table of Contents';
+  const label = locale === 'zh' || locale === 'zh-CN' || locale === 'zh-TW' ? t('components.TableOfContents.toc') : 'Table of Contents';
 
   return (
     <>

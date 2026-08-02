@@ -1,5 +1,6 @@
 import React from 'react';
 import { Select, InputNumber } from 'antd';
+import { getTranslate } from '@/i18n/translate';
 import ToggleField from './ToggleField';
 
 interface CodeBlockConfigData {
@@ -29,7 +30,7 @@ export default function CodeBlockConfig({ config, onChange }: CodeBlockConfigPro
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium mb-2">代码高亮主题</label>
+        <label className="block text-sm font-medium mb-2">{getTranslate('components.CodeBlockConfig.highlightTheme')}</label>
         <Select
           value={config.theme}
           onChange={v => onChange({ ...config, theme: v })}
@@ -42,30 +43,30 @@ export default function CodeBlockConfig({ config, onChange }: CodeBlockConfigPro
 
       <div className="grid grid-cols-2 gap-4">
         <ToggleField
-          label="复制按钮"
+          label={getTranslate('components.CodeBlockConfig.copyButton')}
           checked={config.copy}
           onChange={v => onChange({ ...config, copy: v })}
         />
         <ToggleField
-          label="显示语言"
+          label={getTranslate('components.CodeBlockConfig.showLanguage')}
           checked={config.lang}
           onChange={v => onChange({ ...config, lang: v })}
         />
         <ToggleField
-          label="折叠代码"
-          description="true=默认折叠, false=展开"
+          label={getTranslate('components.CodeBlockConfig.foldCode')}
+          description={getTranslate('components.CodeBlockConfig.foldCodeDesc')}
           checked={config.shrink}
           onChange={v => onChange({ ...config, shrink: v })}
         />
         <ToggleField
-          label="自动换行"
+          label={getTranslate('components.CodeBlockConfig.wordWrap')}
           checked={config.wordWrap}
           onChange={v => onChange({ ...config, wordWrap: v })}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2">代码块高度限制 (px)</label>
+        <label className="block text-sm font-medium mb-2">{getTranslate('components.CodeBlockConfig.heightLimit')}</label>
         <InputNumber
           value={config.heightLimit}
           onChange={v => onChange({ ...config, heightLimit: v ?? 330 })}
@@ -73,7 +74,7 @@ export default function CodeBlockConfig({ config, onChange }: CodeBlockConfigPro
           max={9999}
           className="!w-full !rounded-lg"
         />
-        <p className="text-xs text-zinc-400 mt-1">0 表示不限制</p>
+        <p className="text-xs text-zinc-400 mt-1">{getTranslate('components.CodeBlockConfig.noLimit')}</p>
       </div>
     </div>
   );

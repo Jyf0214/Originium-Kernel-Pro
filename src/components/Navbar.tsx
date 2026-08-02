@@ -124,7 +124,7 @@ function DrawerContent({
           <div className="w-9 h-9 rounded-xl overflow-hidden shadow-sm shrink-0">
             <Image
               src="/favicon.svg"
-              alt="网站图标"
+              alt={t('components.Navbar.faviconAlt')}
               width={36}
               height={36}
               unoptimized
@@ -139,7 +139,7 @@ function DrawerContent({
           type="button"
           onClick={closeDrawer}
           className="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-          aria-label="关闭菜单"
+          aria-label={t('components.Navbar.closeMenu')}
         >
           <X size={18} />
         </button>
@@ -147,7 +147,7 @@ function DrawerContent({
 
       {/* 导航链接 */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        <DrawerLink href="/" pathname={pathname} icon={<Home size={18} />} label="首页" onClick={closeDrawer} />
+        <DrawerLink href="/" pathname={pathname} icon={<Home size={18} />} label={t('sidebar.home')} onClick={closeDrawer} />
         {menuItems.map((item, i) => (
           <DrawerLink
             key={i}
@@ -158,9 +158,9 @@ function DrawerContent({
             onClick={closeDrawer}
           />
         ))}
-        <DrawerLink href="/posts" pathname={pathname} icon={<FileText size={18} />} label="帖子" onClick={closeDrawer} />
-        <DrawerLink href="/tags" pathname={pathname} icon={<Hash size={18} />} label="标签" onClick={closeDrawer} />
-        <DrawerLink href="/about" pathname={pathname} icon={<Info size={18} />} label="关于" onClick={closeDrawer} />
+        <DrawerLink href="/posts" pathname={pathname} icon={<FileText size={18} />} label={t('sidebar.posts')} onClick={closeDrawer} />
+        <DrawerLink href="/tags" pathname={pathname} icon={<Hash size={18} />} label={t('components.Navbar.tags')} onClick={closeDrawer} />
+        <DrawerLink href="/about" pathname={pathname} icon={<Info size={18} />} label={t('components.Navbar.about')} onClick={closeDrawer} />
       </nav>
 
       {/* 底部 */}
@@ -170,7 +170,7 @@ function DrawerContent({
             {navConfig?.travelling && (
               <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400">
                 <MapPin size={12} />
-                旅行中
+                {t('components.Navbar.travelling')}
               </span>
             )}
             {navConfig?.clock && time && (
@@ -275,7 +275,7 @@ export function Navbar({ navConfig: navConfigProp, databaseConfigured = true }: 
         type="button"
         onClick={() => state.setDrawerOpen(true)}
         className="fixed top-3 right-3 z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-        aria-label="打开菜单"
+        aria-label={t('components.Navbar.openMenu')}
       >
         <Menu size={22} />
       </button>
@@ -285,8 +285,8 @@ export function Navbar({ navConfig: navConfigProp, databaseConfigured = true }: 
         type="button"
         onClick={() => state.setShortcutsOpen(true)}
         className="fixed top-3 right-[48px] z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors hidden md:block"
-        aria-label="快捷键帮助"
-        title="快捷键 (?)"
+        aria-label={t('components.Navbar.shortcutsHelp')}
+        title={t('components.Navbar.shortcutsTitle')}
       >
         <Keyboard size={22} />
       </button>
@@ -296,8 +296,8 @@ export function Navbar({ navConfig: navConfigProp, databaseConfigured = true }: 
         type="button"
         onClick={cycle}
         className="fixed top-3 right-[48px] md:right-[84px] z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-        aria-label={mode === 'light' ? '浅色模式' : mode === 'dark' ? '深色模式' : '跟随系统'}
-        title={mode === 'light' ? '浅色模式' : mode === 'dark' ? '深色模式' : '跟随系统'}
+        aria-label={mode === 'light' ? t('components.Navbar.lightMode') : mode === 'dark' ? t('components.Navbar.darkMode') : t('components.Navbar.followSystem')}
+        title={mode === 'light' ? t('components.Navbar.lightMode') : mode === 'dark' ? t('components.Navbar.darkMode') : t('components.Navbar.followSystem')}
       >
         {mode === 'light' ? <Sun size={22} /> : mode === 'dark' ? <Moon size={22} /> : <Monitor size={22} />}
       </button>
@@ -307,8 +307,8 @@ export function Navbar({ navConfig: navConfigProp, databaseConfigured = true }: 
         type="button"
         onClick={() => state.setSearchOpen(true)}
         className="fixed top-3 right-[84px] md:right-[120px] z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-        aria-label="搜索"
-        title={typeof navigator !== 'undefined' && navigator.platform?.includes('Mac') ? '搜索 (⌘K)' : '搜索 (Ctrl+K)'}
+        aria-label={t('components.Navbar.search')}
+        title={typeof navigator !== 'undefined' && navigator.platform?.includes('Mac') ? t('components.Navbar.searchMac') : t('components.Navbar.searchShortcut')}
       >
         <Search size={22} />
       </button>

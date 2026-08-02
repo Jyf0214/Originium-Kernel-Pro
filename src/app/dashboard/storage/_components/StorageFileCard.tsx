@@ -13,6 +13,8 @@ import Image from 'next/image';
 import { Eye, Copy, Download, FileText, Folder, FolderInput, Image as ImageIcon, Pencil, Trash2 } from 'lucide-react';
 import { message, Tooltip } from 'antd';
 import type { WebDavEntry } from '@/lib/storage/types';
+import { useI18n } from '@/hooks/use-i18n';
+import { getTranslate } from '@/i18n/translate';
 import { formatBytes, formatDate } from '../_lib/format';
 
 interface Props {
@@ -106,9 +108,10 @@ function SelectedActionBar({
   onCopy: () => void;
   onDownload: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex items-center justify-center gap-1 px-2 py-2 border-t border-zinc-100 bg-zinc-50/80">
-      <Tooltip title={entry.isDirectory ? '打开' : previewLabel} placement="top">
+      <Tooltip title={entry.isDirectory ? t('storage.open') : previewLabel} placement="top">
         <button
           type="button"
           onClick={(e) => {
@@ -165,8 +168,8 @@ export function StorageFileCard({
   deleteLabel,
   moveLabel,
   downloadLabel,
-  previewLabel = '预览',
-  renameLabel = '重命名',
+  previewLabel = getTranslate('storage.preview'),
+  renameLabel = getTranslate('storage.rename'),
   selected = false,
   onSelect,
   onFileClick,
@@ -177,6 +180,7 @@ export function StorageFileCard({
   onMove,
   disabled = false,
 }: Props) {
+  const { t } = useI18n();
   const publicUrl = !entry.isDirectory
     ? `${appUrl.replace(/\/$/, '')}/files/${entry.basename.replace(/^\/+/, '')}`
     : '';
@@ -188,7 +192,7 @@ export function StorageFileCard({
       message.success(copiedLabel);
       urlCopied(entry.filename);
     } catch {
-      message.error('复制失败');
+      message.error(getTranslate('storage.copyFailed'));
     }
   };
 
@@ -232,7 +236,7 @@ export function StorageFileCard({
           {entry.filename}
         </div>
         <div className="text-[11px] text-zinc-400 flex items-center justify-between mt-0.5">
-          <span>{entry.isDirectory ? '目录' : formatBytes(entry.size)}</span>
+          <span>{entry.isDirectory ? t('storage.directory') : formatBytes(entry.size)}</span>
           <span className="truncate ml-2" title={formatDate(entry.lastModified)}>
             {formatDate(entry.lastModified).split(' ')[0]}
           </span>

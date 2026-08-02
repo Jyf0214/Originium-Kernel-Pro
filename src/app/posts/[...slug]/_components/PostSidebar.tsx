@@ -7,6 +7,7 @@ import { TOC, buildTree, TocItem, useTocActive, slugify } from '@/components/ui/
 import type { TocHeading } from '@/components/ui/TOC';
 import { Hitokoto } from '@/components/Hitokoto';
 import { useAvailableWidth } from '@/hooks/use-available-width';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface PostSidebarConfig {
   content: string;
@@ -43,6 +44,7 @@ function MobileTocDrawer({
   number: boolean;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const headings = useMemo(() => extractHeadings(content), [content]);
   const tree = useMemo(() => buildTree(headings), [headings]);
   const activeId = useTocActive(headings);
@@ -84,13 +86,13 @@ function MobileTocDrawer({
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
           <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
-            目录
+            {t('posts.toc')}
           </h4>
           <button
             type="button"
             onClick={onClose}
             className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-            aria-label="关闭目录"
+            aria-label={t('posts.closeToc')}
           >
             <X size={16} />
           </button>
@@ -113,6 +115,7 @@ function MobileTocDrawer({
 
 /** 移动端目录按钮 — 放在文章内容之前，点击弹出半屏抽屉 */
 export function PostSidebarTrigger({ content, headingCount, tocConfig }: PostSidebarConfig) {
+  const { t } = useI18n();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const isWide = useAvailableWidth(1280);
 
@@ -127,7 +130,7 @@ export function PostSidebarTrigger({ content, headingCount, tocConfig }: PostSid
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors"
         >
           <List size={14} />
-          目录
+          {t('posts.toc')}
         </button>
       </div>
       <AnimatePresence>

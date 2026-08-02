@@ -6,27 +6,29 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Select } from '@/components/ui/Select';
 import { Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { useI18n } from '@/hooks/use-i18n';
 
 type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';
 
-const CATEGORY_OPTIONS = [
-  { value: 'bug', label: 'Bug 报告' },
-  { value: 'feature', label: '功能建议' },
-  { value: 'feedback', label: '一般反馈' },
-] as const;
-
 export function FeedbackForm() {
+  const { t } = useI18n();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [category, setCategory] = useState<string>('feedback');
   const [status, setStatus] = useState<SubmitStatus>('idle');
   const [errorMessage, setErrorMessage] = useState('');
 
+  const categoryOptions = [
+    { value: 'bug', label: t('feedback.bugReport') },
+    { value: 'feature', label: t('feedback.featureRequest') },
+    { value: 'feedback', label: t('feedback.generalFeedback') },
+  ];
+
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title.trim() || !body.trim()) {
-      setErrorMessage('请填写标题和内容');
+      setErrorMessage(t('feedback.fillTitleAndContent'));
       setStatus('error');
       return;
     }
@@ -45,7 +47,7 @@ export function FeedbackForm() {
 
       if (!res.ok) {
         setStatus('error');
-        setErrorMessage(data.error ?? '提交失败，请稍后重试');
+        setErrorMessage(data.error ?? t('feedback.submitFailed'));
         return;
       }
 
@@ -55,9 +57,9 @@ export function FeedbackForm() {
       setCategory('feedback');
     } catch {
       setStatus('error');
-      setErrorMessage('网络错误，请检查网络连接后重试');
+      setErrorMessage(t('feedback.networkError'));
     }
-  }, [title, body, category]);
+  }, [title, body, category, t]);
 
   const resetForm = useCallback(() => {
     setStatus('idle');
@@ -71,12 +73,12 @@ export function FeedbackForm() {
         <div className="w-12 h-12 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
           <CheckCircle size={24} className="text-green-600 dark:text-green-400" />
         </div>
-        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">感谢你的反馈</h3>
+        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">{t('feedback.thanksTitle')}</h3>
         <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
-          你的反馈已成功提交，我们会认真查看每一条建议。
+          {t('feedback.thanksMessage')}
         </p>
         <Button variant="default" size="sm" onClick={resetForm} autoLoading={false}>
-          继续提交
+          {t('feedback.continueSubmit')}
         </Button>
       </div>
     );
@@ -84,39 +86,39 @@ export function FeedbackForm() {
 
   return (
     <form onSubmit={handleSubmit} className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-5 sm:p-6">
-      <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1">提交反馈</h3>
+      <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1">{t('feedback.submitTitle')}</h3>
       <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-5">
-        遇到问题、有功能建议或想分享想法？请在这里告诉我们。
+        {t('feedback.submitDescription')}
       </p>
 
       <div className="space-y-4">
         <Select
-          label="类别"
+          label={t('feedback.category')}
           size="md"
           rounded="sm"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
         >
-          {CATEGORY_OPTIONS.map((opt) => (
+          {categoryOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </Select>
 
         <Input
-          label="标题"
+          label={t('feedback.titleLabel')}
           size="md"
           rounded="sm"
-          placeholder="简要描述你的反馈"
+          placeholder={t('feedback.titlePlaceholder')}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           maxLength={200}
         />
 
         <Textarea
-          label="内容"
+          label={t('feedback.contentLabel')}
           minH="min-h-[140px]"
           rounded="md"
-          placeholder="详细描述你遇到的问题、建议或想法..."
+          placeholder={t('feedback.contentPlaceholder')}
           value={body}
           onChange={(e) => setBody(e.target.value)}
           maxLength={5000}
@@ -137,7 +139,7 @@ export function FeedbackForm() {
             icon={<Send size={14} />}
             loading={status === 'submitting'}
           >
-            提交反馈
+            {t('feedback.submitButton')}
           </Button>
         </div>
       </div>

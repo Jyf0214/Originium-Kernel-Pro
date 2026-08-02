@@ -11,6 +11,7 @@ import { useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { Modal, message } from 'antd';
 import { Upload, X, File as FileIcon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { useI18n } from '@/hooks/use-i18n';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
@@ -45,6 +46,7 @@ export function StorageUploadDialog({
   onUpload,
   disabled = false,
 }: Props) {
+  const { t } = useI18n();
   const [files, setFiles] = useState<File[]>([]);
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -108,7 +110,7 @@ export function StorageUploadDialog({
       width="min(520px, 92vw)"
     >
       <div className="mb-3 text-xs text-zinc-500">
-        上传到 <span className="font-mono text-zinc-700">{targetPath}</span>
+        {t('storage.uploadTo')} <span className="font-mono text-zinc-700">{targetPath}</span>
       </div>
 
       <div
@@ -127,10 +129,10 @@ export function StorageUploadDialog({
       >
         <Upload size={32} className="mx-auto text-zinc-300 mb-2" />
         <p className="text-sm text-zinc-500">
-          拖拽文件到此处,或
-          <span className="text-zinc-900 font-medium ml-1">点击选择</span>
+          {t('storage.dragHereText')}
+          <span className="text-zinc-900 font-medium ml-1">{t('storage.clickToSelect')}</span>
         </p>
-        <p className="text-xs text-zinc-400 mt-1">单个文件最大 50MB</p>
+        <p className="text-xs text-zinc-400 mt-1">{t('storage.maxFileSizeHint')}</p>
         <input
           ref={inputRef}
           type="file"
@@ -189,7 +191,7 @@ export function StorageUploadDialog({
           disabled={disabled || files.length === 0 || uploading}
           loading={uploading}
         >
-          {uploading ? '上传中...' : uploadLabel}
+          {uploading ? t('storage.uploading') : uploadLabel}
         </Button>
       </div>
     </Modal>

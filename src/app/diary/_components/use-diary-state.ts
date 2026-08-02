@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { showError } from '@/lib/error';
+import { useI18n } from '@/hooks/use-i18n';
 import type { DiaryEntry } from './types';
 
 export interface UseDiaryStateResult {
@@ -33,6 +34,7 @@ export interface UseDiaryStateResult {
 }
 
 export function useDiaryState(): UseDiaryStateResult {
+  const { t } = useI18n();
   const { user, isSudo, loading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -80,16 +82,16 @@ export function useDiaryState(): UseDiaryStateResult {
       if (activeGroup) params.set('group', activeGroup);
       const qs = params.toString();
       const res = await fetch(`/api/diary${qs ? `?${qs}` : ''}`);
-      if (!res.ok) throw new Error('加载失败');
+      if (!res.ok) throw new Error(t('diary.loadFailed'));
       const json = await res.json();
       setDiaries(Array.isArray(json.diaries) ? json.diaries : []);
       if (Array.isArray(json.groups)) setGroups(json.groups);
     } catch {
-      showError('日记列表加载失败');
+      showError(t('diary.listLoadFailed'));
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearchText, startDate, endDate, activeGroup]);
+  }, [debouncedSearchText, startDate, endDate, activeGroup, t]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -104,31 +106,31 @@ export function useDiaryState(): UseDiaryStateResult {
     setDeleting(id);
     try {
       const res = await fetch(`/api/diary/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('删除失败');
+      if (!res.ok) throw new Error(t('diary.deleteFailed'));
       if (viewingId === id) {
         setViewingId(null);
         setViewContent('');
       }
       await fetchDiaries();
     } catch {
-      showError('删除失败');
+      showError(t('diary.deleteFailed'));
     } finally {
       setDeleting(null);
     }
-  }, [viewingId, fetchDiaries]);
+  }, [viewingId, fetchDiaries, t]);
 
   const handleTogglePin = useCallback(async (id: string) => {
     setPinning(id);
     try {
       const res = await fetch(`/api/diary/${id}`, { method: 'PATCH' });
-      if (!res.ok) throw new Error('切换置顶失败');
+      if (!res.ok) throw new Error(t('diary.pinFailed'));
       await fetchDiaries();
     } catch {
-      showError('切换置顶状态失败');
+      showError(t('diary.pinStateFailed'));
     } finally {
       setPinning(null);
     }
-  }, [fetchDiaries]);
+  }, [fetchDiaries, t]);
 
   const handleView = useCallback(async (d: DiaryEntry) => {
     if (viewingId === d.id) {
@@ -140,22 +142,22 @@ export function useDiaryState(): UseDiaryStateResult {
     setViewingId(d.id);
     try {
       const res = await fetch(`/api/diary/${d.id}`);
-      if (!res.ok) throw new Error('加载失败');
+      if (!res.ok) throw new Error(t('diary.loadFailed'));
       const json = await res.json();
       setViewContent(json.diary?.content ?? '');
     } catch {
-      showError('加载日记内容失败');
+      showError(t('diary.contentLoadFailed'));
       setViewingId(null);
     } finally {
       setViewLoading(false);
     }
-  }, [viewingId]);
+  }, [viewingId, t]);
 
   const handleExport = useCallback(async () => {
     setExportLoading(true);
     try {
       const res = await fetch('/api/diary/export');
-      if (!res.ok) throw new Error('导出失败');
+      if (!res.ok) throw new Error(t('diary.exportFailed'));
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -166,11 +168,11 @@ export function useDiaryState(): UseDiaryStateResult {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch {
-      showError('导出日记失败');
+      showError(t('diary.exportDiaryFailed'));
     } finally {
       setExportLoading(false);
     }
-  }, []);
+  }, [t]);
 
   return {
     diaries,

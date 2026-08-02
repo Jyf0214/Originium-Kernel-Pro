@@ -14,11 +14,12 @@ import { NextResponse } from 'next/server';
 import { getBacklinks, getOutgoingReferences } from '@/lib/content-registry';
 import { apiHandler } from '@/lib/api-handler';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { getTranslate } from '@/i18n/translate';
 
-export const GET = apiHandler('GET', { label: '后向链接查询', requireAuth: true }, (req) => {
+export const GET = apiHandler('GET', { label: getTranslate('api.backlinks.query'), requireAuth: true }, (req) => {
   const rl = checkRateLimit(req, 'backlinks', 20, 60 * 1000);
   if (!rl.allowed) {
-    return NextResponse.json({ error: '请求过于频繁' }, { status: 429 });
+    return NextResponse.json({ error: getTranslate('api.common.rateLimited') }, { status: 429 });
   }
   const { searchParams } = new URL(req.url);
   const section = searchParams.get('section');
@@ -30,7 +31,7 @@ export const GET = apiHandler('GET', { label: '后向链接查询', requireAuth:
     (section !== 'posts' && section !== 'faces')
   ) {
     return NextResponse.json(
-      { error: '参数无效：需要 section (posts|faces) 和 slug' },
+      { error: getTranslate('api.backlinks.invalidParams') },
       { status: 400 },
     );
   }

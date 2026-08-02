@@ -10,6 +10,7 @@ import { createApiLogger } from '@/lib/api-logger';
 import { getClientIp } from '@/lib/rate-limit';
 import { sendMail } from '@/lib/mail';
 import { escapeHtml } from '@/lib/utils';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/report-error');
 
@@ -83,13 +84,13 @@ type ValidationResult = { ok: true; report: ValidatedReport } | { ok: false; err
 function checkStringField(value: unknown, max: number, field: StringField): FieldCheck {
   if (value === undefined) return { ok: true };
   if (typeof value !== 'string') {
-    return { ok: false, error: `${field} 必须是字符串` };
+    return { ok: false, error: getTranslate('api.reportError.fieldMustBeString', { field }) };
   }
   if (value.length === 0) {
-    return { ok: false, error: `${field} 不能为空` };
+    return { ok: false, error: getTranslate('api.reportError.fieldCannotBeEmpty', { field }) };
   }
   if (value.length > max) {
-    return { ok: false, error: `${field} 长度超出限制` };
+    return { ok: false, error: getTranslate('api.reportError.fieldTooLong', { field }) };
   }
   return { ok: true, value };
 }
@@ -100,10 +101,10 @@ function checkStringField(value: unknown, max: number, field: StringField): Fiel
 function checkDetails(value: unknown): DetailsCheck {
   if (value === undefined) return { ok: true };
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    return { ok: false, error: 'details 必须是对象' };
+    return { ok: false, error: getTranslate('api.reportError.detailsMustBeObject') };
   }
   if (JSON.stringify(value).length > MAX_DETAILS_BYTES) {
-    return { ok: false, error: 'details 体积超出限制' };
+    return { ok: false, error: getTranslate('api.reportError.detailsTooLarge') };
   }
   return { ok: true, value: value as Record<string, unknown> };
 }
@@ -117,7 +118,7 @@ function validateReport(raw: RawReport): ValidationResult {
     raw.message.trim() === '' ||
     raw.message.length > MAX_MESSAGE
   ) {
-    return { ok: false, error: '消息内容不能为空' };
+    return { ok: false, error: getTranslate('api.reportError.messageEmpty') };
   }
 
   const report: ValidatedReport = { message: raw.message };
@@ -223,7 +224,7 @@ async function handleReport(req: NextRequest): Promise<NextResponse> {
     raw = (await req.json()) as RawReport;
   } catch {
     logger.warn('POST', 'invalid JSON body');
-    return NextResponse.json({ error: '消息内容不能为空' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.reportError.messageEmpty') }, { status: 400 });
   }
 
   const result = validateReport(raw);
@@ -273,4 +274,4 @@ async function handleReport(req: NextRequest): Promise<NextResponse> {
   return NextResponse.json({ success: true });
 }
 
-export const POST = apiHandler('POST', { label: '错误上报' }, handleReport);
+export const POST = apiHandler('POST', { label: getTranslate('api.reportError.label') }, handleReport);

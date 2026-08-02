@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/requests');
 
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     logger.error('GET', '获取申请列表失败', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
-      { error: '获取申请列表失败' },
+      { error: getTranslate('api.requests.listFailed') },
       { status: 500 }
     );
   }

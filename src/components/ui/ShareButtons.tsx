@@ -16,6 +16,8 @@ import {
   LinkedInIcon,
   EmailIcon,
 } from '@/components/ui/SocialIcons';
+import { useI18n } from '@/hooks/use-i18n';
+import { getTranslate } from '@/i18n/translate';
 
 export interface ShareButtonsProps {
   /** 文章标题 */
@@ -57,7 +59,7 @@ function buildPlatforms(title: string, url: string): Record<string, PlatformDef>
     },
     weibo: {
       id: 'weibo',
-      name: '微博',
+      name: getTranslate('components.ShareButtons.platforms.weibo'),
       icon: <WeiboIcon size={16} />,
       shareUrl: `https://service.weibo.com/share/share.php?title=${encodedTitle}&url=${encodedUrl}`,
     },
@@ -69,7 +71,7 @@ function buildPlatforms(title: string, url: string): Record<string, PlatformDef>
     },
     wechat: {
       id: 'wechat',
-      name: '微信',
+      name: getTranslate('components.ShareButtons.platforms.wechat'),
       icon: <WeChatIcon size={16} />,
       shareUrl: '',
     },
@@ -113,6 +115,7 @@ const BTN_BASE_CLASS =
   'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500 transition-colors text-sm text-zinc-600 dark:text-zinc-400';
 
 function ShareButtonsInner({ title, url: initialUrl, config, locale: _locale }: ShareButtonsProps) {
+  const { t } = useI18n();
   // 静态导出模式：getSiteUrl() 在构建时返回 example.com 占位值，
   // 客户端挂载后使用 window.location 获取真实 URL
   const [resolvedUrl, setResolvedUrl] = useState(initialUrl);
@@ -211,10 +214,10 @@ function ShareButtonsInner({ title, url: initialUrl, config, locale: _locale }: 
             ? '!border-green-300 !bg-green-50 !text-green-600'
             : ''
         }`}
-        title="复制链接"
+        title={t('components.ShareButtons.copyLink')}
       >
         {copied ? <Check size={16} /> : <Link size={16} />}
-        {copyFailed ? <span className="text-red-500">复制失败</span> : '复制链接'}
+        {copyFailed ? <span className="text-red-500">{t('components.ShareButtons.copyFailed')}</span> : t('components.ShareButtons.copyLink')}
       </button>
 
       {/* 平台分享按钮 */}
@@ -246,7 +249,7 @@ function ShareButtonsInner({ title, url: initialUrl, config, locale: _locale }: 
                     {/* 小三角箭头——指向上方 */}
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[6px] border-transparent border-b-zinc-900" />
                     <div className="bg-zinc-900 text-white text-sm rounded-xl px-4 py-3 shadow-lg whitespace-nowrap">
-                      <p className="mb-2">复制链接到微信分享</p>
+                      <p className="mb-2">{t('components.ShareButtons.wechatCopyHint')}</p>
                       <button
                         type="button"
                         onClick={handleWechatCopy}
@@ -257,7 +260,7 @@ function ShareButtonsInner({ title, url: initialUrl, config, locale: _locale }: 
                         }`}
                       >
                         {wechatCopied ? <Check size={12} /> : <Link size={12} />}
-                        {wechatFailed ? '复制失败' : wechatCopied ? '已复制' : '复制链接'}
+                        {wechatFailed ? t('components.ShareButtons.copyFailed') : wechatCopied ? t('components.ShareButtons.copied') : t('components.ShareButtons.copyLink')}
                       </button>
                     </div>
                   </motion.div>

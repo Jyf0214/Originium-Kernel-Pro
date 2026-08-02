@@ -29,7 +29,7 @@ export default function SidebarUserMenu({ user, onLogout, collapsed }: SidebarUs
         <Avatar name={user?.name ?? 'U'} avatarUrl={avatarUrl} size={40} />
         <div className="flex-1 min-w-0">
           <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate">
-            {user?.name ?? '用户'}
+            {user?.name ?? t('common.user')}
           </div>
           <div className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 truncate uppercase tracking-tighter">
             {user?.role === 'sudo'

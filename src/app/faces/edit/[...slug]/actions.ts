@@ -5,6 +5,7 @@ import { generateMarkdown, type FrontMatter } from '@/lib/markdown';
 import { getSession } from '@/lib/auth';
 import { getEnvConfig } from '@/lib/env';
 import { createApiLogger } from '@/lib/api-logger';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/faces/edit/[...slug]');
 
@@ -56,18 +57,18 @@ async function checkPermission(): Promise<boolean> {
 export async function editFace(params: EditFaceParams): Promise<EditFaceResult> {
   const hasPermission = await checkPermission();
   if (!hasPermission) {
-    throw new Error('无权限修改联系人');
+    throw new Error(getTranslate('faces.noPermissionModify'));
   }
 
   const env = getEnvConfig();
   if (!env.githubRepo || !env.githubToken) {
-    throw new Error('GitHub 配置缺失');
+    throw new Error(getTranslate('faces.githubConfigMissing'));
   }
 
   const { oldPath, name, email, phone, group, content } = params;
 
   if (!name || !group) {
-    throw new Error('姓名和分组为必填项');
+    throw new Error(getTranslate('faces.nameGroupRequired'));
   }
 
   const newSlug = generateSlug(name);
@@ -123,7 +124,7 @@ export async function editFace(params: EditFaceParams): Promise<EditFaceResult> 
     };
   } catch (error) {
     logger.error('editFace', '编辑联系人失败', { error: error instanceof Error ? error.message : String(error) });
-    throw new Error(error instanceof Error ? error.message : '编辑联系人失败');
+    throw new Error(error instanceof Error ? error.message : getTranslate('faces.editFailed'));
   }
 }
 
@@ -133,12 +134,12 @@ export async function editFace(params: EditFaceParams): Promise<EditFaceResult> 
 export async function deleteFace(path: string): Promise<{ success: boolean; messageKey: 'faces.deleteSuccess' }> {
   const hasPermission = await checkPermission();
   if (!hasPermission) {
-    throw new Error('无权限删除联系人');
+    throw new Error(getTranslate('faces.noPermissionDelete'));
   }
 
   const env = getEnvConfig();
   if (!env.githubRepo || !env.githubToken) {
-    throw new Error('GitHub 配置缺失');
+    throw new Error(getTranslate('faces.githubConfigMissing'));
   }
 
   try {
@@ -150,6 +151,6 @@ export async function deleteFace(path: string): Promise<{ success: boolean; mess
     };
   } catch (error) {
     logger.error('deleteFace', '删除联系人失败', { error: error instanceof Error ? error.message : String(error) });
-    throw new Error(error instanceof Error ? error.message : '删除联系人失败');
+    throw new Error(error instanceof Error ? error.message : getTranslate('faces.deleteContactFailed'));
   }
 }

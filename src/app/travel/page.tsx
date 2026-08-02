@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import { getTravelPlaces } from '@/lib/travel';
 import { TravelContent } from './TravelContent';
+import { getTranslate } from '@/i18n/translate';
 
 export const metadata: Metadata = {
-  title: '旅行足迹 - Originium Kernel',
-  description: '记录走过的每一个地方',
+  title: getTranslate('travel.metaTitle'),
+  description: getTranslate('travel.metaDescription'),
 };
 
 

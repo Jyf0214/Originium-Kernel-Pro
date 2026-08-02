@@ -4,14 +4,15 @@ import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler, getParam } from '@/lib/api-handler';
 import { encryptContent, decryptContent } from '@/lib/diary-crypto';
 import { saveDiaryVersion } from '@/lib/diary-version';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/diary/[id]');
 
-export const GET = apiHandler('GET', { label: '获取日记', requireAdmin: true, requireDb: true }, async (req, context) => {
+export const GET = apiHandler('GET', { label: getTranslate('api.diary.getDiary'), requireAdmin: true, requireDb: true }, async (req, context) => {
   const id = await getParam(context, 'id');
   const diary = await prisma.diary.findUnique({ where: { id } });
   if (!diary) {
-    return NextResponse.json({ error: '日记不存在' }, { status: 404 });
+    return NextResponse.json({ error: getTranslate('api.diary.notFound') }, { status: 404 });
   }
 
   const decrypted = await decryptContent(diary.content);
@@ -19,16 +20,16 @@ export const GET = apiHandler('GET', { label: '获取日记', requireAdmin: true
   return NextResponse.json({ diary: { ...diary, content: decrypted, scheduledAt: diary.scheduledAt?.toISOString() ?? null } });
 });
 
-export const PUT = apiHandler('PUT', { label: '更新日记', requireAdmin: true, requireDb: true }, async (req, context) => {
+export const PUT = apiHandler('PUT', { label: getTranslate('api.diary.updateDiary'), requireAdmin: true, requireDb: true }, async (req, context) => {
   const id = await getParam(context, 'id');
   const { title, content, tags, date, group, references, scheduledAt } = await req.json();
   if (!title || !content) {
-    return NextResponse.json({ error: '标题和内容不能为空' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.diary.titleAndContentRequired') }, { status: 400 });
   }
 
   const existing = await prisma.diary.findUnique({ where: { id } });
   if (!existing) {
-    return NextResponse.json({ error: '日记不存在' }, { status: 404 });
+    return NextResponse.json({ error: getTranslate('api.diary.notFound') }, { status: 404 });
   }
 
   const encrypted = await encryptContent(content);
@@ -42,7 +43,7 @@ export const PUT = apiHandler('PUT', { label: '更新日记', requireAdmin: true
       title,
       content: encrypted,
       tags: tags ?? [],
-      group: group ?? '默认',
+      group: group ?? null,
       references: references ?? [],
       date: date ? new Date(date) : undefined,
       status: isScheduled ? 'draft' : 'published',
@@ -57,11 +58,11 @@ export const PUT = apiHandler('PUT', { label: '更新日记', requireAdmin: true
   return NextResponse.json({ diary });
 });
 
-export const PATCH = apiHandler('PATCH', { label: '切换置顶状态', requireAdmin: true, requireDb: true }, async (req, context) => {
+export const PATCH = apiHandler('PATCH', { label: getTranslate('api.diary.togglePin'), requireAdmin: true, requireDb: true }, async (req, context) => {
   const id = await getParam(context, 'id');
   const existing = await prisma.diary.findUnique({ where: { id } });
   if (!existing) {
-    return NextResponse.json({ error: '日记不存在' }, { status: 404 });
+    return NextResponse.json({ error: getTranslate('api.diary.notFound') }, { status: 404 });
   }
 
   const diary = await prisma.diary.update({
@@ -74,11 +75,11 @@ export const PATCH = apiHandler('PATCH', { label: '切换置顶状态', requireA
   return NextResponse.json({ diary });
 });
 
-export const DELETE = apiHandler('DELETE', { label: '删除日记', requireAdmin: true, requireDb: true }, async (req, context) => {
+export const DELETE = apiHandler('DELETE', { label: getTranslate('api.diary.deleteDiary'), requireAdmin: true, requireDb: true }, async (req, context) => {
   const id = await getParam(context, 'id');
   const existing = await prisma.diary.findUnique({ where: { id } });
   if (!existing) {
-    return NextResponse.json({ error: '日记不存在' }, { status: 404 });
+    return NextResponse.json({ error: getTranslate('api.diary.notFound') }, { status: 404 });
   }
 
   await prisma.diary.delete({ where: { id } });

@@ -11,6 +11,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { Search, X, FileText, ExternalLink, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { useI18n } from '@/hooks/use-i18n'
 
 /* ---------- 类型定义 ---------- */
 
@@ -77,6 +78,7 @@ function highlightKeyword(text: string, keyword: string): { text: string; highli
 /* ---------- 组件 ---------- */
 
 export function StorageSearchPanel({ open, onClose, onResultClick }: StorageSearchPanelProps) {
+  const { t } = useI18n();
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
@@ -88,7 +90,7 @@ export function StorageSearchPanel({ open, onClose, onResultClick }: StorageSear
   const handleSearch = useCallback(async () => {
     const q = query.trim()
     if (q.length < 2) {
-      setError('搜索关键词至少 2 个字符')
+      setError(t('storage.searchMinLength'))
       return
     }
 
@@ -103,7 +105,7 @@ export function StorageSearchPanel({ open, onClose, onResultClick }: StorageSear
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error ?? '搜索失败')
+        setError(data.error ?? t('storage.searchFailed'))
         return
       }
 
@@ -111,11 +113,11 @@ export function StorageSearchPanel({ open, onClose, onResultClick }: StorageSear
       setResults(response.results)
       setTruncated(response.truncated)
     } catch (err) {
-      setError(`搜索请求失败: ${err instanceof Error ? err.message : '未知错误'}`)
+      setError(t('storage.searchRequestFailed', { message: err instanceof Error ? err.message : t('storage.unknownError') }))
     } finally {
       setLoading(false)
     }
-  }, [query])
+  }, [query, t])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -150,7 +152,7 @@ export function StorageSearchPanel({ open, onClose, onResultClick }: StorageSear
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="搜索文件内容… (至少 2 个字符)"
+            placeholder={t('storage.searchContentPlaceholder')}
             className="w-full pl-9 pr-8 py-2 text-sm border border-zinc-200 rounded-lg
                        bg-white text-zinc-900 placeholder:text-zinc-400
                        focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400
@@ -173,7 +175,7 @@ export function StorageSearchPanel({ open, onClose, onResultClick }: StorageSear
           onClick={() => void handleSearch()}
           disabled={loading || query.trim().length < 2}
         >
-          搜索
+          {t('storage.search')}
         </Button>
         <Button
           variant="default"
@@ -181,7 +183,7 @@ export function StorageSearchPanel({ open, onClose, onResultClick }: StorageSear
           onClick={onClose}
           autoLoading={false}
         >
-          关闭
+          {t('storage.close')}
         </Button>
       </div>
 
@@ -197,13 +199,13 @@ export function StorageSearchPanel({ open, onClose, onResultClick }: StorageSear
         <div className="mt-2">
           {results.length === 0 ? (
             <div className="text-sm text-zinc-400 py-4 text-center">
-              未找到匹配「{query}」的文件内容
+              {t('storage.noMatchFound', { query })}
             </div>
           ) : (
             <>
               <div className="text-xs text-zinc-500 mb-2">
-                找到 {results.length} 个匹配文件
-                {truncated && '（结果已达上限，部分文件未显示）'}
+                {t('storage.matchCount', { count: results.length })}
+                {truncated && t('storage.truncatedHint')}
               </div>
               <div className="space-y-1 max-h-64 overflow-y-auto">
                 {results.map((result) => (

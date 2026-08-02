@@ -2,11 +2,12 @@ import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/con
 import { PageContainer } from '@/components/ui/PageContainer';
 import { Tag } from '@/components/ui/Tag';
 import Link from 'next/link';
+import { getTranslate } from '@/i18n/translate';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: '归档 Archives',
-  description: '按年份浏览所有公开文章',
+  title: getTranslate('app.archives.title'),
+  description: getTranslate('app.archives.desc'),
 };
 
 
@@ -74,10 +75,10 @@ export default function ArchivesPage() {
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <PageContainer maxWidth="4xl" padding="wide">
         <h1 className="text-4xl md:text-5xl font-display font-black tracking-tighter text-zinc-900 dark:text-zinc-100 mb-2">
-          归档 Archives
+          {getTranslate('app.archives.title')}
         </h1>
         <p className="text-zinc-400 dark:text-zinc-500 text-base mb-12">
-          共 {posts.length} 篇文章
+          {getTranslate('app.archives.postCount', { count: posts.length })}
         </p>
 
         <div className="space-y-10">
@@ -88,7 +89,7 @@ export default function ArchivesPage() {
                   {group.year}
                 </h2>
                 <span className="text-sm text-zinc-400 dark:text-zinc-500">
-                  {group.posts.length} 篇
+                  {getTranslate('app.archives.unit', { count: group.posts.length })}
                 </span>
               </div>
 
@@ -124,7 +125,7 @@ export default function ArchivesPage() {
 
           {groups.length === 0 && (
             <p className="text-zinc-400 dark:text-zinc-500 text-center py-16">
-              暂无归档内容
+              {getTranslate('app.archives.empty')}
             </p>
           )}
         </div>

@@ -3,6 +3,7 @@
 import { type ReactNode, useState, useEffect, createContext, useContext, useCallback, useMemo, useRef } from 'react';
 import { message } from 'antd';
 import { useI18n } from './use-i18n';
+import { getTranslate } from '@/i18n/translate';
 
 /** 2FA 验证需求错误 — 携带临时令牌供调用方跳转到 2FA 页面 */
 export class TwoFactorRequiredError extends Error {
@@ -101,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // 2FA 需求：密码正确但需要 TOTP 验证（tempToken 通过 httpOnly cookie 携带）
       if (data.requires2FA) {
-        message.info('需要双因素认证验证');
+        message.info(t('auth.twoFactorRequired'));
         // 返回特殊标记让调用方跳转到 2FA 页面
         throw new TwoFactorRequiredError('');
       }
@@ -111,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         message.success(t('auth.loginSuccess'));
       } else {
         message.error(data.error ?? t('auth.loginFailed'));
-        throw new Error(data.error ?? '操作失败');
+        throw new Error(data.error ?? t('auth.operationFailed'));
       }
     } catch (err) {
       // TwoFactorRequiredError 需要向上抛出，由调用方处理跳转
@@ -130,14 +131,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await fetch('/api/auth/logout', { method: 'POST' });
       if (!res.ok) {
         console.warn('登出请求失败:', res.status);
-        message.error('登出请求失败，服务端会话可能未销毁');
+        message.error(t('auth.logoutFailed'));
       } else {
         message.info(t('common.info'));
       }
       setUser(null);
     } catch (err) {
       console.error('登出错误:', err);
-      message.error(t('common.error') || '登出失败');
+      message.error(t('auth.logoutFailed'));
       setUser(null);
     }
   }, [t]);
@@ -162,7 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth 必须在 AuthProvider 内使用');
+    throw new Error(getTranslate('auth.useAuthOutsideProvider'));
   }
   return context;
 };

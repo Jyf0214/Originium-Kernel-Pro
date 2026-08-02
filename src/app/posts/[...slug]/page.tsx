@@ -15,6 +15,7 @@ import { PostDetailBody } from './_components/PostDetailBody';
 import { PostCoverSection } from './_components/PostCoverSection';
 import { PostSidebarTrigger, PostSidebarDesktop } from './_components/PostSidebar';
 import { JsonLd } from '@/components/JsonLd';
+import { getTranslate } from '@/i18n/translate';
 import { PostPageProvider } from '@/contexts/PostPageContext';
 import type { Crumb } from './_components/PostBreadcrumb';
 
@@ -36,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const fullPath = '/' + slug.join('/');
   const file = getContentFile('posts', fullPath);
-  if (!file) return { title: '未找到' };
+  if (!file) return { title: getTranslate('posts.notFound') };
   return {
     title: `${file.meta.title} - Originium Kernel`,
     description: file.meta.description ?? file.content.slice(0, 160),

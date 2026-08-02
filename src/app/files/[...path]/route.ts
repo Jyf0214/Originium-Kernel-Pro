@@ -20,6 +20,7 @@ import { checkAccess } from '@/lib/storage/acl'
 import { isValidPath, joinPath } from '@/lib/storage/path'
 import { rateLimit, getClientIp } from '@/lib/rate-limit'
 import type { FileStat, ResponseDataDetailed } from 'webdav'
+import { getTranslate } from '@/i18n/translate'
 
 /** 文件下载频率限制:每 IP 每分钟最多 60 次请求(含公开/私有) */
 const DOWNLOAD_RATE_LIMIT = 60
@@ -31,7 +32,7 @@ function checkDownloadRateLimit(req: NextRequest): NextResponse | null {
   const { allowed, retryAfterMs } = rateLimit(`${ip}:file-download`, DOWNLOAD_RATE_LIMIT, DOWNLOAD_RATE_WINDOW_MS)
   if (!allowed) {
     return NextResponse.json(
-      { error: '请求过于频繁,请稍后再试' },
+      { error: getTranslate('lib.files.rateLimited') },
       { status: 429, headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) } }
     )
   }
@@ -134,9 +135,9 @@ function httpsFallback(webdavBase: string, relPath: string, auth: string): Promi
 }
 
 function accessDenied(reason: string | undefined): NextResponse {
-  if (reason === 'not-found') return NextResponse.json({ error: '资源不存在' }, { status: 404 })
-  if (reason === 'not-configured') return NextResponse.json({ error: '存储后端未配置', code: 'NOT_CONFIGURED' }, { status: 503 })
-  return NextResponse.json({ error: '请先登录' }, { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Storage"' } })
+  if (reason === 'not-found') return NextResponse.json({ error: getTranslate('lib.files.notFound') }, { status: 404 })
+  if (reason === 'not-configured') return NextResponse.json({ error: getTranslate('lib.files.storageNotConfigured'), code: 'NOT_CONFIGURED' }, { status: 503 })
+  return NextResponse.json({ error: getTranslate('lib.files.loginRequired') }, { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Storage"' } })
 }
 
 async function downloadFile(webdavBase: string, relPath: string, auth: string): Promise<DownloadResult> {
@@ -189,7 +190,7 @@ async function webdavFileResponse(stat: FileStat, relativePath: string): Promise
   const webdavUrl = process.env.WEBDAV_URL
   if (!webdavUrl) {
     console.error('[files] WEBDAV_URL 未配置')
-    return NextResponse.json({ error: 'WebDAV 后端未配置', code: 'NOT_CONFIGURED' }, { status: 503 })
+    return NextResponse.json({ error: getTranslate('lib.files.webdavNotConfigured'), code: 'NOT_CONFIGURED' }, { status: 503 })
   }
   const webdavBase = webdavUrl.replace(/\/+$/, '')
   const auth = `Basic ${Buffer.from(`${process.env.WEBDAV_USER ?? ''}:${process.env.WEBDAV_PASS ?? ''}`).toString('base64')}`
@@ -198,7 +199,7 @@ async function webdavFileResponse(stat: FileStat, relativePath: string): Promise
   const result = await downloadFile(webdavBase, relativePath, auth)
   if (!result.ok) {
     console.error(`[files] 下载失败 path="${relativePath}" method=${result.method} error=${result.error}`)
-    return NextResponse.json({ error: '文件下载失败' }, { status: 502 })
+    return NextResponse.json({ error: getTranslate('lib.files.downloadFailed') }, { status: 502 })
   }
   console.warn(`[files] 下载成功 path="${relativePath}" size=${result.body.length} method=${result.method}`)
   return fileResponse(result.body, stat)
@@ -214,7 +215,7 @@ function debugInfoResponse(
 ): NextResponse | null {
   if (new URL(req.url).searchParams.get('_debug') !== '1') return null
   if (session?.role !== 'sudo' || process.env.NODE_ENV !== 'development') {
-    return NextResponse.json({ error: '调试信息不可用' }, { status: 403 })
+    return NextResponse.json({ error: getTranslate('lib.files.debugUnavailable') }, { status: 403 })
   }
   return NextResponse.json({
     relativePath,
@@ -233,10 +234,10 @@ async function validateAndStat(
 > {
   const relativePath = joinPath(...segments)
   if (!relativePath || !isValidPath(relativePath)) {
-    return { ok: false, response: NextResponse.json({ error: '路径非法' }, { status: 400 }) }
+    return { ok: false, response: NextResponse.json({ error: getTranslate('lib.files.invalidPath') }, { status: 400 }) }
   }
   if (!isStorageConfigured()) {
-    return { ok: false, response: NextResponse.json({ error: '存储后端未配置', code: 'NOT_CONFIGURED' }, { status: 503 }) }
+    return { ok: false, response: NextResponse.json({ error: getTranslate('lib.files.storageNotConfigured'), code: 'NOT_CONFIGURED' }, { status: 503 }) }
   }
   const rateLimitResponse = checkDownloadRateLimit(req)
   if (rateLimitResponse) return { ok: false, response: rateLimitResponse }
@@ -245,7 +246,7 @@ async function validateAndStat(
   if (!access.allowed) return { ok: false, response: accessDenied('reason' in access ? access.reason : undefined) }
   const provider = await getStorageProvider()
   const stat = unwrapStat(await provider.stat(relativePath))
-  if (stat.type === 'directory') return { ok: false, response: NextResponse.json({ error: '资源不存在' }, { status: 404 }) }
+  if (stat.type === 'directory') return { ok: false, response: NextResponse.json({ error: getTranslate('lib.files.notFound') }, { status: 404 }) }
   return { ok: true, provider, stat, session, relativePath }
 }
 
@@ -267,6 +268,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<Route
   } catch (err) {
     const msg = err instanceof Error ? err.message : JSON.stringify(err)
     console.error(`[files] 未捕获异常 path="${relativePath || '?'}" error="${msg}"`)
-    return NextResponse.json({ error: '文件下载失败' }, { status: 500 })
+    return NextResponse.json({ error: getTranslate('lib.files.downloadFailed') }, { status: 500 })
   }
 }

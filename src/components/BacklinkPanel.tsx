@@ -16,6 +16,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, ArrowDownLeft, GitBranch } from 'lucide-react';
 import type { BacklinkInfo, RegistryEntry } from '@/lib/content-registry';
+import { useI18n } from '@/hooks/use-i18n';
+import { getTranslate } from '@/i18n/translate';
 
 interface BacklinkData {
   backlinks: BacklinkInfo[];
@@ -29,7 +31,7 @@ function contentUrl(section: string, slug: string): string {
 
 /** 根据 section 返回类型标签文本 */
 function sectionLabel(section: string): string {
-  return section === 'posts' ? '文章' : '面孔';
+  return section === 'posts' ? getTranslate('components.backlinkPanel.postLabel') : getTranslate('components.backlinkPanel.faceLabel');
 }
 
 /** 渲染引用标签列表 */
@@ -63,6 +65,7 @@ export function BacklinkPanel({
   initialBacklinks?: BacklinkInfo[];
   initialOutgoing?: RegistryEntry[];
 }) {
+  const { t } = useI18n();
   // 优先使用服务端预渲染的数据
   const [data, setData] = useState<BacklinkData | null>(() => {
     if (initialBacklinks || initialOutgoing) {
@@ -110,7 +113,7 @@ export function BacklinkPanel({
       <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-700">
         <div className="flex items-center gap-2 text-sm text-zinc-400 dark:text-zinc-500">
           <GitBranch size={14} className="animate-pulse" />
-          <span>加载关联引用...</span>
+          <span>{t('components.backlinkPanel.loading')}</span>
         </div>
       </div>
     );
@@ -127,14 +130,14 @@ export function BacklinkPanel({
     <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-700">
       <div className="flex items-center gap-2 mb-4">
         <GitBranch size={16} className="text-zinc-400 dark:text-zinc-500" />
-        <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">关联引用</h3>
+        <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{t('components.backlinkPanel.title')}</h3>
       </div>
 
       {hasOutgoing && (
         <div className="mb-4">
           <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 mb-2 flex items-center gap-1">
             <ArrowUpRight size={12} />
-            引用了
+            {t('components.backlinkPanel.outgoing')}
           </p>
           {renderLinkTags(data.outgoing)}
         </div>
@@ -144,7 +147,7 @@ export function BacklinkPanel({
         <div>
           <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 mb-2 flex items-center gap-1">
             <ArrowDownLeft size={12} />
-            被引用
+            {t('components.backlinkPanel.backlinks')}
           </p>
           {renderLinkTags(data.backlinks)}
         </div>

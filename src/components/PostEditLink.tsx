@@ -3,6 +3,7 @@
 import { useConfig } from '@/hooks/use-config';
 import { useAuth } from '@/hooks/use-auth';
 import { Edit3 } from 'lucide-react';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface PostEditLinkProps {
   slug: string;
@@ -11,6 +12,7 @@ interface PostEditLinkProps {
 export default function PostEditLink({ slug }: PostEditLinkProps) {
   const { config } = useConfig();
   const { user } = useAuth();
+  const { t } = useI18n();
   const isLoggedIn = user !== null;
   const cfg = config?.postEdit;
 
@@ -32,7 +34,7 @@ export default function PostEditLink({ slug }: PostEditLinkProps) {
       className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-900 transition-colors"
     >
       <Edit3 size={14} />
-      <span>{isLoggedIn ? '编辑' : '在 GitHub 上编辑'}</span>
+      <span>{isLoggedIn ? t('postEditLink.edit') : t('postEditLink.editOnGithub')}</span>
     </a>
   );
 }

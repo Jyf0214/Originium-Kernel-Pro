@@ -8,6 +8,7 @@ import { createApiLogger } from '@/lib/api-logger';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { isLoginLocked, recordLoginFailure, clearLoginAttempts } from '@/lib/login-attempts';
 import { logAudit } from '@/lib/audit';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/auth/login');
 
@@ -19,7 +20,7 @@ async function validateLoginRequest(
   if (!rl.allowed) {
     logger.warn('POST', '登录频率超限', { retryAfterMs: rl.retryAfterMs });
     return NextResponse.json(
-      { error: `登录尝试过于频繁，请在 ${Math.ceil(rl.retryAfterMs / 1000)} 秒后重试` },
+      { error: getTranslate('api.auth.loginTooFrequent', { seconds: Math.ceil(rl.retryAfterMs / 1000) }) },
       { status: 429 },
     );
   }
@@ -27,13 +28,13 @@ async function validateLoginRequest(
   const { login, password } = await req.json();
   if (!login || !password) {
     logger.warn('POST', '缺少登录信息或密码');
-    return NextResponse.json({ error: '缺少登录信息或密码' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.auth.missingCredentials') }, { status: 400 });
   }
 
   if (await isLoginLocked(login)) {
     logger.warn('POST', '账号已锁定，连续失败次数过多', { login });
     return NextResponse.json(
-      { error: '账号因多次登录失败已临时锁定，请 15 分钟后重试' },
+      { error: getTranslate('api.auth.accountLocked') },
       { status: 429 },
     );
   }
@@ -108,13 +109,13 @@ export async function POST(req: NextRequest) {
     const uid = await resolveUserUid(db, login);
     if (!uid) {
       logger.warn('POST', '账号或密码错误', { login });
-      return NextResponse.json({ error: '账号或密码错误' }, { status: 401 });
+      return NextResponse.json({ error: getTranslate('api.auth.invalidCredentials') }, { status: 401 });
     }
 
     const userStr = await db.get(`user:uid:${uid}`);
     if (!userStr) {
       logger.error('POST', '用户数据异常', { uid });
-      return NextResponse.json({ error: '用户数据异常' }, { status: 500 });
+      return NextResponse.json({ error: getTranslate('api.auth.userDataError') }, { status: 500 });
     }
 
     const user = JSON.parse(userStr);
@@ -122,9 +123,9 @@ export async function POST(req: NextRequest) {
 
     if (!passwordMatch) {
       await recordLoginFailure(login);
-      void logAudit('login_failed', 'auth', '登录失败', login);
+      void logAudit('login_failed', 'auth', getTranslate('api.auth.loginFailed'), login);
       logger.warn('POST', '账号或密码错误', { login });
-      return NextResponse.json({ error: '账号或密码错误' }, { status: 401 });
+      return NextResponse.json({ error: getTranslate('api.auth.invalidCredentials') }, { status: 401 });
     }
 
     await clearLoginAttempts(login);
@@ -149,7 +150,7 @@ export async function POST(req: NextRequest) {
     });
 
     logger.info('POST', '登录成功', { uid: user.uid });
-    void logAudit('login', 'auth', '登录成功', user.uid);
+    void logAudit('login', 'auth', getTranslate('api.auth.loginSuccess'), user.uid);
     return NextResponse.json({
       success: true,
       user: {
@@ -164,6 +165,6 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logger.error('POST', '登录失败', { message });
-    return NextResponse.json({ error: '登录失败' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.auth.loginFailed') }, { status: 500 });
   }
 }

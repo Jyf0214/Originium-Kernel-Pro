@@ -11,6 +11,7 @@
  * - 返回值类型与 lib/storage/types.ts 对齐
  */
 import type { FileStat } from 'webdav'
+import { getTranslate } from '@/i18n/translate'
 
 /** 存储后端类型标识 */
 export type StorageBackend = 'webdav' | 'backblaze'
@@ -133,7 +134,7 @@ export async function getStorageProvider(): Promise<StorageProvider> {
  */
 export function getStorageProviderSync(): StorageProvider {
   if (!activeProvider) {
-    throw new Error('存储提供者未初始化')
+    throw new Error(getTranslate('lib.storage.notInitialized'))
   }
   return activeProvider
 }

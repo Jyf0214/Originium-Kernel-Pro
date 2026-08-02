@@ -7,6 +7,7 @@ import { DELETION_PERIOD_DAYS } from '@/lib/constants';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
 import { deleteDraft } from '@/lib/draft-storage';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/cleanup');
 
@@ -74,10 +75,10 @@ async function cleanupExpiredArticle(
   return true;
 }
 
-export const POST = apiHandler('POST', { label: '清理过期文章' }, async (req: NextRequest) => {
+export const POST = apiHandler('POST', { label: getTranslate('api.cleanup.cleanupExpiredArticles') }, async (req: NextRequest) => {
   if (!(await isCleanupAuthorized(req))) {
     logger.warn('POST', '未授权');
-    return NextResponse.json({ error: '未授权' }, { status: 401 });
+    return NextResponse.json({ error: getTranslate('api.cleanup.unauthorized') }, { status: 401 });
   }
 
   logger.info('POST', '开始清理过期文章');
@@ -96,14 +97,14 @@ export const POST = apiHandler('POST', { label: '清理过期文章' }, async (r
       if (deleted_art) deleted.push(id);
     } catch (error: unknown) {
       console.error(`[cleanup] 处理文章 ${id} 失败:`, error);
-      errors.push('处理失败');
+      errors.push(getTranslate('api.cleanup.processFailed'));
     }
   }
 
   logger.info('POST', '清理任务完成', { deletedCount: deleted.length, errorCount: errors.length });
   return NextResponse.json({
     success: true,
-    message: `清理完成，已删除 ${deleted.length} 篇文章`,
+    message: getTranslate('api.cleanup.completed', { count: deleted.length }),
     deletedCount: deleted.length,
     errorCount: errors.length,
     timestamp: new Date().toISOString(),
@@ -118,7 +119,7 @@ export async function GET() {
     const session = await getSession();
     if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
       logger.warn('GET', '未授权', { role: session?.role });
-      return NextResponse.json({ error: '未授权' }, { status: 401 });
+      return NextResponse.json({ error: getTranslate('api.cleanup.unauthorized') }, { status: 401 });
     }
 
     logger.info('GET', '获取清理统计');
@@ -165,6 +166,6 @@ export async function GET() {
     });
   } catch (error: unknown) {
     logger.error('GET', '获取清理统计错误', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ error: '获取清理统计失败' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.cleanup.statsFailed') }, { status: 500 });
   }
 }

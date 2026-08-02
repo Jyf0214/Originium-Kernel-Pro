@@ -49,21 +49,21 @@ function UserProfileContent() {
             const articlesData = await articlesRes.json();
             setArticles(articlesData.filter((a: Article) => a.status === 'published'));
           } else {
-            showError('文章列表加载失败');
+            showError(t('article.listLoadFailed'));
           }
         } else {
-          showError('用户信息加载失败');
+          showError(t('article.userLoadFailed'));
         }
       } catch (error) {
         console.error('Fetch user error:', error);
-        showError('用户信息加载失败');
+        showError(t('article.userLoadFailed'));
       } finally {
         setLoading(false);
       }
     };
 
     if (username) void fetchUser();
-  }, [username]);
+  }, [username, t]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-900">
@@ -135,7 +135,7 @@ function UserProfileContent() {
                 {showTotal && totalWords > 0 && (
                   <span className="inline-flex items-center gap-1.5 text-sm font-normal text-zinc-400 dark:text-zinc-500 ml-3">
                     <BookOpen size={14} />
-                    总计 {totalWords} 字
+                    {t('article.totalWords', { count: totalWords })}
                   </span>
                 )}
               </h2>

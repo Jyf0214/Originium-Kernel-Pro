@@ -2,6 +2,7 @@
 
 import { Modal } from 'antd';
 import { getConfirmMessage } from '@/lib/kaomoji';
+import { getTranslate } from '@/i18n/translate';
 
 /**
  * 显示可爱的退出登录确认弹窗
@@ -18,9 +19,9 @@ export function showCuteLogoutConfirm(): Promise<boolean> {
           <span>{msg.text}</span>
         </span>
       ),
-      content: '确定要退出登录吗？',
-      okText: '再见啦',
-      cancelText: '再留一会儿',
+      content: getTranslate('components.CuteLogout.confirmContent'),
+      okText: getTranslate('components.CuteLogout.okText'),
+      cancelText: getTranslate('components.CuteLogout.cancelText'),
       okButtonProps: { danger: true },
       onOk: () => resolve(true),
       onCancel: () => resolve(false),

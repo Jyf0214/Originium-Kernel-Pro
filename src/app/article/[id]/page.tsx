@@ -47,17 +47,17 @@ export default function ArticlePage() {
           const data = await res.json();
           setArticle(data);
         } else {
-          showError('文章加载失败');
+          showError(t('article.loadFailed'));
         }
       } catch (error) {
 		console.error('Fetch article failed:', error);
-		showError('文章加载失败');
+		showError(t('article.loadFailed'));
       } finally {
         setLoading(false);
       }
     };
     void fetchArticle();
-  }, [id]);
+  }, [id, t]);
 
   if (loading) return (
     <div className="min-h-screen flex flex-col">
@@ -130,7 +130,7 @@ export default function ArticlePage() {
                   <span className="text-zinc-200 dark:text-zinc-700">|</span>
                   <span className="flex items-center gap-1 text-sm font-medium">
                     <Clock size={14} />
-                    <span>阅读 {estimateReadingTime(articleData.content)} 分钟</span>
+                    <span>{t('article.readingMinutes', { minutes: estimateReadingTime(articleData.content) })}</span>
                   </span>
                 </>
               )}

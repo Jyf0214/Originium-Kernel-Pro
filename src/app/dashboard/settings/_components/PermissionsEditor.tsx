@@ -6,6 +6,7 @@ import {
   type ApiKeyPermissions,
   type PermissionAction,
 } from '@/lib/api-key-permissions';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface PermissionsEditorProps {
   permissions: ApiKeyPermissions;
@@ -14,6 +15,7 @@ interface PermissionsEditorProps {
 }
 
 export function PermissionsEditor({ permissions, onChange, className = '' }: PermissionsEditorProps) {
+  const { t } = useI18n();
   const toggleAction = (action: PermissionAction) => {
     onChange({
       ...permissions,
@@ -34,13 +36,13 @@ export function PermissionsEditor({ permissions, onChange, className = '' }: Per
     <div className={className}>
       {/* 操作权限 */}
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-medium text-zinc-600 uppercase tracking-wide">操作权限</p>
+        <p className="text-xs font-medium text-zinc-600 uppercase tracking-wide">{t('settings.apiKey.actionsLabel')}</p>
         <button
           type="button"
           onClick={toggleAll}
           className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
         >
-          {allActionsEnabled ? '全部禁用' : '全部启用'}
+          {allActionsEnabled ? t('settings.apiKey.disableAll') : t('settings.apiKey.enableAll')}
         </button>
       </div>
       <div className="space-y-3">

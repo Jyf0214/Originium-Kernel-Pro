@@ -14,6 +14,7 @@ import { NextResponse } from 'next/server'
 import { apiHandler } from '@/lib/api-handler'
 import { createApiLogger } from '@/lib/api-logger'
 import { getStorageProvider, isStorageConfigured } from '@/lib/storage/storage-provider'
+import { getTranslate } from '@/i18n/translate'
 import { storageNotConfigured, requireApiKeyPerm } from '../_helpers'
 
 const logger = createApiLogger('/api/storage/stats')
@@ -85,28 +86,28 @@ const MAX_CONCURRENCY = 8
 /** 文件类型分组映射 */
 const MIME_CATEGORY_MAP: Record<string, string> = {
   // 图片
-  'image/': '图片',
+  'image/': getTranslate('api.storage.categoryImage'),
   // 视频
-  'video/': '视频',
+  'video/': getTranslate('api.storage.categoryVideo'),
   // 文档
-  'application/pdf': '文档',
-  'application/msword': '文档',
-  'application/vnd.openxmlformats-officedocument': '文档',
-  'text/plain': '文档',
-  'text/markdown': '文档',
-  'text/html': '文档',
-  'application/epub+zip': '文档',
+  'application/pdf': getTranslate('api.storage.categoryDocument'),
+  'application/msword': getTranslate('api.storage.categoryDocument'),
+  'application/vnd.openxmlformats-officedocument': getTranslate('api.storage.categoryDocument'),
+  'text/plain': getTranslate('api.storage.categoryDocument'),
+  'text/markdown': getTranslate('api.storage.categoryDocument'),
+  'text/html': getTranslate('api.storage.categoryDocument'),
+  'application/epub+zip': getTranslate('api.storage.categoryDocument'),
 }
 
 /** 根据 MIME 类型判断文件类型分组 */
 function getFileCategory(mimeType: string | null): string {
-  if (!mimeType) return '其它'
+  if (!mimeType) return getTranslate('api.storage.categoryOther')
   for (const [prefix, category] of Object.entries(MIME_CATEGORY_MAP)) {
     if (mimeType.startsWith(prefix) || mimeType === prefix) {
       return category
     }
   }
-  return '其它'
+  return getTranslate('api.storage.categoryOther')
 }
 
 /** 从文件路径中提取顶层文件夹名 */
@@ -284,7 +285,7 @@ export const GET = apiHandler(
     } catch (err) {
       logger.error('GET', '分析失败', { error: (err as Error).message })
       return NextResponse.json(
-        { error: '存储分析失败' },
+        { error: getTranslate('api.storage.statsFailed') },
         { status: 500 },
       )
     }

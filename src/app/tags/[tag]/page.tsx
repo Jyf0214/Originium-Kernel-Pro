@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft, Hash } from 'lucide-react';
 import type { Metadata } from 'next';
 import { Tag } from '@/components/ui/Tag';
+import { getTranslate } from '@/i18n/translate';
 
 interface PageProps {
   params: Promise<{ tag: string }>;
@@ -24,8 +25,8 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { tag } = await params;
   return {
-    title: `标签: ${tag} - Originium Kernel`,
-    description: `所有标记为「${tag}」的帖子`,
+    title: getTranslate('tags.detail.metaTitle', { tag }),
+    description: getTranslate('tags.detail.metaDescription', { tag }),
   };
 }
 
@@ -53,7 +54,7 @@ export default async function TagPage({ params }: PageProps) {
           className="inline-flex items-center gap-1.5 text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 transition-colors mb-8"
         >
           <ArrowLeft size={14} />
-          <span>所有帖子</span>
+          <span>{getTranslate('tags.detail.allPosts')}</span>
         </Link>
 
         {/* 页面头部 */}
@@ -66,7 +67,7 @@ export default async function TagPage({ params }: PageProps) {
           </h1>
         </div>
         <p className="text-zinc-400 dark:text-zinc-500 text-lg mb-12">
-          共 {taggedPosts.length} 篇帖子
+          {getTranslate('tags.detail.postCount', { count: taggedPosts.length })}
         </p>
 
         {/* 帖子网格 */}
@@ -81,16 +82,16 @@ export default async function TagPage({ params }: PageProps) {
                   {/* 标签 */}
                   {post.meta.tags && post.meta.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-3">
-                      {post.meta.tags.map((t) => (
+                      {post.meta.tags.map((tagName) => (
                         <Link
-                          key={t}
-                          href={`/tags/${encodeURIComponent(t)}`}
+                          key={tagName}
+                          href={`/tags/${encodeURIComponent(tagName)}`}
                         >
                           <Tag
-                            variant={t === tag ? 'dark' : 'light'}
+                            variant={tagName === tag ? 'dark' : 'light'}
                             size="md"
                           >
-                            {t}
+                            {tagName}
                           </Tag>
                         </Link>
                       ))}
@@ -133,9 +134,9 @@ export default async function TagPage({ params }: PageProps) {
             <div className="w-20 h-20 bg-zinc-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
               <Hash size={32} className="text-zinc-300" />
             </div>
-            <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">暂无帖子</h3>
+            <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{getTranslate('tags.detail.noPosts')}</h3>
             <p className="text-zinc-400 dark:text-zinc-500 text-sm max-w-md mx-auto">
-              没有找到包含标签「{tag}」的帖子
+              {getTranslate('tags.detail.noPostsForTag', { tag })}
             </p>
           </div>
         )}
@@ -147,7 +148,7 @@ export default async function TagPage({ params }: PageProps) {
             className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 transition-colors group"
           >
             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-            返回帖子列表
+            {getTranslate('tags.detail.backToPosts')}
           </Link>
         </div>
       </main>

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { getTranslate } from '@/i18n/translate';
 
 interface SidebarHeaderProps {
   showCloseButton?: boolean;
@@ -16,7 +17,7 @@ export default function SidebarHeader({ showCloseButton, onClose, collapsed }: S
         <div className="w-9 h-9 rounded-xl overflow-hidden shadow-lg shadow-zinc-200 dark:shadow-zinc-700 group-hover:scale-105 transition-transform duration-300 shrink-0 ui-interactive">
           <Image
             src="/favicon.svg"
-            alt="网站图标"
+            alt={getTranslate('components.Sidebar.faviconAlt')}
             width={36}
             height={36}
             unoptimized
@@ -41,7 +42,7 @@ export default function SidebarHeader({ showCloseButton, onClose, collapsed }: S
           size="sm"
           iconOnly
           icon={<X size={18} />}
-          aria-label="关闭侧边栏"
+          aria-label={getTranslate('components.Sidebar.closeSidebar')}
         />
       )}
     </div>

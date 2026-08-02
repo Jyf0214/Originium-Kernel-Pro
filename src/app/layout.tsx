@@ -13,10 +13,11 @@ import { loadConfig, hasDatabase } from '@/lib/config';
 import { ThirdPartyScripts } from '@/components/ThirdPartyScripts';
 import { EffectsManager } from '@/components/effects/dynamic';
 import FooterWrapper from '@/components/Footer/FooterWrapper';
+import { getTranslate } from '@/i18n/translate';
 
 export const metadata: Metadata = {
   title: 'Originium Kernel',
-  description: '现代内容发布平台',
+  description: getTranslate('app.description'),
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -70,7 +71,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:bg-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:text-zinc-900 focus:outline-none"
         >
-          跳到正文内容
+          {getTranslate('app.skipToContent')}
         </a>
         <Providers>
           <AuthProvider>

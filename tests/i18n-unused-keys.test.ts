@@ -89,18 +89,20 @@ describe.skip('i18n 未使用 key 检测(参考用)', () => {
   });
 });
 
-// 默认跳过 — 启用方式:把 .skip 去掉,手动 it.only 自查
-describe.skip('i18n 硬编码中文字符串检测(参考用,新代码不应有)', () => {
-  it('列出 admin/storage 下硬编码的中文字符串行', () => {
+describe('i18n 硬编码中文字符串检测', () => {
+  it('扫描 src 下所有代码中的硬编码中文字符串', () => {
     const dirs = [
-      path.join(ROOT, 'src/app/admin/storage'),
-      path.join(ROOT, 'src/components/admin'),
+      path.join(ROOT, 'src/app'),
+      path.join(ROOT, 'src/components'),
+      path.join(ROOT, 'src/hooks'),
+      path.join(ROOT, 'src/lib'),
     ].filter(d => fs.existsSync(d));
     const files = dirs.flatMap(d => listAllFiles(d));
 
     const hits: { file: string; line: number; text: string }[] = [];
     const chineseLiteralRe = /['"`][^'"`]*[\u4e00-\u9fa5]+[^'"`]*['"`]/;
-    const logRe = /console\.(log|warn|error|info|debug)/;
+    // 排除日志输出（console.* 与项目内部 logger.*/log.*，均为调试日志非 UI 文案）
+    const logRe = /\b(?:console|logger|log)\.(log|warn|error|info|debug)/;
 
     for (const f of files) {
       const lines = fs.readFileSync(f, 'utf8').split('\n');
@@ -108,14 +110,14 @@ describe.skip('i18n 硬编码中文字符串检测(参考用,新代码不应有)
       for (const line of lines) {
         lineIdx++;
         const trimmed = line.trim();
-        // 排除注释行
-        if (trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) continue;
+        // 排除注释行（含 JSX 注释 {/* ... */}）
+        if (trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*') || trimmed.startsWith('{/*')) continue;
         // 排除 log 输出
         if (logRe.test(line)) continue;
         // 必须含中文字符串字面量
         if (!chineseLiteralRe.test(line)) continue;
-        // 排除 i18n 调用(说明该行已使用 t())
-        if (line.includes('t(')) continue;
+        // 不排除 i18n 调用，被 t()/getTranslate() 包裹的中文也标记
+        // 因为理想情况下中文应只存在于 i18n 字典中
         hits.push({ file: path.relative(ROOT, f), line: lineIdx, text: trimmed });
       }
     }
@@ -125,6 +127,6 @@ describe.skip('i18n 硬编码中文字符串检测(参考用,新代码不应有)
           hits.map(h => `  ${h.file}:${h.line}  ${h.text}`).join('\n'),
       );
     }
-    expect(hits.length).toBeGreaterThanOrEqual(0);
+    expect(hits.length).toBe(0);
   });
 });

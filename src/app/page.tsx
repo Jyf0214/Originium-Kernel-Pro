@@ -4,10 +4,11 @@ import { getAuthorByName } from '@/lib/authors';
 import { estimateReadingTime } from '@/lib/reading-time';
 import { HomePostGrid } from '@/components/HomePostGrid';
 import type { Metadata } from 'next';
+import { getTranslate } from '@/i18n/translate';
 
 export const metadata: Metadata = {
   title: 'Originium Kernel',
-  description: '现代内容发布平台',
+  description: getTranslate('app.description'),
 };
 
 

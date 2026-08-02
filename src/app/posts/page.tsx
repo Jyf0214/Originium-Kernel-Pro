@@ -7,10 +7,11 @@ import { PostListClient } from './PostListClient';
 import PostNavigation from '@/components/PostNavigation';
 import type { Metadata } from 'next';
 import navigationData from '@/data/navigation.json';
+import { getTranslate } from '@/i18n/translate';
 
 export const metadata: Metadata = {
-  title: '帖子 - Originium Kernel',
-  description: '浏览所有公开帖子',
+  title: getTranslate('posts.metaTitle'),
+  description: getTranslate('posts.metaDescription'),
 };
 
 
@@ -65,7 +66,7 @@ export default async function PostsPage() {
             <Home size={14} />
           </Link>
           <ChevronRight size={12} className="text-zinc-300 dark:text-zinc-600" />
-          <span className="text-zinc-600 dark:text-zinc-300 font-medium">帖子</span>
+          <span className="text-zinc-600 dark:text-zinc-300 font-medium">{getTranslate('posts.title')}</span>
         </nav>
 
         <h1 className="text-5xl md:text-7xl font-display font-black tracking-tighter text-zinc-900 dark:text-zinc-100 mb-4">

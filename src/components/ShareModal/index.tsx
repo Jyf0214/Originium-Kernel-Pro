@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { modalContentVariants, modalTransition } from '@/components/ui/motion';
 import { Button } from '@/components/ui/Button';
 import { X } from 'lucide-react';
+import { useI18n } from '@/hooks/use-i18n';
+import { getTranslate } from '@/i18n/translate';
 import { ShareModalGrid } from './ShareModalGrid';
 import { ShareModalFooter } from './ShareModalFooter';
 import { useCopyFeedback } from './use-copy-feedback';
@@ -43,7 +45,7 @@ const ALL_PLATFORMS: Record<string, PlatformDef> = {
   },
   weibo: {
     id: 'weibo',
-    name: '微博',
+    name: getTranslate('components.ShareButtons.platforms.weibo'),
     color: '#E6162D',
     hoverColor: '#C81023',
     icon: <WeiboIcon size={28} />,
@@ -52,7 +54,7 @@ const ALL_PLATFORMS: Record<string, PlatformDef> = {
   },
   wechat: {
     id: 'wechat',
-    name: '微信',
+    name: getTranslate('components.ShareButtons.platforms.wechat'),
     color: '#07C160',
     hoverColor: '#06AD56',
     icon: <WeChatIcon size={28} />,
@@ -89,6 +91,7 @@ export default function ShareModal({
   title: titleProp,
   platforms: platformOverride,
 }: ShareModalProps) {
+  const { t } = useI18n();
   const shareUrl = urlProp ?? (typeof window !== 'undefined' ? window.location.href : '');
   const shareTitle = titleProp ?? (typeof document !== 'undefined' ? document.title : '');
 
@@ -116,14 +119,14 @@ export default function ShareModal({
 
   const handleShare = useCallback((platform: PlatformDef) => {
     if (platform.id === 'wechat') {
-      showToast('请在微信中粘贴链接分享');
+      showToast(t('components.ShareModal.wechatHint'));
       return;
     }
     const url = platform.shareUrl(shareUrl, shareTitle);
     if (url) {
       window.open(url, '_blank', 'noopener,noreferrer,width=640,height=480');
     }
-  }, [shareUrl, shareTitle, showToast]);
+  }, [shareUrl, shareTitle, showToast, t]);
 
   return (
     <AnimatePresence>
@@ -157,8 +160,8 @@ export default function ShareModal({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-zinc-100">
-              <h2 className="text-lg font-bold text-zinc-900">分享</h2>
-              <Button variant="ghost" size="sm" iconOnly onClick={onClose} aria-label="关闭" autoLoading={false}>
+              <h2 className="text-lg font-bold text-zinc-900">{t('components.ShareModal.share')}</h2>
+              <Button variant="ghost" size="sm" iconOnly onClick={onClose} aria-label={t('components.ShareModal.close')} autoLoading={false}>
                 <X size={18} />
               </Button>
             </div>

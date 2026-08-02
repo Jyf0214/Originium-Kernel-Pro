@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/lib/ui';
 import { EASE_STANDARD } from '@/components/ui/motion';
+import { useI18n } from '@/hooks/use-i18n';
 
 /** 一言 API 返回数据结构 */
 interface HitokotoData {
@@ -21,6 +22,7 @@ interface HitokotoProps {
  * 一言组件 — 从 hitokoto.cn 获取随机一语，点击可刷新
  */
 export function Hitokoto({ className }: HitokotoProps) {
+  const { t } = useI18n();
   const [data, setData] = useState<HitokotoData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -63,7 +65,7 @@ export function Hitokoto({ className }: HitokotoProps) {
         'hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors',
         className,
       )}
-      title="点击刷新一言"
+      title={t('hitokoto.refreshTitle')}
     >
       {loading && !data ? (
         <Skeleton className="h-4 w-48 rounded" />

@@ -9,6 +9,7 @@ import { getDraft, saveDraft } from '@/lib/draft-storage';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
 import { rateLimit } from '@/lib/rate-limit';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/articles');
 
@@ -72,7 +73,7 @@ async function loadDrafts(
   return drafts;
 }
 
-export const GET = apiHandler('GET', { label: '文章列表', requireAuth: false }, async (req, _ctx, session) => {
+export const GET = apiHandler('GET', { label: getTranslate('api.articles.articleList'), requireAuth: false }, async (req, _ctx, session) => {
   logger.info('GET', '获取文章列表');
   // 读取查询参数
   const authorFilter = req.nextUrl.searchParams.get('author');
@@ -169,7 +170,7 @@ async function handlePublishedPost(
 
   if (!ghResponse.ok) {
     const error = await ghResponse.json();
-    return NextResponse.json({ error: error.error ?? '发布到 GitHub 失败' }, { status: 500 });
+    return NextResponse.json({ error: error.error ?? getTranslate('api.articles.publishFailed') }, { status: 500 });
   }
 
   const db = getDb();
@@ -180,10 +181,10 @@ async function handlePublishedPost(
   return NextResponse.json({ success: true, id: articleMeta.id, slug: postSlug });
 }
 
-export const POST = apiHandler('POST', { label: '创建文章', requireAuth: true }, async (req, _ctx, session) => {
+export const POST = apiHandler('POST', { label: getTranslate('api.articles.createArticle'), requireAuth: true }, async (req, _ctx, session) => {
   const rl = rateLimit(`${session!.uid}:articles-write`, 20, 60 * 1000);
   if (!rl.allowed) {
-    return NextResponse.json({ error: '操作过于频繁' }, { status: 429 });
+    return NextResponse.json({ error: getTranslate('api.common.rateLimited') }, { status: 429 });
   }
 
   const { title, content, tags: rawTags, coverImage, status, slug, description } = await req.json();
@@ -207,7 +208,7 @@ export const POST = apiHandler('POST', { label: '创建文章', requireAuth: tru
   };
 
   if (slug && (slug.includes('..') || slug.includes('/') || slug.startsWith('.'))) {
-    return NextResponse.json({ error: 'slug 包含非法路径字符' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.articles.invalidSlugChars') }, { status: 400 });
   }
 
   if (status === 'published') {

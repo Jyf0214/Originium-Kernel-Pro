@@ -52,7 +52,7 @@ export default function ArticlesPage() {
         }
       } catch (error) {
 		console.error('获取文章列表失败:', error);
-		showError(t('common.error') || '文章列表加载失败');
+		showError(t('dashboard.articleManage.articleListLoadFailed'));
       } finally {
         setLoading(false);
       }
@@ -68,8 +68,8 @@ export default function ArticlesPage() {
         setArticles(articles.filter(a => a.id !== id));
         message.success(t('common.success'));
       } else {
-        const body = await res.json().catch(() => ({ error: '删除失败' }));
-        showError(body.error || `删除失败 (${res.status})`);
+        const body = await res.json().catch(() => ({ error: t('dashboard.articleManage.deleteFailed') }));
+        showError(body.error || t('dashboard.articleManage.deleteFailedStatus', { status: res.status }));
       }
     } catch {
       showError(t('common.error'));
@@ -90,8 +90,8 @@ export default function ArticlesPage() {
         setArticles(articles.filter(a => a.id !== id));
         message.success(t('common.success'));
       } else {
-        const body = await res.json().catch(() => ({ error: '恢复失败' }));
-        showError(body.error || `恢复失败 (${res.status})`);
+        const body = await res.json().catch(() => ({ error: t('dashboard.articleManage.restoreFailed') }));
+        showError(body.error || t('dashboard.articleManage.restoreFailedStatus', { status: res.status }));
       }
     } catch {
       showError(t('common.error'));
@@ -125,7 +125,7 @@ export default function ArticlesPage() {
           </h1>
           {isRecycleBin && (
             <p className="text-zinc-400 text-sm mt-1">
-              {t('dashboard.recycleBinHint') || t('dashboard.recycleBinDesc')}
+              {t('dashboard.recycleBinHint')}
             </p>
           )}
         </div>
@@ -133,7 +133,7 @@ export default function ArticlesPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
             <Input
-              placeholder={t('common.searchArticles') || t('article.search')}
+              placeholder={t('common.searchArticles')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="!pl-9 !h-9 !rounded-lg !text-sm"
@@ -193,7 +193,7 @@ export default function ArticlesPage() {
                       </Button>
                       <CuteConfirm
                         category="delete"
-                        confirmText="永久删除后无法恢复哦"
+                        confirmText={t('dashboard.articleManage.permanentDeleteConfirm')}
                         onConfirm={() => handleDelete(article.id)}
                         okText={t('common.delete')}
                         cancelText={t('common.cancel')}
@@ -239,7 +239,7 @@ export default function ArticlesPage() {
           <div className="py-16 text-center">
             <p className="text-zinc-400 text-sm">
               {isRecycleBin
-                ? t('dashboard.recycleBinEmpty') || '回收站为空'
+                ? t('dashboard.articleManage.recycleBinEmpty')
                 : t('dashboard.noArticles')}
             </p>
             {!isRecycleBin && (

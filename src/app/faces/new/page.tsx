@@ -71,7 +71,7 @@ export default function NewFacePage() {
           action: 'create',
           path: filePath,
           content: markdownContent,
-          message: `feat: 新建联系人 "${values.name}"`,
+          message: `feat: ${t('faces.newFace')} "${values.name}"`,
         }),
       });
       if (!res.ok) {

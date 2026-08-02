@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Link2, Share2, Check } from 'lucide-react';
 import ShareModal from '../ShareModal';
 import { Button } from '@/components/ui/Button';
+import { useI18n } from '@/hooks/use-i18n';
 import type { ShareButtonsProps } from './types';
 import { getPlatforms, useShareConfig } from './share-platforms';
 import ShareButtonItem from './ShareButtonItem';
@@ -53,6 +54,7 @@ export default function ShareButtons({
   config,
   showMore = true,
 }: ShareButtonsProps) {
+  const { t } = useI18n();
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -80,15 +82,15 @@ export default function ShareButtons({
   const handleCopyLink = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
-      showToast('链接已复制');
+      showToast(t('components.ShareButtons.linkCopied'));
     } catch {
-      showToast('复制失败');
+      showToast(t('components.ShareButtons.copyFailed'));
     }
-  }, [shareUrl, showToast]);
+  }, [shareUrl, showToast, t]);
 
   const handleWeChat = useCallback(() => {
-    showToast('请在微信中粘贴链接分享');
-  }, [showToast]);
+    showToast(t('components.ShareButtons.wechatHint'));
+  }, [showToast, t]);
 
   // 清理 timer
   useEffect(() => {
@@ -118,7 +120,7 @@ export default function ShareButtons({
             <ShareButtonItem
               platform={{
                 id: 'copy',
-                name: '复制链接',
+                name: t('components.ShareButtons.copyLink'),
                 color: '#27272a',
                 hoverColor: '#18181b',
                 icon: <Link2 size={16} />,
@@ -141,7 +143,7 @@ export default function ShareButtons({
     return (
       <>
         <div className="flex items-center gap-1.5">
-          <span className="text-xs font-medium text-zinc-400 mr-1">分享</span>
+          <span className="text-xs font-medium text-zinc-400 mr-1">{t('components.ShareButtons.share')}</span>
           {displayPlatforms.slice(0, 4).map((p) => (
             <ShareButtonItem
               key={p.id}
@@ -175,7 +177,7 @@ export default function ShareButtons({
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm font-medium text-zinc-400 mr-1 flex items-center gap-1.5">
           <Share2 size={14} />
-          分享
+          {t('components.ShareButtons.share')}
         </span>
         <div className="flex flex-wrap items-center gap-2">
           {visiblePlatforms.map((p) => (

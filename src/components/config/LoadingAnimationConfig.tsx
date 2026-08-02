@@ -42,25 +42,29 @@ export interface LoadingAnimationConfigProps {
   onNavigationColorChange: (color: Color) => void;
 }
 
-/** 动画类型选项 */
-const loadingTypeOptions = [
-  { value: 'spinner', label: '环形加载 (spinner)' },
-  { value: 'antd', label: 'Ant Design 图标 (antd)' },
-  { value: 'text', label: '文字动画 (text)' },
-  { value: 'dots', label: '三色弹跳 (dots)' },
-  { value: 'glow', label: '光晕渐变 (glow)' },
-  { value: 'waves', label: '波浪动画 (waves)' },
-  { value: 'progress', label: '顶部进度条 (progress)' },
-];
+/** 动画类型选项（组件内部使用，支持 i18n） */
+function useLoadingTypeOptions(t: (key: string) => string) {
+  return [
+    { value: 'spinner', label: t('loadingPreview.spinner') },
+    { value: 'antd', label: t('loadingPreview.antd') },
+    { value: 'text', label: t('loadingPreview.text') },
+    { value: 'dots', label: t('loadingPreview.dots') },
+    { value: 'glow', label: t('loadingPreview.glow') },
+    { value: 'waves', label: t('loadingPreview.waves') },
+    { value: 'progress', label: t('loadingPreview.progress') },
+  ];
+}
 
-/** 位置选项 */
-const positionOptions = [
-  { value: 'center', label: '居中' },
-  { value: 'top-left', label: '左上角' },
-  { value: 'top-right', label: '右上角' },
-  { value: 'bottom-left', label: '左下角' },
-  { value: 'bottom-right', label: '右下角' },
-];
+/** 位置选项（组件内部使用，支持 i18n） */
+function usePositionOptions(t: (key: string) => string) {
+  return [
+    { value: 'center', label: t('loadingPreview.center') },
+    { value: 'top-left', label: t('loadingPreview.topLeft') },
+    { value: 'top-right', label: t('loadingPreview.topRight') },
+    { value: 'bottom-left', label: t('loadingPreview.bottomLeft') },
+    { value: 'bottom-right', label: t('loadingPreview.bottomRight') },
+  ];
+}
 
 /**
  * 加载动画配置组件
@@ -77,19 +81,21 @@ export function LoadingAnimationConfig({
   onNavigationColorChange,
 }: LoadingAnimationConfigProps) {
   const { t } = useI18n();
+  const loadingTypeOptions = useLoadingTypeOptions(t);
+  const positionOptions = usePositionOptions(t);
 
   return (
     <div className="space-y-6">
       {/* 轻加载设置 */}
       <div className="p-4 bg-zinc-50 rounded-xl">
         <h3 className="text-sm font-bold text-zinc-700 mb-3">
-          {t('loadingPreview.category') || '轻加载（页面内数据加载）'}
+          {t('loadingPreview.pageLoading')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* 动画类型 */}
           <div>
             <label className="block text-xs font-medium mb-2 text-zinc-500">
-              {t('loadingPreview.select') || '动画类型'}
+              {t('loadingPreview.animationType')}
             </label>
             <Select
               value={pageConfig.type}
@@ -103,7 +109,7 @@ export function LoadingAnimationConfig({
           {/* 颜色选择 */}
           <div>
             <label className="block text-xs font-medium mb-2 text-zinc-500">
-              {t('loadingPreview.color') || '颜色'}
+              {t('loadingPreview.colorLabel')}
             </label>
             <ColorPicker
               value={pageConfig.color}
@@ -115,7 +121,7 @@ export function LoadingAnimationConfig({
           {/* 位置选择 */}
           <div>
             <label className="block text-xs font-medium mb-2 text-zinc-500">
-              {t('loadingPreview.position') || '加载位置'}
+              {t('loadingPreview.positionLabel')}
             </label>
             <Select
               value={pageConfig.position}
@@ -131,13 +137,13 @@ export function LoadingAnimationConfig({
       {/* 重加载设置 */}
       <div className="p-4 bg-zinc-50 rounded-xl">
         <h3 className="text-sm font-bold text-zinc-700 mb-3">
-          {t('loadingPreview.demo') || '重加载（路由导航/F5刷新）'}
+          {t('loadingPreview.navLoading')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* 动画类型 */}
           <div>
             <label className="block text-xs font-medium mb-2 text-zinc-500">
-              {t('loadingPreview.select') || '动画类型'}
+              {t('loadingPreview.animationType')}
             </label>
             <Select
               value={navigationConfig.type}
@@ -151,7 +157,7 @@ export function LoadingAnimationConfig({
           {/* 颜色选择 */}
           <div>
             <label className="block text-xs font-medium mb-2 text-zinc-500">
-              {t('loadingPreview.color') || '颜色'}
+              {t('loadingPreview.colorLabel')}
             </label>
             <ColorPicker
               value={navigationConfig.color}

@@ -5,6 +5,7 @@
  * 在 MarkdownRenderer 的 link 组件中调用，匹配成功则返回嵌入式播放器。
  */
 import { cn } from '@/lib/ui';
+import { useI18n } from '@/hooks/use-i18n';
 
 /* ── URL 匹配规则 ── */
 
@@ -44,11 +45,12 @@ export function parseVideoUrl(
 
 /** YouTube 嵌入播放器 */
 function YouTubeEmbed({ videoId }: { videoId: string }) {
+  const { t } = useI18n();
   return (
     <div className={cn(EMBED_WRAPPER)}>
       <iframe
         src={`https://www.youtube.com/embed/${videoId}`}
-        title="YouTube 视频"
+        title={t('components.VideoEmbed.youtubeVideo')}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
         loading="lazy"
@@ -61,11 +63,12 @@ function YouTubeEmbed({ videoId }: { videoId: string }) {
 
 /** Bilibili 嵌入播放器 */
 function BilibiliEmbed({ bvid }: { bvid: string }) {
+  const { t } = useI18n();
   return (
     <div className={cn(EMBED_WRAPPER)}>
       <iframe
         src={`https://player.bilibili.com/player.html?bvid=${bvid}&autoplay=0`}
-        title="Bilibili 视频"
+        title={t('components.VideoEmbed.bilibiliVideo')}
         allowFullScreen
         loading="lazy"
         sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"

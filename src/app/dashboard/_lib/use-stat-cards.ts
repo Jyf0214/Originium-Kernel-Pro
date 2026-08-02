@@ -1,5 +1,6 @@
 import { Clock, FileText, Globe } from 'lucide-react';
 
+import { getTranslate } from '@/i18n/translate';
 import type { StatCardData, Stats } from './types';
 
 /** 计算百分比,分母为 0 时返回 0 */
@@ -11,7 +12,7 @@ function percent(numerator: number, denominator: number): number {
 export function useStatCards(stats: Stats, t: (key: string) => string): StatCardData[] {
   const publishedRate = percent(stats.publishedArticles, stats.totalArticles);
   const draftRate = percent(stats.draftArticles, stats.totalArticles);
-  const ofTotal = t('dashboard.ofTotal') ?? '占比';
+  const ofTotal = t('dashboard.ofTotal') ?? getTranslate('dashboard.ofTotal');
   const hasArticles = stats.totalArticles > 0;
 
   return [

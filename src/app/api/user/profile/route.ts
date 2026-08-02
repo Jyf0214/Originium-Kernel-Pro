@@ -5,23 +5,24 @@ import { getUserAvatarAsync } from '@/lib/config';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
 import { rateLimit } from '@/lib/rate-limit';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/user/profile');
 
-export const GET = apiHandler('GET', { label: '获取用户资料', requireAuth: true }, async () => {
+export const GET = apiHandler('GET', { label: getTranslate('api.user.getProfile'), requireAuth: true }, async () => {
   const session = (await getSession())!;
   const db = getDb();
   const userStr = await db.get(`user:uid:${session.uid}`);
   if (!userStr) {
     logger.warn('GET', '用户不存在', { uid: session.uid });
-    return NextResponse.json({ error: '用户不存在' }, { status: 404 });
+    return NextResponse.json({ error: getTranslate('api.auth.userNotFound') }, { status: 404 });
   }
 
   let user: Record<string, unknown>;
   try {
     user = JSON.parse(userStr);
   } catch {
-    return NextResponse.json({ error: '用户数据损坏' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.user.dataCorrupted') }, { status: 500 });
   }
   const configAvatar = await getUserAvatarAsync();
 
@@ -65,7 +66,7 @@ function areAllUndefined(...args: unknown[]): boolean {
 function sanitizeUsername(username: unknown): { value: string | null; error?: string } {
   if (username === undefined || username === null) return { value: null };
   if (typeof username !== 'string' || !/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
-    return { value: null, error: '用户名只能包含字母、数字和下划线，3-20个字符' };
+    return { value: null, error: getTranslate('api.user.invalidUsername') };
   }
   return { value: username };
 }
@@ -80,7 +81,7 @@ async function checkUsernameConflict(
 ): Promise<string | null> {
   if (newUsername === null || newUsername === currentUsername) return null;
   const existing = await db.get(`user:username:${newUsername}`);
-  return existing ? '该用户名已被使用' : null;
+  return existing ? getTranslate('api.user.usernameTaken') : null;
 }
 
 /**
@@ -117,14 +118,14 @@ function validateAndSanitizeInput(body: Record<string, unknown>): {
 
   // avatar 和 name 必须是字符串
   if (avatar !== undefined && typeof avatar !== 'string') {
-    return { avatar, username, name, sanitized: { value: null }, error: 'avatar 必须是字符串' };
+    return { avatar, username, name, sanitized: { value: null }, error: getTranslate('api.user.avatarMustBeString') };
   }
   if (name !== undefined && typeof name !== 'string') {
-    return { avatar, username, name, sanitized: { value: null }, error: 'name 必须是字符串' };
+    return { avatar, username, name, sanitized: { value: null }, error: getTranslate('api.user.nameMustBeString') };
   }
 
   if (areAllUndefined(avatar, username, name)) {
-    return { avatar, username, name, sanitized: { value: null }, error: '没有要更新的字段' };
+    return { avatar, username, name, sanitized: { value: null }, error: getTranslate('api.user.noFieldsToUpdate') };
   }
 
   const sanitized = sanitizeUsername(username);
@@ -175,12 +176,12 @@ async function updateUserInDb(options: {
   }
 }
 
-export const PUT = apiHandler('PUT', { label: '更新用户资料', requireAuth: true }, async (req) => {
+export const PUT = apiHandler('PUT', { label: getTranslate('api.user.updateProfile'), requireAuth: true }, async (req) => {
   const session = (await getSession())!;
 
   const rl = rateLimit(`${session.uid}:profile-write`, 10, 60 * 1000);
   if (!rl.allowed) {
-    return NextResponse.json({ error: '操作过于频繁' }, { status: 429 });
+    return NextResponse.json({ error: getTranslate('api.common.rateLimited') }, { status: 429 });
   }
 
   const body = await req.json();
@@ -194,14 +195,14 @@ export const PUT = apiHandler('PUT', { label: '更新用户资料', requireAuth:
   const userStr = await db.get(`user:uid:${session.uid}`);
   if (!userStr) {
     logger.warn('PUT', '用户不存在', { uid: session.uid });
-    return NextResponse.json({ error: '用户不存在' }, { status: 404 });
+    return NextResponse.json({ error: getTranslate('api.auth.userNotFound') }, { status: 404 });
   }
 
   let user: Record<string, unknown>;
   try {
     user = JSON.parse(userStr);
   } catch {
-    return NextResponse.json({ error: '用户数据损坏' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.user.dataCorrupted') }, { status: 500 });
   }
 
   const conflict = await checkUsernameConflict(db, validation.sanitized.value, user.username as string | undefined);
@@ -219,6 +220,6 @@ export const PUT = apiHandler('PUT', { label: '更新用户资料', requireAuth:
   return NextResponse.json({
     success: true,
     user: buildUserResponse(user, configAvatar),
-    message: '资料更新成功'
+    message: getTranslate('api.user.profileUpdated')
   }, { status: 201 });
 });

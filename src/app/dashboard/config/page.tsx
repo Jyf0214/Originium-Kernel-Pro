@@ -15,9 +15,9 @@ export default function ConfigPage() {
   const [config, setConfig] = useState<ConfigState>({
     site: {
       title: 'Originium Kernel',
-      description: '现代内容发布平台',
-      heroTitleLine1: '书写。同步。',
-      heroTitleLine2: '部署。',
+      description: t('config.defaultSiteDescription'),
+      heroTitleLine1: t('config.defaultHeroTitle1'),
+      heroTitleLine2: t('config.defaultHeroTitle2'),
       lang: 'zh-CN',
     },
     appearance: {
@@ -108,19 +108,19 @@ export default function ConfigPage() {
           setRemoteConfigStatus((data._remoteConfigStatus as string) ?? '');
           setRemoteConfigError((data._remoteConfigError as string) ?? '');
         } else {
-          showError('配置加载失败');
+          showError(t('config.loadFailed'));
         }
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') return;
         console.error('获取配置失败:', error);
-        showError('配置加载失败');
+        showError(t('config.loadFailed'));
       } finally {
         setLoading(false);
       }
     };
     void fetchConfig();
     return () => controller.abort();
-  }, [userRole]);
+  }, [userRole, t]);
 
   const handleSave = () => {
     handleGitHubSave(initialConfigRef.current as unknown as Record<string, unknown>);

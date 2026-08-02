@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { GlobalLoading } from '@/components/Loading';
 import { useConfig } from '@/hooks/use-config';
+import { useI18n } from '@/hooks/use-i18n';
 import { showError } from '@/lib/error';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
@@ -104,6 +105,7 @@ function ArticleViewContent() {
   const articleParam = searchParams?.get('article');
 
   const { config: siteConfig } = useConfig();
+  const { t } = useI18n();
   const [article, setArticle] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -115,17 +117,17 @@ function ArticleViewContent() {
           const data = await res.json();
           setArticle(data);
         } else {
-          showError('文章加载失败');
+          showError(t('article.loadFailed'));
         }
       } catch (error) {
 		console.error('Fetch article error:', error);
-		showError('文章加载失败');
+		showError(t('article.loadFailed'));
       } finally {
         setLoading(false);
       }
     };
     if (articleParam) void fetchArticle();
-  }, [articleParam]);
+  }, [articleParam, t]);
 
   if (loading) return <LoadingView />;
 

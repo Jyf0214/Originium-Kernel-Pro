@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { useI18n } from '@/hooks/use-i18n';
 import { useRouter } from 'next/navigation';
 import { GlobalLoading } from '@/components/Loading';
 import { FeatureDisabledView } from '@/components/ui/FeatureDisabledView';
@@ -14,6 +15,7 @@ interface DashboardLayoutClientProps {
 
 export default function DashboardLayoutClient({ children, databaseConfigured }: DashboardLayoutClientProps) {
   const { user, loading } = useAuth();
+  const { t } = useI18n();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const openSidebar = useCallback(() => setSidebarOpen(true), []);
@@ -25,7 +27,7 @@ export default function DashboardLayoutClient({ children, databaseConfigured }: 
 
   // 数据库未配置时显示降级页
   if (!databaseConfigured) {
-    return <FeatureDisabledView feature="仪表盘" />;
+    return <FeatureDisabledView feature={t('dashboard.title')} />;
   }
 
   if (loading) {

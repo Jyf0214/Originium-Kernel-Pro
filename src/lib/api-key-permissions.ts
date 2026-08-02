@@ -7,6 +7,7 @@
  * - 仅 API 密钥认证时检查权限
  */
 import type { SessionPayload } from '@/lib/auth';
+import { getTranslate } from '@/i18n/translate';
 
 /* ---------- 权限操作类型 ---------- */
 
@@ -31,41 +32,41 @@ export const PERMISSION_GROUPS: {
   actions: { key: PermissionAction; label: string }[];
 }[] = [
   {
-    label: '文章',
+    label: getTranslate('lib.permissions.groupPosts'),
     actions: [
-      { key: 'posts_read', label: '查看文章' },
-      { key: 'posts_write', label: '创建/编辑文章' },
-      { key: 'posts_delete', label: '删除文章' },
+      { key: 'posts_read', label: getTranslate('lib.permissions.postsRead') },
+      { key: 'posts_write', label: getTranslate('lib.permissions.postsWrite') },
+      { key: 'posts_delete', label: getTranslate('lib.permissions.postsDelete') },
     ],
   },
   {
-    label: '媒体文件',
+    label: getTranslate('lib.permissions.groupMedia'),
     actions: [
-      { key: 'media_read', label: '查看媒体' },
-      { key: 'media_write', label: '上传/编辑媒体' },
-      { key: 'media_delete', label: '删除媒体' },
+      { key: 'media_read', label: getTranslate('lib.permissions.mediaRead') },
+      { key: 'media_write', label: getTranslate('lib.permissions.mediaWrite') },
+      { key: 'media_delete', label: getTranslate('lib.permissions.mediaDelete') },
     ],
   },
   {
-    label: '文件存储',
+    label: getTranslate('lib.permissions.groupStorage'),
     actions: [
-      { key: 'storage_read', label: '浏览文件' },
-      { key: 'storage_write', label: '上传/创建文件' },
-      { key: 'storage_delete', label: '删除文件' },
+      { key: 'storage_read', label: getTranslate('lib.permissions.storageRead') },
+      { key: 'storage_write', label: getTranslate('lib.permissions.storageWrite') },
+      { key: 'storage_delete', label: getTranslate('lib.permissions.storageDelete') },
     ],
   },
   {
-    label: '站点设置',
+    label: getTranslate('lib.permissions.groupSettings'),
     actions: [
-      { key: 'settings_read', label: '查看设置' },
-      { key: 'settings_write', label: '修改设置' },
+      { key: 'settings_read', label: getTranslate('lib.permissions.settingsRead') },
+      { key: 'settings_write', label: getTranslate('lib.permissions.settingsWrite') },
     ],
   },
   {
-    label: '统计与搜索',
+    label: getTranslate('lib.permissions.groupStats'),
     actions: [
-      { key: 'stats_read', label: '查看统计' },
-      { key: 'search', label: '全站搜索' },
+      { key: 'stats_read', label: getTranslate('lib.permissions.statsRead') },
+      { key: 'search', label: getTranslate('lib.permissions.search') },
     ],
   },
 ];

@@ -9,83 +9,87 @@
  * - reset: 重置/清空操作
  * - submit: 提交确认
  * - general: 通用确认
+ *
+ * 文案统一存于 i18n 字典（zh-CN.json / en.json），此处仅存 key。
  */
 
+import { getTranslate } from '@/i18n/translate';
+
 // ── 标签页切换 ──
-const TAB_TITLE_MESSAGES = [
-  '再回来看看呀～(◕ᴗ◕✿)',
-  '想你了 (｡•́︿•̀｡)',
-  '别走嘛～(っ˘̩╭╮˘̩)っ',
-  '我在这里等你哦 ♪(´▽`)',
-  '不要离开我... (ಥ﹏ಥ)',
-  '快回来！(´；ω；`)',
-  '偷偷想你中... (◡‿◡✿)',
-  '一个人好寂寞 (｡ŏ﹏ŏ)',
-  '去哪了嘛 (´・ω・`)',
-  '你是不是忘了什么？(゜ロ゜)',
-  '我会乖乖等你的 (◕‿◕)♡',
-  '还没走远吧？快回来！(ﾉ◕ヮ◕)ﾉ*:・ﾟ',
-  '摸鱼被我发现了吧 (∩｀-´)⊃━☆ﾟ.*・',
-  '回来陪我玩嘛～(≧▽≦)',
-  '趁你不在偷偷变可爱 (●´∀｀●)',
+const TAB_TITLE_KEYS = [
+  'kaomoji.tabTitle.comeBack',
+  'kaomoji.tabTitle.missYou',
+  'kaomoji.tabTitle.dontGo',
+  'kaomoji.tabTitle.waiting',
+  'kaomoji.tabTitle.dontLeave',
+  'kaomoji.tabTitle.comeQuickly',
+  'kaomoji.tabTitle.thinking',
+  'kaomoji.tabTitle.lonely',
+  'kaomoji.tabTitle.whereTo',
+  'kaomoji.tabTitle.forgot',
+  'kaomoji.tabTitle.waitingDutifully',
+  'kaomoji.tabTitle.notFarYet',
+  'kaomoji.tabTitle.slacking',
+  'kaomoji.tabTitle.playWithMe',
+  'kaomoji.tabTitle.cuterWithoutYou',
 ] as const;
 
 // ── 删除确认 ──
 const DELETE_MESSAGES = [
-  { kaomoji: '(╥﹏╥)', text: '真的要删掉吗...' },
-  { kaomoji: '(´；ω；`)', text: '删了就回不来了哦...' },
-  { kaomoji: '(ಥ﹏ಥ)', text: '好伤心...你确定吗？' },
-  { kaomoji: '(｡•́︿•̀｡)', text: '它会消失的...想好了吗？' },
-  { kaomoji: '(´・ω・`)', text: '删除后就找不到了呢...' },
-  { kaomoji: '(っ˘̩╭╮˘̩)っ', text: '不要丢下它嘛...' },
-  { kaomoji: '(゜ロ゜)', text: '诶？！要删掉吗？' },
-  { kaomoji: '(；´д｀)', text: '这可不能反悔的哦...' },
+  { kaomoji: '(╥﹏╥)', textKey: 'kaomoji.delete.really' },
+  { kaomoji: '(´；ω；`)', textKey: 'kaomoji.delete.noReturn' },
+  { kaomoji: '(ಥ﹏ಥ)', textKey: 'kaomoji.delete.sad' },
+  { kaomoji: '(｡•́︿•̀｡)', textKey: 'kaomoji.delete.disappear' },
+  { kaomoji: '(´・ω・`)', textKey: 'kaomoji.delete.goneForever' },
+  { kaomoji: '(っ˘̩╭╮˘̩)っ', textKey: 'kaomoji.delete.abandon' },
+  { kaomoji: '(゜ロ゜)', textKey: 'kaomoji.delete.eh' },
+  { kaomoji: '(；´д｀)', textKey: 'kaomoji.delete.noTakeBack' },
 ] as const;
 
 // ── 退出登录 ──
 const LOGOUT_MESSAGES = [
-  { kaomoji: '(｡•́︿•̀｡)', text: '要走了吗...' },
-  { kaomoji: '(╥﹏╥)', text: '不要离开我嘛...' },
-  { kaomoji: '(っ˘̩╭╮˘̩)っ', text: '我还没玩够呢...' },
-  { kaomoji: '(´；ω；`)', text: '下次要快点回来哦...' },
-  { kaomoji: '♪(´▽`)', text: '下次再见啦～' },
-  { kaomoji: '(◕‿◕)♡', text: '我会想你的...' },
+  { kaomoji: '(｡•́︿•̀｡)', textKey: 'kaomoji.logout.leaving' },
+  { kaomoji: '(╥﹏╥)', textKey: 'kaomoji.logout.dontLeaveMe' },
+  { kaomoji: '(っ˘̩╭╮˘̩)っ', textKey: 'kaomoji.logout.notDonePlaying' },
+  { kaomoji: '(´；ω；`)', textKey: 'kaomoji.logout.comeBackSoon' },
+  { kaomoji: '♪(´▽`)', textKey: 'kaomoji.logout.seeYou' },
+  { kaomoji: '(◕‿◕)♡', textKey: 'kaomoji.logout.missYou' },
 ] as const;
 
 // ── 恢复操作 ──
 const RESTORE_MESSAGES = [
-  { kaomoji: '(◕ᴗ◕✿)', text: '欢迎回来！' },
-  { kaomoji: '♪(´▽`)', text: '恢复成功啦～' },
-  { kaomoji: '(≧▽≦)', text: '它又回来了！' },
-  { kaomoji: '(●´∀｀●)', text: '失而复得～' },
+  { kaomoji: '(◕ᴗ◕✿)', textKey: 'kaomoji.restore.welcomeBack' },
+  { kaomoji: '♪(´▽`)', textKey: 'kaomoji.restore.restored' },
+  { kaomoji: '(≧▽≦)', textKey: 'kaomoji.restore.returned' },
+  { kaomoji: '(●´∀｀●)', textKey: 'kaomoji.restore.foundAgain' },
 ] as const;
 
 // ── 重置/清空 ──
 const RESET_MESSAGES = [
-  { kaomoji: '(゜ロ゜)', text: '全部清掉吗？' },
-  { kaomoji: '(´・ω・`)', text: '清空后就没有了哦...' },
-  { kaomoji: '(｡ŏ﹏ŏ)', text: '这下全都没了呢...' },
+  { kaomoji: '(゜ロ゜)', textKey: 'kaomoji.reset.clearAll' },
+  { kaomoji: '(´・ω・`)', textKey: 'kaomoji.reset.goneAfter' },
+  { kaomoji: '(｡ŏ﹏ŏ)', textKey: 'kaomoji.reset.allGone' },
 ] as const;
 
 // ── 提交确认 ──
 const SUBMIT_MESSAGES = [
-  { kaomoji: '(◕ᴗ◕✿)', text: '确认提交吗？' },
-  { kaomoji: '(*´▽`*)', text: '准备好了就提交吧～' },
-  { kaomoji: '(●´∀｀●)', text: '确认无误的话就提交～' },
+  { kaomoji: '(◕ᴗ◕✿)', textKey: 'kaomoji.submit.confirmSubmit' },
+  { kaomoji: '(*´▽`*)', textKey: 'kaomoji.submit.ready' },
+  { kaomoji: '(●´∀｀●)', textKey: 'kaomoji.submit.allGood' },
 ] as const;
 
 // ── 通用确认 ──
 const GENERAL_MESSAGES = [
-  { kaomoji: '(◕ᴗ◕✿)', text: '确认吗？' },
-  { kaomoji: '(´・ω・`)', text: '想好了吗？' },
-  { kaomoji: '(゜ロ゜)', text: '确定吗？' },
+  { kaomoji: '(◕ᴗ◕✿)', textKey: 'kaomoji.general.confirm' },
+  { kaomoji: '(´・ω・`)', textKey: 'kaomoji.general.thoughtThrough' },
+  { kaomoji: '(゜ロ゜)', textKey: 'kaomoji.general.sure' },
 ] as const;
 
 export type ConfirmCategory = 'delete' | 'logout' | 'restore' | 'reset' | 'submit' | 'general';
 
 interface ConfirmMessage { kaomoji: string; text: string }
 
-const CATEGORY_MAP: Record<string, readonly ConfirmMessage[]> = {
+const CATEGORY_MAP: Record<string, readonly { kaomoji: string; textKey: string }[]> = {
   delete: DELETE_MESSAGES,
   logout: LOGOUT_MESSAGES,
   restore: RESTORE_MESSAGES,
@@ -103,12 +107,13 @@ function pickRandom<T>(arr: readonly T[]): T {
  */
 export function getConfirmMessage(category: ConfirmCategory): ConfirmMessage {
   const messages = CATEGORY_MAP[category] ?? CATEGORY_MAP['general'] ?? [];
-  return pickRandom(messages);
+  const picked = pickRandom(messages);
+  return { kaomoji: picked.kaomoji, text: getTranslate(picked.textKey) };
 }
 
 /**
  * 随机获取一条标签页标题颜文字
  */
 export function getRandomTabTitle(): string {
-  return pickRandom(TAB_TITLE_MESSAGES);
+  return getTranslate(pickRandom(TAB_TITLE_KEYS));
 }

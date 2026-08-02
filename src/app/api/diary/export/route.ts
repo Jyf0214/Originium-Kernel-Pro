@@ -2,17 +2,18 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiHandler } from '@/lib/api-handler';
 import { decryptContentBatch } from '@/lib/diary-crypto';
+import { getTranslate } from '@/i18n/translate';
 
 // 分批导出上限，防止内存耗尽
 const BATCH_SIZE = 100;
 const MAX_ENTRIES = 10000;
 
-export const GET = apiHandler('GET', { label: '导出日记', requireAdmin: true, requireDb: true }, async () => {
+export const GET = apiHandler('GET', { label: getTranslate('api.diary.exportDiary'), requireAdmin: true, requireDb: true }, async () => {
   // 预检：日记总数超限则拒绝导出，避免内存耗尽
   const totalCount = await prisma.diary.count();
   if (totalCount > MAX_ENTRIES) {
     return NextResponse.json(
-      { error: `日记总数 ${totalCount} 条超过导出上限 ${MAX_ENTRIES} 条，请缩小导出范围后重试。` },
+      { error: getTranslate('api.diary.exportLimitExceeded', { totalCount, maxEntries: MAX_ENTRIES }) },
       { status: 413 },
     );
   }
@@ -35,15 +36,15 @@ export const GET = apiHandler('GET', { label: '导出日记', requireAdmin: true
       const content = decryptedContents[i];
       const date = d.date.toISOString().slice(0, 10);
       const tags = d.tags.length > 0 ? d.tags.join(', ') : '';
-      const pinned = d.pinned ? '是' : '否';
+      const pinned = d.pinned ? getTranslate('api.diary.yes') : getTranslate('api.diary.no');
 
       const front = [
         `# ${d.title}`,
         '',
-        `**日期**：${date}`,
+        getTranslate('api.diary.exportDateLabel', { date }),
       ];
-      if (tags) front.push(`**标签**：${tags}`);
-      front.push(`**置顶**：${pinned}`);
+      if (tags) front.push(getTranslate('api.diary.exportTagsLabel', { tags }));
+      front.push(getTranslate('api.diary.exportPinnedLabel', { pinned }));
       front.push('', '---', '');
 
       parts.push([...front, content, '', '---', '', ''].join('\n'));
@@ -53,10 +54,10 @@ export const GET = apiHandler('GET', { label: '导出日记', requireAdmin: true
   }
 
   const markdown = [
-    '# 日记导出',
+    getTranslate('api.diary.exportTitle'),
     '',
-    `**导出时间**：${new Date().toLocaleString('zh-CN')}`,
-    `**日记总数**：${exportedCount}`,
+    getTranslate('api.diary.exportTimeLabel', { time: new Date().toLocaleString('zh-CN') }),
+    getTranslate('api.diary.exportCountLabel', { count: exportedCount }),
     '',
     '---',
     '',

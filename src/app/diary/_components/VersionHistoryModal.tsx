@@ -10,6 +10,7 @@ import { History, ChevronLeft, Clock, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LazyMarkdownRenderer as MarkdownRenderer } from '@/components/MarkdownRenderer/dynamic';
 import { showError } from '@/lib/error';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface VersionSummary {
   id: string;
@@ -44,6 +45,7 @@ interface Props {
 }
 
 export function VersionHistoryModal({ open, diaryId, onClose }: Props) {
+  const { t } = useI18n();
   const [versions, setVersions] = useState<VersionSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedVersion, setSelectedVersion] = useState<VersionDetail | null>(null);
@@ -55,30 +57,30 @@ export function VersionHistoryModal({ open, diaryId, onClose }: Props) {
     setLoading(true);
     try {
       const res = await fetch(`/api/diary/${diaryId}/versions`);
-      if (!res.ok) throw new Error('加载版本历史失败');
+      if (!res.ok) throw new Error(t('diary.versionHistoryLoadFailed'));
       const json = await res.json();
       setVersions(json.versions ?? []);
       setFetched(true);
     } catch {
-      showError('加载版本历史失败');
+      showError(t('diary.versionHistoryLoadFailed'));
     } finally {
       setLoading(false);
     }
-  }, [diaryId, fetched]);
+  }, [diaryId, fetched, t]);
 
   const fetchDetail = useCallback(async (versionId: string) => {
     setDetailLoading(true);
     try {
       const res = await fetch(`/api/diary/${diaryId}/versions/${versionId}`);
-      if (!res.ok) throw new Error('加载版本详情失败');
+      if (!res.ok) throw new Error(t('diary.versionDetailLoadFailed'));
       const json = await res.json();
       setSelectedVersion(json.version);
     } catch {
-      showError('加载版本详情失败');
+      showError(t('diary.versionDetailLoadFailed'));
     } finally {
       setDetailLoading(false);
     }
-  }, [diaryId]);
+  }, [diaryId, t]);
 
   const handleClose = useCallback(() => {
     setSelectedVersion(null);
@@ -104,7 +106,7 @@ export function VersionHistoryModal({ open, diaryId, onClose }: Props) {
       open={open}
       onCancel={handleClose}
       footer={null}
-      title={selectedVersion ? '版本详情' : '版本历史'}
+      title={selectedVersion ? t('diary.versionDetailTitle') : t('diary.versionHistoryTitle')}
       destroyOnClose
       width="min(560px, 90vw)"
       styles={{ body: { maxHeight: '70vh', overflowY: 'auto' } }}
@@ -120,7 +122,7 @@ export function VersionHistoryModal({ open, diaryId, onClose }: Props) {
             onClick={() => setSelectedVersion(null)}
             className="mb-4"
           >
-            返回列表
+            {t('diary.backToList')}
           </Button>
 
           <div className="border border-zinc-100 rounded-xl p-4 bg-zinc-50 mb-4">
@@ -157,7 +159,7 @@ export function VersionHistoryModal({ open, diaryId, onClose }: Props) {
               <Spin size="small" />
             </div>
           ) : versions.length === 0 ? (
-            <Empty description="暂无版本历史" />
+            <Empty description={t('diary.noVersionHistory')} />
           ) : (
             <div className="space-y-2">
               {versions.map((v) => {
@@ -171,7 +173,7 @@ export function VersionHistoryModal({ open, diaryId, onClose }: Props) {
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-zinc-900 truncate">
-                          {v.title ?? '无标题'}
+                          {v.title ?? t('diary.untitled')}
                         </p>
                         <div className="flex items-center gap-2 mt-1 text-xs text-zinc-400">
                           <Clock size={12} />

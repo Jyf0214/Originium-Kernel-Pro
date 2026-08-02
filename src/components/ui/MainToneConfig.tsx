@@ -1,6 +1,7 @@
 import React from 'react';
 import { Select } from 'antd';
 import ToggleField from './ToggleField';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface MainToneConfigData {
   enable: boolean;
@@ -19,16 +20,17 @@ const modeOptions = [
 ];
 
 export default function MainToneConfig({ config, onChange }: MainToneConfigProps) {
+  const { t } = useI18n();
   return (
     <div className="space-y-4">
       <ToggleField
-        label="启用主色调"
-        description="文章是否启用获取图片主色调"
+        label={t('components.MainToneConfig.enable')}
+        description={t('components.MainToneConfig.enableDesc')}
         checked={config.enable}
         onChange={v => onChange({ ...config, enable: v })}
       />
       <div>
-        <label className="block text-sm font-medium mb-2">模式</label>
+        <label className="block text-sm font-medium mb-2">{t('components.MainToneConfig.mode')}</label>
         <Select
           value={config.mode}
           onChange={v => onChange({ ...config, mode: v })}
@@ -38,7 +40,7 @@ export default function MainToneConfig({ config, onChange }: MainToneConfigProps
           placement="bottomLeft"
         />
         <p className="text-xs text-zinc-400 mt-1">
-          CDN 模式为图片 URL + imageAve 参数获取主色调，API 模式为请求 API 获取主色调，Both 模式会先请求 CDN 参数，无法获取时将请求 API
+          {t('components.MainToneConfig.modeDesc')}
         </p>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { apiHandler } from '@/lib/api-handler';
 import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
 import { getDb } from '@/lib/db';
+import { getTranslate } from '@/i18n/translate';
 
 /** 清除 Markdown 标记，统计有效字符数 */
 function countChars(text: string): number {
@@ -24,10 +25,10 @@ function countChars(text: string): number {
 /** 从 slug 提取分类（第一级目录名） */
 function extractCategory(slug: string): string {
   const parts = slug.split('/').filter(Boolean);
-  return parts.length > 1 ? (parts[0] ?? '未分类') : '根目录';
+  return parts.length > 1 ? (parts[0] ?? getTranslate('api.stats.uncategorized')) : getTranslate('api.stats.root');
 }
 
-export const GET = apiHandler('GET', { label: '内容统计', requireAdmin: true }, async () => {
+export const GET = apiHandler('GET', { label: getTranslate('api.admin.contentStats'), requireAdmin: true }, async () => {
   // API 密钥权限检查
   const authResult = await getSessionWithKeyId();
   if (authResult) {

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { useI18n } from '@/hooks/use-i18n';
 import { GlobalLoading } from '@/components/Loading';
 import ProCard from '@/components/ui/ProCard';
 import { PageContainer } from '@/components/ui/PageContainer';
@@ -30,6 +31,7 @@ interface AuditData {
 
 export default function AuditPage() {
   const { user, isSudo, loading: authLoading } = useAuth();
+  const { t } = useI18n();
   const [data, setData] = useState<AuditData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,15 +55,15 @@ export default function AuditPage() {
       const res = await fetch(`/api/admin/audit?${params.toString()}`);
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `请求失败 (${res.status})`);
+        throw new Error(body.error ?? t('dashboard.audit.requestFailed', { status: res.status }));
       }
       setData(await res.json());
     } catch (err) {
-      setError(err instanceof Error ? err.message : '加载失败');
+      setError(err instanceof Error ? err.message : t('dashboard.audit.loadFailed'));
     } finally {
       setLoading(false);
     }
-  }, [pageSize]);
+  }, [pageSize, t]);
 
   useEffect(() => {
     if (!authLoading && user && isSudo) {
@@ -81,8 +83,8 @@ export default function AuditPage() {
   return (
     <PageContainer maxWidth="6xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-zinc-900">审计日志</h1>
-        <p className="text-zinc-400 text-sm mt-1">查看管理员操作记录</p>
+        <h1 className="text-2xl font-bold text-zinc-900">{t('dashboard.audit.title')}</h1>
+        <p className="text-zinc-400 text-sm mt-1">{t('dashboard.audit.viewAdminRecords')}</p>
       </div>
 
       {/* 筛选栏 */}
@@ -92,14 +94,14 @@ export default function AuditPage() {
             type="text"
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
-            placeholder="操作类型筛选"
+            placeholder={t('dashboard.audit.actionTypeFilter')}
             className="px-3 py-1.5 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-300"
           />
           <input
             type="text"
             value={operatorFilter}
             onChange={(e) => setOperatorFilter(e.target.value)}
-            placeholder="操作者筛选"
+            placeholder={t('dashboard.audit.operatorFilter')}
             className="px-3 py-1.5 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-300"
           />
           <Button
@@ -109,7 +111,7 @@ export default function AuditPage() {
             onClick={handleSearch}
             loading={loading}
           >
-            {loading ? '查询中...' : '查询'}
+            {loading ? t('dashboard.audit.searching') : t('dashboard.audit.search')}
           </Button>
         </div>
       </ProCard>
@@ -126,7 +128,7 @@ export default function AuditPage() {
               variant="primary"
               onClick={() => void fetchLogs(page, actionFilter ?? undefined, operatorFilter ?? undefined)}
             >
-              重试
+              {t('dashboard.audit.retry')}
             </Button>
           </div>
         </ProCard>
@@ -140,11 +142,11 @@ export default function AuditPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-zinc-100 bg-zinc-50/50">
-                    <th className="text-left px-5 py-3 font-medium text-zinc-500">时间</th>
-                    <th className="text-left px-5 py-3 font-medium text-zinc-500">操作者</th>
-                    <th className="text-left px-5 py-3 font-medium text-zinc-500">操作类型</th>
-                    <th className="text-left px-5 py-3 font-medium text-zinc-500">操作对象</th>
-                    <th className="text-left px-5 py-3 font-medium text-zinc-500">详情</th>
+                    <th className="text-left px-5 py-3 font-medium text-zinc-500">{t('dashboard.audit.time')}</th>
+                    <th className="text-left px-5 py-3 font-medium text-zinc-500">{t('dashboard.audit.operator')}</th>
+                    <th className="text-left px-5 py-3 font-medium text-zinc-500">{t('dashboard.audit.actionType')}</th>
+                    <th className="text-left px-5 py-3 font-medium text-zinc-500">{t('dashboard.audit.target')}</th>
+                    <th className="text-left px-5 py-3 font-medium text-zinc-500">{t('dashboard.audit.details')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -152,7 +154,7 @@ export default function AuditPage() {
                     <tr>
                       <td colSpan={5} className="text-center py-12 text-zinc-400">
                         <ScrollText size={32} className="mx-auto mb-2 opacity-30" />
-                        暂无审计日志
+                        {t('dashboard.audit.noLogs')}
                       </td>
                     </tr>
                   ) : (
@@ -182,7 +184,7 @@ export default function AuditPage() {
           {/* 分页 */}
           {data.total > pageSize && (
             <div className="mt-4 flex items-center justify-between text-sm text-zinc-500">
-              <span>共 {data.total} 条记录</span>
+              <span>{t('dashboard.audit.totalCount', { count: data.total })}</span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"

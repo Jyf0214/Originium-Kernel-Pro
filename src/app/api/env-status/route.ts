@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/env-status');
 
@@ -11,12 +12,12 @@ const logger = createApiLogger('/api/env-status');
  * 每个变量返回 descriptionKey（i18n 键），由前端 useI18n 解析，
  * 避免在服务端硬编码双语文案。
  */
-export const GET = apiHandler('GET', { label: '获取环境变量状态', requireAdmin: true }, () => {
+export const GET = apiHandler('GET', { label: getTranslate('api.envStatus.fetchStatus'), requireAdmin: true }, () => {
   logger.info('GET', '获取环境变量状态');
 
   const envStatus = {
     database: {
-      name: '数据库',
+      name: getTranslate('api.envStatus.groupDatabase'),
       nameKey: 'env.groups.database',
       descriptionKey: 'env.groups.database.desc',
       variables: [
@@ -47,7 +48,7 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
       ],
     },
     auth: {
-      name: '认证',
+      name: getTranslate('api.envStatus.groupAuth'),
       nameKey: 'env.groups.auth',
       descriptionKey: 'env.groups.auth.desc',
       variables: [
@@ -60,7 +61,7 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
       ],
     },
     admin: {
-      name: '管理员账户',
+      name: getTranslate('api.envStatus.groupAdmin'),
       nameKey: 'env.groups.admin',
       descriptionKey: 'env.groups.admin.desc',
       variables: [
@@ -79,7 +80,7 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
       ],
     },
     app: {
-      name: '应用 URL',
+      name: getTranslate('api.envStatus.groupApp'),
       nameKey: 'env.groups.app',
       descriptionKey: 'env.groups.app.desc',
       variables: [
@@ -92,7 +93,7 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
       ],
     },
     github: {
-      name: 'GitHub 同步',
+      name: getTranslate('api.envStatus.groupGithub'),
       nameKey: 'env.groups.github',
       descriptionKey: 'env.groups.github.desc',
       variables: [
@@ -117,7 +118,7 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
       ],
     },
     giscus: {
-      name: 'Giscus 评论',
+      name: getTranslate('api.envStatus.groupGiscus'),
       nameKey: 'env.groups.giscus',
       descriptionKey: 'env.groups.giscus.desc',
       variables: [
@@ -149,8 +150,8 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
     },
     storage: {
       name: process.env.STORAGE_TYPE?.toLowerCase() === 'backblaze'
-        ? '存储池 (Backblaze B2)'
-        : '存储池 (WebDAV)',
+        ? getTranslate('api.envStatus.groupStorageB2')
+        : getTranslate('api.envStatus.groupStorageWebdav'),
       nameKey: 'env.groups.storage',
       descriptionKey: 'env.groups.storage.desc',
       variables: [
@@ -216,7 +217,7 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
       ],
     },
     smtp: {
-      name: 'SMTP 邮件服务',
+      name: getTranslate('api.envStatus.groupSmtp'),
       nameKey: 'env.groups.smtp',
       descriptionKey: 'env.groups.smtp.desc',
       variables: [
@@ -259,7 +260,7 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
       ],
     },
     cron: {
-      name: '定时任务',
+      name: getTranslate('api.envStatus.groupCron'),
       nameKey: 'env.groups.cron',
       descriptionKey: 'env.groups.cron.desc',
       variables: [
@@ -272,7 +273,7 @@ export const GET = apiHandler('GET', { label: '获取环境变量状态', requir
       ],
     },
     system: {
-      name: '系统 / 构建',
+      name: getTranslate('api.envStatus.groupSystem'),
       nameKey: 'env.groups.system',
       descriptionKey: 'env.groups.system.desc',
       variables: [

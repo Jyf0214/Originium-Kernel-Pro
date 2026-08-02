@@ -45,17 +45,17 @@ export default function EnvStatusPage() {
         const data = await res.json();
         setEnvStatus(data);
       } else {
-        showError('环境变量状态加载失败');
+        showError(t('env.loadFailed'));
       }
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return;
       console.error('Failed to fetch env status:', error);
-      showError('环境变量状态加载失败');
+      showError(t('env.loadFailed'));
     } finally {
       setLoading(false);
       hasFetched.current = true;
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -105,7 +105,7 @@ export default function EnvStatusPage() {
   if (!envStatus) {
     return (
       <div className="flex items-center justify-center h-96">
-        <span className="text-zinc-400 dark:text-zinc-500">获取环境变量状态失败</span>
+        <span className="text-zinc-400 dark:text-zinc-500">{t('env.fetchFailed')}</span>
       </div>
     );
   }
@@ -129,8 +129,8 @@ export default function EnvStatusPage() {
             <Server size={22} className="text-white" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{t('env.title') || '环境变量状态'}</h1>
-            <p className="text-zinc-400 dark:text-zinc-500 text-sm">{t('env.subtitle') || '检查系统所需环境变量配置'}</p>
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{t('env.title')}</h1>
+            <p className="text-zinc-400 dark:text-zinc-500 text-sm">{t('env.subtitle')}</p>
           </div>
         </div>
         <HeaderActions onToggleAll={handleToggleAll} onRefresh={fetchEnvStatus} allCollapsed={allCollapsed} t={t} />
@@ -158,9 +158,9 @@ export default function EnvStatusPage() {
         </div>
         <div>
           <p className="text-blue-800 text-sm font-medium">
-            {t('env.tip') || '在 Vercel 项目的 Settings → Environment Variables 中配置环境变量。'}
+            {t('env.tip')}
           </p>
-          <p className="text-blue-600 text-xs mt-1">修改后需要重新部署才能生效。</p>
+          <p className="text-blue-600 text-xs mt-1">{t('env.redeployHint')}</p>
         </div>
       </div>
     </PageContainer>

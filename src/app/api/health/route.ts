@@ -12,6 +12,7 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import { getDb } from '@/lib/db'
 import { getStorageProvider, isStorageConfigured } from '@/lib/storage/storage-provider'
+import { getTranslate } from '@/i18n/translate'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,7 +53,7 @@ function readVersion(): { version: string; generatedAt: string } {
 async function checkDatabase(): Promise<CheckResult> {
   const db = getDb()
   if (!db.prisma) {
-    return { status: 'skipped', message: '数据库未配置' }
+    return { status: 'skipped', message: getTranslate('api.health.dbNotConfigured') }
   }
 
   const start = Date.now()
@@ -69,7 +70,7 @@ async function checkDatabase(): Promise<CheckResult> {
 /** 检查存储后端可达性 */
 async function checkStorage(): Promise<CheckResult> {
   if (!isStorageConfigured()) {
-    return { status: 'skipped', message: '存储后端未配置' }
+    return { status: 'skipped', message: getTranslate('api.health.storageNotConfigured') }
   }
 
   const start = Date.now()

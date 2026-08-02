@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { updateFileInGithub } from '@/lib/github';
 import { createApiLogger } from '@/lib/api-logger';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/github/sync');
 
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
     logger.warn('POST', '无权限', { role: session?.role });
-    return NextResponse.json({ error: '无权限' }, { status: 403 });
+    return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }
 
   const githubRepo = process.env.GITHUB_REPO;
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   if (!githubRepo || !githubToken) {
     logger.warn('POST', 'GitHub 未配置');
-    return NextResponse.json({ error: 'GitHub 未配置' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.github.missingConfig') }, { status: 400 });
   }
 
   try {
@@ -33,13 +34,13 @@ export async function POST(req: NextRequest) {
 
     if (type !== 'config-yaml') {
       logger.warn('POST', '不支持的同步类型', { type });
-      return NextResponse.json({ error: '不支持的同步类型' }, { status: 400 });
+      return NextResponse.json({ error: getTranslate('api.github.unsupportedSyncType') }, { status: 400 });
     }
 
     const { content, message: commitMessage } = body;
     if (!content) {
       logger.warn('POST', 'config-yaml 缺少 content 字段');
-      return NextResponse.json({ error: '缺少 YAML 内容' }, { status: 400 });
+      return NextResponse.json({ error: getTranslate('api.github.missingYamlContent') }, { status: 400 });
     }
 
     await updateFileInGithub({
@@ -51,11 +52,11 @@ export async function POST(req: NextRequest) {
     });
     logger.info('POST', 'config.yaml 同步成功');
 
-    return NextResponse.json({ success: true, message: 'config.yaml 同步成功' });
+    return NextResponse.json({ success: true, message: getTranslate('api.github.syncSuccess') });
   } catch (error) {
     logger.error('POST', '同步失败', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
-      { error: '同步失败' },
+      { error: getTranslate('api.github.syncFailed') },
       { status: 500 }
     );
   }

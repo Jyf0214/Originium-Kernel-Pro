@@ -2,6 +2,7 @@ import React from 'react';
 import ToggleField from './ToggleField';
 import FormField from './FormField';
 import { Plus, Trash2 } from 'lucide-react';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface SocialLinkItem {
   name: string;
@@ -56,6 +57,7 @@ interface FooterConfigProps {
 }
 
 export default function FooterConfig({ config, onChange }: FooterConfigProps) {
+  const { t } = useI18n();
   const socialLinks = config.socialLinks ?? [];
   const links = config.links ?? [];
   const badges = config.badges ?? [];
@@ -63,50 +65,50 @@ export default function FooterConfig({ config, onChange }: FooterConfigProps) {
 
   return (
     <div className="space-y-6">
-      {/* 所有者信息 */}
+      {/* {t('components.FooterConfig.ownerInfo')} */}
       <div className="space-y-4">
-        <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">所有者信息</h3>
+        <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">{t('components.FooterConfig.ownerInfo')}</h3>
         <ToggleField
-          label="显示版权信息"
+          label={t('components.FooterConfig.showCopyright')}
           checked={config.owner.enable}
           onChange={v => onChange({ ...config, owner: { ...config.owner, enable: v } })}
         />
         <FormField
-          label="起始年份"
+          label={t('components.FooterConfig.startYear')}
           value={String(config.owner.since)}
           onChange={v => onChange({ ...config, owner: { ...config.owner, since: parseInt(v) || 2026 } })}
           placeholder="2026"
         />
         <FormField
-          label="作者名称"
+          label={t('components.FooterConfig.authorName')}
           value={config.owner.author ?? ''}
           onChange={v => onChange({ ...config, owner: { ...config.owner, author: v } })}
-          placeholder="例如：ZhouZBoss"
+          placeholder={t('components.FooterConfig.authorPlaceholder')}
         />
       </div>
 
-      {/* 自定义文本 */}
+      {/* {t('components.FooterConfig.customText')} */}
       <div className="border-t border-zinc-100 pt-4 space-y-4">
-        <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">自定义文本</h3>
+        <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">{t('components.FooterConfig.customText')}</h3>
         <FormField
-          label="自定义页脚文字"
+          label={t('components.FooterConfig.customFooterText')}
           value={config.customText}
           onChange={v => onChange({ ...config, customText: v })}
-          placeholder="例如：本站内容采用 CC BY-NC-SA 4.0 许可"
+          placeholder={t('components.FooterConfig.customFooterTextPlaceholder')}
         />
       </div>
 
-      {/* 运行时间 */}
+      {/* {t('components.FooterConfig.runtime')} */}
       <div className="border-t border-zinc-100 pt-4 space-y-4">
-        <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">运行时间</h3>
+        <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">{t('components.FooterConfig.runtime')}</h3>
         <ToggleField
-          label="显示运行时间"
-          description="显示网站已运行天数"
+          label={t('components.FooterConfig.showRuntime')}
+          description={t('components.FooterConfig.showRuntimeDesc')}
           checked={config.runtime.enable}
           onChange={v => onChange({ ...config, runtime: { ...config.runtime, enable: v } })}
         />
         <FormField
-          label="网站上线时间"
+          label={t('components.FooterConfig.launchTime')}
           value={config.runtime.launchTime}
           onChange={v => onChange({ ...config, runtime: { ...config.runtime, launchTime: v } })}
           placeholder="04/01/2021 00:00:00"
@@ -116,13 +118,13 @@ export default function FooterConfig({ config, onChange }: FooterConfigProps) {
       {/* 社交链接 */}
       <div className="border-t border-zinc-100 pt-4 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">社交图标</h3>
+          <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">{t('components.FooterConfig.socialIcons')}</h3>
           <button
             type="button"
             className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-700"
             onClick={() => onChange({ ...config, socialLinks: [...socialLinks, { name: '', icon: '' }] })}
           >
-            <Plus size={14} /> 添加
+            <Plus size={14} /> {t('components.FooterConfig.add')}
           </button>
         </div>
         {socialLinks.map((item, idx) => (
@@ -136,7 +138,7 @@ export default function FooterConfig({ config, onChange }: FooterConfigProps) {
                 next[idx] = { name: v, icon: s.icon };
                 onChange({ ...config, socialLinks: next });
               }}
-              placeholder="名称（如 Github）"
+              placeholder={t('components.FooterConfig.socialNamePlaceholder')}
             />
             <FormField
               label=""
@@ -147,7 +149,7 @@ export default function FooterConfig({ config, onChange }: FooterConfigProps) {
                 next[idx] = { name: s.name, icon: v };
                 onChange({ ...config, socialLinks: next });
               }}
-              placeholder="图标（如 Github）"
+              placeholder={t('components.FooterConfig.socialIconPlaceholder')}
             />
             <button
               type="button"
@@ -160,16 +162,16 @@ export default function FooterConfig({ config, onChange }: FooterConfigProps) {
         ))}
       </div>
 
-      {/* 底部链接 */}
+      {/* {t('components.FooterConfig.footerLinks')} */}
       <div className="border-t border-zinc-100 pt-4 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">底部链接</h3>
+          <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">{t('components.FooterConfig.footerLinks')}</h3>
           <button
             type="button"
             className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-700"
             onClick={() => onChange({ ...config, links: [...links, { group: '', items: [] }] })}
           >
-            <Plus size={14} /> 添加分组
+            <Plus size={14} /> {t('components.FooterConfig.addGroup')}
           </button>
         </div>
         {links.map((group, gIdx) => (
@@ -184,7 +186,7 @@ export default function FooterConfig({ config, onChange }: FooterConfigProps) {
                 next[gIdx] = { group: v, items: g.items };
                 onChange({ ...config, links: next });
               }}
-              placeholder="分组名称"
+              placeholder={t('components.FooterConfig.groupNamePlaceholder')}
               />
               <button
                 type="button"
@@ -207,7 +209,7 @@ export default function FooterConfig({ config, onChange }: FooterConfigProps) {
                     next[gIdx] = { group: g.group, items };
                     onChange({ ...config, links: next });
                   }}
-                  placeholder="名称"
+                  placeholder={t('components.FooterConfig.linkName')}
                 />
                 <FormField
                   label=""
@@ -220,7 +222,7 @@ export default function FooterConfig({ config, onChange }: FooterConfigProps) {
                     next[gIdx] = { group: g.group, items };
                     onChange({ ...config, links: next });
                   }}
-                  placeholder="链接"
+                  placeholder={t('components.FooterConfig.linkUrl')}
                 />
                 <button
                   type="button"
@@ -252,16 +254,16 @@ export default function FooterConfig({ config, onChange }: FooterConfigProps) {
         ))}
       </div>
 
-      {/* 徽章 */}
+      {/* {t('components.FooterConfig.badges')} */}
       <div className="border-t border-zinc-100 pt-4 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">徽章</h3>
+          <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">{t('components.FooterConfig.badges')}</h3>
           <button
             type="button"
             className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-700"
             onClick={() => onChange({ ...config, badges: [...badges, { name: '', url: '' }] })}
           >
-            <Plus size={14} /> 添加
+            <Plus size={14} /> {t('components.FooterConfig.add')}
           </button>
         </div>
         {badges.map((item, idx) => (
@@ -275,7 +277,7 @@ export default function FooterConfig({ config, onChange }: FooterConfigProps) {
                 next[idx] = { name: v, url: b.url };
                 onChange({ ...config, badges: next });
               }}
-              placeholder="名称"
+              placeholder={t('components.FooterConfig.badgeName')}
             />
             <FormField
               label=""
@@ -286,7 +288,7 @@ export default function FooterConfig({ config, onChange }: FooterConfigProps) {
                 next[idx] = { name: b.name, url: v };
                 onChange({ ...config, badges: next });
               }}
-              placeholder="图片链接"
+              placeholder={t('components.FooterConfig.badgeImage')}
             />
             <button
               type="button"
@@ -299,38 +301,38 @@ export default function FooterConfig({ config, onChange }: FooterConfigProps) {
         ))}
       </div>
 
-      {/* 打字动画 */}
+      {/* {t('components.FooterConfig.typingAnimation')} */}
       <div className="border-t border-zinc-100 pt-4 space-y-4">
-        <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">打字动画</h3>
+        <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">{t('components.FooterConfig.typingAnimation')}</h3>
         <FormField
-          label="前缀文本"
+          label={t('components.FooterConfig.prefixText')}
           value={config.typedTextPrefix ?? ''}
           onChange={v => onChange({ ...config, typedTextPrefix: v })}
-          placeholder="例如：你好，我是 "
+          placeholder={t('components.FooterConfig.prefixPlaceholder')}
         />
         <FormField
-          label="打字内容（每行一条，随机播放）"
+          label={t('components.FooterConfig.typingContent')}
           value={typedText.join('\n')}
           onChange={v => onChange({ ...config, typedText: v.split('\n').filter(s => s.trim()) })}
           type="textarea"
           rows={4}
-          placeholder={'ZhouZBoss\n欢迎来访'}
+          placeholder={t('components.FooterConfig.typingContentPlaceholder')}
         />
         <div className="grid grid-cols-3 gap-3">
           <FormField
-            label="打字速度 (ms)"
+            label={t('components.FooterConfig.typingSpeed')}
             value={String(config.typedTextSpeed?.type ?? 100)}
             onChange={v => onChange({ ...config, typedTextSpeed: { ...config.typedTextSpeed, type: parseInt(v) || 100, delete: config.typedTextSpeed?.delete ?? 50, pause: config.typedTextSpeed?.pause ?? 2000 } })}
             placeholder="100"
           />
           <FormField
-            label="删除速度 (ms)"
+            label={t('components.FooterConfig.deleteSpeed')}
             value={String(config.typedTextSpeed?.delete ?? 50)}
             onChange={v => onChange({ ...config, typedTextSpeed: { ...config.typedTextSpeed, type: config.typedTextSpeed?.type ?? 100, delete: parseInt(v) || 50, pause: config.typedTextSpeed?.pause ?? 2000 } })}
             placeholder="50"
           />
           <FormField
-            label="停顿时间 (ms)"
+            label={t('components.FooterConfig.pauseTime')}
             value={String(config.typedTextSpeed?.pause ?? 2000)}
             onChange={v => onChange({ ...config, typedTextSpeed: { ...config.typedTextSpeed, type: config.typedTextSpeed?.type ?? 100, delete: config.typedTextSpeed?.delete ?? 50, pause: parseInt(v) || 2000 } })}
             placeholder="2000"
@@ -340,12 +342,12 @@ export default function FooterConfig({ config, onChange }: FooterConfigProps) {
 
       {/* 回到顶部 */}
       <div className="border-t border-zinc-100 pt-4 space-y-4">
-        <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">其他</h3>
+        <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">{t('components.FooterConfig.other')}</h3>
         <FormField
-          label="回到顶部按钮提示"
-          value={config.scrollToTopText ?? '回到顶部'}
+          label={t('components.FooterConfig.scrollToTopHint')}
+          value={config.scrollToTopText ?? t('components.FooterConfig.scrollToTopPlaceholder')}
           onChange={v => onChange({ ...config, scrollToTopText: v })}
-          placeholder="回到顶部"
+          placeholder={t('components.FooterConfig.scrollToTopPlaceholder')}
         />
       </div>
     </div>

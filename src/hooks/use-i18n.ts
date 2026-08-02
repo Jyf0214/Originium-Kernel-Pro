@@ -1,21 +1,15 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import zhCN from '@/i18n/zh-CN.json';
-import en from '@/i18n/en.json';
+import { translations, type I18nKeys } from '@/i18n/translate';
 import { safeGetItem, safeSetItem } from '@/lib/local-storage';
 
 type Locale = 'zh-CN' | 'en';
 
-interface I18nKeys {
-  [key: string]: string | I18nKeys;
-}
-
-const translations: Record<Locale, I18nKeys> = {
-  'zh-CN': zhCN,
-  'en': en,
-};
-
+/**
+ * 获取当前语言的初始值
+ * 浏览器端读取 localStorage 与浏览器语言，服务端回退 zh-CN
+ */
 function getInitialLocale(): Locale {
   if (typeof window !== 'undefined') {
     const savedLocale = safeGetItem('locale') as Locale;

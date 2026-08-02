@@ -8,6 +8,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { apiHandler } from '@/lib/api-handler';
 import { createApiLogger } from '@/lib/api-logger';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/feedback');
 
@@ -33,22 +34,22 @@ function maskIp(ip: string): string {
 /** 校验并规范化请求 body */
 function validateBody(raw: unknown): { ok: true; title: string; body: string; category: Category } | { ok: false; error: string } {
   if (!raw || typeof raw !== 'object') {
-    return { ok: false, error: '请求体必须是 JSON 对象' };
+    return { ok: false, error: getTranslate('api.feedback.bodyMustBeObject') };
   }
   const obj = raw as Record<string, unknown>;
 
   if (typeof obj.title !== 'string' || obj.title.trim().length === 0) {
-    return { ok: false, error: '标题不能为空' };
+    return { ok: false, error: getTranslate('api.feedback.titleEmpty') };
   }
   if (obj.title.length > MAX_TITLE) {
-    return { ok: false, error: `标题长度不能超过 ${MAX_TITLE} 字符` };
+    return { ok: false, error: getTranslate('api.feedback.titleTooLong', { max: MAX_TITLE }) };
   }
 
   if (typeof obj.body !== 'string' || obj.body.trim().length === 0) {
-    return { ok: false, error: '内容不能为空' };
+    return { ok: false, error: getTranslate('api.feedback.bodyEmpty') };
   }
   if (obj.body.length > MAX_BODY) {
-    return { ok: false, error: `内容长度不能超过 ${MAX_BODY} 字符` };
+    return { ok: false, error: getTranslate('api.feedback.bodyTooLong', { max: MAX_BODY }) };
   }
 
   const category = CATEGORIES.includes(obj.category as Category)
@@ -76,8 +77,8 @@ function buildIssueBody(
   lines.push('');
   lines.push('---');
   lines.push('');
-  lines.push(`**提交时间**: ${new Date().toISOString()}`);
-  lines.push(`**IP (脱敏)**: ${ip}`);
+  lines.push(getTranslate('api.feedback.submitTimeLabel', { time: new Date().toISOString() }));
+  lines.push(getTranslate('api.feedback.ipMaskedLabel', { ip }));
   lines.push(`**User-Agent**: ${userAgent.slice(0, 200)}`);
   return lines.join('\n');
 }
@@ -90,7 +91,7 @@ async function handleFeedback(req: NextRequest): Promise<NextResponse> {
     const retryAfterSec = Math.ceil(retryAfterMs / 1000);
     logger.warn('POST', 'rate limited', { ip: maskIp(ip) });
     return NextResponse.json(
-      { error: `提交过于频繁，请 ${retryAfterSec} 秒后重试` },
+      { error: getTranslate('api.feedback.submitTooFrequent', { seconds: retryAfterSec }) },
       { status: 429 },
     );
   }
@@ -101,7 +102,7 @@ async function handleFeedback(req: NextRequest): Promise<NextResponse> {
     raw = await req.json();
   } catch {
     logger.warn('POST', 'invalid JSON body');
-    return NextResponse.json({ error: '请求格式错误' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.feedback.invalidRequest') }, { status: 400 });
   }
 
   const result = validateBody(raw);
@@ -115,7 +116,7 @@ async function handleFeedback(req: NextRequest): Promise<NextResponse> {
   const token = process.env.GITHUB_TOKEN;
   if (!repo || !token) {
     logger.error('POST', 'GITHUB_REPO 或 GITHUB_TOKEN 未配置');
-    return NextResponse.json({ error: '反馈服务暂不可用' }, { status: 503 });
+    return NextResponse.json({ error: getTranslate('api.feedback.serviceUnavailable') }, { status: 503 });
   }
 
   // 构造 Issue
@@ -146,8 +147,8 @@ async function handleFeedback(req: NextRequest): Promise<NextResponse> {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     logger.error('POST', '创建 Issue 失败', { error: message });
-    return NextResponse.json({ error: '提交失败，请稍后重试' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.feedback.submitFailed') }, { status: 500 });
   }
 }
 
-export const POST = apiHandler('POST', { label: '反馈提交' }, handleFeedback);
+export const POST = apiHandler('POST', { label: getTranslate('api.feedback.label') }, handleFeedback);

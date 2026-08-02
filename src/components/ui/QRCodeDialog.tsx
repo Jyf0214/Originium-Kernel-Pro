@@ -106,7 +106,7 @@ export default function QRCodeDialog({ open, url: initialUrl, title, onClose }: 
             }`}
           >
             {copied ? <Check size={14} /> : <Copy size={14} />}
-            {copyFailed ? '失败' : copied ? '已复制' : '复制'}
+            {copyFailed ? t('components.QRCodeDialog.copyFailed') : copied ? t('components.QRCodeDialog.copied') : t('components.QRCodeDialog.copy')}
           </button>
         </div>
 
@@ -118,7 +118,7 @@ export default function QRCodeDialog({ open, url: initialUrl, title, onClose }: 
           className="inline-flex items-center gap-1.5 text-sm text-blue-500 hover:text-blue-600 transition-colors"
         >
           <ExternalLink size={14} />
-          在新窗口打开
+          {t('components.QRCodeDialog.openInNewWindow')}
         </a>
       </div>
     </Modal>

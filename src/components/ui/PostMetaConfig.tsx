@@ -1,6 +1,7 @@
 import React from 'react';
 import { Select } from 'antd';
 import ToggleField from './ToggleField';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface PostMetaItemConfig {
   dateType: string;
@@ -24,23 +25,6 @@ interface PostMetaConfigProps {
   onChange: (config: PostMetaConfigData) => void;
 }
 
-const dateTypeOptions = [
-  { value: 'created', label: '创建日期' },
-  { value: 'updated', label: '更新日期' },
-  { value: 'both', label: '两者都显示' },
-];
-
-const dateFormatOptions = [
-  { value: 'date', label: '标准日期' },
-  { value: 'relative', label: '相对日期' },
-  { value: 'simple', label: '简单日期' },
-];
-
-const postDateFormatOptions = [
-  { value: 'date', label: '标准日期' },
-  { value: 'relative', label: '相对日期' },
-];
-
 function MetaItemEditor({
   prefix,
   config,
@@ -52,12 +36,31 @@ function MetaItemEditor({
   onChange: (c: PostMetaItemConfig) => void;
   showUnread?: boolean;
 }) {
+  const { t } = useI18n();
+
+  const dateTypeOptions = [
+    { value: 'created', label: t('components.PostMetaConfig.createdAt') },
+    { value: 'updated', label: t('components.PostMetaConfig.updatedAt') },
+    { value: 'both', label: t('components.PostMetaConfig.showBoth') },
+  ];
+
+  const dateFormatOptions = [
+    { value: 'date', label: t('components.PostMetaConfig.standardDate') },
+    { value: 'relative', label: t('components.PostMetaConfig.relativeDate') },
+    { value: 'simple', label: t('components.PostMetaConfig.simpleDate') },
+  ];
+
+  const postDateFormatOptions = [
+    { value: 'date', label: t('components.PostMetaConfig.standardDate') },
+    { value: 'relative', label: t('components.PostMetaConfig.relativeDate') },
+  ];
+
   return (
     <div className="space-y-3 p-4 bg-zinc-50 rounded-xl border border-zinc-100">
       <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{prefix}</p>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium mb-1">日期类型</label>
+          <label className="block text-xs font-medium mb-1">{t('components.PostMetaConfig.dateType')}</label>
           <Select
             size="small"
             value={config.dateType}
@@ -69,12 +72,12 @@ function MetaItemEditor({
           />
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1">日期格式</label>
+          <label className="block text-xs font-medium mb-1">{t('components.PostMetaConfig.dateFormat')}</label>
           <Select
             size="small"
             value={config.dateFormat}
             onChange={v => onChange({ ...config, dateFormat: v })}
-            options={prefix === '首页' ? dateFormatOptions : postDateFormatOptions}
+            options={prefix === t('components.PostMetaConfig.homePage') ? dateFormatOptions : postDateFormatOptions}
             style={{ width: '100%' }}
             className="!rounded-lg"
             placement="bottomLeft"
@@ -82,11 +85,11 @@ function MetaItemEditor({
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <ToggleField label="显示分类" checked={config.categories} onChange={v => onChange({ ...config, categories: v })} />
-        <ToggleField label="显示标签" checked={config.tags} onChange={v => onChange({ ...config, tags: v })} />
-        <ToggleField label="显示描述" checked={config.label} onChange={v => onChange({ ...config, label: v })} />
+        <ToggleField label={t('components.PostMetaConfig.showCategories')} checked={config.categories} onChange={v => onChange({ ...config, categories: v })} />
+        <ToggleField label={t('components.PostMetaConfig.showTags')} checked={config.tags} onChange={v => onChange({ ...config, tags: v })} />
+        <ToggleField label={t('components.PostMetaConfig.showDescription')} checked={config.label} onChange={v => onChange({ ...config, label: v })} />
         {showUnread && (
-          <ToggleField label="未读标记" checked={(config as PostMetaPostConfig).unread} onChange={v => onChange({ ...config, unread: v } as unknown as PostMetaItemConfig)} />
+          <ToggleField label={t('components.PostMetaConfig.unreadMarker')} checked={(config as PostMetaPostConfig).unread} onChange={v => onChange({ ...config, unread: v } as unknown as PostMetaItemConfig)} />
         )}
       </div>
     </div>
@@ -94,15 +97,16 @@ function MetaItemEditor({
 }
 
 export default function PostMetaConfig({ config, onChange }: PostMetaConfigProps) {
+  const { t } = useI18n();
   return (
     <div className="space-y-4">
       <MetaItemEditor
-        prefix="首页"
+        prefix={t('components.PostMetaConfig.homePage')}
         config={config.page}
         onChange={v => onChange({ ...config, page: { ...v, dateFormat: v.dateFormat } })}
       />
       <MetaItemEditor
-        prefix="文章页"
+        prefix={t('components.PostMetaConfig.postPage')}
         config={config.post}
         onChange={v => onChange({ ...config, post: v as PostMetaPostConfig })}
         showUnread

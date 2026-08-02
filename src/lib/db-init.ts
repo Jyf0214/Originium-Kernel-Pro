@@ -4,6 +4,7 @@
 import { getDb } from '@/lib/db';
 import { hashPassword } from '@/lib/hash';
 import { generateUID } from '@/lib/auth';
+import { getTranslate } from '@/i18n/translate';
 
 let initAttempted = false;
 let initResult: { created: boolean; error?: string } | null = null;
@@ -45,7 +46,7 @@ async function doInit(): Promise<{ created: boolean; error?: string }> {
       return initResult;
     }
   } catch {
-    initResult = { created: false, error: '数据库不可用，请检查 DATABASE_URL 配置' };
+    initResult = { created: false, error: getTranslate('lib.dbInit.databaseUnavailable') };
     return initResult;
   }
 

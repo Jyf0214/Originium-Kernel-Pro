@@ -4,6 +4,7 @@ import { loadConfig, canAccess, hasDatabase, type AppConfig } from '@/lib/config
 import { getDraft, saveDraft } from '@/lib/draft-storage';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler, getParam } from '@/lib/api-handler';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/articles/[id]');
 
@@ -76,7 +77,7 @@ async function handleFileSystemLookup(
     return null;
   }
   if (!(await canAccess('posts', file.slug, isAuthenticated, dbAvailable, config))) {
-    return NextResponse.json({ error: '无权限' }, { status: 403 });
+    return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }
   return NextResponse.json({
     id: file.slug,
@@ -94,7 +95,7 @@ async function handleFileSystemLookup(
   });
 }
 
-export const GET = apiHandler('GET', { label: '获取文章详情' }, async (req, context, session) => {
+export const GET = apiHandler('GET', { label: getTranslate('api.articles.fetchArticleDetail') }, async (req, context, session) => {
   const id = await getParam(context, 'id');
   logger.info('GET', '获取文章详情', { id });
   logger.info('GET', '读取文章详情', { id });
@@ -107,7 +108,7 @@ export const GET = apiHandler('GET', { label: '获取文章详情' }, async (req
       // session 来自 apiHandler 注入（requireAuth=false 时为 undefined）
       if (!session || (meta.authorId !== session.uid && session.role !== 'admin' && session.role !== 'sudo')) {
         logger.warn('GET', '无权限查看草稿', { id, uid: session?.uid });
-        return NextResponse.json({ error: '无权限' }, { status: 403 });
+        return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
       }
       return handleDraftArticleResponse(id, meta);
     }
@@ -130,7 +131,7 @@ export const GET = apiHandler('GET', { label: '获取文章详情' }, async (req
     return fileResponse;
   }
 
-  return NextResponse.json({ error: '文章不存在' }, { status: 404 });
+  return NextResponse.json({ error: getTranslate('api.articles.notFound') }, { status: 404 });
 });
 
 function checkArticlePermission(
@@ -154,7 +155,7 @@ async function handlePublishArticle(
   const postSlug = (body.slug as string) || (updated.slug as string) || `/${String(updated.authorName)}/${id}`;
   // 路径穿越防护：拒绝含 .. 或 \ 的 slug
   if (typeof postSlug !== 'string' || postSlug.includes('..') || postSlug.includes('\\')) {
-    return NextResponse.json({ error: '无效的文章路径' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.articles.invalidPath') }, { status: 400 });
   }
   const filePath = `posts${postSlug}.md`;
 
@@ -179,7 +180,7 @@ async function handlePublishArticle(
 
   if (!ghResponse.ok) {
     const error = await ghResponse.json() as { error?: string };
-    return NextResponse.json({ error: error.error ?? '发布到 GitHub 失败' }, { status: 500 });
+    return NextResponse.json({ error: error.error ?? getTranslate('api.articles.publishFailed') }, { status: 500 });
   }
 
   updated.status = 'published';
@@ -218,7 +219,7 @@ async function handleDraftSave(
   return NextResponse.json({ success: true });
 }
 
-export const PATCH = apiHandler('PATCH', { label: '更新文章', requireAuth: true }, async (req, context, session) => {
+export const PATCH = apiHandler('PATCH', { label: getTranslate('api.articles.updateArticle'), requireAuth: true }, async (req, context, session) => {
   const id = await getParam(context, 'id');
   const body = await req.json() as Record<string, unknown>;
   logger.info('PATCH', '更新文章', { id });
@@ -227,13 +228,13 @@ export const PATCH = apiHandler('PATCH', { label: '更新文章', requireAuth: t
 
   if (!metaStr) {
     logger.warn('PATCH', '文章不存在', { id });
-    return NextResponse.json({ error: '文章不存在' }, { status: 404 });
+    return NextResponse.json({ error: getTranslate('api.articles.notFound') }, { status: 404 });
   }
 
   const meta = JSON.parse(metaStr) as Record<string, unknown>;
 
   if (!checkArticlePermission(meta, session!)) {
-    return NextResponse.json({ error: '无权限' }, { status: 403 });
+    return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }
 
   if (body.status === 'published') {
@@ -267,10 +268,10 @@ async function moveToRecycleBin(
   await db.hdel('articles:drafts', id);
   await db.hdel('articles:published', id);
   await db.hset('articles:index', id, JSON.stringify(deletionInfo));
-  return NextResponse.json({ success: true, message: '已移入回收站' });
+  return NextResponse.json({ success: true, message: getTranslate('api.articles.movedToRecycleBin') });
 }
 
-export const DELETE = apiHandler('DELETE', { label: '删除文章', requireAuth: true }, async (req, context, session) => {
+export const DELETE = apiHandler('DELETE', { label: getTranslate('api.articles.deleteArticle'), requireAuth: true }, async (req, context, session) => {
   const id = await getParam(context, 'id');
   logger.info('DELETE', '删除文章', { id });
   const db = getDb();
@@ -279,14 +280,14 @@ export const DELETE = apiHandler('DELETE', { label: '删除文章', requireAuth:
   // 数据库无记录 → 文件系统发布的文章，构造元数据后移入回收站
   if (!metaStr) {
     if (session!.role !== 'admin' && session!.role !== 'sudo') {
-      return NextResponse.json({ error: '无权限删除此文章' }, { status: 403 });
+      return NextResponse.json({ error: getTranslate('api.articles.noDeletePermission') }, { status: 403 });
     }
     const { getContentFile } = await import('@/lib/content');
     const slug = id.startsWith('/') ? id : `/${id}`;
     const file = getContentFile('posts', slug);
     if (!file) {
       logger.warn('DELETE', '文章不存在', { id });
-      return NextResponse.json({ error: '文章不存在' }, { status: 404 });
+      return NextResponse.json({ error: getTranslate('api.articles.notFound') }, { status: 404 });
     }
 
     // 为文件系统文章构造元数据，写入数据库后移入回收站
@@ -308,13 +309,13 @@ export const DELETE = apiHandler('DELETE', { label: '删除文章', requireAuth:
     meta = JSON.parse(metaStr);
   } catch {
     logger.warn('DELETE', '文章数据解析失败', { id });
-    return NextResponse.json({ error: '文章数据损坏' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.articles.dataCorrupted') }, { status: 500 });
   }
 
   // 所有角色统一移入回收站
   if (meta.authorId !== session!.uid && session!.role !== 'admin' && session!.role !== 'sudo') {
     logger.warn('DELETE', '无权限', { id, authorId: meta.authorId, uid: session!.uid });
-    return NextResponse.json({ error: '无权限' }, { status: 403 });
+    return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }
 
   return moveToRecycleBin(id, meta, db);

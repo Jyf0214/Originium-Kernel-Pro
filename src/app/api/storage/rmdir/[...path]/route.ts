@@ -6,6 +6,7 @@
  */
 import { NextResponse } from 'next/server'
 import { createApiLogger } from '@/lib/api-logger'
+import { getTranslate } from '@/i18n/translate'
 import {
   buildWebDavTarget,
   catchAllHandler,
@@ -46,7 +47,7 @@ export const DELETE = catchAllHandler<{ path: string[] }>(
       await provider.deleteDirectory(target)
     } catch (err) {
       logger.error('DELETE', `target="${target}" 存储后端删除失败`, { error: (err as Error).message })
-      return storageErrorResponse(err, '删除目录')
+      return storageErrorResponse(err, getTranslate('api.storage.opDeleteDirectory'))
     }
 
     await deleteFolderMetaCascade(rel)

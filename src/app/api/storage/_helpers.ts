@@ -21,6 +21,7 @@ import { createApiLogger } from '@/lib/api-logger'
 import { isStorageConfigured, getStorageProvider } from '@/lib/storage/storage-provider'
 import { isValidPath, joinPath } from '@/lib/storage/path'
 import { apiHandler } from '@/lib/api-handler'
+import { getTranslate } from '@/i18n/translate'
 import type { StorageFolderMeta, WebDavEntry } from '@/lib/storage/types'
 
 /** 直接复用 lib/api-handler 导出的 ApiHandlerOptions(已支持泛型 + requireSudo) */
@@ -59,7 +60,7 @@ export function buildWebDavTarget(parts: string[] | undefined): string {
 /** 存储后端未配置时返回的 503 响应(供前端识别) */
 export function storageNotConfigured(): NextResponse {
   return NextResponse.json(
-    { error: '存储后端未配置', code: 'NOT_CONFIGURED' },
+    { error: getTranslate('api.storage.notConfigured'), code: 'NOT_CONFIGURED' },
     { status: 503 }
   )
 }
@@ -67,25 +68,25 @@ export function storageNotConfigured(): NextResponse {
 /** 数据库未配置时返回的 503 响应(供前端识别) */
 export function databaseNotConfigured(): NextResponse {
   return NextResponse.json(
-    { error: '数据库未配置', code: 'DB_NOT_CONFIGURED' },
+    { error: getTranslate('api.common.dbNotConfigured'), code: 'DB_NOT_CONFIGURED' },
     { status: 503 }
   )
 }
 
 /** 路径非法时返回的 400 响应 */
 export function invalidPathResponse(): NextResponse {
-  return NextResponse.json({ error: '路径非法' }, { status: 400 })
+  return NextResponse.json({ error: getTranslate('api.storage.invalidPath') }, { status: 400 })
 }
 
 /** 不能对根目录执行该操作时返回的 400 响应 */
 export function rootNotAllowedResponse(): NextResponse {
-  return NextResponse.json({ error: '不能操作根目录' }, { status: 400 })
+  return NextResponse.json({ error: getTranslate('api.storage.rootNotAllowed') }, { status: 400 })
 }
 
 /** 上传文件过大时返回的 413 响应 */
 export function payloadTooLargeResponse(size: number): NextResponse {
   return NextResponse.json(
-    { error: `文件过大(${size} bytes,上限 ${MAX_UPLOAD_SIZE} bytes)` },
+    { error: getTranslate('api.storage.fileTooLarge', { size, limit: MAX_UPLOAD_SIZE }) },
     { status: 413 }
   )
 }
@@ -289,16 +290,16 @@ export function toWebDavEntry(stat: FileStat): WebDavEntry {
 export function storageErrorResponse(err: unknown, op: string): NextResponse {
   const e = err as { status?: number; message?: string }
   if (e?.status === 404) {
-    return NextResponse.json({ error: '资源不存在' }, { status: 404 })
+    return NextResponse.json({ error: getTranslate('api.storage.notFound') }, { status: 404 })
   }
   if (e?.status && e.status >= 500) {
     return NextResponse.json(
-      { error: `${op} 失败`, details: '存储上游错误' },
+      { error: getTranslate('api.storage.opFailed', { op }), details: getTranslate('api.storage.upstreamError') },
       { status: 502 }
     )
   }
   return NextResponse.json(
-    { error: `${op} 失败` },
+    { error: getTranslate('api.storage.opFailed', { op }) },
     { status: 500 }
   )
 }

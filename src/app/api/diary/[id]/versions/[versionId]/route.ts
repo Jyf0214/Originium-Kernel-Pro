@@ -6,13 +6,14 @@
 import { NextResponse } from 'next/server';
 import { apiHandler, getParam } from '@/lib/api-handler';
 import { getDiaryVersion } from '@/lib/diary-version';
+import { getTranslate } from '@/i18n/translate';
 
-export const GET = apiHandler('GET', { label: '获取日记版本详情', requireAdmin: true, requireDb: true }, async (_req, context) => {
+export const GET = apiHandler('GET', { label: getTranslate('api.diary.getVersionDetail'), requireAdmin: true, requireDb: true }, async (_req, context) => {
   const versionId = await getParam(context, 'versionId');
 
   const version = await getDiaryVersion(versionId);
   if (!version) {
-    return NextResponse.json({ error: '版本不存在' }, { status: 404 });
+    return NextResponse.json({ error: getTranslate('api.diary.versionNotFound') }, { status: 404 });
   }
 
   // 解析 JSON 格式的标签

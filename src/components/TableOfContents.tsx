@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useConfig } from '@/hooks/use-config';
 import { useActiveHeading } from '@/hooks/use-active-heading';
+import { useI18n } from '@/hooks/use-i18n';
 import { slugify } from '@/lib/slugify';
 import { List } from 'lucide-react';
 
@@ -18,7 +19,7 @@ interface TableOfContentsProps {
   pageType?: 'post' | 'page';
 }
 
-function TocButton({ simple, onClick, expanded }: { simple?: boolean; onClick: () => void; expanded?: boolean }) {
+function TocButton({ simple, onClick, expanded, t }: { simple?: boolean; onClick: () => void; expanded?: boolean; t: (key: string) => string }) {
   return (
     <button
       onClick={onClick}
@@ -27,7 +28,7 @@ function TocButton({ simple, onClick, expanded }: { simple?: boolean; onClick: (
           ? 'text-zinc-300 hover:text-zinc-500 shadow-sm'
           : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:shadow-xl'
       }`}
-      aria-label="目录"
+      aria-label={t('components.TableOfContents.toc')}
       aria-expanded={expanded}
     >
       <List size={simple ? 18 : 20} />
@@ -79,7 +80,7 @@ interface TocPanelProps {
   panelRef: React.RefObject<HTMLDivElement | null>;
 }
 
-function TocPanel({ open, items, activeId, simple, maxLevel, numberEnabled, isShortScreen, onItemClick, panelRef }: TocPanelProps) {
+function TocPanel({ open, items, activeId, simple, maxLevel, numberEnabled, isShortScreen, onItemClick, panelRef, t }: TocPanelProps & { t: (key: string) => string }) {
   return (
     <AnimatePresence>
       {open && (
@@ -93,12 +94,12 @@ function TocPanel({ open, items, activeId, simple, maxLevel, numberEnabled, isSh
             isShortScreen ? 'top-20' : 'bottom-20'
           } ${simple ? 'p-3 w-56' : 'p-4 w-64'}`}
           role="dialog"
-          aria-label="文章目录"
+          aria-label={t('components.TableOfContents.articleToc')}
         >
           <h4 className={`font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-3 ${
             simple ? 'text-[10px]' : 'text-xs'
-          }`}>目录</h4>
-          <nav role="navigation" aria-label="文章目录" className={simple ? 'space-y-0.5' : 'space-y-1'}>
+          }`}>{t('components.TableOfContents.toc')}</h4>
+          <nav role="navigation" aria-label={t('components.TableOfContents.articleToc')} className={simple ? 'space-y-0.5' : 'space-y-1'}>
             {items.map((item, i) => (
               <TocItemButton
                 key={i}
@@ -120,6 +121,7 @@ function TocPanel({ open, items, activeId, simple, maxLevel, numberEnabled, isSh
 
 export default function TableOfContents({ content, pageType = 'post' }: TableOfContentsProps) {
   const { config } = useConfig();
+  const { t } = useI18n();
   const cfg = config?.toc;
   const [open, setOpen] = useState(cfg?.expand ?? false);
   const [items, setItems] = useState<TocItem[]>([]);
@@ -196,7 +198,7 @@ export default function TableOfContents({ content, pageType = 'post' }: TableOfC
 
   return (
     <>
-      <TocButton simple={simple} onClick={() => setOpen(!open)} expanded={open} />
+      <TocButton simple={simple} onClick={() => setOpen(!open)} expanded={open} t={t} />
       <TocPanel
         open={open}
         items={items}
@@ -207,6 +209,7 @@ export default function TableOfContents({ content, pageType = 'post' }: TableOfC
         isShortScreen={isShortScreen}
         onItemClick={handleItemClick}
         panelRef={panelRef}
+        t={t}
       />
     </>
   );

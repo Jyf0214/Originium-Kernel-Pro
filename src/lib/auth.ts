@@ -4,6 +4,7 @@ import { cookies, headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { SESSION_EXPIRY_MS, SESSION_EXPIRY } from '@/lib/constants';
 import { parsePermissions, type ApiKeyPermissions, type PermissionAction } from '@/lib/api-key-permissions';
+import { getTranslate } from '@/i18n/translate';
 
 /**
  * Originium Kernel 认证逻辑（Serverless/Edge）
@@ -19,7 +20,7 @@ export function getSecret(): string {
   const secret = process.env.AUTH_SECRET;
   if (!secret || secret.length < 32) {
     if (process.env.NODE_ENV === 'production') {
-      throw new Error('AUTH_SECRET 环境变量未配置或长度小于 32，生产环境必须设置至少 32 字符的密钥');
+      throw new Error(getTranslate('lib.auth.authSecretMissing'));
     }
     if (!_devSecret) {
       _devSecret = crypto.randomBytes(32).toString('hex');
@@ -329,7 +330,7 @@ export async function verifyAuth() {
 export async function requireAuth() {
   const session = await getSession();
   if (!session) {
-return NextResponse.json({ error: '需要登录' }, { status: 401 });
+return NextResponse.json({ error: getTranslate('lib.auth.requireLogin') }, { status: 401 });
   }
   return session;
 }
@@ -340,10 +341,10 @@ return NextResponse.json({ error: '需要登录' }, { status: 401 });
 export async function requireAdmin() {
   const session = await getSession();
   if (!session) {
-    return NextResponse.json({ error: '需要登录' }, { status: 401 });
+    return NextResponse.json({ error: getTranslate('lib.auth.requireLogin') }, { status: 401 });
   }
   if (session.role !== 'admin' && session.role !== 'sudo') {
-    return NextResponse.json({ error: '需要管理员权限' }, { status: 403 });
+    return NextResponse.json({ error: getTranslate('lib.auth.requireAdmin') }, { status: 403 });
   }
   return session;
 }
@@ -354,10 +355,10 @@ export async function requireAdmin() {
 export async function requireSudo() {
   const session = await getSession();
   if (!session) {
-    return NextResponse.json({ error: '需要登录' }, { status: 401 });
+    return NextResponse.json({ error: getTranslate('lib.auth.requireLogin') }, { status: 401 });
   }
   if (session.role !== 'sudo') {
-    return NextResponse.json({ error: '需要超级管理员权限' }, { status: 403 });
+    return NextResponse.json({ error: getTranslate('lib.auth.requireSudo') }, { status: 403 });
   }
   return session;
 }
@@ -391,7 +392,7 @@ export function requireApiKeyPermission(
   // 检查具体操作
   if (session.permissions.actions[action]) return null;
   return NextResponse.json(
-    { error: `无权限: ${action}` },
+    { error: getTranslate('lib.auth.noPermissionAction', { action }) },
     { status: 403 },
   );
 }
@@ -416,16 +417,16 @@ export function validatePasswordStrength(password: string): { valid: true } | { 
   const reasons: string[] = [];
 
   if (password.length < MIN_PASSWORD_LENGTH) {
-    reasons.push(`密码长度不能少于 ${MIN_PASSWORD_LENGTH} 位`);
+    reasons.push(getTranslate('lib.auth.passwordMinLength', { min: MIN_PASSWORD_LENGTH }));
   }
   if (!/[A-Z]/.test(password)) {
-    reasons.push('密码必须包含至少 1 个大写字母');
+    reasons.push(getTranslate('lib.auth.passwordNeedUppercase'));
   }
   if (!/[a-z]/.test(password)) {
-    reasons.push('密码必须包含至少 1 个小写字母');
+    reasons.push(getTranslate('lib.auth.passwordNeedLowercase'));
   }
   if (!/[0-9]/.test(password)) {
-    reasons.push('密码必须包含至少 1 个数字');
+    reasons.push(getTranslate('lib.auth.passwordNeedDigit'));
   }
 
   if (reasons.length > 0) {

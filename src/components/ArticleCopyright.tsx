@@ -1,6 +1,7 @@
 'use client';
 
 import { useConfig } from '@/hooks/use-config';
+import { useI18n } from '@/hooks/use-i18n';
 import type { AuthorInfo } from '@/types/author';
 
 interface ArticleCopyrightProps {
@@ -31,9 +32,10 @@ function AuthorDetails({
   licenseUrl?: string;
   labels?: { authorPrefix: string; sourcePrefix: string; licensePrefix: string };
 }) {
-  const authorPrefix = labels?.authorPrefix ?? '作者: ';
-  const sourcePrefix = labels?.sourcePrefix ?? '来源: ';
-  const licensePrefix = labels?.licensePrefix ?? '许可: ';
+  const { t } = useI18n();
+  const authorPrefix = labels?.authorPrefix ?? t('components.articleCopyright.authorPrefix');
+  const sourcePrefix = labels?.sourcePrefix ?? t('components.articleCopyright.sourcePrefix');
+  const licensePrefix = labels?.licensePrefix ?? t('components.articleCopyright.licensePrefix');
 
   return (
     <div className="space-y-1">
@@ -60,13 +62,14 @@ function AuthorDetails({
 
 export default function ArticleCopyright({ authorName, authorUrl, authorInfo }: ArticleCopyrightProps) {
   const { config } = useConfig();
+  const { t } = useI18n();
   const cfg = config?.copyright;
 
   if (!cfg?.enable) return null;
 
   const avatarUrl = authorInfo?.avatar ?? config?.avatar?.url;
   const decodedName = cfg.decode ? decodeURIComponent(authorName) : authorName;
-  const sectionLabel = cfg.labels?.authorSection ?? '本文作者';
+  const sectionLabel = cfg.labels?.authorSection ?? t('components.articleCopyright.authorSection');
 
   return (
     <div className="max-w-3xl mx-auto mt-12 pt-8 border-t border-zinc-100 dark:border-zinc-700">

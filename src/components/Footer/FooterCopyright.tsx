@@ -5,6 +5,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowUp } from 'lucide-react';
+import { getTranslate } from '@/i18n/translate';
 
 // ─── Typed Text（私有辅助组件） ──────────────────────
 
@@ -143,8 +144,8 @@ export function FooterBar({
             type="button"
             onClick={handleScrollTop}
             className="shrink-0 w-7 h-7 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-600 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-            title={scrollToTopText ?? '回到顶部'}
-            aria-label={scrollToTopText ?? '回到顶部'}
+            title={scrollToTopText ?? getTranslate('footerConfig.scrollToTop')}
+            aria-label={scrollToTopText ?? getTranslate('footerConfig.scrollToTop')}
           >
             <ArrowUp size={14} />
           </button>

@@ -1,6 +1,7 @@
 'use client';
 
 import { BookOpen, X } from 'lucide-react';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface ContinueReadingPromptProps {
   /** 保存的阅读位置（0-1），为 null 时不显示 */
@@ -16,6 +17,7 @@ interface ContinueReadingPromptProps {
  * 仅在检测到有效保存记录时显示
  */
 export function ContinueReadingPrompt({ savedPosition, onRestore, onDismiss }: ContinueReadingPromptProps) {
+  const { t } = useI18n();
   if (savedPosition === null) return null;
 
   const pct = Math.round(savedPosition * 100);
@@ -25,20 +27,20 @@ export function ContinueReadingPrompt({ savedPosition, onRestore, onDismiss }: C
       <div className="flex items-center gap-3 px-5 py-3 bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md rounded-2xl shadow-lg shadow-black/10 dark:shadow-black/30 border border-zinc-200/60 dark:border-zinc-700/60">
         <BookOpen size={18} className="text-zinc-400 dark:text-zinc-500 shrink-0" />
         <span className="text-sm text-zinc-600 dark:text-zinc-300 whitespace-nowrap">
-          上次阅读到 {pct}% 处
+          {t('components.continueReadingPrompt.position', { pct })}
         </span>
         <button
           type="button"
           onClick={() => onRestore(savedPosition)}
           className="px-3 py-1.5 text-sm font-medium text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 rounded-lg hover:bg-zinc-700 dark:hover:bg-zinc-300 transition-colors ui-press whitespace-nowrap"
         >
-          继续阅读
+          {t('components.continueReadingPrompt.restore')}
         </button>
         <button
           type="button"
           onClick={onDismiss}
           className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors ui-press"
-          aria-label="关闭"
+          aria-label={t('components.continueReadingPrompt.close')}
         >
           <X size={16} />
         </button>

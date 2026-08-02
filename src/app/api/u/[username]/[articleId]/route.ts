@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getDb, storage } from '@/lib/db';
 import { getUserAvatar } from '@/lib/config';
 import { createApiLogger } from '@/lib/api-logger';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/u/[username]/[articleId]');
 
@@ -45,7 +46,7 @@ export async function GET(
     const user = await findArticleUser(db, username);
     if (!user) {
       logger.warn('GET', '用户不存在', { username });
-      return NextResponse.json({ error: '用户不存在' }, { status: 404, headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' } });
+      return NextResponse.json({ error: getTranslate('api.auth.userNotFound') }, { status: 404, headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' } });
     }
 
     const avatar = await getUserAvatar();
@@ -53,19 +54,19 @@ export async function GET(
     const articleStr = await db.get(`article:data:${articleId}`);
     if (!articleStr) {
       logger.warn('GET', '文章不存在', { articleId });
-      return NextResponse.json({ error: '文章不存在' }, { status: 404, headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' } });
+      return NextResponse.json({ error: getTranslate('api.articles.notFound') }, { status: 404, headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' } });
     }
 
     const article = JSON.parse(articleStr) as Record<string, unknown>;
 
     if (article.authorId !== user.uid) {
       logger.warn('GET', '文章不属于该用户', { articleId, authorId: article.authorId, uid: user.uid });
-      return NextResponse.json({ error: '文章不存在' }, { status: 404, headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' } });
+      return NextResponse.json({ error: getTranslate('api.articles.notFound') }, { status: 404, headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' } });
     }
 
     if (article.status !== 'published') {
       logger.warn('GET', '文章未发布', { articleId, status: article.status });
-      return NextResponse.json({ error: '文章不存在' }, { status: 404, headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' } });
+      return NextResponse.json({ error: getTranslate('api.articles.notFound') }, { status: 404, headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' } });
     }
 
     const rawContent = await getRawMarkdownContent(articleId);
@@ -91,6 +92,6 @@ export async function GET(
     });
   } catch (error) {
     logger.error('GET', '用户文章API错误', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ error: '服务器内部错误' }, { status: 500, headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' } });
+    return NextResponse.json({ error: getTranslate('api.common.serverError') }, { status: 500, headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' } });
   }
 }

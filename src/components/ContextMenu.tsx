@@ -9,6 +9,7 @@ import {
   modalTransition,
 } from '@/components/ui/motion';
 import { useThemeMode } from '@/hooks/use-theme-mode';
+import { useI18n } from '@/hooks/use-i18n';
 
 /** 菜单项类型定义 */
 interface MenuItem {
@@ -24,12 +25,15 @@ interface MenuItem {
   divider?: boolean;
 }
 
-/** 主题模式显示名称 */
-const THEME_LABELS: Record<string, string> = {
-  light: '亮色模式',
-  dark: '暗色模式',
-  system: '跟随系统',
-};
+/** 主题模式显示名称（组件内部使用，支持 i18n） */
+function getThemeLabel(t: (key: string) => string, mode: string): string {
+  const labels: Record<string, string> = {
+    light: t('contextMenu.lightMode'),
+    dark: t('contextMenu.darkMode'),
+    system: t('contextMenu.followSystem'),
+  };
+  return labels[mode] ?? t('contextMenu.followSystem');
+}
 
 /** 菜单项通用样式 */
 const menuItemClass = cn(
@@ -49,6 +53,7 @@ export function ContextMenu() {
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const { mode, cycle } = useThemeMode();
+  const { t } = useI18n();
 
   /** 处理右键事件 */
   const handleContextMenu = useCallback((e: MouseEvent) => {
@@ -136,25 +141,25 @@ export function ContextMenu() {
   const menuItems: MenuItem[] = [
     {
       id: 'copy-link',
-      label: '复制链接',
+      label: t('contextMenu.copyLink'),
       icon: <Link size={15} />,
       onClick: handleCopyLink,
     },
     {
       id: 'new-tab',
-      label: '新标签页打开',
+      label: t('contextMenu.openNewTab'),
       icon: <ExternalLink size={15} />,
       onClick: handleOpenNewTab,
     },
     {
       id: 'refresh',
-      label: '刷新页面',
+      label: t('contextMenu.refreshPage'),
       icon: <RefreshCw size={15} />,
       onClick: handleRefresh,
     },
     {
       id: 'scroll-top',
-      label: '回到顶部',
+      label: t('contextMenu.scrollToTop'),
       icon: <ArrowUp size={15} />,
       onClick: handleScrollTop,
     },
@@ -166,7 +171,7 @@ export function ContextMenu() {
     },
     {
       id: 'theme',
-      label: `主题：${THEME_LABELS[mode] ?? '跟随系统'}`,
+      label: `${t('contextMenu.theme')}${getThemeLabel(t, mode)}`,
       icon: <Palette size={15} />,
       onClick: handleThemeToggle,
     },
@@ -212,7 +217,7 @@ export function ContextMenu() {
           }}
           onContextMenu={(e) => e.preventDefault()}
           role="menu"
-          aria-label="上下文菜单"
+          aria-label={t('contextMenu.ariaLabel')}
         >
           {menuItems.map((item) =>
             item.divider ? (

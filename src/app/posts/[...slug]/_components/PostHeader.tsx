@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Calendar, User } from 'lucide-react';
 import { useCoverParallax } from '@/hooks/useCoverParallax';
 import { EASE_STANDARD } from '@/components/ui/motion';
+import { useI18n } from '@/hooks/use-i18n';
 import type { AuthorInfo } from '@/types/author';
 
 /** 原创/转载标识徽章 — 跨上下文共享 */
@@ -16,6 +17,7 @@ function TypeBadge({
   typeStr: string;
   variant?: 'overlay' | 'light';
 }) {
+  const { t } = useI18n();
   const isOriginal = typeStr === 'original';
   const base = 'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest';
   const overlay = isOriginal
@@ -26,7 +28,7 @@ function TypeBadge({
     : 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700';
   return (
     <span className={`${base} ${variant === 'overlay' ? overlay : light}`}>
-      {isOriginal ? '原创' : '转载'}
+      {isOriginal ? t('posts.original') : t('posts.reprint')}
     </span>
   );
 }

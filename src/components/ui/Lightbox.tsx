@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { X, ChevronLeft, ChevronRight, Keyboard } from 'lucide-react';
 import { cn } from '@/lib/ui';
 import { EASE_STANDARD, EASE_FAST } from '@/components/ui/motion';
+import { useI18n } from '@/hooks/use-i18n';
 
 /** 键盘快捷键提示是否已关闭的 localStorage key */
 const SHORTCUT_HINT_DISMISSED_KEY = 'lightbox-shortcut-hint-dismissed';
@@ -23,6 +24,7 @@ interface LightboxProps {
 }
 
 export function Lightbox({ images, alts, initialIndex, onClose, isOpen = true }: LightboxProps) {
+  const { t } = useI18n();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [showHint, setShowHint] = useState(() => {
     // 首次打开时检查是否已经关闭过快捷键提示
@@ -112,7 +114,7 @@ export function Lightbox({ images, alts, initialIndex, onClose, isOpen = true }:
               e.stopPropagation();
               onClose();
             }}
-            aria-label="关闭灯箱"
+            aria-label={t('components.lightbox.close')}
           >
             <X className="w-6 h-6" />
           </button>
@@ -128,7 +130,7 @@ export function Lightbox({ images, alts, initialIndex, onClose, isOpen = true }:
                   e.stopPropagation();
                   goPrev();
                 }}
-                aria-label="上一张"
+                aria-label={t('components.lightbox.prev')}
               >
                 <ChevronLeft className="w-8 h-8" />
               </button>
@@ -159,7 +161,7 @@ export function Lightbox({ images, alts, initialIndex, onClose, isOpen = true }:
                   e.stopPropagation();
                   goNext();
                 }}
-                aria-label="下一张"
+                aria-label={t('components.lightbox.next')}
               >
                 <ChevronRight className="w-8 h-8" />
               </button>
@@ -201,7 +203,7 @@ export function Lightbox({ images, alts, initialIndex, onClose, isOpen = true }:
                         : 'border-transparent bg-zinc-700/50 p-1 hover:border-white/50',
                     )}
                     onClick={() => setCurrentIndex(i)}
-                    aria-label={`查看第 ${i + 1} 张图片`}
+                    aria-label={t('components.lightbox.viewImage', { index: i + 1 })}
                   >
                     <img
                       src={src}
@@ -240,14 +242,14 @@ export function Lightbox({ images, alts, initialIndex, onClose, isOpen = true }:
                   <span className="flex items-center gap-1">
                     <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-xs font-mono">←</kbd>
                     <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-xs font-mono">→</kbd>
-                    <span className="text-white/60">切换</span>
+                    <span className="text-white/60">{t('components.lightbox.switchHint')}</span>
                   </span>
                   <span className="flex items-center gap-1">
                     <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-xs font-mono">Esc</kbd>
-                    <span className="text-white/60">关闭</span>
+                    <span className="text-white/60">{t('components.lightbox.closeHint')}</span>
                   </span>
                 </div>
-                <span className="text-white/40 text-xs ml-2">点击关闭</span>
+                <span className="text-white/40 text-xs ml-2">{t('components.lightbox.hintDismiss')}</span>
               </motion.div>
             )}
           </AnimatePresence>

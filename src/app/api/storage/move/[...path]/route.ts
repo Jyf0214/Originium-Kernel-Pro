@@ -7,6 +7,7 @@
  */
 import { NextResponse } from 'next/server'
 import { createApiLogger } from '@/lib/api-logger'
+import { getTranslate } from '@/i18n/translate'
 import {
   buildWebDavTarget,
   catchAllHandler,
@@ -32,7 +33,7 @@ function parseMoveDestination(
 ): { destRel: string } | NextResponse {
   const destination = String(reqBody.destination ?? '').trim()
   if (!destination) {
-    return NextResponse.json({ error: '目标路径不能为空' }, { status: 400 })
+    return NextResponse.json({ error: getTranslate('api.storage.destinationEmpty') }, { status: 400 })
   }
 
   // 提取源名称
@@ -45,12 +46,12 @@ function parseMoveDestination(
   if (!isValidStoragePath(destRel)) return invalidPathResponse()
 
   if (srcRel === destRel) {
-    return NextResponse.json({ error: '源路径和目标路径相同' }, { status: 400 })
+    return NextResponse.json({ error: getTranslate('api.storage.samePath') }, { status: 400 })
   }
 
   // 防止移动到自身子目录导致数据丢失
   if (destRel.startsWith(srcRel + '/')) {
-    return NextResponse.json({ error: '不能移动到自身的子目录中' }, { status: 400 })
+    return NextResponse.json({ error: getTranslate('api.storage.moveToSubdirectory') }, { status: 400 })
   }
 
   return { destRel }
@@ -75,7 +76,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
     try {
       body = (await req.json()) as Record<string, unknown>
     } catch {
-      return NextResponse.json({ error: '请求体格式错误' }, { status: 400 })
+      return NextResponse.json({ error: getTranslate('api.common.invalidBody') }, { status: 400 })
     }
 
     const destResult = parseMoveDestination(body, srcRel)
@@ -90,7 +91,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
     try {
       const provider = await getStorageProvider()
       await provider.stat(newTarget)
-      return NextResponse.json({ error: '目标位置已存在同名文件或文件夹' }, { status: 409 })
+      return NextResponse.json({ error: getTranslate('api.storage.targetExists') }, { status: 409 })
     } catch {
       // stat 失败说明目标不存在，可以安全移动
     }
@@ -100,7 +101,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
       await provider.moveFile(oldTarget, newTarget)
     } catch (err) {
       logger.error('POST', `target="${oldTarget}" → "${newTarget}" 失败`, { error: (err as Error).message })
-      return storageErrorResponse(err, '移动')
+      return storageErrorResponse(err, getTranslate('api.storage.opMove'))
     }
 
     // 更新数据库元数据(重命名主键 + 级联子路径)

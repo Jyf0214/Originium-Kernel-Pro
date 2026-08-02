@@ -4,6 +4,7 @@ import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
 import { encryptContent } from '@/lib/diary-crypto';
 import { saveDiaryVersion } from '@/lib/diary-version';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/diary');
 
@@ -17,7 +18,7 @@ function scheduledFilter() {
   };
 }
 
-export const GET = apiHandler('GET', { label: '获取日记列表', requireAdmin: true, requireDb: true }, async (req) => {
+export const GET = apiHandler('GET', { label: getTranslate('api.diary.getDiaryList'), requireAdmin: true, requireDb: true }, async (req) => {
   const { searchParams } = new URL(req.url);
   const search = searchParams.get('search')?.trim();
   const startDate = searchParams.get('startDate')?.trim();
@@ -80,11 +81,11 @@ export const GET = apiHandler('GET', { label: '获取日记列表', requireAdmin
   return NextResponse.json({ diaries, groups: allGroups.map((g) => g.group).filter(Boolean) });
 });
 
-export const POST = apiHandler('POST', { label: '创建日记', requireAdmin: true, requireDb: true }, async (req) => {
+export const POST = apiHandler('POST', { label: getTranslate('api.diary.createDiary'), requireAdmin: true, requireDb: true }, async (req) => {
   const { title, content, tags, date, group, references: rawRefs, scheduledAt } = await req.json();
   const references = Array.isArray(rawRefs) ? rawRefs : [];
   if (!title || !content) {
-    return NextResponse.json({ error: '标题和内容不能为空' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.diary.titleAndContentRequired') }, { status: 400 });
   }
 
   const encrypted = await encryptContent(content);
@@ -97,7 +98,7 @@ export const POST = apiHandler('POST', { label: '创建日记', requireAdmin: tr
       title,
       content: encrypted,
       tags: tags ?? [],
-      group: group ?? '默认',
+      group: group ?? null,
       references,
       date: date ? new Date(date) : undefined,
       status: isScheduled ? 'draft' : 'published',

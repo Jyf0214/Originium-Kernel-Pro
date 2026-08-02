@@ -13,6 +13,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { RefreshCw, FolderOpen, FileText, Image, Film, HelpCircle } from 'lucide-react'
 import { ProCard } from '@/components/ui/ProCard'
 import { Button } from '@/components/ui/Button'
+import { useI18n } from '@/hooks/use-i18n'
+import { getTranslate } from '@/i18n/translate'
 
 /* ---------- 类型定义 ---------- */
 
@@ -62,9 +64,9 @@ function formatBytes(bytes: number): string {
 /** 获取类型分组的图标 */
 function getTypeIcon(category: string) {
   switch (category) {
-    case '图片': return <Image size={14} className="text-blue-500" />
-    case '视频': return <Film size={14} className="text-purple-500" />
-    case '文档': return <FileText size={14} className="text-green-500" />
+    case getTranslate('storage.categoryImage'): return <Image size={14} className="text-blue-500" />
+    case getTranslate('storage.categoryVideo'): return <Film size={14} className="text-purple-500" />
+    case getTranslate('storage.categoryDocument'): return <FileText size={14} className="text-green-500" />
     default: return <HelpCircle size={14} className="text-zinc-400" />
   }
 }
@@ -83,6 +85,7 @@ interface StorageStatsPanelProps {
 }
 
 export function StorageStatsPanel({ open, onClose }: StorageStatsPanelProps) {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<StorageStatsResult | null>(null)
@@ -94,16 +97,16 @@ export function StorageStatsPanel({ open, onClose }: StorageStatsPanelProps) {
       const res = await fetch('/api/storage/stats')
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        throw new Error(body.error ?? `请求失败 (${res.status})`)
+        throw new Error(body.error ?? t('storage.requestFailed', { status: res.status }))
       }
       const result: StorageStatsResult = await res.json()
       setData(result)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '加载失败')
+      setError(err instanceof Error ? err.message : t('storage.loadFailed'))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   // 首次打开时加载数据
   useEffect(() => {
@@ -120,7 +123,7 @@ export function StorageStatsPanel({ open, onClose }: StorageStatsPanelProps) {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col mx-4">
         {/* 标题栏 */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
-          <h2 className="text-lg font-bold text-zinc-900">存储空间分析</h2>
+          <h2 className="text-lg font-bold text-zinc-900">{t('storage.statsTitle')}</h2>
           <div className="flex items-center gap-2">
             <Button
               variant="default"
@@ -129,7 +132,7 @@ export function StorageStatsPanel({ open, onClose }: StorageStatsPanelProps) {
               onClick={() => void fetchStats()}
               disabled={loading}
             >
-              刷新
+              {t('storage.refresh')}
             </Button>
             <button
               type="button"
@@ -146,7 +149,7 @@ export function StorageStatsPanel({ open, onClose }: StorageStatsPanelProps) {
           {/* 加载中 */}
           {loading && !data && (
             <div className="py-16 text-center text-zinc-400 text-sm">
-              正在扫描存储池…
+              {t('storage.scanning')}
             </div>
           )}
 
@@ -163,13 +166,13 @@ export function StorageStatsPanel({ open, onClose }: StorageStatsPanelProps) {
               {/* 数据卡片 */}
               <div className="grid grid-cols-2 gap-4">
                 <ProCard padding="p-4">
-                  <div className="text-xs text-zinc-400 mb-1">总文件数</div>
+                  <div className="text-xs text-zinc-400 mb-1">{t('storage.totalFiles')}</div>
                   <div className="text-2xl font-bold text-zinc-900">
                     {data.totalFiles.toLocaleString()}
                   </div>
                 </ProCard>
                 <ProCard padding="p-4">
-                  <div className="text-xs text-zinc-400 mb-1">总大小</div>
+                  <div className="text-xs text-zinc-400 mb-1">{t('storage.totalSize')}</div>
                   <div className="text-2xl font-bold text-zinc-900">
                     {formatBytes(data.totalSize)}
                   </div>
@@ -178,7 +181,7 @@ export function StorageStatsPanel({ open, onClose }: StorageStatsPanelProps) {
 
               {/* 文件夹占用 Top 10 */}
               {data.topFolders.length > 0 && (
-                <ProCard title="文件夹占用 Top 10" padding="p-4">
+                <ProCard title={t('storage.topFoldersTitle')} padding="p-4">
                   <div className="space-y-3">
                     {data.topFolders.map((folder) => {
                       const pct = percent(folder.size, data.totalSize)
@@ -187,11 +190,11 @@ export function StorageStatsPanel({ open, onClose }: StorageStatsPanelProps) {
                           <div className="flex items-center justify-between text-sm mb-1">
                             <span className="flex items-center gap-1.5 text-zinc-700 font-medium truncate">
                               <FolderOpen size={13} className="text-zinc-400 shrink-0" />
-                              {folder.path === '/' ? '根目录' : folder.path}
+                              {folder.path === '/' ? t('storage.root') : folder.path}
                             </span>
                             <span className="text-zinc-500 tabular-nums shrink-0 ml-2">
                               {formatBytes(folder.size)}
-                              <span className="text-zinc-400 ml-1">({folder.count} 文件)</span>
+                              <span className="text-zinc-400 ml-1">{t('storage.folderFileCount', { count: folder.count })}</span>
                             </span>
                           </div>
                           {/* 纯 CSS 条形图 */}
@@ -210,7 +213,7 @@ export function StorageStatsPanel({ open, onClose }: StorageStatsPanelProps) {
 
               {/* 文件类型分布 */}
               {data.typeDistribution.length > 0 && (
-                <ProCard title="文件类型分布" padding="p-4">
+                <ProCard title={t('storage.typeDistributionTitle')} padding="p-4">
                   <div className="space-y-3">
                     {data.typeDistribution.map((type) => {
                       const pct = percent(type.size, data.totalSize)
@@ -224,7 +227,7 @@ export function StorageStatsPanel({ open, onClose }: StorageStatsPanelProps) {
                             <span className="text-zinc-500 tabular-nums">
                               {formatBytes(type.size)}
                               <span className="text-zinc-400 ml-1">
-                                ({type.count} 文件 · {pct}%)
+                                {t('storage.typeCount', { count: type.count, pct })}
                               </span>
                             </span>
                           </div>
@@ -243,15 +246,15 @@ export function StorageStatsPanel({ open, onClose }: StorageStatsPanelProps) {
 
               {/* 最大文件 Top 10 */}
               {data.topFiles.length > 0 && (
-                <ProCard title="最大文件 Top 10" padding="p-0">
+                <ProCard title={t('storage.topFilesTitle')} padding="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-zinc-100 text-left text-zinc-500">
                           <th className="px-4 py-3 font-medium w-8">#</th>
-                          <th className="px-4 py-3 font-medium">文件名</th>
-                          <th className="px-4 py-3 font-medium">路径</th>
-                          <th className="px-4 py-3 font-medium text-right">大小</th>
+                          <th className="px-4 py-3 font-medium">{t('storage.fileName')}</th>
+                          <th className="px-4 py-3 font-medium">{t('storage.filePath')}</th>
+                          <th className="px-4 py-3 font-medium text-right">{t('storage.fileSize')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -280,7 +283,7 @@ export function StorageStatsPanel({ open, onClose }: StorageStatsPanelProps) {
 
               {/* 数据时间戳 */}
               <div className="text-xs text-zinc-400 text-right">
-                数据生成于 {new Date(data.generatedAt).toLocaleString('zh-CN')}
+                {t('storage.generatedAt', { date: new Date(data.generatedAt).toLocaleString('zh-CN') })}
               </div>
             </>
           )}

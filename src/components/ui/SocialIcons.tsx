@@ -4,6 +4,7 @@
  */
 import React from 'react';
 import { SiX, SiFacebook, SiSinaweibo, SiWechat, SiQq, SiTelegram, SiWhatsapp, SiReddit } from '@icons-pack/react-simple-icons';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface IconProps {
   size?: number;
@@ -19,11 +20,13 @@ export function FacebookIcon({ size = 20, className }: IconProps) {
 }
 
 export function WeiboIcon({ size = 20, className }: IconProps) {
-  return <SiSinaweibo size={size} className={className} title="微博" />;
+  const { t } = useI18n();
+  return <SiSinaweibo size={size} className={className} title={t('components.ShareButtons.platforms.weibo')} />;
 }
 
 export function WeChatIcon({ size = 20, className }: IconProps) {
-  return <SiWechat size={size} className={className} title="微信" />;
+  const { t } = useI18n();
+  return <SiWechat size={size} className={className} title={t('components.ShareButtons.platforms.wechat')} />;
 }
 
 export function QQIcon({ size = 20, className }: IconProps) {

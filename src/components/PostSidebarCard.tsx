@@ -7,6 +7,7 @@ import { Tag } from '@/components/ui/Tag';
 import { Button } from '@/components/ui/Button';
 import { EASE_STANDARD } from '@/components/ui/motion';
 import { cn } from '@/lib/ui';
+import { useI18n } from '@/hooks/use-i18n';
 import type { AuthorInfo } from '@/types/author';
 
 export interface PostSidebarCardProps {
@@ -27,6 +28,7 @@ export const PostSidebarCard = React.memo(function PostSidebarCard({
   tags,
   onScrollToTop,
 }: PostSidebarCardProps) {
+  const { t } = useI18n();
   const displayName = authorInfo?.nickname ?? authorInfo?.name;
 
   return (
@@ -59,16 +61,16 @@ export const PostSidebarCard = React.memo(function PostSidebarCard({
       {/* 文章统计 */}
       <div className="space-y-2 text-xs text-zinc-500 dark:text-zinc-400 mb-4">
         <div className="flex justify-between">
-          <span>字数</span>
+          <span>{t('components.PostSidebarCard.wordCount')}</span>
           <span className="font-medium text-zinc-700 dark:text-zinc-300">{wordCount.toLocaleString()}</span>
         </div>
         <div className="flex justify-between">
-          <span>阅读时间</span>
-          <span className="font-medium text-zinc-700 dark:text-zinc-300">{readingTime} 分钟</span>
+          <span>{t('components.PostSidebarCard.readingTime')}</span>
+          <span className="font-medium text-zinc-700 dark:text-zinc-300">{readingTime} {t('components.PostSidebarCard.minutes')}</span>
         </div>
         {date && (
           <div className="flex justify-between">
-            <span>发布日期</span>
+            <span>{t('components.PostSidebarCard.publishDate')}</span>
             <span className="font-medium text-zinc-700 dark:text-zinc-300">{date}</span>
           </div>
         )}
@@ -91,7 +93,7 @@ export const PostSidebarCard = React.memo(function PostSidebarCard({
           iconOnly
           icon={<ArrowUp size={16} />}
           onClick={onScrollToTop}
-          aria-label="回到顶部"
+          aria-label={t('components.PostSidebarCard.scrollToTop')}
         />
       </div>
     </motion.aside>

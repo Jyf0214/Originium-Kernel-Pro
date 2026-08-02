@@ -7,6 +7,7 @@ import {
   escapeXml,
   buildRssItem,
 } from '@/lib/feed';
+import { getTranslate } from '@/i18n/translate';
 
 /**
  * 按标签订阅的 RSS 2.0 Feed（含完整正文）
@@ -68,7 +69,7 @@ export async function GET(
     .join('\n');
 
   const tagTitle = `${title} - ${decodedTag}`;
-  const tagDescription = `标签「${decodedTag}」下的文章`;
+  const tagDescription = getTranslate('posts.tagDescription', { tag: decodedTag });
   const feedUrl = `${siteUrl}/feed/${encodeURIComponent(decodedTag)}.xml`;
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -108,7 +109,7 @@ function buildEmptyFeed(
   <channel>
     <title>${escapeXml(tagTitle)}</title>
     <link>${escapeXml(siteUrl)}</link>
-    <description>${escapeXml(`标签「${tag}」下的文章`)}</description>
+    <description>${escapeXml(getTranslate('posts.tagDescription', { tag }))}</description>
     <language>${escapeXml(language)}</language>
     <lastBuildDate>${escapeXml(new Date().toUTCString())}</lastBuildDate>
     <atom:link href="${escapeXml(feedUrl)}" rel="self" type="application/rss+xml" />

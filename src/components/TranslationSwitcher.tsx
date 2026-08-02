@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Globe } from 'lucide-react';
 import { cn } from '@/lib/ui';
 import { useI18n } from '@/hooks/use-i18n';
+import { getTranslate } from '@/i18n/translate';
 
 /** 翻译版本信息 */
 interface TranslationInfo {
@@ -28,9 +29,9 @@ const SWITCHER_BORDER =
 
 /** 语言代码 → 显示名称映射 */
 const LANG_LABELS: Record<string, string> = {
-  'zh-CN': '中文',
+  'zh-CN': getTranslate('components.languageSwitcher.zhName'),
   'en': 'English',
-  'ja': '日本語',
+  'ja': getTranslate('components.languageSwitcher.jaName'),
   'ko': '한국어',
 };
 
@@ -59,7 +60,7 @@ export function TranslationSwitcher({
   initialTranslations,
   className,
 }: TranslationSwitcherProps) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const [translations, setTranslations] = useState<TranslationInfo[]>([]);
   const [loading, setLoading] = useState(!initialTranslations);
   const [expanded, setExpanded] = useState(false);
@@ -125,7 +126,7 @@ export function TranslationSwitcher({
           expanded && 'bg-zinc-50 border-zinc-300',
         )}
         aria-expanded={expanded}
-        aria-label="切换语言"
+        aria-label={t('components.translationSwitcher.switchLanguage')}
       >
         <Globe size={14} className="text-zinc-500 dark:text-zinc-400" />
         {loading ? (
@@ -137,19 +138,19 @@ export function TranslationSwitcher({
 
       {expanded && translations.length > 0 && (
         <div className="flex items-center gap-1">
-          {translations.map((t) => (
+          {translations.map((item) => (
             <Link
-              key={t.lang}
-              href={t.slug}
+              key={item.lang}
+              href={item.slug}
               className={cn(
                 SWITCHER_ITEM_BASE,
                 SWITCHER_BORDER,
                 'text-zinc-600 dark:text-zinc-400',
-                t.lang === locale && 'bg-zinc-50 border-zinc-300 text-zinc-900 dark:text-zinc-100',
+                item.lang === locale && 'bg-zinc-50 border-zinc-300 text-zinc-900 dark:text-zinc-100',
               )}
-              title={t.title || getLangLabel(t.lang)}
+              title={item.title || getLangLabel(item.lang)}
             >
-              {getLangLabel(t.lang)}
+              {getLangLabel(item.lang)}
             </Link>
           ))}
         </div>

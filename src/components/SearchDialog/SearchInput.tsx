@@ -9,6 +9,7 @@ import { Loader2, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { cn } from '@/lib/ui';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface SearchInputProps {
   value: string;
@@ -25,6 +26,7 @@ export function SearchInput({
   onClose,
   inputRef,
 }: SearchInputProps) {
+  const { t } = useI18n();
   return (
     <div className="flex items-center gap-3 px-6 py-4 border-b border-zinc-100 dark:border-zinc-800">
       <Search
@@ -34,7 +36,7 @@ export function SearchInput({
       <Input
         ref={inputRef}
         type="text"
-        placeholder="搜索文章、日记、标签..."
+        placeholder={t('components.SearchDialog.inputPlaceholder')}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         size="lg"
@@ -57,7 +59,7 @@ export function SearchInput({
         rounded="sm"
         iconOnly
         onClick={onClose}
-        aria-label="关闭搜索"
+        aria-label={t('components.SearchDialog.close')}
         autoLoading={false}
       >
         <X size={18} />

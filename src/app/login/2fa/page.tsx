@@ -8,6 +8,7 @@ import { ChevronRight, ShieldCheck } from 'lucide-react';
 import { GlobalLoading } from '@/components/Loading';
 import AuthCard from '@/components/AuthCard';
 import AuthLayout from '@/components/AuthLayout';
+import { useI18n } from '@/hooks/use-i18n';
 
 /**
  * 清洗 callbackUrl — 仅允许相对路径，防止开放重定向
@@ -29,6 +30,7 @@ function TwoFactorForm() {
   const searchParams = useSearchParams();
   const [form] = Form.useForm();
   const inputRef = useRef<React.ComponentRef<typeof Input>>(null);
+  const { t } = useI18n();
 
   const callbackUrl = sanitizeCallbackUrl(searchParams?.get('callbackUrl') ?? null);
 
@@ -49,17 +51,17 @@ function TwoFactorForm() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        message.success('验证成功');
+        message.success(t('auth.verifySuccess'));
         router.push(callbackUrl);
       } else {
-        message.error(data.error ?? '验证失败');
+        message.error(data.error ?? t('auth.verifyFailed'));
       }
     } catch {
-      message.error('网络请求失败');
+      message.error(t('auth.networkError'));
     } finally {
       setLoading(false);
     }
-  }, [callbackUrl, router]);
+  }, [callbackUrl, router, t]);
 
   const inputStyle = {
     padding: '14px 16px',
@@ -80,17 +82,17 @@ function TwoFactorForm() {
               autoLoading={false}
               onClick={() => router.replace('/login')}
             >
-              返回登录
+              {t('auth.backToLogin')}
             </Button>
           </div>
         }
-        subtitle="请输入验证器 App 中显示的 6 位验证码"
-        title="双因素认证"
+        subtitle={t('auth.verifierCodeHint')}
+        title={t('auth.twoFactorAuth')}
       >
         <div className="flex items-center gap-3 mb-6">
           <ShieldCheck size={24} className="text-zinc-500" />
           <span className="text-sm text-zinc-500">
-            打开 Google Authenticator、Microsoft Authenticator 或其他验证器 App
+            {t('auth.authenticatorHint')}
           </span>
         </div>
 
@@ -99,9 +101,9 @@ function TwoFactorForm() {
             name="code"
             style={{ marginBottom: 0 }}
             rules={[
-              { required: true, message: '请输入验证码' },
-              { len: 6, message: '验证码必须为 6 位数字' },
-              { pattern: /^\d{6}$/, message: '验证码必须为 6 位数字' },
+              { required: true, message: t('auth.inputVerificationCode') },
+              { len: 6, message: t('auth.codeMustBe6Digits') },
+              { pattern: /^\d{6}$/, message: t('auth.codeMustBe6Digits') },
             ]}
           >
             <Input
@@ -120,7 +122,7 @@ function TwoFactorForm() {
                 <Button
                   icon={<ChevronRight size={14} />}
                   loading={loading}
-                  title="验证"
+                  title={t('auth.verify')}
                   variant="filled"
                   onClick={() => form.submit()}
                 />
@@ -134,8 +136,9 @@ function TwoFactorForm() {
 }
 
 export default function TwoFactorLoginPage() {
+  const { t } = useI18n();
   return (
-    <Suspense fallback={<GlobalLoading tip="加载中..." />}>
+    <Suspense fallback={<GlobalLoading tip={t('common.loading')} />}>
       <TwoFactorForm />
     </Suspense>
   );

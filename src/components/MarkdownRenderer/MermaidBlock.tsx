@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface MermaidBlockProps {
   /** Mermaid 图表定义源码 */
@@ -32,6 +33,7 @@ let mermaidInitialized = false;
  * - 容器 overflow-x-auto + max-width: 100%，SVG 自适应宽度
  */
 export function MermaidBlock({ code }: MermaidBlockProps) {
+  const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -108,7 +110,7 @@ export function MermaidBlock({ code }: MermaidBlockProps) {
       } catch (err) {
         if (cancelled) return;
         console.error('Mermaid 渲染失败:', err);
-        setError(err instanceof Error ? err.message : '图表渲染失败');
+        setError(err instanceof Error ? err.message : t('components.mermaid.renderFailed'));
         setLoading(false);
       }
     }
@@ -118,14 +120,14 @@ export function MermaidBlock({ code }: MermaidBlockProps) {
     return () => {
       cancelled = true;
     };
-  }, [code]);
+  }, [code, t]);
 
   // 加载状态
   if (loading && !error) {
     return (
       <div className="my-8 flex items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-zinc-50 p-6 text-sm text-zinc-400">
         <Loader2 size={16} className="animate-spin" />
-        图表加载中...
+        {t('components.mermaid.loading')}
       </div>
     );
   }
@@ -134,7 +136,7 @@ export function MermaidBlock({ code }: MermaidBlockProps) {
   if (error) {
     return (
       <div className="my-8 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
-        <div className="font-medium">图表渲染失败</div>
+        <div className="font-medium">{t('components.mermaid.renderFailed')}</div>
         <pre className="mt-1 whitespace-pre-wrap break-words text-xs text-red-500 opacity-75">{error}</pre>
       </div>
     );

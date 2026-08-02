@@ -8,12 +8,14 @@ export function PostListHeader({
   onSearchChange,
   postCount,
   t,
+  locale,
   rightExtra,
 }: {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   postCount: number;
   t: (key: string) => string;
+  locale: 'zh-CN' | 'en';
   rightExtra?: React.ReactNode;
 }) {
   return (
@@ -35,7 +37,7 @@ export function PostListHeader({
         <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white rounded-2xl border border-zinc-200">
           <BookOpen size={16} className="text-zinc-400" />
           <span className="text-sm font-bold text-zinc-900">{postCount}</span>
-          <span className="text-xs text-zinc-400">{t('common.info') === '提示' ? '篇' : 'posts'}</span>
+          <span className="text-xs text-zinc-400">{locale === 'zh-CN' ? t('posts.unit') : 'posts'}</span>
         </div>
       </div>
     </div>

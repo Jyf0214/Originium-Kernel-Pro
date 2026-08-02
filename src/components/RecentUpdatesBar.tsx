@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Bell, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface UpdateItem {
   text: string;
@@ -22,8 +23,9 @@ interface RecentUpdatesBarProps {
 export function RecentUpdatesBar({
   updates,
   viewAllLink = '/posts',
-  viewAllText = '更多',
+  viewAllText,
 }: RecentUpdatesBarProps) {
+  const { t } = useI18n();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -97,7 +99,7 @@ export function RecentUpdatesBar({
           href={viewAllLink}
           className="shrink-0 flex items-center gap-1 text-xs text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors ml-auto"
         >
-          {viewAllText}
+          {viewAllText ?? t('components.recentUpdatesBar.viewAll')}
           <ChevronRight size={14} />
         </Link>
       )}

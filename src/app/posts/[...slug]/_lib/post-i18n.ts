@@ -3,9 +3,11 @@
  * 与 post-utils.ts 分离，避免客户端 bundle 引入服务端 fs 模块
  */
 
+import { getTranslate } from '@/i18n/translate';
+
 const I18N_MAP: Record<string, string> = {
-  title: '帖子',
-  backToPosts: '返回帖子列表',
+  title: getTranslate('posts.title'),
+  backToPosts: getTranslate('posts.backToPosts'),
 };
 
 export function tPosts(key: string): string {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useCallback } from 'react';
+import { useI18n } from '@/hooks/use-i18n';
 
 /**
  * 客户端交互增强组件
@@ -14,17 +15,18 @@ import { useEffect, useCallback } from 'react';
  * 使用事件委托，无需遍历子元素绑定事件。
  */
 export function ClientEnhancer({ containerRef }: { containerRef: React.RefObject<HTMLDivElement | null> }) {
+  const { t } = useI18n();
   /* ── 代码块：复制 ── */
   const handleCopy = useCallback(async (code: string, btn: HTMLElement) => {
     try {
       await navigator.clipboard.writeText(code);
       btn.textContent = '✓';
-      setTimeout(() => { btn.textContent = '复制'; }, 2000);
+      setTimeout(() => { btn.textContent = t('components.markdown.copy'); }, 2000);
     } catch {
-      btn.textContent = '失败';
-      setTimeout(() => { btn.textContent = '复制'; }, 2000);
+      btn.textContent = t('components.markdown.copyFailedShort');
+      setTimeout(() => { btn.textContent = t('components.markdown.copy'); }, 2000);
     }
-  }, []);
+  }, [t]);
 
   /* ── 代码块：折叠/展开 ── */
   const handleToggleCollapse = useCallback((btn: HTMLElement) => {
@@ -33,12 +35,12 @@ export function ClientEnhancer({ containerRef }: { containerRef: React.RefObject
     const isCollapsed = pre.classList.contains('max-h-40');
     if (isCollapsed) {
       pre.classList.remove('max-h-40', 'overflow-hidden');
-      btn.textContent = '折叠';
+      btn.textContent = t('components.markdown.collapse');
     } else {
       pre.classList.add('max-h-40', 'overflow-hidden');
-      btn.textContent = '展开';
+      btn.textContent = t('components.markdown.expand');
     }
-  }, []);
+  }, [t]);
 
   /* ── 事件委托 ── */
   useEffect(() => {
@@ -90,7 +92,7 @@ export function ClientEnhancer({ containerRef }: { containerRef: React.RefObject
       const btn = document.createElement('button');
       btn.className = 'anchor-copy-btn ml-2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 opacity-0 transition-opacity text-xs';
       btn.textContent = '#';
-      btn.title = '复制链接';
+      btn.title = t('components.markdown.copyLink');
       btn.type = 'button';
       btn.addEventListener('click', async (ev) => {
         ev.preventDefault();
@@ -125,7 +127,7 @@ export function ClientEnhancer({ containerRef }: { containerRef: React.RefObject
       container.removeEventListener('mouseenter', handleMouseEnter, true);
       container.removeEventListener('mouseleave', handleMouseLeave, true);
     };
-  }, [containerRef]);
+  }, [containerRef, t]);
 
   return null;
 }

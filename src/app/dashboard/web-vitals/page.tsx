@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { useI18n } from '@/hooks/use-i18n';
+import { getTranslate } from '@/i18n/translate';
 import { GlobalLoading } from '@/components/Loading';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
@@ -12,27 +14,28 @@ const features = [
   {
     icon: Gauge,
     title: 'Core Web Vitals',
-    desc: 'LCP、INP、CLS、TTFB 等核心性能指标，基于真实用户数据采集',
+    desc: getTranslate('webVitals.featureCwvDesc'),
   },
   {
     icon: BarChart3,
-    title: '分位数统计',
-    desc: 'P50 / P75 / P95 分位数，按页面和指标维度聚合',
+    title: getTranslate('webVitals.featurePercentileTitle'),
+    desc: getTranslate('webVitals.featurePercentileDesc'),
   },
   {
     icon: Zap,
-    title: '实时监控',
-    desc: '数据自动持久化，不受 Serverless 冷启动影响',
+    title: getTranslate('webVitals.featureRealtimeTitle'),
+    desc: getTranslate('webVitals.featureRealtimeDesc'),
   },
   {
     icon: Shield,
-    title: '生产级可靠性',
-    desc: '由 Vercel 平台直接采集，数据完整、准确、可追溯',
+    title: getTranslate('webVitals.featureReliabilityTitle'),
+    desc: getTranslate('webVitals.featureReliabilityDesc'),
   },
 ];
 
 export default function WebVitalsPage() {
   const { user, isSudo, loading: authLoading } = useAuth();
+  const { t } = useI18n();
 
   if (authLoading) return <GlobalLoading />;
   if (!user || !isSudo) return null;
@@ -43,7 +46,7 @@ export default function WebVitalsPage() {
     <PageContainer maxWidth="4xl">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Web Vitals</h1>
-        <p className="text-zinc-400 dark:text-zinc-500 text-sm mt-1">Core Web Vitals 性能指标监控</p>
+        <p className="text-zinc-400 dark:text-zinc-500 text-sm mt-1">{t('webVitals.subtitle')}</p>
       </div>
 
       {/* 迁移提示 */}
@@ -54,11 +57,10 @@ export default function WebVitalsPage() {
           </div>
           <div className="flex-1">
             <h3 className="text-sm font-semibold text-blue-900 mb-1">
-              数据已迁移到 Vercel Analytics
+              {t('webVitals.migratedTitle')}
             </h3>
             <p className="text-sm text-blue-700 mb-4">
-              Web Vitals 数据现在由 Vercel 平台直接采集和存储，
-              不再使用自建的内存存储方案。请前往 Vercel Dashboard 查看完整的性能数据。
+              {t('webVitals.migratedDesc')}
             </p>
             <Button
               variant="primary"
@@ -67,7 +69,7 @@ export default function WebVitalsPage() {
               onClick={() => window.open(vercelAnalyticsUrl, '_blank')}
               autoLoading={false}
             >
-              打开 Vercel Analytics
+              {t('webVitals.openAnalytics')}
             </Button>
           </div>
         </div>

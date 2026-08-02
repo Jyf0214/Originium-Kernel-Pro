@@ -6,6 +6,7 @@
 import { message } from 'antd';
 import { Button } from '@/components/ui/Button';
 import { Clipboard } from 'lucide-react';
+import { getTranslate } from '@/i18n/translate';
 
 const copiedKey = 'copied-feedback';
 
@@ -24,15 +25,15 @@ export function showError(msg: string, duration = 4) {
           onClick={(e) => {
             e.stopPropagation();
             navigator.clipboard.writeText(msg).then(() => {
-              message.success({ content: '已复制到剪贴板', key: copiedKey, duration: 1.5 });
+              message.success({ content: getTranslate('lib.error.copied'), key: copiedKey, duration: 1.5 });
             }).catch(() => {
-              message.error({ content: '复制失败', key: copiedKey, duration: 1.5 });
+              message.error({ content: getTranslate('lib.error.copyFailed'), key: copiedKey, duration: 1.5 });
             });
           }}
-          title="点击复制错误信息"
+          title={getTranslate('lib.error.clickToCopy')}
         >
           <Clipboard size={14} className="inline-block mr-1" />
-          复制
+          {getTranslate('lib.error.copy')}
         </Button>
       </span>
     ),

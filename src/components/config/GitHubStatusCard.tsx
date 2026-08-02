@@ -35,7 +35,7 @@ export function GitHubStatusCard({ configured, repo, className }: GitHubStatusCa
         <>
           <CheckCircle size={20} className="text-emerald-500" />
           <span className="font-medium text-sm text-zinc-700">
-            {t('config.githubConfigured') || 'GitHub 已配置'}
+            {t('config.githubConfigured')}
           </span>
           {repo && (
             <span className="text-xs text-zinc-400 ml-auto">{repo}</span>
@@ -45,7 +45,7 @@ export function GitHubStatusCard({ configured, repo, className }: GitHubStatusCa
         <>
           <XCircle size={20} className="text-amber-500" />
           <span className="font-medium text-sm text-zinc-700">
-            {t('config.githubNotConfigured') || 'GitHub 未配置'}
+            {t('config.githubNotConfigured')}
           </span>
         </>
       )}

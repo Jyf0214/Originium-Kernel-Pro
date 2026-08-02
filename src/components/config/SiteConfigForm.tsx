@@ -3,6 +3,7 @@
 import React from 'react';
 import { Select } from 'antd';
 import { useI18n } from '@/hooks/use-i18n';
+import { getTranslate } from '@/i18n/translate';
 import FormField from '@/components/ui/FormField';
 import type { SiteConfig } from '@/lib/config-schema';
 
@@ -16,9 +17,9 @@ export interface SiteConfigFormProps {
 
 /** 语言选项 */
 const languageOptions = [
-  { value: 'zh-CN', label: '中文' },
+  { value: 'zh-CN', label: getTranslate('components.languageSwitcher.zhName') },
   { value: 'en', label: 'English' },
-  { value: 'ja-JP', label: '日本語' },
+  { value: 'ja-JP', label: getTranslate('components.languageSwitcher.jaName') },
 ];
 
 /**

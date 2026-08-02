@@ -5,10 +5,11 @@ import { Globe } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { tooltipVariants, tooltipTransition } from '@/components/ui/motion';
 import { useI18n } from '@/hooks/use-i18n';
+import { getTranslate } from '@/i18n/translate';
 import { Button } from '@/components/ui/Button';
 
 const LOCALES = [
-  { code: 'zh-CN' as const, name: '中文' },
+  { code: 'zh-CN' as const, name: getTranslate('components.languageSwitcher.zhName') },
   { code: 'en' as const, name: 'EN' },
 ];
 

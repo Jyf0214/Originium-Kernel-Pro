@@ -5,10 +5,11 @@ import { PostListClient } from '../PostListClient';
 import { redirect } from 'next/navigation';
 import { Lock } from 'lucide-react';
 import type { Metadata } from 'next';
+import { getTranslate } from '@/i18n/translate';
 
 export const metadata: Metadata = {
-  title: '私人内容 - Originium Kernel',
-  description: '仅登录用户可见的私人帖子',
+  title: getTranslate('posts.privateMetaTitle'),
+  description: getTranslate('posts.privateMetaDescription'),
 };
 
 /**

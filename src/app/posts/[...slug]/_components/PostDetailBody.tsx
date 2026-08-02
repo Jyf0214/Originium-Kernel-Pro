@@ -123,7 +123,7 @@ export function PostDetailBody({
         {isHidden && (
           <div className="mb-6">
             <Tag variant="amber" size="sm">
-              仅展示
+              {t('posts.hiddenOnly')}
             </Tag>
           </div>
         )}
@@ -231,10 +231,10 @@ export function PostDetailBody({
           type="button"
           onClick={() => setQrOpen(true)}
           className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500 transition-colors text-sm text-zinc-600 dark:text-zinc-300"
-          title="分享二维码"
+          title={t('posts.shareQR')}
         >
           <QrCode size={16} />
-          二维码
+          {t('posts.qrCode')}
         </button>
         <PostLikeButton slug={fullPath} />
       </div>

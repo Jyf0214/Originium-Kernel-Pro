@@ -12,6 +12,7 @@ import { hashApiKey, createSession, createTempToken } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { createApiLogger } from '@/lib/api-logger';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/auth/apikey-login');
 
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
   if (!rl.allowed) {
     logger.warn('POST', 'API 密钥登录频率超限', { retryAfterMs: rl.retryAfterMs });
     return NextResponse.json(
-      { error: `登录尝试过于频繁，请在 ${Math.ceil(rl.retryAfterMs / 1000)} 秒后重试` },
+      { error: getTranslate('api.auth.loginTooFrequent', { seconds: Math.ceil(rl.retryAfterMs / 1000) }) },
       { status: 429 },
     );
   }
@@ -35,30 +36,30 @@ export async function POST(req: NextRequest) {
 
   const rawKey = (body.key ?? '').trim();
   if (!rawKey) {
-    return NextResponse.json({ error: '请输入 API 密钥' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.auth.enterApiKey') }, { status: 400 });
   }
 
   if (!rawKey.startsWith('sk-')) {
-    return NextResponse.json({ error: '无效的 API 密钥格式' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.auth.invalidApiKeyFormat') }, { status: 400 });
   }
 
   const db = getDb();
   if (!db.prisma) {
-    return NextResponse.json({ error: '数据库未配置' }, { status: 503 });
+    return NextResponse.json({ error: getTranslate('api.common.dbNotConfigured') }, { status: 503 });
   }
 
   const hashed = hashApiKey(rawKey);
   const row = await db.prisma.apiKey.findUnique({ where: { key: hashed } });
   if (!row) {
     logger.warn('POST', 'API 密钥无效');
-    return NextResponse.json({ error: '密钥无效或已删除' }, { status: 401 });
+    return NextResponse.json({ error: getTranslate('api.auth.invalidApiKey') }, { status: 401 });
   }
 
   // 通过 UID 查用户信息
   const userRaw = await db.get(`user:uid:${row.uid}`);
   if (!userRaw) {
     logger.warn('POST', '关联用户不存在', { uid: row.uid });
-    return NextResponse.json({ error: '关联用户不存在' }, { status: 401 });
+    return NextResponse.json({ error: getTranslate('api.auth.linkedUserNotFound') }, { status: 401 });
   }
 
   let user: { uid: string; email: string; role: string; userGroup?: string; twoFactorEnabled?: boolean };
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
     user = JSON.parse(userRaw);
   } catch {
     logger.error('POST', '用户数据 JSON 解析失败', { uid: row.uid });
-    return NextResponse.json({ error: '用户数据异常' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.auth.userDataError') }, { status: 500 });
   }
 
   // 更新最后使用时间(异步,不阻塞响应)

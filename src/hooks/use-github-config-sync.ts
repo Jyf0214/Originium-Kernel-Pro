@@ -51,16 +51,16 @@ export function useGitHubConfigSync({
   const handleSave = useCallback((initialConfig: Record<string, unknown>, remoteConfigOverride?: string, commitMessage?: string, repoOverride?: string, currentConfigOverride?: Record<string, unknown>) => {
     const effectiveRepo = repoOverride ?? repo;
     if (!effectiveRepo && !githubConfigured) {
-      message.error('GitHub 未配置');
+      message.error(t('config.githubNotConfigured'));
       return;
     }
     if (!initialConfig) {
-      message.error('初始配置未加载');
+      message.error(t('config.initialConfigNotLoaded'));
       return;
     }
     const effectiveConfig = currentConfigOverride ?? currentConfig;
     if (JSON.stringify(initialConfig) === JSON.stringify(effectiveConfig)) {
-      message.info('没有需要保存的变更');
+      message.info(t('config.noChangesToSave'));
       return;
     }
 
@@ -107,12 +107,12 @@ export function useGitHubConfigSync({
           });
           if (!res.ok) {
             const err = await res.json();
-            throw new Error(err.error ?? '同步失败');
+            throw new Error(err.error ?? t('config.syncFailed'));
           }
-          message.success(t('config.saveSuccess') ?? '配置已成功保存至 GitHub');
+          message.success(t('config.saveSuccess'));
           onSyncComplete?.(yamlContent);
         } catch (error) {
-          showError(`${t('config.saveFailed') ?? '保存失败'}: ${error instanceof Error ? error.message : '未知错误'}`);
+          showError(`${t('config.saveFailed')}: ${error instanceof Error ? error.message : t('config.unknownError')}`);
           onSyncError?.(error);
           throw error;
         }

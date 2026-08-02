@@ -5,6 +5,7 @@ import { Modal, message } from 'antd';
 import { Button } from '@/components/ui/Button';
 import { Github, CheckCircle2 } from 'lucide-react';
 import { createTwoFilesPatch } from 'diff';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface GitHubDiffProps {
   filePath: string;
@@ -56,6 +57,7 @@ export function GitHubDiffModal({
   loading = false,
   open = false,
 }: GitHubDiffProps) {
+  const { t } = useI18n();
   const [hunks, setHunks] = useState<DiffHunk[]>([]);
 
   useEffect(() => {
@@ -84,7 +86,7 @@ export function GitHubDiffModal({
             <Github size={15} className="text-white" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-base font-bold text-zinc-900 leading-tight">确认配置变更</h2>
+            <h2 className="text-base font-bold text-zinc-900 leading-tight">{t('githubDiff.confirmChanges')}</h2>
             <p className="text-xs text-zinc-400 mt-0.5 truncate">
               <span className="font-mono">{filePath}</span>
               {repo && <span className="ml-1.5 opacity-50">· {repo}</span>}
@@ -98,7 +100,7 @@ export function GitHubDiffModal({
         <div className="max-h-[45vh] sm:max-h-80 overflow-y-auto overflow-x-hidden">
           <div className="font-mono text-xs sm:text-sm leading-5 min-w-0">
             {hunks.length === 0 && (
-              <div className="text-zinc-500 text-center py-6">无变更</div>
+              <div className="text-zinc-500 text-center py-6">{t('githubDiff.noChanges')}</div>
             )}
             {hunks.map((hunk, hi) => (
               <div key={hi}>
@@ -124,7 +126,7 @@ export function GitHubDiffModal({
       {/* 底部操作栏 */}
       <div className="flex items-center justify-end gap-2 px-4 py-3 sm:px-5 sm:py-4">
         <Button onClick={onCancel} disabled={loading} variant="default" size="sm" autoLoading={false}>
-          取消
+          {t('githubDiff.cancel')}
         </Button>
         <Button
           variant="primary"
@@ -133,7 +135,7 @@ export function GitHubDiffModal({
           onClick={onConfirm}
           icon={<CheckCircle2 size={14} />}
         >
-          确认提交
+          {t('githubDiff.confirmSubmit')}
         </Button>
       </div>
     </Modal>
@@ -147,6 +149,7 @@ interface GitHubDiffManagerProps {
 }
 
 export function GitHubDiffProvider({ children }: GitHubDiffManagerProps) {
+  const { t } = useI18n();
   const [modalData, setModalData] = useState<{
     filePath: string;
     repo: string;
@@ -171,9 +174,9 @@ export function GitHubDiffProvider({ children }: GitHubDiffManagerProps) {
     setLoading(true);
     try {
       await modalData.onConfirm();
-      message.success('配置已同步到 GitHub');
+      message.success(t('githubDiff.syncSuccess'));
     } catch {
-      message.error('同步失败');
+      message.error(t('githubDiff.syncFailed'));
     } finally {
       setLoading(false);
     }

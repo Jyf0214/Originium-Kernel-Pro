@@ -2,6 +2,7 @@
 // 与 UI 渲染解耦，方便单元测试和复用。
 
 import { FOOTER_CONFIG, SOCIAL_DATA } from '@/data/site-config';
+import { getTranslate } from '@/i18n/translate';
 
 import type {
   FooterBadge,
@@ -13,28 +14,28 @@ import type {
 
 export const DEFAULT_FOOTER_LINKS: FooterLinkGroup[] = [
   {
-    group: '服务',
+    group: getTranslate('footerConfig.groupService'),
     items: [
-      { name: '关于我们', url: '/about' },
-      { name: '隐私政策', url: '/about' },
-      { name: '服务条款', url: '/about' },
+      { name: getTranslate('footerConfig.aboutUs'), url: '/about' },
+      { name: getTranslate('footerConfig.privacyPolicy'), url: '/about' },
+      { name: getTranslate('footerConfig.termsOfService'), url: '/about' },
     ],
   },
   {
-    group: '社交',
+    group: getTranslate('footerConfig.groupSocial'),
     items: [
       { name: 'GitHub', url: 'https://github.com/Jyf0214' },
       { name: 'Twitter', url: '#' },
-      { name: '微博', url: '#' },
+      { name: getTranslate('footerConfig.weibo'), url: '#' },
     ],
   },
   {
-    group: '导航',
+    group: getTranslate('footerConfig.groupNavigation'),
     items: [
-      { name: '首页', url: '/' },
-      { name: '文章', url: '/posts' },
-      { name: '日记', url: '/diary' },
-      { name: '通讯录', url: '/faces' },
+      { name: getTranslate('footerConfig.home'), url: '/' },
+      { name: getTranslate('footerConfig.articles'), url: '/posts' },
+      { name: getTranslate('footerConfig.diary'), url: '/diary' },
+      { name: getTranslate('footerConfig.contacts'), url: '/faces' },
     ],
   },
 ];
@@ -46,8 +47,8 @@ export const DEFAULT_FOOTER_BADGES: FooterBadge[] = [
   { name: 'TypeScript', url: 'https://www.typescriptlang.org/' },
 ];
 
-export const DEFAULT_FOOTER_TYPED_TEXTS = ['用心记录每一天', '文字是最长情的告白', '生活需要仪式感'];
-const DEFAULT_TIME_FORMAT = '本站已运行 {days} 天 {hours} 小时 {minutes} 分 {seconds} 秒';
+export const DEFAULT_FOOTER_TYPED_TEXTS = [getTranslate('footerConfig.typedText1'), getTranslate('footerConfig.typedText2'), getTranslate('footerConfig.typedText3')];
+const DEFAULT_TIME_FORMAT = getTranslate('footerConfig.defaultTimeFormat');
 
 // ─── Default Value Resolver ──────────────────────────
 // 将配置中的各字段统一解析为最终值，缺失时使用默认值兜底。
@@ -66,7 +67,7 @@ function resolveRuntime(cfg: FooterConfigData['runtime'] | undefined) {
     launchTime: resolveVal(cfg?.launchTime, ''),
     timeFormat: resolveVal(cfg?.timeFormat, DEFAULT_TIME_FORMAT),
     onlineHours: resolveVal(cfg?.onlineHours, { start: 9, end: 18 }),
-    statusText: resolveVal(cfg?.statusText, { online: '在线', offline: '休息中' }),
+    statusText: resolveVal(cfg?.statusText, { online: getTranslate('footerBrand.online'), offline: getTranslate('footerBrand.offline') }),
   };
 }
 
@@ -96,7 +97,7 @@ export function resolveDefaults(config: FooterConfigData | null): ResolvedFooter
     typedText: resolveList(config?.typedText, DEFAULT_FOOTER_TYPED_TEXTS),
     typedTextPrefix: resolveVal(config?.typedTextPrefix, ''),
     typedTextSpeed: resolveVal(config?.typedTextSpeed, { type: 100, delete: 50, pause: 2000 }),
-    scrollToTopText: resolveVal(config?.scrollToTopText, '回到顶部'),
+    scrollToTopText: resolveVal(config?.scrollToTopText, getTranslate('footerConfig.scrollToTop')),
     owner: resolveVal(owner, { enable: true, since: 2026 }),
     author: resolveVal(owner?.author, 'Jyf0214'),
     customText: resolveVal(config?.customText, ''),

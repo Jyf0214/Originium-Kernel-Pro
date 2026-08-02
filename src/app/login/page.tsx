@@ -82,13 +82,13 @@ function LoginForm() {
         return;
       }
       if (res.ok && data.success) {
-        message.success('登录成功');
+        message.success(t('auth.loginSuccess'));
         router.push(callbackUrl);
       } else {
-        message.error(data.error ?? '登录失败');
+        message.error(data.error ?? t('auth.loginFailed'));
       }
     } catch {
-      message.error('网络请求失败');
+      message.error(t('auth.networkError'));
     } finally {
       setLoading(false);
     }
@@ -117,7 +117,7 @@ function LoginForm() {
             className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-600 transition-colors"
           >
             <Key size={14} />
-            {t('auth.loginWithApiKey') || '使用 API 密钥登录'}
+            {t('auth.loginWithApiKey')}
           </button>
           <Link href="/forgot-password">
             <span className="text-sm text-zinc-400 cursor-pointer hover:text-zinc-600">
@@ -220,13 +220,13 @@ function LoginForm() {
           </Button>
         </div>
       }
-      subtitle={t('auth.apiKeyLoginSubtitle') || '输入 sk-xxx 格式的 API 密钥'}
-      title={t('auth.apiKeyLoginTitle') || 'API 密钥登录'}
+      subtitle={t('auth.apiKeyLoginSubtitle')}
+      title={t('auth.apiKeyLoginTitle')}
     >
       <Form form={apiKeyForm} layout="vertical" onFinish={handleApiKeyLogin}>
         <Form.Item
           name="key"
-          rules={[{ required: true, message: t('auth.inputApiKey') || '请输入 API 密钥' }]}
+          rules={[{ required: true, message: t('auth.inputApiKey') }]}
           style={{ marginBottom: 0 }}
         >
           <Input

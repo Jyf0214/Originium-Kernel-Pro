@@ -12,9 +12,11 @@ import { DiaryCard } from './DiaryCard';
 import { DiarySettingsPanel } from './DiarySettingsPanel';
 import { SecurityInfoModal } from './SecurityInfoModal';
 import { VersionHistoryModal } from './VersionHistoryModal';
+import { useI18n } from '@/hooks/use-i18n';
 
 export function DiaryPageClient() {
   const s = useDiaryState();
+  const { t } = useI18n();
   const [showSettings, setShowSettings] = useState(false);
   const [showSecurityInfo, setShowSecurityInfo] = useState(false);
   const [versionHistoryDiaryId, setVersionHistoryDiaryId] = useState<string | null>(null);
@@ -34,7 +36,7 @@ export function DiaryPageClient() {
             onClick={() => s.router.push('/diary/new')}
             icon={<Plus size={14} />}
           >
-            <span className="hidden sm:inline">新建日记</span>
+            <span className="hidden sm:inline">{t('diary.newEntry')}</span>
           </Button>
           <Button
             variant={showSettings ? 'primary' : 'secondary'}
@@ -42,9 +44,9 @@ export function DiaryPageClient() {
             autoLoading={false}
             onClick={() => setShowSettings(!showSettings)}
             icon={<Settings size={14} />}
-            title="日记设置"
+            title={t('diary.settings')}
           >
-            <span className="hidden sm:inline">设置</span>
+            <span className="hidden sm:inline">{t('common.settings')}</span>
           </Button>
           <Button
             variant="secondary"
@@ -53,7 +55,7 @@ export function DiaryPageClient() {
             onClick={() => s.router.push('/diary/drafts')}
             icon={<FileText size={14} />}
           >
-            <span className="hidden sm:inline">草稿箱</span>
+            <span className="hidden sm:inline">{t('diary.drafts')}</span>
           </Button>
           <Button
             variant="secondary"
@@ -62,9 +64,9 @@ export function DiaryPageClient() {
             onClick={() => setShowSecurityInfo(true)}
             icon={<ShieldAlert size={14} />}
             className="text-amber-600 hover:bg-amber-50"
-            title="安全与隐私说明"
+            title={t('diary.securityPrivacyTitle')}
           >
-            <span className="hidden sm:inline">安全与隐私</span>
+            <span className="hidden sm:inline">{t('diary.securityPrivacy')}</span>
           </Button>
         </div>
 
@@ -96,7 +98,7 @@ export function DiaryPageClient() {
           </div>
         ) : s.diaries.length === 0 ? (
           <EmptyState
-            description="暂无日记"
+            description={t('diary.noDiaries')}
             action={
               <Button
                 variant="primary"
@@ -105,7 +107,7 @@ export function DiaryPageClient() {
                 onClick={() => s.router.push('/diary/new')}
                 icon={<Plus size={18} />}
               >
-                写下第一篇日记
+                {t('diary.writeFirst')}
               </Button>
             }
           />

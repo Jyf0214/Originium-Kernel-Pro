@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { showError } from '@/lib/error';
+import { getTranslate } from '@/i18n/translate';
 import type { RemoteConfigData } from './types';
 
 export interface UseConfigDataResult {
@@ -28,10 +29,10 @@ export function useConfigData(): UseConfigDataResult {
           setGithubConfigured(!!data.githubConfigured);
           setConfigData(data);
         } else {
-          showError('GitHub 配置加载失败');
+          showError(getTranslate('settings.githubConfigLoadFailed'));
         }
       } catch {
-        showError('GitHub 配置加载失败');
+        showError(getTranslate('settings.githubConfigLoadFailed'));
       } finally {
         setConfigLoaded(true);
       }

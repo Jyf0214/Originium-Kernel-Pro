@@ -2,6 +2,8 @@ import React from 'react';
 import { Select, Tag } from 'antd';
 import { Button } from '@/components/ui/Button';
 import { Plus } from 'lucide-react';
+import { getTranslate } from '@/i18n/translate';
+import { useI18n } from '@/hooks/use-i18n';
 import ToggleField from './ToggleField';
 
 interface CoverConfigData {
@@ -18,12 +20,13 @@ interface CoverConfigProps {
 }
 
 const positionOptions = [
-  { value: 'left', label: '左侧' },
-  { value: 'right', label: '右侧' },
-  { value: 'both', label: '两侧' },
+  { value: 'left', label: getTranslate('components.CoverConfig.positionLeft') },
+  { value: 'right', label: getTranslate('components.CoverConfig.positionRight') },
+  { value: 'both', label: getTranslate('components.CoverConfig.positionBoth') },
 ];
 
 export default function CoverConfig({ config, onChange }: CoverConfigProps) {
+  const { t } = useI18n();
   const [input, setInput] = React.useState('');
 
   const addCover = () => {
@@ -42,24 +45,24 @@ export default function CoverConfig({ config, onChange }: CoverConfigProps) {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <ToggleField
-          label="首页显示封面"
+          label={t('components.CoverConfig.showIndexCover')}
           checked={config.indexEnable}
           onChange={v => onChange({ ...config, indexEnable: v })}
         />
         <ToggleField
-          label="侧栏显示封面"
+          label={t('components.CoverConfig.showAsideCover')}
           checked={config.asideEnable}
           onChange={v => onChange({ ...config, asideEnable: v })}
         />
         <ToggleField
-          label="归档页显示封面"
+          label={t('components.CoverConfig.showArchivesCover')}
           checked={config.archivesEnable}
           onChange={v => onChange({ ...config, archivesEnable: v })}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2">封面位置</label>
+        <label className="block text-sm font-medium mb-2">{t('components.CoverConfig.coverPosition')}</label>
         <Select
           value={config.position}
           onChange={v => onChange({ ...config, position: v })}
@@ -71,18 +74,18 @@ export default function CoverConfig({ config, onChange }: CoverConfigProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2">默认封面图片</label>
+        <label className="block text-sm font-medium mb-2">{t('components.CoverConfig.defaultCover')}</label>
         <div className="flex items-center gap-2 mb-3">
           <input
             type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addCover()}
-            placeholder="图片 URL"
+            placeholder={t('components.CoverConfig.coverPlaceholder')}
             className="flex-1 h-9 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400"
           />
           <Button size="sm" icon={<Plus size={14} />} onClick={addCover} autoLoading={false} className="rounded-lg shrink-0">
-            添加
+            {t('components.CoverConfig.add')}
           </Button>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -92,7 +95,7 @@ export default function CoverConfig({ config, onChange }: CoverConfigProps) {
             </Tag>
           ))}
           {config.defaultCover.length === 0 && (
-            <span className="text-xs text-zinc-400">暂无默认封面</span>
+            <span className="text-xs text-zinc-400">{t('components.CoverConfig.noCovers')}</span>
           )}
         </div>
       </div>

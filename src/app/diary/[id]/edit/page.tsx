@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
+import { useI18n } from '@/hooks/use-i18n';
 import DiaryForm from '../../_form';
 
 interface PageProps {
@@ -12,6 +13,7 @@ interface PageProps {
 }
 
 export default function EditDiaryPage({ params }: PageProps) {
+  const { t } = useI18n();
   const [id, setId] = React.useState<string | null>(null);
   const [initialTitle, setInitialTitle] = React.useState('');
   const [initialContent, setInitialContent] = React.useState('');
@@ -34,7 +36,7 @@ export default function EditDiaryPage({ params }: PageProps) {
       setId(resolvedId);
       try {
         const res = await fetch(`/api/diary/${resolvedId}`);
-        if (!res.ok) throw new Error('加载失败');
+        if (!res.ok) throw new Error(t('diary.loadFailed'));
         const json = await res.json();
         if (json.diary) {
           setInitialTitle(json.diary.title ?? '');
@@ -44,14 +46,14 @@ export default function EditDiaryPage({ params }: PageProps) {
           setInitialGroup(json.diary.group ?? '');
         }
       } catch {
-        showError('加载日记失败');
+        showError(t('diary.loadDiaryFailed'));
         router.push('/diary');
       } finally {
         setPageLoading(false);
       }
     }
     void init();
-  }, [params, router, authLoading, user, isSudo]);
+  }, [params, router, authLoading, user, isSudo, t]);
 
   if (authLoading || pageLoading) return <GlobalLoading />;
   if (!user || !isSudo) return null;
@@ -72,7 +74,7 @@ export default function EditDiaryPage({ params }: PageProps) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title, content, tags, date, group }),
         });
-        if (!res.ok) throw new Error('保存失败');
+        if (!res.ok) throw new Error(t('diary.saveFailed'));
         return id;
       }}
     />

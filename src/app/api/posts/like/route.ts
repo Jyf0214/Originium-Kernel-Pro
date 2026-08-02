@@ -1,7 +1,9 @@
-import { NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { apiHandler } from '@/lib/api-handler';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { getDb } from '@/lib/db';
+import crypto from 'crypto';
+import { getTranslate } from '@/i18n/translate';
 
 /**
  * 文章点赞 API
@@ -29,13 +31,13 @@ const MAX_SLUG_LEN = 200;
 const DEDUP_TTL_SECONDS = 24 * 60 * 60;
 
 /** GET — 获取点赞数 */
-export const GET = apiHandler('GET', { label: '文章点赞查询' }, async (req) => {
+export const GET = apiHandler('GET', { label: getTranslate('api.posts.likeQuery') }, async (req) => {
   const slug = req.nextUrl.searchParams.get('slug');
   if (!slug || typeof slug !== 'string') {
-    return NextResponse.json({ error: '缺少 slug 参数' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.posts.missingSlugParam') }, { status: 400 });
   }
   if (slug.length > MAX_SLUG_LEN) {
-    return NextResponse.json({ error: 'slug 长度超出限制' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.posts.slugTooLong') }, { status: 400 });
   }
   const db = getDb();
   const raw = await db.get(`${LIKE_COUNT_PREFIX}${slug}`);
@@ -45,13 +47,25 @@ export const GET = apiHandler('GET', { label: '文章点赞查询' }, async (req
   });
 })
 
+/**
+ * 获取或创建点赞客户端指纹 cookie
+ * 使用 SHA-256 哈希生成不可预测的指纹，防止篡改
+ */
+function getOrCreateFingerprint(req: NextRequest): { value: string; isNew: boolean } {
+  const existing = req.cookies.get('like_fp')?.value;
+  if (existing && /^[a-f0-9]{32}$/.test(existing)) {
+    return { value: existing, isNew: false };
+  }
+  return { value: crypto.randomBytes(16).toString('hex'), isNew: true };
+}
+
 /** POST — 点赞 */
-export const POST = apiHandler('POST', { label: '文章点赞' }, async (req) => {
+export const POST = apiHandler('POST', { label: getTranslate('api.posts.like') }, async (req) => {
   const ip = getClientIp(req);
   const { allowed, retryAfterMs } = rateLimit(`${ip}:like`, LIKE_RATE_LIMIT, LIKE_RATE_WINDOW_MS);
   if (!allowed) {
     return NextResponse.json(
-      { error: '点赞过于频繁，请稍后再试' },
+      { error: getTranslate('api.posts.likeRateLimited') },
       { status: 429, headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) } },
     );
   }
@@ -59,22 +73,28 @@ export const POST = apiHandler('POST', { label: '文章点赞' }, async (req) =>
   const body = await req.json();
   const { slug } = body as { slug?: string };
   if (!slug || typeof slug !== 'string') {
-    return NextResponse.json({ error: '缺少 slug 字段' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.posts.missingSlugField') }, { status: 400 });
   }
   if (slug.length > MAX_SLUG_LEN) {
-    return NextResponse.json({ error: 'slug 长度超出限制' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.posts.slugTooLong') }, { status: 400 });
   }
 
   const db = getDb();
   if (!db.prisma) {
-    return NextResponse.json({ error: '数据库未配置' }, { status: 503 });
+    return NextResponse.json({ error: getTranslate('api.common.dbNotConfigured') }, { status: 503 });
   }
 
-  // IP+slug 去重：同一 IP 对同一文章只计一次赞
-  const dedupKey = `${LIKE_DEDUP_PREFIX}${ip}:${slug}`;
-  const existing = await db.get(dedupKey);
-  if (existing !== null) {
-    // 已点过赞，返回当前计数但不递增
+  // 双重去重：Cookie 指纹 + IP 指纹，任一匹配即视为已点赞
+  const fp = getOrCreateFingerprint(req);
+  const cookieDedupKey = `${LIKE_DEDUP_PREFIX}fp:${fp.value}:${slug}`;
+  const ipDedupKey = `${LIKE_DEDUP_PREFIX}ip:${ip}:${slug}`;
+
+  const [existingCookie, existingIp] = await Promise.all([
+    db.get(cookieDedupKey),
+    db.get(ipDedupKey),
+  ]);
+
+  if (existingCookie !== null || existingIp !== null) {
     const currentRaw = await db.get(`${LIKE_COUNT_PREFIX}${slug}`);
     const current = currentRaw ? Number(currentRaw) || 0 : 0;
     return NextResponse.json({ count: current, liked: true });
@@ -87,8 +107,20 @@ export const POST = apiHandler('POST', { label: '文章点赞' }, async (req) =>
   const newCount = current + 1;
   await db.set(countKey, String(newCount));
 
-  // 记录去重标记（带 TTL）
-  await db.set(dedupKey, '1', DEDUP_TTL_SECONDS);
+  // 记录双重去重标记（带 TTL）
+  await Promise.all([
+    db.set(cookieDedupKey, '1', DEDUP_TTL_SECONDS),
+    db.set(ipDedupKey, '1', DEDUP_TTL_SECONDS),
+  ]);
 
-  return NextResponse.json({ count: newCount, liked: true });
+  // 设置/刷新指纹 cookie（30 天有效期，HttpOnly 防篡改）
+  const response = NextResponse.json({ count: newCount, liked: true });
+  response.cookies.set('like_fp', fp.value, {
+    maxAge: 30 * 24 * 60 * 60,
+    httpOnly: true,
+    sameSite: 'lax',
+    path: '/',
+  });
+
+  return response;
 })

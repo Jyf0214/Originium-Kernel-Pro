@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Megaphone, X } from 'lucide-react';
 import { cn } from '@/lib/ui';
+import { useI18n } from '@/hooks/use-i18n';
+import { getTranslate } from '@/i18n/translate';
 import {
   modalContentVariants,
   modalOverlayVariants,
@@ -30,10 +32,10 @@ interface AnnouncementConfig {
 
 /** 默认公告配置 */
 const DEFAULT_ANNOUNCEMENT: AnnouncementConfig = {
-  title: '网站公告',
-  content: '欢迎访问本站！这里会发布最新的通知和更新信息。',
+  title: getTranslate('components.announcementPopup.defaultTitle'),
+  content: getTranslate('components.announcementPopup.defaultContent'),
   link: '',
-  linkText: '了解更多',
+  linkText: getTranslate('common.learnMore'),
 };
 
 /**
@@ -83,6 +85,7 @@ export function resetAnnouncement(): void {
 
 /** 公告弹窗组件 */
 export function AnnouncementPopup() {
+  const { t } = useI18n();
   const [visible, setVisible] = useState(false);
   const [permanent, setPermanent] = useState(false);
   const config = DEFAULT_ANNOUNCEMENT;
@@ -150,7 +153,7 @@ export function AnnouncementPopup() {
                 'hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors',
                 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'
               )}
-              aria-label="关闭公告"
+              aria-label={t('components.announcementPopup.closeAnnouncement')}
             >
               <X size={16} />
             </button>
@@ -183,7 +186,7 @@ export function AnnouncementPopup() {
                     'hover:text-amber-700 dark:hover:text-amber-300 transition-colors'
                   )}
                 >
-                  {config.linkText ?? '了解更多'} &rarr;
+                  {config.linkText ?? t('common.learnMore')} &rarr;
                 </a>
               )}
             </div>
@@ -199,7 +202,7 @@ export function AnnouncementPopup() {
                   className="w-3.5 h-3.5 rounded border-zinc-300 dark:border-zinc-600 text-amber-500 focus:ring-amber-400 cursor-pointer"
                 />
                 <span className="text-xs text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors">
-                  永久不再显示
+                  {t('components.announcementPopup.hideForever')}
                 </span>
               </label>
 
@@ -213,7 +216,7 @@ export function AnnouncementPopup() {
                   'shadow-sm hover:shadow-md'
                 )}
               >
-                我知道了
+                {t('components.announcementPopup.gotIt')}
               </button>
             </div>
           </motion.div>

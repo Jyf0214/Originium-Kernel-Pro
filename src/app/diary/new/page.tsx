@@ -4,6 +4,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { GlobalLoading } from '@/components/Loading';
+import { useI18n } from '@/hooks/use-i18n';
 import DiaryForm from '../_form';
 
 function genId(): string {
@@ -14,6 +15,7 @@ function genId(): string {
 }
 
 export default function NewDiaryPage() {
+  const { t } = useI18n();
   const { user, isSudo, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -32,7 +34,7 @@ export default function NewDiaryPage() {
   if (!isSudo) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
-        <p className="text-zinc-400 dark:text-zinc-500 text-lg">无权访问</p>
+        <p className="text-zinc-400 dark:text-zinc-500 text-lg">{t('common.accessDenied')}</p>
       </div>
     );
   }
@@ -48,7 +50,7 @@ export default function NewDiaryPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title, content, tags, date, group }),
         });
-        if (!res.ok) throw new Error('保存失败');
+        if (!res.ok) throw new Error(t('diary.saveFailed'));
         return 'ok';
       }}
     />

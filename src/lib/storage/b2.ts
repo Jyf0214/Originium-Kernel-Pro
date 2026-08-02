@@ -36,6 +36,7 @@ import type {
   FileContent,
 } from './storage-provider'
 import { normalizePath } from './acl'
+import { getTranslate } from '@/i18n/translate'
 
 /**
  * B2 鉴权结果（用于获取 region 和 S3 endpoint）
@@ -84,12 +85,12 @@ async function b2Authorize(): Promise<B2AuthResult> {
   const keyId = process.env.B2_KEY_ID
   const appKey = process.env.B2_APP_KEY
   if (!keyId || !appKey) {
-    throw new Error('B2 未配置: 请设置 B2_KEY_ID 和 B2_APP_KEY')
+    throw new Error(getTranslate('lib.storage.b2NotConfigured'))
   }
   const credentials = Buffer.from(`${keyId}:${appKey}`).toString('base64')
   const resp = await fetch('https://api.backblazeb2.com/b2api/v3/b2_authorize_account', { headers: { Authorization: `Basic ${credentials}` }, signal: AbortSignal.timeout(10000) })
   if (!resp.ok) {
-    throw new Error(`B2 鉴权失败 (HTTP ${resp.status})`)
+    throw new Error(getTranslate('lib.storage.b2AuthFailed', { status: resp.status }))
   }
 
   const auth = parseAuthorizeResponse(await resp.json() as Record<string, unknown>)
@@ -106,7 +107,7 @@ function parseAuthorizeResponse(data: Record<string, unknown>): B2AuthResult {
     ?.storageApi as Record<string, unknown> | undefined
   const apiUrl = String(data.apiUrl ?? storageApi?.apiUrl ?? '')
   if (!apiUrl) {
-    throw new Error(`B2 鉴权响应缺少 apiUrl, 字段: ${Object.keys(data).join(', ')}`)
+    throw new Error(getTranslate('lib.storage.b2AuthMissingApiUrl', { fields: Object.keys(data).join(', ') }))
   }
   // s3ApiUrl: B2 官方文档指定的 S3 兼容 API 端点
   // 格式: https://s3.<region>.backblazeb2.com
@@ -330,7 +331,7 @@ export class B2Provider implements StorageProvider {
   ): Promise<FileContent> {
     const key = normalizePath(filePath)
     if (!key) {
-      throw new Error('B2: 不能读取根路径')
+      throw new Error(getTranslate('lib.storage.b2NoReadRoot'))
     }
 
     const client = await getS3Client()
@@ -370,7 +371,7 @@ export class B2Provider implements StorageProvider {
           })
 
           if (!resp.ok) {
-            const err = new Error(`CDN 下载失败 ${resp.status}`) as Error & { $metadata?: { httpStatusCode?: number }; name: string }
+            const err = new Error(getTranslate('lib.storage.b2CdnDownloadFailed', { status: resp.status })) as Error & { $metadata?: { httpStatusCode?: number }; name: string }
             err.name = resp.status === 404 ? 'NoSuchKey' : 'HttpError'
             err.$metadata = { httpStatusCode: resp.status }
             throw err
@@ -393,7 +394,7 @@ export class B2Provider implements StorageProvider {
 
     const resp = await client.send(cmd, options_)
     if (!resp.Body) {
-      throw new Error(`B2: 文件内容为空: ${key}`)
+      throw new Error(getTranslate('lib.storage.b2EmptyContent', { key }))
     }
     const body = await resp.Body.transformToByteArray()
     const buffer = Buffer.from(body)
@@ -411,7 +412,7 @@ export class B2Provider implements StorageProvider {
   ): Promise<void> {
     const key = normalizePath(filePath)
     if (!key) {
-      throw new Error('B2: 不能写入根路径')
+      throw new Error(getTranslate('lib.storage.b2NoWriteRoot'))
     }
 
     const buf = await toBuffer(data)
@@ -452,7 +453,7 @@ export class B2Provider implements StorageProvider {
   async deleteFile(filePath: string): Promise<void> {
     const key = normalizePath(filePath)
     if (!key) {
-      throw new Error('B2: 不能删除根路径')
+      throw new Error(getTranslate('lib.storage.b2NoDeleteRoot'))
     }
 
     const client = await getS3Client()
@@ -495,7 +496,7 @@ export class B2Provider implements StorageProvider {
     }
     if (failCount > 0) {
       console.error(`[B2] deleteDirectory 批量删除失败: ${failCount}/${keysToDelete.length}`)
-      throw new Error(`B2: 目录删除部分失败 (${failCount}/${keysToDelete.length} 个对象删除失败)`)
+      throw new Error(getTranslate('lib.storage.b2PartialDeleteFailed', { failCount, total: keysToDelete.length }))
     }
 
     // 删除 .keep 占位文件
@@ -516,7 +517,7 @@ export class B2Provider implements StorageProvider {
     const fromKey = normalizePath(fromPath)
     const toKey = normalizePath(toPath)
     if (!fromKey || !toKey) {
-      throw new Error('B2: 不能移动根路径')
+      throw new Error(getTranslate('lib.storage.b2NoMoveRoot'))
     }
     if (fromKey === toKey) return
 
@@ -672,7 +673,7 @@ export class B2Provider implements StorageProvider {
       // 忽略
     }
 
-    throw Object.assign(new Error(`B2: 路径不存在: ${key}`), { status: 404 })
+    throw Object.assign(new Error(getTranslate('lib.storage.b2PathNotFound', { key })), { status: 404 })
   }
 
   /**

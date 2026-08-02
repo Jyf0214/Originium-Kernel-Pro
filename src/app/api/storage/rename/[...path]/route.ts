@@ -7,6 +7,7 @@
  */
 import { NextResponse } from 'next/server'
 import { createApiLogger } from '@/lib/api-logger'
+import { getTranslate } from '@/i18n/translate'
 import {
   buildWebDavTarget,
   catchAllHandler,
@@ -31,7 +32,7 @@ async function assertTargetAvailable(newRel: string, segments: string[], newName
   try {
     const existingMeta = await readFolderMeta(newRel)
     if (existingMeta) {
-      return NextResponse.json({ error: '目标名称已存在' }, { status: 409 })
+      return NextResponse.json({ error: getTranslate('api.storage.targetNameExists') }, { status: 409 })
     }
   } catch {
     // 忽略 DB 检查失败，继续检查存储层
@@ -40,7 +41,7 @@ async function assertTargetAvailable(newRel: string, segments: string[], newName
     const provider = await getStorageProvider()
     const newTarget = buildWebDavTarget([...segments, newName])
     await provider.stat(newTarget)
-    return NextResponse.json({ error: '目标名称已存在' }, { status: 409 })
+    return NextResponse.json({ error: getTranslate('api.storage.targetNameExists') }, { status: 409 })
   } catch {
     // stat 失败说明目标不存在，可以继续
   }
@@ -50,10 +51,10 @@ async function assertTargetAvailable(newRel: string, segments: string[], newName
 /** 校验重命名名称合法性:空值、特殊字符、目录穿越 */
 function validateNewName(newName: string): NextResponse | null {
   if (!newName) {
-    return NextResponse.json({ error: '新名称不能为空' }, { status: 400 })
+    return NextResponse.json({ error: getTranslate('api.storage.newNameEmpty') }, { status: 400 })
   }
   if (newName.includes('/') || newName.includes('\\') || newName === '.' || newName === '..') {
-    return NextResponse.json({ error: '名称非法' }, { status: 400 })
+    return NextResponse.json({ error: getTranslate('api.storage.invalidName') }, { status: 400 })
   }
   return null
 }
@@ -73,7 +74,7 @@ function parseRenameInput(
   const parentPath = segments.join('/')
 
   if (newName === oldName) {
-    return NextResponse.json({ error: '新名称与当前名称相同' }, { status: 400 })
+    return NextResponse.json({ error: getTranslate('api.storage.sameName') }, { status: 400 })
   }
 
   const newRel = parentPath ? `${parentPath}/${newName}` : newName
@@ -101,7 +102,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
     try {
       body = (await req.json()) as Record<string, unknown>
     } catch {
-      return NextResponse.json({ error: '请求体格式错误' }, { status: 400 })
+      return NextResponse.json({ error: getTranslate('api.common.invalidBody') }, { status: 400 })
     }
 
     const parseResult = parseRenameInput(body, rel)
@@ -122,7 +123,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
       await provider.moveFile(oldTarget, newTarget)
     } catch (err) {
       logger.error('POST', `target="${oldTarget}" → "${newTarget}" 失败`, { error: (err as Error).message })
-      return storageErrorResponse(err, '重命名')
+      return storageErrorResponse(err, getTranslate('api.storage.opRename'))
     }
 
     // 更新数据库元数据

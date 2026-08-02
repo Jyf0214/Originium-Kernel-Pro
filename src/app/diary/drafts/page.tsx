@@ -11,6 +11,7 @@ import { GlobalLoading } from '@/components/Loading';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface DraftItem {
   id: string;
@@ -21,6 +22,7 @@ interface DraftItem {
 }
 
 export default function DiaryDraftsPage() {
+  const { t } = useI18n();
   const [drafts, setDrafts] = React.useState<DraftItem[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [deleting, setDeleting] = React.useState<string | null>(null);
@@ -30,15 +32,15 @@ export default function DiaryDraftsPage() {
   const fetchDrafts = React.useCallback(async () => {
     try {
       const res = await fetch('/api/diary/draft');
-      if (!res.ok) throw new Error('加载失败');
+      if (!res.ok) throw new Error(t('diary.loadFailed'));
       const json = await res.json();
       setDrafts(Array.isArray(json.drafts) ? json.drafts : []);
     } catch {
-      showError('加载草稿列表失败');
+      showError(t('diary.draftListLoadFailed'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   React.useEffect(() => {
     if (authLoading) return;
@@ -53,10 +55,10 @@ export default function DiaryDraftsPage() {
     setDeleting(id);
     try {
       const res = await fetch(`/api/diary/draft?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('删除失败');
+      if (!res.ok) throw new Error(t('diary.deleteFailed'));
       setDrafts((prev) => prev.filter((d) => d.id !== id));
     } catch {
-      showError('删除草稿失败');
+      showError(t('diary.deleteDraftFailed'));
     } finally {
       setDeleting(null);
     }
@@ -80,7 +82,7 @@ export default function DiaryDraftsPage() {
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <PageHeader
-        title="草稿箱"
+        title={t('diary.draftsTitle')}
         backHref="/diary"
       />
 
@@ -91,9 +93,9 @@ export default function DiaryDraftsPage() {
           </div>
         ) : drafts.length === 0 ? (
           <EmptyState
-            description="暂无草稿"
+            description={t('diary.noDrafts')}
             action={
-              <Button onClick={() => router.push('/diary/new')} variant="primary" size="md" autoLoading={false} icon={<FileText size={16}/>}>写新日记</Button>
+              <Button onClick={() => router.push('/diary/new')} variant="primary" size="md" autoLoading={false} icon={<FileText size={16}/>}>{t('diary.writeNew')}</Button>
             }
           />
         ) : (
@@ -103,7 +105,7 @@ export default function DiaryDraftsPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                      {d.title || '无标题'}
+                      {d.title || t('diary.untitled')}
                     </h3>
                     {d.content && (
                       <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-1 line-clamp-2">{d.content}</p>
@@ -119,10 +121,10 @@ export default function DiaryDraftsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <Button onClick={() => handleContinue(d)} variant="secondary" size="sm" autoLoading={false}>继续</Button>
+                    <Button onClick={() => handleContinue(d)} variant="secondary" size="sm" autoLoading={false}>{t('diary.continueTitle')}</Button>
                     <CuteConfirm
                       category="delete"
-                      confirmText="确定要删除这篇草稿吗？"
+                      confirmText={t('diary.deleteDraftConfirm')}
                       onConfirm={() => handleDelete(d.id)}
                       disabled={deleting === d.id}
                     >
@@ -133,8 +135,8 @@ export default function DiaryDraftsPage() {
                         iconOnly
                         icon={<Trash2 size={14} />}
                         loading={deleting === d.id}
-                        title="删除草稿"
-                        aria-label="删除草稿"
+                        title={t('diary.deleteDraft')}
+                        aria-label={t('diary.deleteDraft')}
                       />
                     </CuteConfirm>
                   </div>

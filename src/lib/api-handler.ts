@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSession, requireSudo, type SessionPayload } from '@/lib/auth';
+import { getTranslate } from '@/i18n/translate';
 
 /* ---------- API 响应性能指标 ---------- */
 
@@ -84,11 +85,11 @@ async function checkAuth(
     const session = await getSession();
     if (!session) {
       console.warn(`[API] ${method} ${pathname}${querySummary(req)} → 401 未登录`);
-      return { error: NextResponse.json({ error: '未登录' }, { status: 401 }) };
+      return { error: NextResponse.json({ error: getTranslate('lib.api.unauthorized') }, { status: 401 }) };
     }
     if (options.requireAdmin && session.role !== 'admin' && session.role !== 'sudo') {
       console.warn(`[API] ${method} ${pathname}${querySummary(req)} → 403 用户 ${session.uid} 无管理员权限`);
-      return { error: NextResponse.json({ error: '无权限访问' }, { status: 403 }) };
+      return { error: NextResponse.json({ error: getTranslate('lib.api.forbidden') }, { status: 403 }) };
     }
     return { session };
   }
@@ -113,7 +114,7 @@ async function checkDb(
   const db = getDb();
   if (!db.prisma) {
     console.warn(`[API] ${method} ${pathname} → 503 数据库未配置`);
-    return NextResponse.json({ error: '数据库未配置' }, { status: 503 });
+    return NextResponse.json({ error: getTranslate('lib.api.dbNotConfigured') }, { status: 503 });
   }
   return null;
 }
@@ -174,15 +175,21 @@ export function apiHandler<
       if (error instanceof SyntaxError && error.message.includes('JSON')) {
         statusCode = 400;
         console.warn(`[API] ${method} ${pathname}${querySummary(req)} → 400 请求体格式错误`);
-        return NextResponse.json({ error: '请求体格式错误' }, { status: 400, headers: errHeaders });
+        return NextResponse.json({ error: getTranslate('lib.api.badJsonBody') }, { status: 400, headers: errHeaders });
       }
       statusCode = 500;
       const err = error instanceof Error ? error : new Error(String(error));
+      // 服务端日志记录完整错误信息（仅管理员可见）
       console.error(`[API] ${method} ${pathname}${querySummary(req)} → 500 ${options.label} 失败`, {
         message: err.message,
         stack: err.stack,
       });
-      return NextResponse.json({ error: `${options.label} 失败` }, { status: 500, headers: errHeaders });
+      // 生产环境：仅返回通用错误消息，不泄露任何内部信息
+      // 开发环境：返回简化错误（仍不返回堆栈）
+      const errorMsg = process.env.NODE_ENV === 'production'
+        ? getTranslate('lib.api.serverError')
+        : getTranslate('lib.api.actionFailed', { label: options.label });
+      return NextResponse.json({ error: errorMsg }, { status: 500, headers: errHeaders });
     } finally {
       const latencyMs = performance.now() - start;
       recordMetric({
@@ -198,11 +205,11 @@ export function apiHandler<
 
 /** 快速错误响应工厂 */
 export const ApiErr = {
-  unauthorized: (msg = '未登录') => NextResponse.json({ error: msg }, { status: 401 }),
-  forbidden: (msg = '无权限访问') => NextResponse.json({ error: msg }, { status: 403 }),
-  notFound: (msg = '资源不存在') => NextResponse.json({ error: msg }, { status: 404 }),
-  badRequest: (msg = '请求参数错误') => NextResponse.json({ error: msg }, { status: 400 }),
-  serverError: (msg = '服务器内部错误') => NextResponse.json({ error: msg }, { status: 500 }),
+  unauthorized: (msg = getTranslate('lib.api.unauthorized')) => NextResponse.json({ error: msg }, { status: 401 }),
+  forbidden: (msg = getTranslate('lib.api.forbidden')) => NextResponse.json({ error: msg }, { status: 403 }),
+  notFound: (msg = getTranslate('lib.api.notFound')) => NextResponse.json({ error: msg }, { status: 404 }),
+  badRequest: (msg = getTranslate('lib.api.badRequest')) => NextResponse.json({ error: msg }, { status: 400 }),
+  serverError: (msg = getTranslate('lib.api.serverError')) => NextResponse.json({ error: msg }, { status: 500 }),
   /**
    * 结构化错误响应，携带错误码和可选的详细信息
    * 便于前端统一处理错误、展示定位信息和错误上报

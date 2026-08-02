@@ -5,6 +5,7 @@
  */
 import { NextResponse } from 'next/server'
 import { createApiLogger } from '@/lib/api-logger'
+import { getTranslate } from '@/i18n/translate'
 import {
   buildWebDavTarget,
   catchAllHandler,
@@ -42,7 +43,7 @@ export const DELETE = catchAllHandler<{ path: string[] }>(
       await provider.deleteFile(target)
     } catch (err) {
       logger.error('DELETE', `target="${target}" 失败`, { error: (err as Error).message })
-      return storageErrorResponse(err, '删除文件')
+      return storageErrorResponse(err, getTranslate('api.storage.opDeleteFile'))
     }
 
     logger.info('DELETE', `target="${target}" 已删除`)

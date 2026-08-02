@@ -10,6 +10,7 @@ import {
   modalTransition,
   modalOverlayTransition,
 } from '@/components/ui/motion';
+import { useI18n } from '@/hooks/use-i18n';
 
 /** 外链警告上下文 */
 interface ExternalLinkWarningContextType {
@@ -67,6 +68,7 @@ function WarningModal({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <AnimatePresence>
       {visible && (
@@ -100,7 +102,7 @@ function WarningModal({
                 'hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors',
                 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'
               )}
-              aria-label="取消"
+              aria-label={t('externalLink.cancel')}
             >
               <X size={16} />
             </button>
@@ -113,7 +115,7 @@ function WarningModal({
                   <ShieldAlert size={18} className="text-amber-500 dark:text-amber-400" />
                 </div>
                 <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                  即将离开本站
+                  {t('externalLink.leavingSite')}
                 </h3>
               </div>
 
@@ -132,7 +134,7 @@ function WarningModal({
               <div className="flex items-start gap-2">
                 <AlertTriangle size={14} className="text-amber-500 dark:text-amber-400 mt-0.5 shrink-0" />
                 <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                  本站内容不代表外部链接观点，请注意安全。
+                  {t('externalLink.securityNotice')}
                 </p>
               </div>
             </div>
@@ -148,7 +150,7 @@ function WarningModal({
                   'hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-[0.98]'
                 )}
               >
-                取消
+                {t('externalLink.cancel')}
               </button>
 
               {/* 继续前往按钮 */}
@@ -161,7 +163,7 @@ function WarningModal({
                   'shadow-sm hover:shadow-md'
                 )}
               >
-                继续前往
+                {t('externalLink.continue')}
               </button>
             </div>
           </motion.div>

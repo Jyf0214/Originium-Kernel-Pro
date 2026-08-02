@@ -7,10 +7,10 @@
  * 命名空间:`webdav`(无 `~` 标记,与其它 `lib/*` 模块同级)
  */
 import { createClient, type WebDAVClient } from 'webdav'
+import { getTranslate } from '@/i18n/translate'
 
 /** 未配置时给上层抛出的统一错误信息 */
-const NOT_CONFIGURED_MESSAGE =
-  'WebDAV 未配置,请在 .env.local 设置 WEBDAV_URL/WEBDAV_USER/WEBDAV_PASS'
+const NOT_CONFIGURED_MESSAGE = getTranslate('lib.storage.webdavNotConfigured')
 
 /**
  * globalThis 单例缓存:避免每次请求都重新构造 WebDAV 客户端

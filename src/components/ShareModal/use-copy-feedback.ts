@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useI18n } from '@/hooks/use-i18n';
 const TOAST_DURATION_MS = 2500;
 const COPY_FEEDBACK_DURATION_MS = 2000;
 
@@ -13,6 +14,7 @@ const COPY_FEEDBACK_DURATION_MS = 2000;
    ============================================================ */
 
 export function useCopyFeedback(shareUrl: string) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const [toast, setToast] = useState('');
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -39,9 +41,9 @@ export function useCopyFeedback(shareUrl: string) {
       if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
       copiedTimerRef.current = setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION_MS);
     } catch {
-      showToast('复制失败');
+      showToast(t('components.useCopyFeedback.copyFailed'));
     }
-  }, [shareUrl, showToast]);
+  }, [shareUrl, showToast, t]);
 
   return { copied, toast, copy, showToast };
 }

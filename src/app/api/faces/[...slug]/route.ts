@@ -3,6 +3,7 @@ import { getContentFile } from '@/lib/content';
 import { loadConfig, canAccess, hasDatabase } from '@/lib/config';
 import { getSession } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/faces/[...slug]');
 
@@ -15,12 +16,12 @@ export async function GET(
 
   // 路径遍历防护：拒绝包含 .. 的 slug 段
   if (slug.some(s => s === '..' || s === '.' || s.includes('\0'))) {
-    return NextResponse.json({ error: '无效路径' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.faces.invalidPath') }, { status: 400 });
   }
 
   const fullPath = '/' + slug.join('/');
   logger.info('GET', '读取联系人详情', { fullPath });
-  
+
   const config = await loadConfig();
   const session = await getSession();
   const isAuthenticated = !!session;
@@ -31,7 +32,7 @@ export async function GET(
 
   if (!file) {
     logger.warn('GET', '联系人不存在', { fullPath });
-    return NextResponse.json({ error: '联系人不存在' }, { status: 404 });
+    return NextResponse.json({ error: getTranslate('api.faces.contactNotFound') }, { status: 404 });
   }
 
   // Check access
@@ -44,7 +45,7 @@ export async function GET(
 
   if (!isAccessible) {
     logger.warn('GET', '无权访问联系人', { fullPath });
-    return NextResponse.json({ error: '无权限' }, { status: 403 });
+    return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }
 
   logger.info('GET', '联系人读取成功', { fullPath });
@@ -57,6 +58,6 @@ export async function GET(
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     logger.error('GET', '联系人查询失败', { error: msg });
-    return NextResponse.json({ error: '服务器内部错误' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.common.serverError') }, { status: 500 });
   }
 }

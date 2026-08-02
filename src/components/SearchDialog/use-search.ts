@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { showError } from '@/lib/error';
+import { useI18n } from '@/hooks/use-i18n';
 import type { SearchGroup, SearchResult } from './types';
 
 export interface UseSearchOptions {
@@ -23,8 +24,6 @@ export interface UseSearchReturn {
   loading: boolean;
   hasSearched: boolean;
   inputRef: React.RefObject<HTMLInputElement | null>;
-  /** 点击热门标签后自动填入搜索框 */
-  handleTagClick: (tag: string) => void;
   /** 键盘导航：当前选中结果索引（-1 表示未选中） */
   selectedIndex: number;
   /** 所有扁平化结果（用于键盘导航计算） */
@@ -165,6 +164,7 @@ function searchLocal(index: SearchIndexItem[], query: string): SearchResult[] {
 }
 
 export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn {
+  const { t } = useI18n();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [groups, setGroups] = useState<SearchGroup[]>([]);
@@ -218,18 +218,18 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
 
       // 按类型分组（当前只有 post 类型）
       if (matched.length > 0) {
-        setGroups([{ type: 'post', label: '文章', results: matched }]);
+        setGroups([{ type: 'post', label: t('components.SearchDialog.search.articlesLabel'), results: matched }]);
       } else {
         setGroups([]);
       }
     } catch (err) {
       setResults([]);
       setGroups([]);
-      showError(`搜索索引加载失败：${err instanceof Error ? err.message : '网络异常'}`);
+      showError(t('components.SearchDialog.search.loadFailed', { error: err instanceof Error ? err.message : t('components.SearchDialog.search.networkError') }));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (debounceRef.current) {
@@ -307,11 +307,6 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
     setSearchHistory([]);
   }, []);
 
-  // ── 点击热门标签 ──
-  const handleTagClick = useCallback((tag: string) => {
-    setQuery(tag);
-  }, []);
-
   return {
     query,
     setQuery,
@@ -320,7 +315,6 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
     loading,
     hasSearched,
     inputRef,
-    handleTagClick,
     selectedIndex,
     flatResults,
     handleHistoryClick,

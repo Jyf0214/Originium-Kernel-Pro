@@ -4,6 +4,8 @@ import React from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { modalContentVariants, modalTransition } from '@/components/ui/motion';
 import { X } from 'lucide-react';
+import { useI18n } from '@/hooks/use-i18n';
+import { getTranslate } from '@/i18n/translate';
 
 export interface KeyboardShortcutsHelpProps {
   open: boolean;
@@ -19,11 +21,11 @@ interface ShortcutItem {
 
 /** 全站快捷键定义列表 */
 const ALL_SHORTCUTS: ShortcutItem[] = [
-  { key: '/', label: '搜索' },
-  { key: 'Shift+?', label: '帮助' },
-  { key: 'Escape', label: '关闭' },
-  { key: 'j', label: '下一篇' },
-  { key: 'k', label: '上一篇' },
+  { key: '/', label: getTranslate('components.KeyboardShortcuts.search') },
+  { key: 'Shift+?', label: getTranslate('components.KeyboardShortcuts.help') },
+  { key: 'Escape', label: getTranslate('components.KeyboardShortcuts.close') },
+  { key: 'j', label: getTranslate('components.KeyboardShortcuts.next') },
+  { key: 'k', label: getTranslate('components.KeyboardShortcuts.prev') },
 ];
 
 function KbdKey({ keys }: { keys: string }) {
@@ -43,6 +45,7 @@ function KbdKey({ keys }: { keys: string }) {
 }
 
 export function KeyboardShortcutsHelp({ open, onClose, visibleKeys }: KeyboardShortcutsHelpProps) {
+  const { t } = useI18n();
   const shortcuts = visibleKeys
     ? ALL_SHORTCUTS.filter((s) => visibleKeys.includes(s.key))
     : ALL_SHORTCUTS;
@@ -58,7 +61,7 @@ export function KeyboardShortcutsHelp({ open, onClose, visibleKeys }: KeyboardSh
           className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
-          aria-label="键盘快捷键"
+          aria-label={t('components.KeyboardShortcuts.title')}
           onClick={(e) => {
             if (e.target === e.currentTarget) onClose();
           }}
@@ -75,12 +78,12 @@ export function KeyboardShortcutsHelp({ open, onClose, visibleKeys }: KeyboardSh
             {/* 标题栏 */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
               <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                快捷键
+                {t('components.KeyboardShortcuts.title')}
               </h2>
               <button
                 onClick={onClose}
                 className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                aria-label="关闭"
+                aria-label={t('components.KeyboardShortcuts.close')}
               >
                 <X size={14} className="text-zinc-400" />
               </button>
@@ -104,7 +107,7 @@ export function KeyboardShortcutsHelp({ open, onClose, visibleKeys }: KeyboardSh
             {/* 底部提示 */}
             <div className="px-4 py-2 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30">
               <p className="text-[10px] text-zinc-400 text-center">
-                在编辑框内快捷键自动禁用
+                {t('components.KeyboardShortcuts.editorHint')}
               </p>
             </div>
           </motion.div>

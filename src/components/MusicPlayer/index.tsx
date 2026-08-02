@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, ListMusic, X, Music } from 'lucide-react';
 import { tooltipVariants, tooltipTransition } from '@/components/ui/motion';
 import { useConfig } from '@/hooks/use-config';
+import { useI18n } from '@/hooks/use-i18n';
 
 function formatTime(sec: number): string {
   if (!Number.isFinite(sec)) return '0:00';
@@ -27,6 +28,7 @@ function PlaylistPanel({
   onSelect: (i: number) => void;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <motion.div
       variants={tooltipVariants}
@@ -37,7 +39,7 @@ function PlaylistPanel({
       className="w-72 bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl border border-zinc-100 dark:border-zinc-700 overflow-hidden"
     >
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-700">
-        <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">播放列表</span>
+        <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{t('components.MusicPlayer.playlist')}</span>
         <button onClick={onClose} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
           <X size={16} />
         </button>
@@ -58,7 +60,7 @@ function PlaylistPanel({
             </span>
             <div className="flex-1 min-w-0">
               <div className={`text-sm truncate ${i === currentIndex ? 'text-zinc-900 dark:text-zinc-100 font-medium' : 'text-zinc-700 dark:text-zinc-300'}`}>
-                {song.name || '未知曲目'}
+                {song.name || t('components.MusicPlayer.unknownTrack')}
               </div>
               {song.artist && (
                 <div className="text-xs text-zinc-400 dark:text-zinc-500 truncate">{song.artist}</div>
@@ -85,6 +87,7 @@ function ProgressPanel({
   expanded: boolean;
   onSeek: (e: React.MouseEvent<HTMLDivElement>) => void;
 }) {
+  const { t } = useI18n();
   const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     onSeek(e);
   }, [onSeek]);
@@ -100,7 +103,7 @@ function ProgressPanel({
           className="flex flex-col gap-1.5 overflow-hidden"
         >
           <div className="text-xs font-medium text-zinc-900 dark:text-zinc-100 whitespace-nowrap max-w-[140px] truncate">
-            {name || '未播放'}
+            {name || t('components.MusicPlayer.notPlaying')}
           </div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] text-zinc-400 tabular-nums w-8 text-right">{formatTime(progress)}</span>
@@ -151,6 +154,7 @@ function PlayerControls({
   onToggleMute: () => void;
   onVolumeChange: (v: number) => void;
 }) {
+  const { t } = useI18n();
   return (
     <>
       <button
@@ -164,16 +168,16 @@ function PlayerControls({
         )}
       </button>
       <div className="flex items-center gap-0.5">
-        <button onClick={onToggleExpand} className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors" title="展开/收起">
+        <button onClick={onToggleExpand} className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors" title={t('components.MusicPlayer.toggleExpand')}>
           {expanded ? <X size={14} /> : <ListMusic size={14} />}
         </button>
-        <button onClick={onPrev} className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors" title="上一首">
+        <button onClick={onPrev} className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors" title={t('components.MusicPlayer.previous')}>
           <SkipBack size={14} />
         </button>
-        <button onClick={onNext} className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors" title="下一首">
+        <button onClick={onNext} className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors" title={t('components.MusicPlayer.next')}>
           <SkipForward size={14} />
         </button>
-        <button onClick={onTogglePlaylist} className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors" title="播放列表">
+        <button onClick={onTogglePlaylist} className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors" title={t('components.MusicPlayer.playlist')}>
           <ListMusic size={14} />
         </button>
         <div className="flex items-center gap-1 ml-1">

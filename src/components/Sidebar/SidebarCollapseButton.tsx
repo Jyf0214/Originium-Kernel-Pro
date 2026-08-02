@@ -1,6 +1,7 @@
 'use client';
 
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface SidebarCollapseButtonProps {
   collapsed: boolean;
@@ -15,20 +16,21 @@ interface SidebarCollapseButtonProps {
  * - 使用项目现有的 zinc 色调和 rounded-xl 风格
  */
 function SidebarCollapseButton({ collapsed, onToggle }: SidebarCollapseButtonProps) {
+  const { t } = useI18n();
   return (
     <button
       type="button"
       onClick={onToggle}
       className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all duration-300 w-full no-underline font-medium"
-      aria-label={collapsed ? '展开侧边栏' : '折叠侧边栏'}
-      title={collapsed ? '展开侧边栏' : '折叠侧边栏'}
+      aria-label={collapsed ? t('components.Sidebar.expand') : t('components.Sidebar.collapse')}
+      title={collapsed ? t('components.Sidebar.expand') : t('components.Sidebar.collapse')}
     >
       {collapsed ? (
         <PanelLeftOpen size={18} className="shrink-0 text-zinc-300" />
       ) : (
         <PanelLeftClose size={18} className="shrink-0 text-zinc-300" />
       )}
-      {!collapsed && <span>折叠侧栏</span>}
+      {!collapsed && <span>{t('components.Sidebar.collapse')}</span>}
     </button>
   );
 }

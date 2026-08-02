@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useI18n } from '@/hooks/use-i18n';
+import { getTranslate } from '@/i18n/translate';
 import { GlobalLoading } from '@/components/Loading';
 import { Card, ColorPicker, Select } from 'antd';
 import { Loader2, CircleDot, Sparkles, Orbit, Waves, ArrowLeft, TrendingUp } from 'lucide-react';
@@ -20,61 +21,61 @@ interface LoadingType {
 }
 
 const positionOptions = [
-  { value: 'center', label: '居中 (center)' },
-  { value: 'top-left', label: '左上角 (top-left)' },
-  { value: 'top-right', label: '右上角 (top-right)' },
-  { value: 'bottom-left', label: '左下角 (bottom-left)' },
-  { value: 'bottom-right', label: '右下角 (bottom-right)' },
+  { value: 'center', label: getTranslate('loadingPreview.positionCenter') },
+  { value: 'top-left', label: getTranslate('loadingPreview.positionTopLeft') },
+  { value: 'top-right', label: getTranslate('loadingPreview.positionTopRight') },
+  { value: 'bottom-left', label: getTranslate('loadingPreview.positionBottomLeft') },
+  { value: 'bottom-right', label: getTranslate('loadingPreview.positionBottomRight') },
 ];
 
 const loadingTypes: LoadingType[] = [
   {
     type: 'spinner',
     label: 'Spinner',
-    labelZh: '环形加载',
-    description: '经典环形进度条（主流 UI 框架默认）',
+    labelZh: getTranslate('loadingPreview.spinnerLabel'),
+    description: getTranslate('loadingPreview.spinnerDesc'),
     icon: CircleDot,
   },
   {
     type: 'antd',
     label: 'Ant Icon',
-    labelZh: 'Ant Design 图标',
-    description: 'Ant Design LoadingOutlined 图标旋转',
+    labelZh: getTranslate('loadingPreview.antdLabel'),
+    description: getTranslate('loadingPreview.antdDesc'),
     icon: Loader2,
   },
   {
     type: 'text',
     label: 'Text',
-    labelZh: '文字动画',
-    description: '文字 + 渐变文字动画（轻量简洁）',
+    labelZh: getTranslate('loadingPreview.textLabel'),
+    description: getTranslate('loadingPreview.textDesc'),
     icon: Loader2,
   },
   {
     type: 'dots',
     label: 'Dots',
-    labelZh: '三色弹跳',
-    description: '三个点依次弹跳（YouTube/Slack 风格）',
+    labelZh: getTranslate('loadingPreview.dotsLabel'),
+    description: getTranslate('loadingPreview.dotsDesc'),
     icon: Sparkles,
   },
   {
     type: 'glow',
     label: 'Glow',
-    labelZh: '光晕渐变',
-    description: '光晕效果渐变（现代毛玻璃风格）',
+    labelZh: getTranslate('loadingPreview.glowLabel'),
+    description: getTranslate('loadingPreview.glowDesc'),
     icon: Orbit,
   },
   {
     type: 'waves',
     label: 'Waves',
-    labelZh: '波浪动画',
-    description: '多条波浪依次动画（Discord 风格）',
+    labelZh: getTranslate('loadingPreview.wavesLabel'),
+    description: getTranslate('loadingPreview.wavesDesc'),
     icon: Waves,
   },
   {
     type: 'progress',
     label: 'Progress',
-    labelZh: '顶部进度条',
-    description: '从顶部滑入的进度条，兼容所有页面',
+    labelZh: getTranslate('loadingPreview.progressLabel'),
+    description: getTranslate('loadingPreview.progressDesc'),
     icon: TrendingUp,
   },
 ];
@@ -188,21 +189,22 @@ function LoadingPreviewContent({
   loadingColor: string;
   loadingPosition: LoadingPosition;
 }) {
+  const { t } = useI18n();
   switch (pageType) {
     case 'spinner':
-      return <GlobalLoading type="spinner" tip="加载中" position={loadingPosition} />;
+      return <GlobalLoading type="spinner" tip={t('common.loading')} position={loadingPosition} />;
     case 'antd':
-      return <GlobalLoading type="antd" tip="加载中" position={loadingPosition} />;
+      return <GlobalLoading type="antd" tip={t('common.loading')} position={loadingPosition} />;
     case 'text':
-      return <GlobalLoading type="text" tip="加载中" position={loadingPosition} />;
+      return <GlobalLoading type="text" tip={t('common.loading')} position={loadingPosition} />;
     case 'dots':
-      return <LoadingDotsWithColor color={loadingColor} tip="加载中" />;
+      return <LoadingDotsWithColor color={loadingColor} tip={t('common.loading')} />;
     case 'glow':
-      return <GlobalLoading type="glow" tip="加载中" />;
+      return <GlobalLoading type="glow" tip={t('common.loading')} />;
     case 'waves':
-      return <LoadingWavesWithColor color={loadingColor} tip="加载中" />;
+      return <LoadingWavesWithColor color={loadingColor} tip={t('common.loading')} />;
     default:
-      return <GlobalLoading type="spinner" tip="加载中" position={loadingPosition} />;
+      return <GlobalLoading type="spinner" tip={t('common.loading')} position={loadingPosition} />;
   }
 }
 
@@ -231,7 +233,7 @@ function PreviewArea({
 
 function SizeComparisonCard({ t }: { t: (key: string) => string }) {
   return (
-    <Card title={t('loadingPreview.sizeComparison') || '尺寸对比'} className="rounded-2xl border border-zinc-100">
+    <Card title={t('loadingPreview.sizeComparison')} className="rounded-2xl border border-zinc-100">
       <div className="grid grid-cols-3 gap-8 py-8">
         <div className="flex flex-col items-center gap-4">
           <GlobalLoading type="spinner" size="small" />
@@ -269,10 +271,10 @@ export default function LoadingPreviewPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
-            {t('loadingPreview.title') || '加载动画预览'}
+            {t('loadingPreview.title')}
           </h1>
           <p className="text-zinc-400 dark:text-zinc-500 text-sm mt-0.5">
-            {t('loadingPreview.subtitle') || '预览所有可用的加载动画样式'}
+            {t('loadingPreview.subtitle')}
           </p>
         </div>
       </div>
@@ -289,31 +291,31 @@ export default function LoadingPreviewPage() {
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="text-lg font-bold text-zinc-900 mb-1">
-                {t('loadingPreview.category') || '进度条/加载动画'}
+                {t('loadingPreview.category')}
               </h2>
               <p className="text-zinc-500 dark:text-zinc-400 text-sm">
-                {loadingTypes.length} 种可用样式 · {t('loadingPreview.selectTip') || '选择一种动画进行预览'}
+                {t('loadingPreview.styleCount', { count: loadingTypes.length })} · {t('loadingPreview.selectTip')}
               </p>
             </div>
           </div>
         </Card>
 
         {/* 动画选择 */}
-        <Card title={t('loadingPreview.select') || '选择动画'} className="rounded-2xl border border-zinc-100">
+        <Card title={t('loadingPreview.select')} className="rounded-2xl border border-zinc-100">
           <div className="space-y-6">
             <div>
-              <div className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-3">轻加载 (pageType)</div>
+              <div className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-3">{t('loadingPreview.lightLoading')} (pageType)</div>
               <AnimationTypeGrid selected={pageType} onChange={setPageType} activeClass="border-zinc-900 bg-zinc-900 text-white" />
             </div>
             <div>
-              <div className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-3">重加载 (navType)</div>
+              <div className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-3">{t('loadingPreview.heavyLoading')} (navType)</div>
               <AnimationTypeGrid selected={navType} onChange={setNavType} activeClass="border-emerald-500 bg-emerald-500 text-white" />
             </div>
           </div>
         </Card>
 
         {/* 颜色选择 */}
-        <Card title={t('loadingPreview.color') || '自定义颜色'} className="rounded-2xl border border-zinc-100">
+        <Card title={t('loadingPreview.color')} className="rounded-2xl border border-zinc-100">
           <div className="flex flex-wrap items-center gap-6">
             <div className="flex items-center gap-3">
               <ColorPicker
@@ -324,13 +326,13 @@ export default function LoadingPreviewPage() {
               />
             </div>
             <div className="text-sm text-zinc-400 dark:text-zinc-500">
-              当前颜色: <code className="bg-zinc-100 px-2 py-1 rounded ml-1">{loadingColor}</code>
+              {t('loadingPreview.currentColor')}: <code className="bg-zinc-100 px-2 py-1 rounded ml-1">{loadingColor}</code>
             </div>
           </div>
         </Card>
 
         {/* 位置选择 */}
-        <Card title={t('loadingPreview.position') || '加载位置'} className="rounded-2xl border border-zinc-100">
+        <Card title={t('loadingPreview.position')} className="rounded-2xl border border-zinc-100">
           <div className="flex flex-wrap items-center gap-6">
             <Select
               value={loadingPosition}
@@ -341,22 +343,22 @@ export default function LoadingPreviewPage() {
               placement="bottomLeft"
             />
             <div className="text-sm text-zinc-400 dark:text-zinc-500">
-              配置: <code className="bg-zinc-100 px-2 py-1 rounded ml-1">appearance.loading.position = &quot;{loadingPosition}&quot;</code>
+              {t('loadingPreview.config')}: <code className="bg-zinc-100 px-2 py-1 rounded ml-1">appearance.loading.position = &quot;{loadingPosition}&quot;</code>
             </div>
           </div>
         </Card>
 
         {/* 预览区域 */}
-        <Card title={t('loadingPreview.preview') || '效果预览'} className="rounded-2xl border border-zinc-100">
+        <Card title={t('loadingPreview.preview')} className="rounded-2xl border border-zinc-100">
           <PreviewArea pageType={pageType} loadingColor={loadingColor} loadingPosition={loadingPosition} />
         </Card>
 
         <SizeComparisonCard t={t} />
 
         {/* 页面演示 */}
-        <Card title={t('loadingPreview.demo') || '页面演示'} className="rounded-2xl border border-zinc-100">
+        <Card title={t('loadingPreview.demo')} className="rounded-2xl border border-zinc-100">
           <div className="bg-zinc-100 rounded-xl p-16 flex items-center justify-center">
-            <GlobalLoading type="spinner" tip="正在加载页面..." />
+            <GlobalLoading type="spinner" tip={t('loadingPreview.loadingPage')} />
           </div>
         </Card>
       </div>

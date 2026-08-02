@@ -65,8 +65,8 @@ export function AccessControlPanel({ accessConfig, onChange }: AccessControlPane
             label={label}
             description={
               isPublic
-                ? t('config.accessPublic') || '公开'
-                : t('config.accessPrivate') || '私有（默认全部）'
+                ? t('config.accessPublic')
+                : t('config.accessPrivate')
             }
             checked={isPublic}
             onChange={(checked: boolean) => toggleModuleAccess(module.key, checked)}

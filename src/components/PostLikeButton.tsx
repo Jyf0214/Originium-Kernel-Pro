@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/lib/ui';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface PostLikeButtonProps {
   slug: string;
@@ -36,6 +37,7 @@ function saveLikedSlugs(slugs: Set<string>) {
  * 客户端通过 localStorage 防止同一用户重复点赞。
  */
 export function PostLikeButton({ slug, initialCount = 0 }: PostLikeButtonProps) {
+  const { t } = useI18n();
   const [liked, setLiked] = useState(false);
   const [count, setCount] = useState(initialCount);
   const [animating, setAnimating] = useState(false);
@@ -89,7 +91,7 @@ export function PostLikeButton({ slug, initialCount = 0 }: PostLikeButtonProps) 
           ? 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-500 cursor-default'
           : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500 text-zinc-600 dark:text-zinc-300',
       )}
-      title={liked ? '已点赞' : '点赞'}
+      title={liked ? t('components.PostLikeButton.liked') : t('components.PostLikeButton.like')}
     >
       <Heart
         size={16}

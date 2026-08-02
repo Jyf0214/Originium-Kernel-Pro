@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useI18n } from '@/hooks/use-i18n';
 
 import { showError } from '@/lib/error';
 
@@ -30,6 +31,7 @@ function toRecentArticle(a: Article): RecentArticle {
 
 /** 加载仪表盘文章统计与最近文章列表 */
 export function useDashboardData(): DashboardData {
+  const { t } = useI18n();
   const [stats, setStats] = useState<Stats>({
     totalArticles: 0,
     publishedArticles: 0,
@@ -56,12 +58,12 @@ export function useDashboardData(): DashboardData {
           });
           setRecentArticles(articles.slice(0, 5).map(toRecentArticle));
         } else if (!cancelled) {
-          showError('文章数据加载失败');
+          showError(t('dashboard.data.articleLoadFailed'));
         }
       } catch (error) {
         if (!cancelled) {
           console.error('Failed to fetch stats:', error);
-          showError('仪表盘数据加载失败');
+          showError(t('dashboard.data.loadFailed'));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -69,7 +71,7 @@ export function useDashboardData(): DashboardData {
     };
     void fetchData();
     return () => { cancelled = true; };
-  }, []);
+  }, [t]);
 
   return { stats, recentArticles, loading };
 }

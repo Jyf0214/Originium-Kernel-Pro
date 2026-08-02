@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { apiHandler, getMetricsSnapshot, type MetricEntry } from '@/lib/api-handler';
+import { getTranslate } from '@/i18n/translate';
 
 /** 对已排序数组计算分位数（近似值） */
 function percentile(sorted: number[], p: number): number {
@@ -55,7 +56,7 @@ function topRoutesByCount(entries: readonly MetricEntry[], limit = 10) {
  * API 延迟性能指标端点
  * 仅管理员可访问，返回最近 1000 条请求的聚合统计
  */
-export const GET = apiHandler('GET', { label: '获取延迟指标', requireAdmin: true }, () => {
+export const GET = apiHandler('GET', { label: getTranslate('api.metrics.fetchLatency'), requireAdmin: true }, () => {
   const entries = getMetricsSnapshot();
   const totalCount = entries.length;
 

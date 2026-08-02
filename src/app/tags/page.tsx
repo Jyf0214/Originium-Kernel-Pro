@@ -3,10 +3,11 @@ import Link from 'next/link';
 import { Hash, ArrowLeft } from 'lucide-react';
 import { Tag } from '@/components/ui/Tag';
 import type { Metadata } from 'next';
+import { getTranslate } from '@/i18n/translate';
 
 export const metadata: Metadata = {
-  title: '标签管理 - Originium Kernel',
-  description: '浏览所有标签及关联文章数量',
+  title: getTranslate('tags.metaTitle'),
+  description: getTranslate('tags.metaDescription'),
 };
 
 
@@ -72,7 +73,7 @@ export default function TagsPage() {
           className="inline-flex items-center gap-1.5 text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 transition-colors mb-8"
         >
           <ArrowLeft size={14} />
-          <span>所有帖子</span>
+          <span>{getTranslate('tags.allPosts')}</span>
         </Link>
 
         {/* 页面头部 */}
@@ -81,11 +82,11 @@ export default function TagsPage() {
             <Hash size={20} className="text-white" />
           </div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
-            标签
+            {getTranslate('tags.title')}
           </h1>
         </div>
         <p className="text-zinc-400 dark:text-zinc-500 text-lg mb-12">
-          共 {tags.length} 个标签，{publicFiles.length} 篇帖子
+          {getTranslate('tags.statSummary', { tagCount: tags.length, postCount: publicFiles.length })}
         </p>
 
         {/* 标签云 */}
@@ -115,9 +116,9 @@ export default function TagsPage() {
             <div className="w-20 h-20 bg-zinc-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
               <Hash size={32} className="text-zinc-300" />
             </div>
-            <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">暂无标签</h3>
+            <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{getTranslate('tags.noTags')}</h3>
             <p className="text-zinc-400 dark:text-zinc-500 text-sm max-w-md mx-auto">
-              给文章添加标签后，它们会出现在这里
+              {getTranslate('tags.noTagsHint')}
             </p>
           </div>
         )}
@@ -126,7 +127,7 @@ export default function TagsPage() {
         {tags.length > 0 && (
           <div className="mt-8">
             <h2 className="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-4">
-              标签列表
+              {getTranslate('tags.listTitle')}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {tags.map(({ name, count }) => (
@@ -157,7 +158,7 @@ export default function TagsPage() {
             className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 transition-colors group"
           >
             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-            返回帖子列表
+            {getTranslate('tags.backToPosts')}
           </Link>
         </div>
       </main>

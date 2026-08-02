@@ -51,9 +51,9 @@ export default function SiteConfigForm({ config, onChange }: SiteConfigFormProps
           value={config.lang}
           onChange={value => updateField('lang', value)}
           options={[
-            { value: 'zh-CN', label: '中文' },
+            { value: 'zh-CN', label: t('components.languageSwitcher.zhName') },
             { value: 'en-US', label: 'English' },
-            { value: 'ja-JP', label: '日本語' },
+            { value: 'ja-JP', label: t('components.languageSwitcher.jaName') },
           ]}
           style={{ width: '100%' }}
           placement="bottomLeft"

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { cn } from '@/lib/ui';
+import { useI18n } from '@/hooks/use-i18n';
 import type { AuthorInfo } from '@/types/author';
 
 export interface CopyrightNoticeProps {
@@ -96,11 +97,13 @@ function CopyrightText({
   locale,
   license,
   licenseUrl,
+  t,
 }: {
   type: 'original' | 'reprint';
   locale?: string;
   license: string;
   licenseUrl: string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   if (locale === 'en') {
     return (
@@ -111,10 +114,9 @@ function CopyrightText({
   }
   return (
     <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-      采用 <LicenseLink license={license} licenseUrl={licenseUrl} />
       {type === 'original'
-        ? ' 许可协议。版权归作者所有，未经授权禁止转载。'
-        : '，版权归原作者所有。'}
+        ? t('components.CopyrightNotice.licenseOriginal', { license })
+        : t('components.CopyrightNotice.licenseReprint', { license })}
     </p>
   );
 }
@@ -128,6 +130,7 @@ export function CopyrightNotice({
   locale,
   authorInfo,
 }: CopyrightNoticeProps) {
+  const { t } = useI18n();
   if (!config.enable) return null;
 
   const displayAuthor = authorInfo?.nickname ?? (config.decode ? decodeHtml(author) : author);
@@ -158,7 +161,7 @@ export function CopyrightNotice({
               : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
           )}
         >
-          {type === 'original' ? '原创' : '转载'}
+          {type === 'original' ? t('components.CopyrightNotice.original') : t('components.CopyrightNotice.reprint')}
         </span>
       </div>
 
@@ -170,7 +173,7 @@ export function CopyrightNotice({
       )}
 
       {/* 版权声明文本 */}
-      <CopyrightText type={type} locale={locale} license={config.license} licenseUrl={config.licenseUrl} />
+      <CopyrightText type={type} locale={locale} license={config.license} licenseUrl={config.licenseUrl} t={t} />
     </div>
   );
 }

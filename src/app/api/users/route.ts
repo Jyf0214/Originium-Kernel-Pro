@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/users');
 
@@ -99,7 +100,7 @@ async function listAllUsers(
   return allUsers;
 }
 
-export const GET = apiHandler('GET', { label: '获取用户列表', requireAuth: true }, async (_req, _context, session) => {
+export const GET = apiHandler('GET', { label: getTranslate('api.users.getUserList'), requireAuth: true }, async (_req, _context, session) => {
   logger.info('GET', '获取用户列表');
   const db = getDb();
   const { searchParams } = new URL(_req.url);
@@ -110,7 +111,7 @@ export const GET = apiHandler('GET', { label: '获取用户列表', requireAuth:
   if (username || uid) {
     if (session!.role !== 'sudo' && session!.role !== 'admin') {
       logger.warn('GET', '禁止查询用户信息', { role: session!.role, username, uid });
-      return NextResponse.json({ error: '无权限' }, { status: 403 });
+      return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
     }
   }
 
@@ -120,7 +121,7 @@ export const GET = apiHandler('GET', { label: '获取用户列表', requireAuth:
     const userData = await getUserByUsernameSearch(db, username);
     if (!userData) {
       logger.warn('GET', '用户不存在', { username });
-      return NextResponse.json({ error: '用户不存在' }, { status: 404 });
+      return NextResponse.json({ error: getTranslate('api.auth.userNotFound') }, { status: 404 });
     }
     return NextResponse.json(userData, { headers: cacheHeaders });
   }
@@ -129,14 +130,14 @@ export const GET = apiHandler('GET', { label: '获取用户列表', requireAuth:
     const userData = await getUserByUidSearch(db, uid);
     if (!userData) {
       logger.warn('GET', '用户不存在', { uid });
-      return NextResponse.json({ error: '用户不存在' }, { status: 404 });
+      return NextResponse.json({ error: getTranslate('api.auth.userNotFound') }, { status: 404 });
     }
     return NextResponse.json(userData, { headers: cacheHeaders });
   }
 
   if (session!.role !== 'sudo' && session!.role !== 'admin') {
     logger.warn('GET', '禁止访问', { role: session!.role });
-    return NextResponse.json({ error: '无权限' }, { status: 403 });
+    return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }
 
   const allUsers = await listAllUsers(db);

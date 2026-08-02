@@ -5,6 +5,7 @@
  */
 import { NextResponse } from 'next/server'
 import { createApiLogger } from '@/lib/api-logger'
+import { getTranslate } from '@/i18n/translate'
 import {
   catchAllHandler,
   getPathParts,
@@ -33,7 +34,7 @@ export const GET = catchAllHandler<{ path?: string[] }>(
     const target = buildWebDavTarget(parts)
     // 路径穿越防护：拒绝含 .. 的路径段
     if (target && !isValidPath(target)) {
-      return NextResponse.json({ error: '无效的文件路径' }, { status: 400 })
+      return NextResponse.json({ error: getTranslate('api.storage.invalidFilePath') }, { status: 400 })
     }
     try {
       const provider = await getStorageProvider()
@@ -46,7 +47,7 @@ export const GET = catchAllHandler<{ path?: string[] }>(
       )
     } catch (err) {
       logger.error('GET', `target="${target}" 失败`, { error: (err as Error).message })
-      return storageErrorResponse(err, '列出目录')
+      return storageErrorResponse(err, getTranslate('api.storage.opListDirectory'))
     }
   }
 )

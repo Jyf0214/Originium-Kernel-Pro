@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 import { zAppConfig, type AppConfig, type SiteConfig, type AppearanceConfig, type AccessConfig, type AuthConfig, type AvatarConfig, type ShareConfig, type MainToneConfig, type FooterConfig, type FooterOwnerConfig, type FooterRuntimeConfig, type SharejsConfig, type AddtoanyConfig, type PostEditConfig, type CopyrightConfig, type TocConfig, type WordCountConfig, type PostMetaConfig, type PostMetaDisplayConfig, type PostMetaPostConfig, type ErrorImgConfig, type CoverConfig, type SocialConfig, type CopyConfig, type HighlightConfig, type MournConfig, type NavConfig, type NavMenuItem, type NavMenuGroup, type RewardConfig, type QRCodeItem } from '@/lib/config-schema';
+import { getTranslate } from '@/i18n/translate';
 
 export type {
   AppConfig,
@@ -69,7 +70,7 @@ async function loadConfigFromYaml(): Promise<AppConfig> {
     const issues = result.error.issues
       .map((i) => `  - ${i.path.join('.') || '(root)'}: ${i.message}`)
       .join('\n');
-    throw new Error(`config.yaml 校验失败:\n${issues}`);
+    throw new Error(`${getTranslate('lib.config.yamlValidationFailed')}\n${issues}`);
   }
 
   return result.data;

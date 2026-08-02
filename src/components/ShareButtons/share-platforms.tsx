@@ -1,5 +1,6 @@
 import React from 'react';
 import type { PlatformDef, ShareConfig } from './types';
+import { getTranslate } from '@/i18n/translate';
 import {
   TwitterIcon,
   FacebookIcon,
@@ -40,7 +41,7 @@ function buildPlatforms(): Record<string, PlatformDef> {
     },
     weibo: {
       id: 'weibo',
-      name: '微博',
+      name: getTranslate('components.ShareButtons.platforms.weibo'),
       color: '#E6162D',
       hoverColor: '#C81023',
       icon: <WeiboIcon size={20} />,
@@ -49,7 +50,7 @@ function buildPlatforms(): Record<string, PlatformDef> {
     },
     wechat: {
       id: 'wechat',
-      name: '微信',
+      name: getTranslate('components.ShareButtons.platforms.wechat'),
       color: '#07C160',
       hoverColor: '#06AD56',
       icon: <WeChatIcon size={20} />,

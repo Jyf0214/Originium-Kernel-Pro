@@ -13,6 +13,7 @@ import { Folder, Globe, Lock, PenLine, Plus, ChevronRight, ChevronDown } from 'l
 import { Tooltip } from 'antd';
 import type { StorageFolderMeta, WebDavEntry } from '@/lib/storage/types';
 import { Tag } from '@/components/ui/Tag';
+import { useI18n } from '@/hooks/use-i18n';
 
 /** 系统保留目录 */
 const SYSTEM_FOLDERS = new Set(['pages']);
@@ -200,6 +201,7 @@ export function StorageFolderTree({
   projectContents,
   onFetchProjectContents,
 }: Props) {
+  const { t } = useI18n();
   // 判定是否为“项目”：必须是一级子文件夹 (不含 '/')
   const isProject = useCallback((path: string) => {
     if (!path) return false;
@@ -230,7 +232,7 @@ export function StorageFolderTree({
           type="button"
           onClick={onNewFolder}
           disabled={disabled}
-          title={disabled ? '存储后端未配置' : '新建文件夹'}
+          title={disabled ? t('storage.notConfiguredTitle') : t('storage.newFolder')}
           className="inline-flex items-center justify-center w-7 h-7 rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           <Plus size={14} />
@@ -254,7 +256,7 @@ export function StorageFolderTree({
 
         {topLevelFolders.length === 0 ? (
           <div className="px-4 py-6 text-center text-xs text-zinc-400">
-            暂无文件夹
+            {t('storage.noFolders')}
           </div>
         ) : (
           <ul className="mt-1 space-y-0.5 px-2">

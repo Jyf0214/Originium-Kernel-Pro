@@ -6,6 +6,7 @@
 import { NextResponse } from 'next/server'
 import { createApiLogger } from '@/lib/api-logger'
 import { getDb } from '@/lib/db'
+import { getTranslate } from '@/i18n/translate'
 
 const logger = createApiLogger('storage.mkdir')
 import {
@@ -49,7 +50,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
       await provider.createDirectory(target, { recursive: true })
     } catch (err) {
       logger.error('POST', `target="${target}" 存储后端创建失败`, { error: (err as Error).message })
-      return storageErrorResponse(err, '创建目录')
+      return storageErrorResponse(err, getTranslate('api.storage.opCreateDirectory'))
     }
 
     // 再 upsert Prisma 元数据(保留已有公开/描述,仅刷新 updatedAt)

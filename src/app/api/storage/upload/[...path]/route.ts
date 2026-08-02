@@ -9,6 +9,7 @@
  */
 import { NextResponse } from 'next/server'
 import { createApiLogger } from '@/lib/api-logger'
+import { getTranslate } from '@/i18n/translate'
 import {
   MAX_UPLOAD_SIZE,
   buildWebDavTarget,
@@ -52,7 +53,7 @@ function validateUploadExtension(relPath: string): NextResponse | null {
   if (ext !== '' && BLOCKED_EXTENSIONS.has(ext)) {
     logger.warn('validateUploadExtension', `拒绝上传: 扩展名 "${ext}" 在黑名单中 path="${relPath}"`)
     return NextResponse.json(
-      { error: '不支持的文件类型', blocked: ext },
+      { error: getTranslate('api.storage.unsupportedFileType'), blocked: ext },
       { status: 400 },
     )
   }
@@ -104,7 +105,7 @@ async function readBodyWithSizeLimit(
       return payloadTooLargeResponse(bytesReceived)
     }
     logger.error('readBodyWithSizeLimit', `target="${target}" 读取失败`, { error: (err as Error).message })
-    return storageErrorResponse(err, '上传文件')
+    return storageErrorResponse(err, getTranslate('api.storage.opUpload'))
   }
 }
 
@@ -130,7 +131,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
     if (rejected) return rejected
 
     if (!req.body) {
-      return NextResponse.json({ error: '请求体为空' }, { status: 400 })
+      return NextResponse.json({ error: getTranslate('api.storage.emptyRequestBody') }, { status: 400 })
     }
 
     const result = await readBodyWithSizeLimit(req.body, target)
@@ -142,7 +143,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
       await provider.putFileContents(target, buffer, { headers: { overwrite: 'true' } })
     } catch (err) {
       logger.error('POST', `target="${target}" 写入失败`, { error: (err as Error).message })
-      return storageErrorResponse(err, '上传文件')
+      return storageErrorResponse(err, getTranslate('api.storage.opUpload'))
     }
 
     logger.info('POST', `target="${target}" size=${bytesReceived} bytes`)

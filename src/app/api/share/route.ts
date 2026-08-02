@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { apiHandler } from '@/lib/api-handler';
+import { getTranslate } from '@/i18n/translate';
 
 /**
  * Share Event Tracking API
@@ -23,12 +24,12 @@ interface SharePayload {
   platform: string;
 }
 
-export const POST = apiHandler('POST', { label: '分享事件记录' }, async (request) => {
+export const POST = apiHandler('POST', { label: getTranslate('api.share.record') }, async (request) => {
   const body = (await request.json()) as SharePayload;
 
   if (!body.url || !body.platform) {
     return NextResponse.json(
-      { error: '缺少必要参数: url, platform' },
+      { error: getTranslate('api.share.missingParams') },
       { status: 400 },
     );
   }
@@ -37,7 +38,7 @@ export const POST = apiHandler('POST', { label: '分享事件记录' }, async (r
   const ip = getClientIp(request);
   const { allowed } = rateLimit(`share:${ip}`, 30, 60 * 1000);
   if (!allowed) {
-    return NextResponse.json({ error: '请求过于频繁' }, { status: 429 });
+    return NextResponse.json({ error: getTranslate('api.common.rateLimited') }, { status: 429 });
   }
 
   // 记录分享事件到服务器日志（URL 截断 + 控制字符清理防止日志注入）
@@ -46,7 +47,7 @@ export const POST = apiHandler('POST', { label: '分享事件记录' }, async (r
   const logEntry = {
     timestamp,
     url: safeUrl,
-    title: body.title ?? '(无标题)',
+    title: body.title ?? getTranslate('api.share.untitled'),
     platform: body.platform,
     referer: request.headers.get('referer') ?? '',
     userAgent: request.headers.get('user-agent') ?? '',
@@ -62,7 +63,7 @@ export const POST = apiHandler('POST', { label: '分享事件记录' }, async (r
   return NextResponse.json({
     success: true,
     shareUrl,
-    message: '分享事件已记录',
+    message: getTranslate('api.share.recorded'),
   });
 });
 

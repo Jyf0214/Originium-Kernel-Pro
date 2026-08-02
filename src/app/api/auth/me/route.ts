@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { getUserAvatarAsync } from '@/lib/config';
 import { createApiLogger } from '@/lib/api-logger';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/auth/me');
 
@@ -24,7 +25,7 @@ export async function GET() {
     const userStr = await db.get(`user:uid:${session.uid}`);
     if (!userStr) {
       logger.warn('GET', '用户不存在', { uid: session.uid });
-      return NextResponse.json({ authenticated: false, error: '用户不存在' }, { status: 401 });
+      return NextResponse.json({ authenticated: false, error: getTranslate('api.auth.userNotFound') }, { status: 401 });
     }
 
     const user = JSON.parse(userStr);
@@ -44,6 +45,6 @@ export async function GET() {
     });
   } catch (error) {
     logger.error('GET', '获取用户信息失败', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ authenticated: false, error: '服务器内部错误' }, { status: 500 });
+    return NextResponse.json({ authenticated: false, error: getTranslate('api.common.serverError') }, { status: 500 });
   }
 }

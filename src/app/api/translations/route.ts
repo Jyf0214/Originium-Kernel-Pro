@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
 import { apiHandler } from '@/lib/api-handler';
+import { getTranslate } from '@/i18n/translate';
 
 /**
  * 翻译查询 API
@@ -16,13 +17,13 @@ import { apiHandler } from '@/lib/api-handler';
  *   translations: [{ lang: 'en', slug: '/posts/en/article-en', title: '...' }]
  * }
  */
-export const GET = apiHandler('GET', { label: '翻译查询' }, (request) => {
+export const GET = apiHandler('GET', { label: getTranslate('api.translations.query') }, (request) => {
   const { searchParams } = new URL(request.url);
   const slug = searchParams.get('slug');
 
   if (!slug) {
     return NextResponse.json(
-      { error: '缺少必需参数 slug', original: null, translations: [] },
+      { error: getTranslate('api.translations.missingSlug'), original: null, translations: [] },
       { status: 400 },
     );
   }
@@ -33,7 +34,7 @@ export const GET = apiHandler('GET', { label: '翻译查询' }, (request) => {
   const originalFile = allFiles.find((f) => f.slug === slug);
   if (!originalFile) {
     return NextResponse.json(
-      { error: '未找到指定文章', original: null, translations: [] },
+      { error: getTranslate('api.translations.articleNotFound'), original: null, translations: [] },
       { status: 404 },
     );
   }

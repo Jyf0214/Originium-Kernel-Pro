@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { getTranslate } from '@/i18n/translate';
 
 interface PageHeaderProps {
   /** 页面标题 */
@@ -25,7 +26,7 @@ export function PageHeader({
   title,
   description,
   backHref,
-  backLabel = '返回',
+  backLabel = getTranslate('common.back'),
   actions,
 }: PageHeaderProps) {
   return (

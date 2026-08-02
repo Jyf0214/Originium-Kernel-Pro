@@ -11,10 +11,10 @@ import { SearchEmpty } from './SearchEmpty';
 import { SearchHistory } from './SearchHistory';
 import { SearchInput } from './SearchInput';
 import { SearchResultItem, SearchResultsSummary, SearchLoading } from './SearchResults';
-import { SearchTags } from './SearchTags';
 import { useSearch } from './use-search';
 import { SECTION_TITLE_CLASS } from './types';
 import type { SearchDialogProps } from './types';
+import { useI18n } from '@/hooks/use-i18n';
 
 // 结果列表 stagger 进场动画变体
 const listVariants = {
@@ -30,6 +30,7 @@ const itemVariants = {
 } as const;
 
 export function SearchDialog({ open, onClose }: SearchDialogProps) {
+  const { t } = useI18n();
   const {
     query,
     setQuery,
@@ -38,7 +39,6 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
     loading,
     hasSearched,
     inputRef,
-    handleTagClick,
     selectedIndex,
     flatResults,
     handleHistoryClick,
@@ -57,7 +57,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
           className="fixed inset-0 z-50 flex items-start justify-center pt-[12vh] sm:pt-[15vh] bg-black/50 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
-          aria-label="搜索"
+          aria-label={t('common.search')}
           onClick={(e) => {
             if (e.target === e.currentTarget) onClose();
           }}
@@ -89,16 +89,13 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
 
             {/* ── 搜索结果区域 ── */}
             <div className="max-h-[55vh] sm:max-h-[60vh] overflow-y-auto overscroll-contain py-2">
-              {/* 初始状态：未搜索 — 显示搜索历史 + 热门标签 */}
+              {/* 初始状态：未搜索 — 显示搜索历史 */}
               {!hasSearched && !query && (
-                <>
-                  <SearchHistory
-                    history={searchHistory}
-                    onHistoryClick={handleHistoryClick}
-                    onClear={clearHistory}
-                  />
-                  <SearchTags onTagClick={handleTagClick} />
-                </>
+                <SearchHistory
+                  history={searchHistory}
+                  onHistoryClick={handleHistoryClick}
+                  onClear={clearHistory}
+                />
               )}
 
               {/* 加载中 */}

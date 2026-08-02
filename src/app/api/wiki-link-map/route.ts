@@ -12,8 +12,9 @@
 import { NextResponse } from 'next/server';
 import { buildWikiLinkMap } from '@/lib/content-registry';
 import { apiHandler } from '@/lib/api-handler';
+import { getTranslate } from '@/i18n/translate';
 
-export const GET = apiHandler('GET', { label: 'wiki-link映射', requireAuth: true }, () => {
+export const GET = apiHandler('GET', { label: getTranslate('api.wikiLinkMap.label'), requireAuth: true }, () => {
   const map = buildWikiLinkMap();
   return NextResponse.json(map, {
     headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' },

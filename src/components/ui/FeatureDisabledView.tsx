@@ -8,13 +8,14 @@
  */
 import { Database, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { getTranslate } from '@/i18n/translate';
 
 interface FeatureDisabledViewProps {
   /** 功能名称，如 '仪表盘'、'登录系统' */
   feature?: string;
 }
 
-export function FeatureDisabledView({ feature = '此功能' }: FeatureDisabledViewProps) {
+export function FeatureDisabledView({ feature }: FeatureDisabledViewProps) {
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-zinc-50 dark:bg-zinc-900 p-6">
       <div className="w-full max-w-xl rounded-2xl bg-white dark:bg-zinc-900 p-8 shadow-sm ring-1 ring-zinc-200 dark:ring-zinc-700">
@@ -23,12 +24,12 @@ export function FeatureDisabledView({ feature = '此功能' }: FeatureDisabledVi
             <Database size={22} aria-hidden />
           </span>
           <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-            数据库未配置
+            {getTranslate('components.FeatureDisabledView.title')}
           </h1>
         </div>
 
         <p className="mb-6 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-          {feature}需要数据库支持才能使用。请在环境变量中配置以下任一变量后重启服务：
+          {getTranslate('components.FeatureDisabledView.description', { feature: feature ?? getTranslate('components.FeatureDisabledView.defaultFeature') })}
         </p>
 
         <div className="rounded-xl bg-zinc-50 dark:bg-zinc-800 p-4 ring-1 ring-zinc-200 dark:ring-zinc-700 mb-6">
@@ -37,7 +38,7 @@ export function FeatureDisabledView({ feature = '此功能' }: FeatureDisabledVi
               <code className="rounded bg-white dark:bg-zinc-900 px-1.5 py-0.5 font-mono text-xs text-zinc-800 dark:text-zinc-200">
                 DATABASE_URL
               </code>
-              <span className="ml-2 text-zinc-500">（推荐）</span>
+              <span className="ml-2 text-zinc-500">{getTranslate('components.FeatureDisabledView.recommended')}</span>
             </li>
             <li>
               <code className="rounded bg-white dark:bg-zinc-900 px-1.5 py-0.5 font-mono text-xs text-zinc-800 dark:text-zinc-200">
@@ -57,7 +58,7 @@ export function FeatureDisabledView({ feature = '此功能' }: FeatureDisabledVi
           className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
         >
           <ArrowLeft size={14} />
-          返回首页
+          {getTranslate('components.FeatureDisabledView.backHome')}
         </Link>
       </div>
     </div>

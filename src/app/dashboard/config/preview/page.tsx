@@ -16,24 +16,26 @@ interface CategoryItem {
   icon: React.ElementType;
 }
 
-const categories: CategoryItem[] = [
-  {
-    key: 'loading',
-    label: 'Loading Animations',
-    labelZh: '加载动画',
-    description: '进度条、加载指示器等动画效果',
-    href: '/dashboard/config/preview/loading',
-    icon: Loader2,
-  },
-  {
-    key: 'theme',
-    label: 'Theme',
-    labelZh: '主题配色',
-    description: '主题颜色、渐变、阴影等配置',
-    href: '/dashboard/config/preview/theme',
-    icon: Palette,
-  },
-];
+function getCategoryItems(t: (key: string) => string): CategoryItem[] {
+  return [
+    {
+      key: 'loading',
+      label: 'Loading Animations',
+      labelZh: t('configPreview.loading.title'),
+      description: t('configPreview.loading.desc'),
+      href: '/dashboard/config/preview/loading',
+      icon: Loader2,
+    },
+    {
+      key: 'theme',
+      label: 'Theme',
+      labelZh: t('configPreview.theme.title'),
+      description: t('configPreview.theme.desc'),
+      href: '/dashboard/config/preview/theme',
+      icon: Palette,
+    },
+  ];
+}
 
 function CategoryCard({ item }: { item: CategoryItem }) {
   const Icon = item.icon;
@@ -70,10 +72,10 @@ export default function ConfigPreviewPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">
-            {t('configPreview.title') || '配置预览'}
+            {t('configPreview.title')}
           </h1>
           <p className="text-zinc-400 text-sm mt-0.5">
-            {t('configPreview.subtitle') || '预览和配置各种界面元素'}
+            {t('configPreview.subtitle')}
           </p>
         </div>
       </div>
@@ -90,17 +92,17 @@ export default function ConfigPreviewPage() {
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="text-lg font-bold text-zinc-900 mb-1">
-                {t('configPreview.categories') || '预览分类'}
+                {t('configPreview.categories')}
               </h2>
               <p className="text-zinc-500 text-sm">
-                点击进入详细预览页
+                {t('configPreview.clickToPreview')}
               </p>
             </div>
           </div>
         </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {categories.map((item) => (
+          {getCategoryItems(t).map((item) => (
             <CategoryCard key={item.key} item={item} />
           ))}
         </div>

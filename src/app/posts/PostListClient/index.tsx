@@ -18,9 +18,9 @@ export type { PostItem, CoverConfig } from '@/components/ui/PostCard';
 type LayoutMode = 'grid' | 'list' | 'compact';
 
 const LAYOUT_OPTIONS: { key: LayoutMode; icon: typeof LayoutGrid; label: string }[] = [
-  { key: 'grid', icon: LayoutGrid, label: '网格视图' },
-  { key: 'list', icon: List, label: '列表视图' },
-  { key: 'compact', icon: AlignJustify, label: '紧凑视图' },
+  { key: 'grid', icon: LayoutGrid, label: 'posts.gridView' },
+  { key: 'list', icon: List, label: 'posts.listView' },
+  { key: 'compact', icon: AlignJustify, label: 'posts.compactView' },
 ];
 
 const LAYOUT_STORAGE_KEY = 'post-list-layout';
@@ -74,7 +74,7 @@ export function PostListClient({ posts, groups, coverConfig }: PostListClientPro
           key={key}
           type="button"
           onClick={() => handleLayoutChange(key)}
-          title={label}
+          title={t(label)}
           className={`p-2 rounded-lg transition-colors duration-200 ${
             layout === key
               ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100'
@@ -94,6 +94,7 @@ export function PostListClient({ posts, groups, coverConfig }: PostListClientPro
         onSearchChange={setSearchTerm}
         postCount={filteredPosts.length}
         t={t}
+        locale={locale}
         rightExtra={layoutToggle}
       />
 

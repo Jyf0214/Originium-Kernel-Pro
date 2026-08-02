@@ -1,6 +1,7 @@
 import React from 'react';
 import { Github, CheckCircle, XCircle } from 'lucide-react';
 import ConfigSection from './ConfigSection';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface GitHubStatusProps {
   configured: boolean;
@@ -13,8 +14,9 @@ export default function GitHubStatus({
   configuredText,
   notConfiguredText,
 }: GitHubStatusProps) {
+  const { t } = useI18n();
   return (
-    <ConfigSection title="GitHub 同步状态" icon={Github} color="bg-zinc-500">
+    <ConfigSection title={t('components.gitHubStatus.title')} icon={Github} color="bg-zinc-500">
       <div
         className="p-4 rounded-xl flex items-center gap-3"
         style={{ background: configured ? '#f6ffed' : '#fff7e6' }}

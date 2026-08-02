@@ -5,6 +5,7 @@ import { apiHandler } from '@/lib/api-handler';
 import { createApiLogger } from '@/lib/api-logger';
 import { zAppConfig } from '@/lib/config-schema';
 import { logAudit } from '@/lib/audit';
+import { getTranslate } from '@/i18n/translate';
 import yaml from 'js-yaml';
 
 const logger = createApiLogger('/api/config');
@@ -108,7 +109,7 @@ function mergeAppConfig(
   };
 }
 
-export const POST = apiHandler('POST', { label: 'config更新', requireAdmin: true }, async (req, _ctx, session) => {
+export const POST = apiHandler('POST', { label: getTranslate('api.config.updateLabel'), requireAdmin: true }, async (req, _ctx, session) => {
   logger.info('POST', '开始更新配置', { role: session?.role });
 
   const rawConfig = await req.json() as Partial<AppConfig>;
@@ -116,7 +117,7 @@ export const POST = apiHandler('POST', { label: 'config更新', requireAdmin: tr
   const validated = zAppConfig.partial().safeParse(rawConfig);
   if (!validated.success) {
     return NextResponse.json(
-      { error: '配置校验失败: ' + validated.error.issues.map(i => i.path.join('.')).join(', ') },
+      { error: getTranslate('api.config.validationFailed') + validated.error.issues.map(i => i.path.join('.')).join(', ') },
       { status: 400 }
     );
   }
@@ -138,12 +139,12 @@ export const POST = apiHandler('POST', { label: 'config更新', requireAdmin: tr
       });
     } catch (err) {
       logger.error('POST', '配置写入 GitHub 失败', { error: err instanceof Error ? err.message : String(err) });
-      return NextResponse.json({ error: '配置保存到远程仓库失败' }, { status: 500 });
+      return NextResponse.json({ error: getTranslate('api.config.saveToRemoteFailed') }, { status: 500 });
     }
   }
 
   logger.info('POST', '配置已合并并持久化');
-  void logAudit('config_update', 'config', '站点配置已更新', session?.uid ?? 'unknown');
+  void logAudit('config_update', 'config', getTranslate('api.config.updated'), session?.uid ?? 'unknown');
   clearConfigCache();
   return NextResponse.json({ success: true, config: mergedConfig });
 });
@@ -151,31 +152,31 @@ export const POST = apiHandler('POST', { label: 'config更新', requireAdmin: tr
 /**
  * 从 GitHub 拉取配置
  */
-export const PUT = apiHandler('PUT', { label: 'config同步', requireAdmin: true }, async (_req, _ctx, session) => {
+export const PUT = apiHandler('PUT', { label: getTranslate('api.config.syncLabel'), requireAdmin: true }, async (_req, _ctx, session) => {
   logger.info('PUT', '开始从 GitHub 同步配置', { role: session?.role });
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
   if (!repo || !token) {
     logger.warn('PUT', 'GitHub 未配置');
-    return NextResponse.json({ error: 'GitHub 未配置' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.config.githubNotConfigured') }, { status: 400 });
   }
 
   const remote = await getFileFromGithub(repo, token, 'config.yaml');
   if (!remote) {
     logger.warn('PUT', 'config.yaml 不存在');
-    return NextResponse.json({ error: 'config.yaml 不存在' }, { status: 404 });
+    return NextResponse.json({ error: getTranslate('api.config.yamlNotFound') }, { status: 404 });
   }
   const parsed = yaml.load(remote.content) as Partial<AppConfig>;
   const validated = zAppConfig.safeParse(parsed);
   if (!validated.success) {
     logger.warn('PUT', '远程 YAML Zod 校验失败', { issues: validated.error.issues.map(i => i.path.join('.')) });
-    return NextResponse.json({ error: '远程配置校验失败: ' + validated.error.issues.map(i => i.path.join('.')).join(', ') }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.config.remoteValidationFailed') + validated.error.issues.map(i => i.path.join('.')).join(', ') }, { status: 400 });
   }
   const currentConfig = await loadConfig();
   const mergedConfig = mergeAppConfig(currentConfig, validated.data);
 
   logger.info('PUT', '从 GitHub 同步配置成功');
-  void logAudit('config_update', 'config', '站点配置已从 GitHub 同步更新', session?.uid ?? 'unknown');
+  void logAudit('config_update', 'config', getTranslate('api.config.syncedFromGithub'), session?.uid ?? 'unknown');
   clearConfigCache();
   return NextResponse.json({ success: true, config: mergedConfig });
 });

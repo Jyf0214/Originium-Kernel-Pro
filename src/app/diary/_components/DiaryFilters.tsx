@@ -2,6 +2,7 @@
 
 import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { useI18n } from '@/hooks/use-i18n';
 
 export function DiaryFilters({
   searchText,
@@ -18,6 +19,7 @@ export function DiaryFilters({
   endDate: string;
   setEndDate: (v: string) => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
       <div className="relative flex-1 min-w-[160px] sm:min-w-[200px] max-w-sm">
@@ -25,7 +27,7 @@ export function DiaryFilters({
         <input
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          placeholder="搜索日记..."
+          placeholder={t('diary.searchPlaceholder')}
           className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 transition-all text-zinc-900 placeholder-zinc-400 text-xs sm:text-sm"
         />
       </div>
@@ -34,7 +36,7 @@ export function DiaryFilters({
         value={startDate}
         onChange={(e) => setStartDate(e.target.value)}
         className="px-2 sm:px-3 py-2 sm:py-2.5 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 transition-all text-zinc-900 text-xs sm:text-sm w-[130px] sm:w-auto"
-        title="开始日期"
+        title={t('diary.startDate')}
       />
       <span className="text-zinc-400 text-xs sm:text-sm">—</span>
       <input
@@ -42,7 +44,7 @@ export function DiaryFilters({
         value={endDate}
         onChange={(e) => setEndDate(e.target.value)}
         className="px-2 sm:px-3 py-2 sm:py-2.5 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 transition-all text-zinc-900 text-xs sm:text-sm w-[130px] sm:w-auto"
-        title="结束日期"
+        title={t('diary.endDate')}
       />
     </div>
   );
@@ -57,6 +59,7 @@ export function GroupTabs({
   activeGroup: string | null;
   onSelect: (g: string | null) => void;
 }) {
+  const { t } = useI18n();
   if (groups.length === 0) return null;
   return (
     <div className="flex flex-wrap gap-2 mb-4">
@@ -66,7 +69,7 @@ export function GroupTabs({
         rounded="full"
         autoLoading={false}
         onClick={() => onSelect(null)}
-      >全部</Button>
+      >{t('common.all')}</Button>
       {groups.map((g) => (
         <Button
           key={g}

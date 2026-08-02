@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { getTranslate } from '@/i18n/translate';
 
 // ============================================================================
 // 工具:把"已带 field defaults 的子 schema"再包一层,使其在父级缺失时
@@ -67,7 +68,7 @@ export const zAppearanceConfig = z.object({
   fontSize: z.number().int().positive().default(16),
   favicon: z.string().refine(
     (v) => v === '' || v.startsWith('/'),
-    { message: 'favicon 必须是 public 目录下的本地路径(以 / 开头),不支持外部 URL' },
+    { message: getTranslate('lib.config.faviconLocalPath') },
   ).default(''),
   background: withFullDefault(z.object({
     url: z.string().default(''),
@@ -263,17 +264,17 @@ export const zCopyrightConfig = z.object({
   licenseUrl: z.string().default('https://creativecommons.org/licenses/by-nc-sa/4.0/'),
   authorLink: z.string().default('/'),
   labels: z.object({
-    authorSection: z.string().default('本文作者'),
-    authorPrefix: z.string().default('作者: '),
-    sourcePrefix: z.string().default('来源: '),
-    licensePrefix: z.string().default('许可: '),
-    original: z.string().default('原创'),
-    reprint: z.string().default('转载'),
+    authorSection: z.string().default(getTranslate('lib.config.authorSection')),
+    authorPrefix: z.string().default(getTranslate('lib.config.authorPrefix')),
+    sourcePrefix: z.string().default(getTranslate('lib.config.sourcePrefix')),
+    licensePrefix: z.string().default(getTranslate('lib.config.licensePrefix')),
+    original: z.string().default(getTranslate('lib.config.original')),
+    reprint: z.string().default(getTranslate('lib.config.reprint')),
   }).optional(),
   copyTemplate: z.object({
-    authorLine: z.string().default('本文著作权归作者所有'),
-    licensePrefix: z.string().default('许可协议: '),
-    sourcePrefix: z.string().default('来源: '),
+    authorLine: z.string().default(getTranslate('lib.config.copyrightAuthorLine')),
+    licensePrefix: z.string().default(getTranslate('lib.config.licenseAgreementPrefix')),
+    sourcePrefix: z.string().default(getTranslate('lib.config.sourcePrefix')),
   }).optional(),
 });
 
@@ -342,15 +343,15 @@ export const zFooterOwnerConfig = z.object({
 export const zFooterRuntimeConfig = z.object({
   enable: z.boolean().default(false),
   launchTime: z.string().default('04/01/2021 00:00:00'),
-  timeFormat: z.string().default('本站已运行 {days} 天 {hours} 小时 {minutes} 分 {seconds} 秒'),
+  timeFormat: z.string().default(getTranslate('lib.config.footerTimeFormat')),
   onlineHours: z.object({
     start: z.number().int().min(0).max(23).default(9),
     end: z.number().int().min(0).max(23).default(18),
   }).default({ start: 9, end: 18 }),
   statusText: z.object({
-    online: z.string().default('在线'),
-    offline: z.string().default('休息中'),
-  }).default({ online: '在线', offline: '休息中' }),
+    online: z.string().default(getTranslate('lib.config.statusOnline')),
+    offline: z.string().default(getTranslate('lib.config.statusOffline')),
+  }).default({ online: getTranslate('lib.config.statusOnline'), offline: getTranslate('lib.config.statusOffline') }),
 });
 
 export const zFooterSocialLink = z.object({

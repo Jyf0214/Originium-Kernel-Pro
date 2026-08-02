@@ -1,5 +1,6 @@
 import React from 'react';
 import FormField from './FormField';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface ErrorImgConfigData {
   flink: string;
@@ -12,16 +13,17 @@ interface ErrorImgConfigProps {
 }
 
 export default function ErrorImgConfig({ config, onChange }: ErrorImgConfigProps) {
+  const { t } = useI18n();
   return (
     <div className="space-y-4">
       <FormField
-        label="友链错误图片"
+        label={t('components.errorImgConfig.flinkLabel')}
         value={config.flink}
         onChange={v => onChange({ ...config, flink: v })}
         placeholder="/img/friend_404.gif"
       />
       <FormField
-        label="文章错误图片"
+        label={t('components.errorImgConfig.postPageLabel')}
         value={config.postPage}
         onChange={v => onChange({ ...config, postPage: v })}
         placeholder="/img/404.jpg"

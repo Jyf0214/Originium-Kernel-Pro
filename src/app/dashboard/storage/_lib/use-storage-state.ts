@@ -17,6 +17,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { message } from 'antd';
 import type { StorageFolderMeta, WebDavEntry } from '@/lib/storage/types';
+import { getTranslate } from '@/i18n/translate';
 import type { DialogKind, DialogTarget } from './types';
 import {
   ApiError,
@@ -124,7 +125,7 @@ export function useStorageState(): UseStorageState {
       if (err instanceof ApiError && err.isNotConfigured) {
         nextConfigured = false;
       } else {
-        errors.push(err instanceof Error ? err.message : '配置加载失败');
+        errors.push(err instanceof Error ? err.message : getTranslate('storage.configLoadFailed'));
       }
     }
 
@@ -136,7 +137,7 @@ export function useStorageState(): UseStorageState {
       if (err instanceof ApiError && err.isNotConfigured) {
         nextConfigured = false;
       } else {
-        errors.push(err instanceof Error ? err.message : '文件夹加载失败');
+        errors.push(err instanceof Error ? err.message : getTranslate('storage.foldersLoadFailed'));
       }
     }
 
@@ -162,7 +163,7 @@ export function useStorageState(): UseStorageState {
       if (err instanceof Error) {
         message.error(err.message);
       } else {
-        message.error('文件列表加载失败');
+        message.error(getTranslate('storage.entriesLoadFailed'));
       }
     }
   }, []);
@@ -230,12 +231,12 @@ export function useStorageState(): UseStorageState {
     async (files: File[]) => {
       if (!files.length) return;
       if (!configured) {
-        message.error('存储后端未配置,无法上传');
+        message.error(getTranslate('storage.uploadNotConfigured'));
         return;
       }
       const oversize = files.find((f) => f.size > MAX_FILE_SIZE);
       if (oversize) {
-        message.error(`文件 "${oversize.name}" 超过 50MB 限制`);
+        message.error(getTranslate('storage.fileTooLargeName', { name: oversize.name }));
         return;
       }
       const errors: string[] = [];
@@ -246,22 +247,22 @@ export function useStorageState(): UseStorageState {
           if (err instanceof ApiError) {
             if (err.isNotConfigured) {
               setConfigured(false);
-              message.error('存储后端未配置,上传失败');
+              message.error(getTranslate('storage.uploadFailedNotConfigured'));
               return;
             }
             errors.push(err.message);
           } else {
-            errors.push(err instanceof Error ? err.message : `上传失败: ${file.name}`);
+            errors.push(err instanceof Error ? err.message : getTranslate('storage.uploadFailedName', { name: file.name }));
           }
         }
       }
       const success = files.length - errors.length;
       if (errors.length === 0) {
-        message.success(`上传成功 (${files.length} 个文件)`);
+        message.success(getTranslate('storage.uploadSuccessCount', { count: files.length }));
       } else if (success > 0) {
-        message.warning(`部分上传失败 (成功 ${success}，失败 ${errors.length})`);
+        message.warning(getTranslate('storage.partialUploadFailed', { success, failed: errors.length }));
       } else {
-        message.error(`上传失败 (${errors.length} 个文件)`);
+        message.error(getTranslate('storage.uploadFailedCount', { count: errors.length }));
       }
       await loadEntries(currentPath);
       // 重新拉一次 folders(可能因上传自动创建了文件夹元数据)
@@ -279,11 +280,11 @@ export function useStorageState(): UseStorageState {
     async (name: string) => {
       const trimmed = name.trim();
       if (!trimmed) {
-        message.error('文件夹名不能为空');
+        message.error(getTranslate('storage.renameInvalidName'));
         return;
       }
       if (!configured) {
-        message.error('存储后端未配置,无法创建');
+        message.error(getTranslate('storage.createNotConfigured'));
         return;
       }
       const fullPath = currentPath ? `${currentPath}/${trimmed}` : trimmed;
@@ -296,19 +297,19 @@ export function useStorageState(): UseStorageState {
           next[idx] = meta;
           return next;
         });
-        message.success('文件夹创建成功');
+        message.success(getTranslate('storage.createSuccess'));
         closeDialog();
         await loadEntries(currentPath);
       } catch (err) {
         if (err instanceof ApiError) {
           if (err.isNotConfigured) {
             setConfigured(false);
-            message.error('存储后端未配置');
+            message.error(getTranslate('storage.notConfiguredTitle'));
             return;
           }
           message.error(err.message);
         } else {
-          message.error('创建失败');
+          message.error(getTranslate('storage.createFailed'));
         }
       }
     },
@@ -318,12 +319,12 @@ export function useStorageState(): UseStorageState {
   const removeFile = useCallback(
     async (path: string) => {
       if (!configured) {
-        message.error('存储后端未配置,无法删除');
+        message.error(getTranslate('storage.deleteNotConfigured'));
         return;
       }
       try {
         await deleteFile(path);
-        message.success('删除成功');
+        message.success(getTranslate('storage.deleteSuccess'));
         closeDialog();
         await loadEntries(currentPath);
       } catch (err) {
@@ -334,7 +335,7 @@ export function useStorageState(): UseStorageState {
           }
           message.error(err.message);
         } else {
-          message.error('删除失败');
+          message.error(getTranslate('storage.deleteFailed'));
         }
       }
     },
@@ -344,13 +345,13 @@ export function useStorageState(): UseStorageState {
   const removeFolder = useCallback(
     async (path: string) => {
       if (!configured) {
-        message.error('存储后端未配置,无法删除');
+        message.error(getTranslate('storage.deleteNotConfigured'));
         return;
       }
       try {
         await rmdir(path);
         setFolders((prev) => prev.filter((f) => f.path !== path));
-        message.success('删除成功');
+        message.success(getTranslate('storage.deleteSuccess'));
         closeDialog();
         if (currentPath === path) {
           await navigateTo('');
@@ -365,7 +366,7 @@ export function useStorageState(): UseStorageState {
           }
           message.error(err.message);
         } else {
-          message.error('删除失败');
+          message.error(getTranslate('storage.deleteFailed'));
         }
       }
     },
@@ -375,7 +376,7 @@ export function useStorageState(): UseStorageState {
   const toggleFolderPublic = useCallback(
     async (path: string, next: boolean) => {
       if (!configured) {
-        message.error('存储后端未配置,无法切换');
+        message.error(getTranslate('storage.toggleNotConfigured'));
         return null;
       }
       try {
@@ -387,7 +388,7 @@ export function useStorageState(): UseStorageState {
           nextList[idx] = meta;
           return nextList;
         });
-        message.success('设置已更新');
+        message.success(getTranslate('storage.settingsUpdated'));
         return meta;
       } catch (err) {
         if (err instanceof ApiError) {
@@ -397,7 +398,7 @@ export function useStorageState(): UseStorageState {
           }
           message.error(err.message);
         } else {
-          message.error('更新失败');
+          message.error(getTranslate('storage.updateFailed'));
         }
         return null;
       }
@@ -408,7 +409,7 @@ export function useStorageState(): UseStorageState {
   const setFolderPassword = useCallback(
     async (path: string, password: string | null) => {
       if (!configured) {
-        message.error('存储后端未配置,无法设置密码');
+        message.error(getTranslate('storage.passwordNotConfigured'));
         return null;
       }
       try {
@@ -420,7 +421,7 @@ export function useStorageState(): UseStorageState {
           nextList[idx] = meta;
           return nextList;
         });
-        message.success('设置已更新');
+        message.success(getTranslate('storage.settingsUpdated'));
         return meta;
       } catch (err) {
         if (err instanceof ApiError) {
@@ -430,7 +431,7 @@ export function useStorageState(): UseStorageState {
           }
           message.error(err.message);
         } else {
-          message.error('更新失败');
+          message.error(getTranslate('storage.updateFailed'));
         }
         return null;
       }
@@ -441,7 +442,7 @@ export function useStorageState(): UseStorageState {
   const renameFolderCallback = useCallback(
     async (path: string, newName: string): Promise<boolean> => {
       if (!configured) {
-        message.error('存储后端未配置,无法重命名');
+        message.error(getTranslate('storage.renameNotConfigured'));
         return false;
       }
       try {
@@ -465,7 +466,7 @@ export function useStorageState(): UseStorageState {
           }
           return prev;
         });
-        message.success('重命名成功');
+        message.success(getTranslate('storage.renameSuccess'));
         closeDialog();
         return true;
       } catch (err) {
@@ -476,7 +477,7 @@ export function useStorageState(): UseStorageState {
           }
           message.error(err.message);
         } else {
-          message.error('重命名失败');
+          message.error(getTranslate('storage.renameFailed'));
         }
         return false;
       }
@@ -487,7 +488,7 @@ export function useStorageState(): UseStorageState {
   const moveFileItemCallback = useCallback(
     async (path: string, destination: string): Promise<boolean> => {
       if (!configured) {
-        message.error('存储后端未配置,无法移动');
+        message.error(getTranslate('storage.moveNotConfigured'));
         return false;
       }
       try {
@@ -501,7 +502,7 @@ export function useStorageState(): UseStorageState {
             setFolders(Array.isArray(result) ? result : []);
           } catch { /* 忽略文件夹刷新失败 */ }
         }
-        message.success('移动成功');
+        message.success(getTranslate('storage.moveSuccess'));
         closeDialog();
         return true;
       } catch (err) {
@@ -512,7 +513,7 @@ export function useStorageState(): UseStorageState {
           }
           message.error(err.message);
         } else {
-          message.error('移动失败');
+          message.error(getTranslate('storage.moveFailed'));
         }
         return false;
       }

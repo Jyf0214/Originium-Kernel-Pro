@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { apiHandler } from '@/lib/api-handler';
 import { queryAuditLogs } from '@/lib/audit';
+import { getTranslate } from '@/i18n/translate';
 
-export const GET = apiHandler('GET', { label: '审计日志查询', requireAdmin: true }, async (req) => {
+export const GET = apiHandler('GET', { label: getTranslate('api.admin.auditLogQuery'), requireAdmin: true }, async (req) => {
   const { searchParams } = req.nextUrl;
 
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1);

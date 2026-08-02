@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { showError } from '@/lib/error';
+import { getTranslate } from '@/i18n/translate';
 import type { ArticleData, UserInfo } from './types';
 
 export interface ArticleFetcherResult {
@@ -30,12 +31,12 @@ export function useArticleFetcher(username: string, article: string): ArticleFet
             setRawContent(raw);
           }
         } else if (!cancelled) {
-          showError('文章加载失败');
+          showError(getTranslate('article.loadFailed'));
         }
       } catch (error) {
         if (!cancelled) {
           console.error('Fetch article error:', error);
-          showError('文章加载失败');
+          showError(getTranslate('article.loadFailed'));
         }
       } finally {
         if (!cancelled) setLoading(false);

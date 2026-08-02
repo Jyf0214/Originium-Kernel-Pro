@@ -46,13 +46,13 @@ export function TopHeader({ onMenuClick }: TopHeaderProps) {
           type="button"
           onClick={onMenuClick}
           className="md:hidden flex items-center justify-center w-6 h-6 rounded text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 dark:hover:text-zinc-400 dark:hover:bg-zinc-700 transition-colors shrink-0"
-          aria-label="打开侧边栏"
+          aria-label={t('components.TopHeader.openSidebar')}
         >
           <Menu size={14} />
         </button>
       )}
       <nav className="flex items-center gap-1.5 text-sm text-zinc-400 dark:text-zinc-500 min-w-0 overflow-hidden">
-        <span className="hover:text-zinc-600 transition-colors shrink-0">{t('dashboard.title') || '控制台'}</span>
+        <span className="hover:text-zinc-600 transition-colors shrink-0">{t('dashboard.title')}</span>
         {breadcrumb && (
           <>
             <ChevronRight size={14} className="text-zinc-300 shrink-0" />

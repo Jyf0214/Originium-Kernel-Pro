@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { useI18n } from '@/hooks/use-i18n';
 import { GlobalLoading } from '@/components/Loading';
 import ProCard from '@/components/ui/ProCard';
 import { PageContainer } from '@/components/ui/PageContainer';
@@ -44,8 +45,9 @@ function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType
 /* ---------- 横向条形图 ---------- */
 
 function BarChart({ items, maxCount }: { items: { name: string; count: number }[]; maxCount: number }) {
+  const { t } = useI18n();
   if (items.length === 0) {
-    return <div className="text-sm text-zinc-400 dark:text-zinc-500 py-4">暂无数据</div>;
+    return <div className="text-sm text-zinc-400 dark:text-zinc-500 py-4">{t('common.noData')}</div>;
   }
   return (
     <div className="space-y-3">
@@ -68,8 +70,9 @@ function BarChart({ items, maxCount }: { items: { name: string; count: number }[
 /* ---------- 时间线 ---------- */
 
 function Timeline({ posts }: { posts: RecentPost[] }) {
+  const { t } = useI18n();
   if (posts.length === 0) {
-    return <div className="text-sm text-zinc-400 dark:text-zinc-500 py-4">暂无发布记录</div>;
+    return <div className="text-sm text-zinc-400 dark:text-zinc-500 py-4">{t('stats.noPosts')}</div>;
   }
   return (
     <div className="space-y-0">
@@ -87,7 +90,7 @@ function Timeline({ posts }: { posts: RecentPost[] }) {
               <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">{post.title}</div>
               <div className="flex items-center gap-3 mt-1 text-xs text-zinc-400 dark:text-zinc-500">
                 <span>{dateStr}</span>
-                <span>{post.wordCount.toLocaleString()} 字</span>
+                <span>{post.wordCount.toLocaleString()} {t('stats.wordUnit')}</span>
               </div>
             </div>
           </div>
@@ -101,6 +104,7 @@ function Timeline({ posts }: { posts: RecentPost[] }) {
 
 export default function StatsPage() {
   const { user, isSudo, loading: authLoading } = useAuth();
+  const { t } = useI18n();
   const [data, setData] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -112,15 +116,15 @@ export default function StatsPage() {
       const res = await fetch('/api/admin/stats');
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `请求失败 (${res.status})`);
+        throw new Error(body.error ?? t('stats.requestFailed', { status: res.status }));
       }
       setData(await res.json());
     } catch (err) {
-      setError(err instanceof Error ? err.message : '加载失败');
+      setError(err instanceof Error ? err.message : t('stats.loadFailed'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!authLoading && user && isSudo) {
@@ -130,15 +134,15 @@ export default function StatsPage() {
 
   if (authLoading) return <GlobalLoading />;
 
-  const tagMax = data ? Math.max(...data.topTags.map(t => t.count), 1) : 1;
+  const tagMax = data ? Math.max(...data.topTags.map((tag) => tag.count), 1) : 1;
   const catMax = data ? Math.max(...data.categories.map(c => c.count), 1) : 1;
 
   return (
     <PageContainer maxWidth="6xl">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">内容统计</h1>
-          <p className="text-zinc-400 dark:text-zinc-500 text-sm mt-1">各模块内容数量、标签分布、字数统计</p>
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{t('stats.title')}</h1>
+          <p className="text-zinc-400 dark:text-zinc-500 text-sm mt-1">{t('stats.subtitle')}</p>
         </div>
         <button
           type="button"
@@ -146,7 +150,7 @@ export default function StatsPage() {
           disabled={loading}
           className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition-colors disabled:opacity-50"
         >
-          {loading ? '刷新中...' : '刷新数据'}
+          {loading ? t('stats.refreshing') : t('stats.refreshData')}
         </button>
       </div>
 
@@ -162,7 +166,7 @@ export default function StatsPage() {
               variant="primary"
               onClick={fetchStats}
             >
-              重试
+              {t('stats.retry')}
             </Button>
           </div>
         </ProCard>
@@ -172,10 +176,10 @@ export default function StatsPage() {
         <>
           {/* 数据卡片 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-            <StatCard icon={BookOpen} label="文章数" value={data.counts.posts} color="bg-blue-500" />
-            <StatCard icon={PenLine} label="日记数" value={data.counts.diary} color="bg-emerald-500" />
-            <StatCard icon={Users} label="Faces 数" value={data.counts.faces} color="bg-amber-500" />
-            <StatCard icon={Type} label="总字数" value={data.wordCount.total} color="bg-purple-500" />
+            <StatCard icon={BookOpen} label={t('stats.postCount')} value={data.counts.posts} color="bg-blue-500" />
+            <StatCard icon={PenLine} label={t('stats.diaryCount')} value={data.counts.diary} color="bg-emerald-500" />
+            <StatCard icon={Users} label={t('stats.facesCount')} value={data.counts.faces} color="bg-amber-500" />
+            <StatCard icon={Type} label={t('stats.totalWords')} value={data.wordCount.total} color="bg-purple-500" />
           </div>
 
           {/* 发布时间统计 */}
@@ -185,7 +189,7 @@ export default function StatsPage() {
                 <Clock size={18} className="text-zinc-400 dark:text-zinc-500" />
                 <div>
                   <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{data.counts.total}</div>
-                  <div className="text-xs text-zinc-400 dark:text-zinc-500">全部内容</div>
+                  <div className="text-xs text-zinc-400 dark:text-zinc-500">{t('stats.totalContent')}</div>
                 </div>
               </div>
             </ProCard>
@@ -194,7 +198,7 @@ export default function StatsPage() {
                 <BarChart3 size={18} className="text-zinc-400 dark:text-zinc-500" />
                 <div>
                   <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{data.timeline.last7Days}</div>
-                  <div className="text-xs text-zinc-400 dark:text-zinc-500">最近 7 天发布</div>
+                  <div className="text-xs text-zinc-400 dark:text-zinc-500">{t('stats.last7Days')}</div>
                 </div>
               </div>
             </ProCard>
@@ -203,7 +207,7 @@ export default function StatsPage() {
                 <BarChart3 size={18} className="text-zinc-400 dark:text-zinc-500" />
                 <div>
                   <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{data.timeline.last30Days}</div>
-                  <div className="text-xs text-zinc-400 dark:text-zinc-500">最近 30 天发布</div>
+                  <div className="text-xs text-zinc-400 dark:text-zinc-500">{t('stats.last30Days')}</div>
                 </div>
               </div>
             </ProCard>
@@ -211,24 +215,24 @@ export default function StatsPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* 标签分布 */}
-            <ProCard title="标签分布（Top 10）" padding="p-5">
+            <ProCard title={t('stats.topTags')} padding="p-5">
               <BarChart items={data.topTags} maxCount={tagMax} />
             </ProCard>
 
             {/* 分类文章数量 */}
-            <ProCard title="分类文章数量" padding="p-5">
+            <ProCard title={t('stats.categoryCount')} padding="p-5">
               <BarChart items={data.categories} maxCount={catMax} />
             </ProCard>
           </div>
 
           {/* 最近发布时间线 */}
-          <ProCard title="最近发布时间线" padding="p-5">
+          <ProCard title={t('stats.recentTimeline')} padding="p-5">
             <Timeline posts={data.recentPosts} />
           </ProCard>
 
           {/* 平均字数 */}
           <div className="mt-6 text-center text-sm text-zinc-400 dark:text-zinc-500">
-            文章平均字数：{data.wordCount.avgPost.toLocaleString()} 字
+            {t('stats.avgWordCount', { count: data.wordCount.avgPost.toLocaleString() })}
           </div>
         </>
       )}

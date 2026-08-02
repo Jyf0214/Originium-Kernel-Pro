@@ -4,10 +4,11 @@ import { ChevronRight, Home } from 'lucide-react';
 import { HeroBanner } from '@/components/ui/HeroBanner';
 import { TagCloudClient, type TagStat, type PostSummary } from './TagCloudClient';
 import type { Metadata } from 'next';
+import { getTranslate } from '@/i18n/translate';
 
 export const metadata: Metadata = {
-  title: '标签 - Originium Kernel',
-  description: '按标签浏览所有文章',
+  title: getTranslate('posts.tags.metaTitle'),
+  description: getTranslate('posts.tags.metaDescription'),
 };
 
 
@@ -55,17 +56,17 @@ export default function TagsPage() {
           </Link>
           <ChevronRight size={12} className="text-zinc-300 dark:text-zinc-600" />
           <Link href="/posts" className="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
-            帖子
+            {getTranslate('posts.title')}
           </Link>
           <ChevronRight size={12} className="text-zinc-300 dark:text-zinc-600" />
-          <span className="text-zinc-600 dark:text-zinc-300 font-medium">标签</span>
+          <span className="text-zinc-600 dark:text-zinc-300 font-medium">{getTranslate('posts.tags.title')}</span>
         </nav>
 
         {/* HeroBanner 横幅 */}
         <HeroBanner
-          title="标签"
-          description="按标签浏览文章"
-          tips={`${tagStats.length} 个标签`}
+          title={getTranslate('posts.tags.title')}
+          description={getTranslate('posts.tags.subtitle')}
+          tips={`${tagStats.length} ${getTranslate('posts.tags.countLabel')}`}
           size="compact"
           align="center"
         />

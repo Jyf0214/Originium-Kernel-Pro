@@ -3,6 +3,7 @@ import { Tag } from 'antd';
 import { Plus } from 'lucide-react';
 import ToggleField from './ToggleField';
 import { Button } from '@/components/ui/Button';
+import { useI18n } from '@/hooks/use-i18n';
 
 interface MournConfigData {
   enable: boolean;
@@ -15,6 +16,7 @@ interface MournConfigProps {
 }
 
 export default function MournConfig({ config, onChange }: MournConfigProps) {
+  const { t } = useI18n();
   const [input, setInput] = React.useState('');
 
   const addDay = () => {
@@ -33,25 +35,25 @@ export default function MournConfig({ config, onChange }: MournConfigProps) {
   return (
     <div className="space-y-4">
       <ToggleField
-        label="启用哀悼日"
-        description="指定日期首页自动变灰"
+        label={t('components.MournConfig.enableMourning')}
+        description={t('components.MournConfig.greyHomepage')}
         checked={config.enable}
         onChange={v => onChange({ ...config, enable: v })}
       />
 
       <div>
-        <label className="block text-sm font-medium mb-2">哀悼日期（月-日）</label>
+        <label className="block text-sm font-medium mb-2">{t('components.MournConfig.mourningDate')}</label>
         <div className="flex items-center gap-2 mb-3">
           <input
             type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addDay()}
-            placeholder="例如: 4-5"
+            placeholder={t('components.MournConfig.dateExample')}
             className="flex-1 h-9 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400"
           />
           <Button size="sm" icon={<Plus size={14} />} onClick={addDay} autoLoading={false} className="rounded-lg shrink-0">
-            添加
+            {t('components.MournConfig.add')}
           </Button>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -61,10 +63,10 @@ export default function MournConfig({ config, onChange }: MournConfigProps) {
             </Tag>
           ))}
           {config.days.length === 0 && (
-            <span className="text-xs text-zinc-400">暂无日期</span>
+            <span className="text-xs text-zinc-400">{t('components.MournConfig.noDates')}</span>
           )}
         </div>
-        <p className="text-xs text-zinc-400 mt-2">示例: 4-5 (清明节)、5-12 (汶川)、7-7 (七七)、9-18 (九一八)、12-13 (国家公祭日)</p>
+        <p className="text-xs text-zinc-400 mt-2">{t('components.MournConfig.exampleHint')}</p>
       </div>
     </div>
   );

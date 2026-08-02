@@ -22,6 +22,23 @@ const FAIL_PREFIX = 'login:fail:';
 // 进程内快速失败计数（冷启动后归零，但锁定状态在 KV 中持久化）
 const failCounts = new Map<string, number>();
 
+// 定期清理过期的进程内计数器，防止内存泄漏
+let lastCleanupTime = Date.now();
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 分钟清理一次
+
+function cleanupStaleCounts(): void {
+  const now = Date.now();
+  if (now - lastCleanupTime < CLEANUP_INTERVAL_MS) return;
+  lastCleanupTime = now;
+  // 清理已锁定的条目（锁定状态在 KV 中持久化，进程内计数器可安全丢弃）
+  for (const [key] of failCounts) {
+    // 如果计数已达到阈值，说明已写入 KV 锁定，进程内计数器可清理
+    if ((failCounts.get(key) ?? 0) >= LOCK_THRESHOLD) {
+      failCounts.delete(key);
+    }
+  }
+}
+
 /**
  * 标准化 email 为小写，统一 key 格式
  */
@@ -41,6 +58,9 @@ function maskEmail(email: string): string {
  * 记录一次登录失败，达到阈值时写入 KV 锁定并告警
  */
 export async function recordLoginFailure(email: string): Promise<void> {
+  // 定期清理过期计数器，防止内存泄漏
+  cleanupStaleCounts();
+
   const key = normalizeEmail(email);
   const db = getDb();
 
@@ -59,9 +79,7 @@ export async function recordLoginFailure(email: string): Promise<void> {
   if (current >= LOCK_THRESHOLD) {
     const lockedUntil = Date.now() + LOCK_DURATION_MS;
     await db.set(`${LOCK_PREFIX}${key}`, String(lockedUntil), LOCK_TTL_SECONDS);
-    console.warn(
-      `[安全告警] 登录失败次数达到阈值：email=${maskEmail(key)}，失败次数=${current}，已锁定 ${LOCK_DURATION_MS / 60000} 分钟`,
-    );
+    console.warn(`[安全告警] 登录失败次数达到阈值：email=${maskEmail(key)}，失败次数=${current}，已锁定 ${LOCK_DURATION_MS / 60000} 分钟`);
   }
 }
 

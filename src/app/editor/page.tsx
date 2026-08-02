@@ -54,7 +54,7 @@ function EditorContent() {
             setDescription(data.description ?? '');
             setSlug(data.slug ?? '');
           } else {
-            showError('文章加载失败');
+            showError(t('editor.fetchFailed'));
           }
         } catch (error) {
           console.error(t('editor.fetchFailed'), error);
@@ -77,11 +77,11 @@ function EditorContent() {
           const tokenSet = githubVars.find((v: { name: string; isSet: boolean }) => v.name === 'GITHUB_TOKEN')?.isSet;
           setGithubConfigured(!!(repoSet && tokenSet));
         } else {
-          showError('GitHub 环境变量加载失败');
+          showError(t('editor.githubEnvLoadFailed'));
         }
       } catch (error) {
-        console.error('检查 GitHub 配置失败:', error);
-        showError('GitHub 配置检查失败');
+        console.error(t('editor.githubConfigCheckFailed'), error);
+        showError(t('editor.githubConfigCheckFailed'));
       }
     };
     void checkGithubConfig();
@@ -91,7 +91,7 @@ function EditorContent() {
   function buildSlug(): string | null {
     const postSlug = slug || `/${user?.name ?? 'anonymous'}/${title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\u4e00-\u9fa5-]/g, '')}`;
     if (!/^\/[\w\u4e00-\u9fa5-]+(\/[\w\u4e00-\u9fa5-]+)*$/.test(postSlug)) {
-      showError('文章路径格式无效，仅允许字母、数字、中文、连字符和斜杠');
+      showError(t('editor.invalidSlug'));
       return null;
     }
     return postSlug;
@@ -177,7 +177,7 @@ function EditorContent() {
       const data = await res.json();
 
       if (res.ok) {
-        message.success(t('editor.publishSuccess') || '发布成功');
+        message.success(t('editor.publishSuccess'));
         router.push('/dashboard/articles');
       } else {
         showError(`${t('editor.saveFailed')}: ${data.error ?? ''}`);
@@ -250,7 +250,7 @@ function EditorContent() {
           ) : (
             <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 sm:px-4 py-2 rounded-lg">
               <XCircle size={18} />
-              <span className="text-sm hidden sm:inline">请先配置 GitHub</span>
+              <span className="text-sm hidden sm:inline">{t('editor.githubNotConfigured')}</span>
             </div>
           )}
         </div>
@@ -272,7 +272,7 @@ function EditorContent() {
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-xs font-mono">/posts</span>
             <Input
               type="text"
-              placeholder="/category/my-post（留空自动生成）"
+              placeholder={t('editor.slugPlaceholder')}
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               size="md"
@@ -311,7 +311,7 @@ function EditorContent() {
         {/* 描述 */}
         <Input
           type="text"
-          placeholder="文章描述（可选，用于列表预览）"
+          placeholder={t('editor.descriptionPlaceholder')}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           size="md"

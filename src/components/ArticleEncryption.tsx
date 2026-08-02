@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { Tag } from '@/components/ui/Tag';
 import { cn } from '@/lib/ui';
 import { EASE_STANDARD } from '@/components/ui/motion';
+import { useI18n } from '@/hooks/use-i18n';
 
 /**
  * 将输入文本通过 Web Crypto API 进行 SHA-256 哈希
@@ -48,6 +49,7 @@ export function ArticleEncryption({
   encryptedContent,
   className,
 }: ArticleEncryptionProps) {
+  const { t } = useI18n();
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -114,10 +116,10 @@ export function ArticleEncryption({
                 {/* 标题 */}
                 <div className="text-center">
                   <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                    本文已加密
+                    {t('components.articleEncryption.encryptedTitle')}
                   </h2>
                   <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                    请输入密码以查看内容
+                    {t('components.articleEncryption.enterPasswordHint')}
                   </p>
                 </div>
 
@@ -125,7 +127,7 @@ export function ArticleEncryption({
                 <div className="w-full">
                   <Input
                     type="password"
-                    placeholder="请输入密码"
+                    placeholder={t('components.articleEncryption.passwordPlaceholder')}
                     value={inputValue}
                     onChange={(e) => {
                       setInputValue(e.target.value);
@@ -135,7 +137,7 @@ export function ArticleEncryption({
                     size="lg"
                     rounded="lg"
                     ring="strong"
-                    error={error ? '密码错误' : undefined}
+                    error={error ? t('components.articleEncryption.passwordError') : undefined}
                     autoFocus
                   />
                 </div>
@@ -150,7 +152,7 @@ export function ArticleEncryption({
                       transition={{ duration: 0.2 }}
                     >
                       <Tag variant="danger" size="sm">
-                        密码错误
+                        {t('components.articleEncryption.passwordError')}
                       </Tag>
                     </motion.div>
                   )}
@@ -166,7 +168,7 @@ export function ArticleEncryption({
                   onClick={handleVerify}
                   icon={verifying ? undefined : <Unlock size={16} />}
                 >
-                  {verifying ? '验证中...' : '确认'}
+                  {verifying ? t('components.articleEncryption.verifying') : t('common.confirm')}
                 </Button>
               </div>
             </ProCard>
@@ -188,7 +190,7 @@ export function ArticleEncryption({
               <Eye size={22} className="text-emerald-600 dark:text-emerald-400" />
             </motion.div>
             <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-              验证成功，正在加载内容...
+              {t('components.articleEncryption.successLoading')}
             </p>
           </motion.div>
         )}

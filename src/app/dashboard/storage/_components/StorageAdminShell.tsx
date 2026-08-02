@@ -262,7 +262,7 @@ export function StorageAdminShell() {
   if (state.loading) {
     return (
       <PageContainer maxWidth="6xl">
-        <div className="py-32 text-center text-zinc-400 text-sm">加载中…</div>
+        <div className="py-32 text-center text-zinc-400 text-sm">{t('storage.loading')}</div>
       </PageContainer>
     );
   }
@@ -281,7 +281,7 @@ export function StorageAdminShell() {
               {state.folders.length} {labels.folders}
               {state.currentPath && (
                 <span className="ml-2 text-zinc-300">
-                  · {stats.fileCount} 文件 · {formatBytesAlt(stats.totalSize)}
+                  · {stats.fileCount} {t('storage.fileUnit')} · {formatBytesAlt(stats.totalSize)}
                 </span>
               )}
             </p>
@@ -294,10 +294,10 @@ export function StorageAdminShell() {
             icon={<BarChart3 size={14} />}
             onClick={() => setStatsOpen(true)}
             disabled={!state.configured}
-            title={!state.configured ? '存储后端未配置' : '存储空间分析'}
+            title={!state.configured ? t('storage.notConfiguredTitle') : t('storage.statsTitle')}
             autoLoading={false}
           >
-            存储分析
+            {t('storage.stats')}
           </Button>
           <Button
             variant="default"
@@ -393,7 +393,7 @@ export function StorageAdminShell() {
                   icon={<FolderPlus size={14} />}
                   onClick={() => state.openDialog('mkdir')}
                   disabled={!state.configured}
-                  title={!state.configured ? '存储后端未配置' : labels.newFolder}
+                  title={!state.configured ? t('storage.notConfiguredTitle') : labels.newFolder}
                   autoLoading={false}
                 >
                   {labels.newFolder}
@@ -404,7 +404,7 @@ export function StorageAdminShell() {
                   icon={<Upload size={14} />}
                   onClick={() => state.openDialog('upload')}
                   disabled={!state.configured}
-                  title={!state.configured ? '存储后端未配置' : labels.upload}
+                  title={!state.configured ? t('storage.notConfiguredTitle') : labels.upload}
                   autoLoading={false}
                 >
                   {labels.upload}
@@ -415,10 +415,10 @@ export function StorageAdminShell() {
                   icon={<Search size={14} />}
                   onClick={toggleSearch}
                   disabled={!state.configured}
-                  title={!state.configured ? '存储后端未配置' : '搜索文件内容'}
+                  title={!state.configured ? t('storage.notConfiguredTitle') : t('storage.searchContent')}
                   autoLoading={false}
                 >
-                  搜索
+                  {t('storage.search')}
                 </Button>
               </div>
             </div>

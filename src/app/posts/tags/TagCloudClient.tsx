@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { cn } from '@/lib/ui';
 import { EASE_STANDARD } from '@/components/ui/motion';
+import { useI18n } from '@/hooks/use-i18n';
 
 /** 标签统计信息 */
 export interface TagStat {
@@ -43,6 +44,7 @@ function getTagSize(count: number): 'sm' | 'md' | 'lg' {
  * 标签云客户端组件 — 交互式标签筛选与文章列表展示
  */
 export function TagCloudClient({ tagStats, posts }: TagCloudClientProps) {
+  const { t } = useI18n();
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [filter, setFilter] = useState('');
 
@@ -50,7 +52,7 @@ export function TagCloudClient({ tagStats, posts }: TagCloudClientProps) {
   const filteredTags = useMemo(() => {
     if (!filter) return tagStats;
     const keyword = filter.toLowerCase();
-    return tagStats.filter((t) => t.tag.toLowerCase().includes(keyword));
+    return tagStats.filter((tag) => tag.tag.toLowerCase().includes(keyword));
   }, [tagStats, filter]);
 
   /* 选中标签对应的文章列表 */
@@ -67,7 +69,7 @@ export function TagCloudClient({ tagStats, posts }: TagCloudClientProps) {
     <div className="space-y-8">
       {/* 标签过滤输入 */}
       <Input
-        placeholder="搜索标签..."
+        placeholder={t('posts.tags.searchPlaceholder')}
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
         size="md"
@@ -78,8 +80,8 @@ export function TagCloudClient({ tagStats, posts }: TagCloudClientProps) {
       {/* 标签云 */}
       {filteredTags.length === 0 ? (
         <EmptyState
-          title="暂无标签"
-          description={filter ? '没有匹配的标签' : '还没有标签'}
+          title={t('posts.tags.noTags')}
+          description={filter ? t('posts.tags.noMatchingTags') : t('posts.tags.noTagsYet')}
           variant="minimal"
         />
       ) : (
@@ -114,16 +116,16 @@ export function TagCloudClient({ tagStats, posts }: TagCloudClientProps) {
             className="space-y-4"
           >
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-              标签「{selectedTag}」下的文章
+              {t('posts.tags.postsUnderTag', { tag: selectedTag })}
               <span className="ml-2 text-sm font-normal text-zinc-400">
-                ({filteredPosts.length} 篇)
+                ({filteredPosts.length} {t('posts.tags.countUnit')})
               </span>
             </h2>
 
             {filteredPosts.length === 0 ? (
               <EmptyState
-                title="暂无文章"
-                description="该标签下没有文章"
+                title={t('posts.tags.noPosts')}
+                description={t('posts.tags.noPostsForTag')}
                 variant="minimal"
               />
             ) : (

@@ -4,6 +4,7 @@ import { getDb } from '@/lib/db';
 import { generateTotpSecret, generateTotpUri } from '@/lib/totp';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { createApiLogger } from '@/lib/api-logger';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/auth/2fa/setup');
 
@@ -22,14 +23,14 @@ export async function POST(req: NextRequest) {
 
     const rl = checkRateLimit(req, '2fa-setup', 3, 5 * 60 * 1000);
     if (!rl.allowed) {
-      return NextResponse.json({ error: '操作过于频繁，请稍后重试' }, { status: 429 });
+      return NextResponse.json({ error: getTranslate('api.common.rateLimited') }, { status: 429 });
     }
 
     const db = getDb();
     const userStr = await db.get(`user:uid:${session.uid}`);
     if (!userStr) {
       logger.warn('POST', '用户数据不存在', { uid: session.uid });
-      return NextResponse.json({ error: '用户数据不存在' }, { status: 404 });
+      return NextResponse.json({ error: getTranslate('api.auth.userDataNotFound') }, { status: 404 });
     }
 
     const user = JSON.parse(userStr) as {
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     if (user.twoFactorEnabled) {
       logger.warn('POST', '2FA 已启用，需先禁用再重新设置', { uid: session.uid });
-      return NextResponse.json({ error: '双因素认证已启用，请先禁用后再重新设置' }, { status: 400 });
+      return NextResponse.json({ error: getTranslate('api.auth.twoFactorAlreadyEnabled') }, { status: 400 });
     }
 
     // 生成新的 TOTP 密钥
@@ -61,6 +62,6 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logger.error('POST', '设置 2FA 失败', { message });
-    return NextResponse.json({ error: '设置 2FA 失败' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.auth.twoFactorSetupFailed') }, { status: 500 });
   }
 }

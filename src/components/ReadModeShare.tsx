@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { useI18n } from '@/hooks/use-i18n';
 import ShareModal from './ShareModal';
 
 interface ReadModeShareProps {
@@ -24,6 +25,7 @@ export default function ReadModeShare({
   title: titleProp,
   platforms,
 }: ReadModeShareProps) {
+  const { t } = useI18n();
   const [modalOpen, setModalOpen] = useState(false);
 
   const shareUrl = urlProp ?? (typeof window !== 'undefined' ? window.location.href : '');
@@ -35,7 +37,7 @@ export default function ReadModeShare({
         variant="ghost"
         rounded="lg"
         className="fixed top-24 right-6 z-40 w-12 h-12 bg-white/10 backdrop-blur-md border border-white/20 text-white shadow-lg hover:bg-white/20 ui-interactive"
-        title="分享此页面"
+        title={t('components.ReadModeShare.sharePage')}
         onClick={() => setModalOpen(true)}
         autoLoading={false}
       >

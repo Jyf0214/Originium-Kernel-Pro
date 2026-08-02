@@ -1,6 +1,7 @@
 import React from 'react';
 import { MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { getTranslate } from '@/i18n/translate';
 
 /* ============================================================
    「更多」按钮 — 触发 ShareModal
@@ -21,8 +22,8 @@ export default function ShareMoreButton({ onClick, size = 'md' }: ShareMoreButto
       size="sm"
       iconOnly
       onClick={onClick}
-      title="更多分享方式"
-      aria-label="更多分享方式"
+      title={getTranslate('components.ShareButtons.moreShareMethods')}
+      aria-label={getTranslate('components.ShareButtons.moreShareMethods')}
       autoLoading={false}
     >
       <MoreHorizontal size={iconSize} />

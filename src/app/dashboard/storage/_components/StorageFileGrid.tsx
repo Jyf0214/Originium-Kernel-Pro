@@ -19,6 +19,7 @@ import { Tooltip } from 'antd';
 import type { WebDavEntry } from '@/lib/storage/types';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
+import { useI18n } from '@/hooks/use-i18n';
 import { StorageFileCard } from './StorageFileCard';
 import type { DialogKind, DialogTarget } from '../_lib/types';
 import type { SortField, SortDirection } from '../_lib/use-storage-state';
@@ -228,6 +229,7 @@ function SortToolbar({
   refreshing: boolean;
   disabled: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       {entries.length > 0 && (
@@ -247,9 +249,9 @@ function SortToolbar({
           )}
         </div>
       )}
-      <SortButton field="name" label="名称" currentField={sortField} currentDirection={sortDirection} onToggle={onToggleSort} />
-      <SortButton field="size" label="大小" currentField={sortField} currentDirection={sortDirection} onToggle={onToggleSort} />
-      <SortButton field="date" label="日期" currentField={sortField} currentDirection={sortDirection} onToggle={onToggleSort} />
+      <SortButton field="name" label={t('storage.sortName')} currentField={sortField} currentDirection={sortDirection} onToggle={onToggleSort} />
+      <SortButton field="size" label={t('storage.sortSize')} currentField={sortField} currentDirection={sortDirection} onToggle={onToggleSort} />
+      <SortButton field="date" label={t('storage.sortDate')} currentField={sortField} currentDirection={sortDirection} onToggle={onToggleSort} />
       <div className="w-px h-3 bg-zinc-200 mx-1" />
       <Tooltip title={refreshLabel} placement="bottom">
         <button type="button" onClick={onRefresh} disabled={disabled || refreshing} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
@@ -293,6 +295,7 @@ export function StorageFileGrid({
   onToggleSort,
   disabled = false,
 }: Props) {
+  const { t } = useI18n();
   const showCreateButtons = !!currentPath && !loading;
   const [search, setSearch] = useState('');
   const trimmedSearch = search.trim().toLowerCase();
@@ -337,7 +340,7 @@ export function StorageFileGrid({
 
   if (loading) {
     return (
-      <div className="py-20 text-center text-zinc-400 text-sm">加载中…</div>
+      <div className="py-20 text-center text-zinc-400 text-sm">{t('storage.loading')}</div>
     );
   }
 
@@ -421,9 +424,9 @@ export function StorageFileGrid({
             copiedLabel={copiedLabel}
             deleteLabel={deleteLabel}
             moveLabel={moveLabel}
-            downloadLabel="下载"
-            previewLabel="预览"
-            renameLabel="重命名"
+            downloadLabel={t('storage.download')}
+            previewLabel={t('storage.preview')}
+            renameLabel={t('storage.rename')}
             selected={selectedEntry?.basename === entry.basename}
             onSelect={setSelectedEntry}
             onFileClick={onFileClick}

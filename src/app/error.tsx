@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { AlertTriangle, Copy, RefreshCw, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/ui';
+import { useI18n } from '@/hooks/use-i18n';
 
 export default function GlobalError({
   error,
@@ -11,6 +12,7 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { t } = useI18n();
   const [showDetail, setShowDetail] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -41,11 +43,11 @@ export default function GlobalError({
           </div>
         </div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-zinc-900">页面出现错误</h1>
+          <h1 className="text-2xl font-bold text-zinc-900">{t('error.pageError')}</h1>
           <p className="text-zinc-500">
             {isDev
-              ? (error.message || '发生了意外错误，请尝试刷新页面')
-              : '发生了意外错误，请尝试刷新页面'}
+              ? (error.message || t('error.unexpected'))
+              : t('error.unexpected')}
           </p>
         </div>
         {/* 详情折叠 */}
@@ -61,7 +63,7 @@ export default function GlobalError({
                   showDetail && 'rotate-180'
                 )}
               />
-              错误详情
+              {t('error.detail')}
             </button>
             {showDetail && (
               <pre className="mt-2 p-3 bg-zinc-100 rounded-lg text-xs text-zinc-700 overflow-auto">
@@ -78,14 +80,14 @@ export default function GlobalError({
             className="inline-flex items-center gap-2 px-4 py-2 text-sm rounded-lg border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
           >
             <Copy className="h-4 w-4" />
-            {copied ? '已复制' : '复制错误'}
+            {copied ? t('error.copied') : t('error.copy')}
           </button>
           <button
             onClick={reset}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 transition-colors"
           >
             <RefreshCw className="h-4 w-4" />
-            重试
+            {t('error.retry')}
           </button>
         </div>
       </div>

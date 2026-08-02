@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { Heart } from 'lucide-react';
 
 import { Tag } from '@/components/ui/Tag';
+import { getTranslate } from '@/i18n/translate';
 
 export interface FooterRuntimeStatusProps {
   launchTime: string;
@@ -24,9 +25,9 @@ export interface FooterRuntimeStatusProps {
 export const FooterRuntimeStatus = React.memo(function FooterRuntimeStatus({
   launchTime,
   enable,
-  timeFormat = '本站已运行 {days} 天 {hours} 小时 {minutes} 分 {seconds} 秒',
+  timeFormat = getTranslate('footerBrand.defaultTimeFormat'),
   onlineHours = { start: 9, end: 18 },
-  statusText = { online: '在线', offline: '休息中' },
+  statusText = { online: getTranslate('footerBrand.online'), offline: getTranslate('footerBrand.offline') },
 }: FooterRuntimeStatusProps) {
   const [text, setText] = useState('');
   const [isOnline, setIsOnline] = useState(true);

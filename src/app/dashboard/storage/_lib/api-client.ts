@@ -7,6 +7,7 @@
  */
 import type { StorageFolderMeta, WebDavEntry } from '@/lib/storage/types';
 import type { StorageConfig, UpdateFolderPayload } from './types';
+import { getTranslate } from '@/i18n/translate';
 
 /** 统一 API 错误 */
 export class ApiError extends Error {
@@ -40,7 +41,7 @@ async function request<T>(
   try {
     res = await fetch(input, init);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : '网络请求失败';
+    const msg = err instanceof Error ? err.message : getTranslate('storage.networkFailed');
     throw new ApiError(msg, 0);
   }
 
@@ -61,7 +62,7 @@ async function request<T>(
 
   if (!res.ok) {
     const data = body as { error?: string; code?: string } | null;
-    const message = data?.error ?? `请求失败 (${res.status})`;
+    const message = data?.error ?? getTranslate('storage.requestFailed', { status: res.status });
     throw new ApiError(message, res.status, data?.code ?? null);
   }
 
@@ -148,12 +149,12 @@ export function uploadFile(
           uploadedAt: body?.uploadedAt ?? '',
         });
       } else {
-        const message = body?.error ?? `上传失败 (${xhr.status})`;
+        const message = body?.error ?? getTranslate('storage.uploadFailedStatus', { status: xhr.status });
         reject(new ApiError(message, xhr.status, body?.code ?? null));
       }
     };
     xhr.onerror = () => {
-      reject(new ApiError('网络错误,上传失败', 0));
+      reject(new ApiError(getTranslate('storage.networkErrorUpload'), 0));
     };
     xhr.send(file);
   });

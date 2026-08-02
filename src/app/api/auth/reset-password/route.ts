@@ -6,6 +6,7 @@ import { hashPassword } from '@/lib/hash';
 import { validatePasswordStrength } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/auth/reset-password');
 
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
     if (!rl.allowed) {
       logger.warn('POST', '密码重置频率超限', { retryAfterMs: rl.retryAfterMs });
       return NextResponse.json(
-        { error: `请求过于频繁，请在 ${Math.ceil(rl.retryAfterMs / 1000)} 秒后重试` },
+        { error: getTranslate('api.auth.requestTooFrequent', { seconds: Math.ceil(rl.retryAfterMs / 1000) }) },
         { status: 429 },
       );
     }
@@ -25,12 +26,12 @@ export async function POST(req: NextRequest) {
 
     if (!email) {
       logger.warn('POST', '缺少邮箱参数');
-      return NextResponse.json({ error: '请输入邮箱' }, { status: 400 });
+      return NextResponse.json({ error: getTranslate('api.auth.enterEmail') }, { status: 400 });
     }
 
     if (!isSmtpConfigured()) {
       logger.error('POST', '邮件服务未配置');
-      return NextResponse.json({ error: '邮件服务未配置' }, { status: 500 });
+      return NextResponse.json({ error: getTranslate('api.auth.smtpNotConfigured') }, { status: 500 });
     }
 
     const db = getDb();
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     if (!uid) {
       logger.warn('POST', '邮箱未注册', { email: email.includes('@') ? `${email[0]}***@${email.split('@')[1]}` : '***' });
-      return NextResponse.json({ success: true, message: '如果邮箱存在，重置链接已发送' }, { status: 201 });
+      return NextResponse.json({ success: true, message: getTranslate('api.auth.resetEmailSentIfExists') }, { status: 201 });
     }
 
     const token = randomBytes(32).toString('hex');
@@ -48,26 +49,26 @@ export async function POST(req: NextRequest) {
 
     const appUrl = process.env.APP_URL;
     if (!appUrl) {
-      return NextResponse.json({ error: '服务器配置错误：未设置 APP_URL' }, { status: 500 });
+      return NextResponse.json({ error: getTranslate('api.auth.appUrlNotConfigured') }, { status: 500 });
     }
     const resetLink = `${appUrl}/reset-password?token=${token}`;
 
     const sent = await sendMail({
       to: email,
-      subject: 'Originium Kernel - 密码重置',
+      subject: getTranslate('api.auth.resetEmailSubject'),
       html: generateResetEmailHtml(resetLink),
     });
 
     if (!sent) {
       logger.error('POST', '发送邮件失败', { email });
-      return NextResponse.json({ error: '发送邮件失败' }, { status: 500 });
+      return NextResponse.json({ error: getTranslate('api.auth.sendMailFailed') }, { status: 500 });
     }
 
     logger.info('POST', '重置链接已发送', { email });
-    return NextResponse.json({ success: true, message: '重置链接已发送' }, { status: 201 });
+    return NextResponse.json({ success: true, message: getTranslate('api.auth.resetLinkSent') }, { status: 201 });
   } catch (error: unknown) {
     logger.error('POST', '密码重置错误', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ error: '服务器错误' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.common.serverError') }, { status: 500 });
   }
 }
 
@@ -78,7 +79,7 @@ export async function PUT(req: NextRequest) {
     if (!rl.allowed) {
       logger.warn('PUT', '密码重置执行频率超限', { retryAfterMs: rl.retryAfterMs });
       return NextResponse.json(
-        { error: `请求过于频繁，请在 ${Math.ceil(rl.retryAfterMs / 1000)} 秒后重试` },
+        { error: getTranslate('api.auth.requestTooFrequent', { seconds: Math.ceil(rl.retryAfterMs / 1000) }) },
         { status: 429 },
       );
     }
@@ -87,13 +88,13 @@ export async function PUT(req: NextRequest) {
 
     if (!token || !password) {
       logger.warn('PUT', '缺少必要参数');
-      return NextResponse.json({ error: '缺少必要参数' }, { status: 400 });
+      return NextResponse.json({ error: getTranslate('api.auth.missingParams') }, { status: 400 });
     }
 
     const strength = validatePasswordStrength(password);
     if (!strength.valid) {
       logger.warn('PUT', '密码复杂度不足', { reasons: strength.reasons });
-      return NextResponse.json({ error: '密码不符合安全要求', reasons: strength.reasons }, { status: 400 });
+      return NextResponse.json({ error: getTranslate('api.auth.weakPassword'), reasons: strength.reasons }, { status: 400 });
     }
 
     const db = getDb();
@@ -101,7 +102,7 @@ export async function PUT(req: NextRequest) {
 
     if (!resetData) {
       logger.warn('PUT', '无效或过期的重置链接');
-      return NextResponse.json({ error: '无效或过期的重置链接' }, { status: 400 });
+      return NextResponse.json({ error: getTranslate('api.auth.invalidResetLink') }, { status: 400 });
     }
 
     let resetPayload: { uid: string; expiresAt: number };
@@ -110,20 +111,20 @@ export async function PUT(req: NextRequest) {
     } catch {
       logger.warn('PUT', '重置数据损坏', { token });
       await db.del(`reset:${token}`);
-      return NextResponse.json({ error: '重置链接数据损坏，请重新申请' }, { status: 400 });
+      return NextResponse.json({ error: getTranslate('api.auth.resetDataCorrupted') }, { status: 400 });
     }
     const { uid, expiresAt } = resetPayload;
 
     if (Date.now() > expiresAt) {
       await db.del(`reset:${token}`);
       logger.warn('PUT', '重置链接已过期', { uid });
-      return NextResponse.json({ error: '重置链接已过期' }, { status: 400 });
+      return NextResponse.json({ error: getTranslate('api.auth.resetLinkExpired') }, { status: 400 });
     }
 
     const userStr = await db.get(`user:uid:${uid}`);
     if (!userStr) {
       logger.warn('PUT', '用户不存在', { uid });
-      return NextResponse.json({ error: '用户不存在' }, { status: 404 });
+      return NextResponse.json({ error: getTranslate('api.auth.userNotFound') }, { status: 404 });
     }
 
     const user = JSON.parse(userStr);
@@ -149,9 +150,9 @@ export async function PUT(req: NextRequest) {
     }
 
     logger.info('PUT', '密码重置成功', { uid });
-    return NextResponse.json({ success: true, message: '密码重置成功' }, { status: 201 });
+    return NextResponse.json({ success: true, message: getTranslate('api.auth.passwordResetSuccess') }, { status: 201 });
   } catch (error: unknown) {
     logger.error('PUT', '密码重置错误', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ error: '服务器错误' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.common.serverError') }, { status: 500 });
   }
 }

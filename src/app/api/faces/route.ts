@@ -4,6 +4,7 @@ import { loadConfig, canAccess, hasDatabase } from '@/lib/config';
 import { type SessionPayload, getSession } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
 import { rateLimit } from '@/lib/rate-limit';
+import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/faces');
 
@@ -77,7 +78,7 @@ export async function GET() {
     });
   } catch (error) {
     logger.error('GET', '获取通讯录列表失败', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ error: '获取通讯录列表失败' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.faces.fetchListFailed') }, { status: 500 });
   }
 }
 
@@ -110,7 +111,7 @@ async function getFileFromGitHub(req: NextRequest, filePath: string): Promise<{ 
 
   if (!response.ok) {
     if (response.status === 404) return null;
-    throw new Error('读取文件失败');
+    throw new Error(getTranslate('api.faces.readFileFailed'));
   }
 
   const data = await response.json();
@@ -127,13 +128,13 @@ async function getFileFromGitHub(req: NextRequest, filePath: string): Promise<{ 
  */
 function validateNameAndGroup(name: string, group: string): NextResponse | null {
   if (!name || !group) {
-    return NextResponse.json({ error: '姓名和分组为必填项' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.faces.nameAndGroupRequired') }, { status: 400 });
   }
   if (/[.\/\\]/.test(group)) {
-    return NextResponse.json({ error: '无效的分组名称' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.faces.invalidGroupName') }, { status: 400 });
   }
   if (/[.\/\\]/.test(name)) {
-    return NextResponse.json({ error: '无效的姓名' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.faces.invalidName') }, { status: 400 });
   }
   return null;
 }
@@ -145,12 +146,12 @@ export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
     logger.warn('POST', '无权限', { role: session?.role });
-    return NextResponse.json({ error: '无权限' }, { status: 403 });
+    return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }
 
   const rl = rateLimit(`${session.uid}:faces-write`, 30, 60 * 1000);
   if (!rl.allowed) {
-    return NextResponse.json({ error: '操作过于频繁' }, { status: 429 });
+    return NextResponse.json({ error: getTranslate('api.common.rateLimited') }, { status: 429 });
   }
 
   try {
@@ -193,14 +194,14 @@ export async function POST(req: NextRequest) {
     if (!ghResponse.ok) {
       const error = await ghResponse.json();
       logger.error('POST', '创建联系人失败', { error: error.error });
-      return NextResponse.json({ error: error.error ?? '创建联系人失败' }, { status: 500 });
+      return NextResponse.json({ error: error.error ?? getTranslate('api.faces.createFailed') }, { status: 500 });
     }
 
     logger.info('POST', '联系人创建成功', { slug: `/${group}/${slug}` });
     return NextResponse.json({ success: true, slug: `/${group}/${slug}` });
   } catch (error: unknown) {
     logger.error('POST', '创建联系人失败', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ error: '创建联系人失败' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.faces.createFailed') }, { status: 500 });
   }
 }
 
@@ -254,7 +255,7 @@ async function handleRenameContact(
 
   if (!ghCreateResponse.ok) {
     const error = await ghCreateResponse.json();
-    return NextResponse.json({ error: error.error ?? '更新联系人失败' }, { status: 500 });
+    return NextResponse.json({ error: error.error ?? getTranslate('api.faces.updateFailed') }, { status: 500 });
   }
 
   const ghDeleteResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
@@ -270,7 +271,7 @@ async function handleRenameContact(
 
   if (!ghDeleteResponse.ok) {
     logger.error('PATCH', '删除旧文件失败，联系人可能出现重复', { oldFilePath: opts.oldFilePath });
-    return NextResponse.json({ error: '重命名失败：旧文件删除异常，联系人可能出现重复' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.faces.renameFailed') }, { status: 500 });
   }
 
   return NextResponse.json({ success: true, slug: `/${opts.group}/${opts.newSlug}` });
@@ -307,7 +308,7 @@ async function handleUpdateContact(
   if (!ghResponse.ok) {
     const error = await ghResponse.json();
     logger.error('PATCH', '更新联系人失败', { error: error.error });
-    return NextResponse.json({ error: error.error ?? '更新联系人失败' }, { status: 500 });
+    return NextResponse.json({ error: error.error ?? getTranslate('api.faces.updateFailed') }, { status: 500 });
   }
 
   logger.info('PATCH', '更新联系人成功', { slug: `/${opts.group}/${opts.newSlug}` });
@@ -320,14 +321,14 @@ async function handleUpdateContact(
 function validatePatchInput(body: Record<string, unknown>): NextResponse | null {
   if (!body.slug) {
     logger.warn('PATCH', '缺少联系人路径');
-    return NextResponse.json({ error: '缺少联系人路径' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.faces.missingSlug') }, { status: 400 });
   }
   if (!/^\/[\w-]+\/[\w-]+$/.test(String(body.slug)) || /\.\./.test(String(body.slug))) {
-    return NextResponse.json({ error: '无效的联系人路径' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.faces.invalidSlug') }, { status: 400 });
   }
   if (!body.name || !body.group) {
     logger.warn('PATCH', '缺少必填字段');
-    return NextResponse.json({ error: '姓名和分组为必填项' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.faces.nameAndGroupRequired') }, { status: 400 });
   }
   return null;
 }
@@ -339,19 +340,19 @@ export async function PATCH(req: NextRequest) {
   const session = await getSession();
   if (!canManageFace(session)) {
     logger.warn('PATCH', '无权限', { role: session?.role });
-    return NextResponse.json({ error: '无权限' }, { status: 403 });
+    return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }
 
   if (session) {
     const rl = rateLimit(`${session.uid}:faces-write`, 30, 60 * 1000);
-    if (!rl.allowed) return NextResponse.json({ error: '操作过于频繁' }, { status: 429 });
+    if (!rl.allowed) return NextResponse.json({ error: getTranslate('api.common.rateLimited') }, { status: 429 });
   }
 
   let body: Record<string, unknown>;
   try {
     body = (await req.json()) as Record<string, unknown>;
   } catch {
-    return NextResponse.json({ error: '请求格式错误' }, { status: 400 });
+    return NextResponse.json({ error: getTranslate('api.faces.invalidRequestFormat') }, { status: 400 });
   }
   const patchErr = validatePatchInput(body);
   if (patchErr) return patchErr;
@@ -372,7 +373,7 @@ async function handlePatchContact(req: NextRequest, body: Record<string, unknown
     const fileData = await getFileFromGitHub(req, oldFilePath);
     if (!fileData) {
       logger.warn('PATCH', '联系人不存在', { slug });
-      return NextResponse.json({ error: '联系人不存在' }, { status: 404 });
+      return NextResponse.json({ error: getTranslate('api.faces.contactNotFound') }, { status: 404 });
     }
 
     const { sha } = fileData;
@@ -386,7 +387,7 @@ async function handlePatchContact(req: NextRequest, body: Record<string, unknown
     return handleUpdateContact(req, { name, group, newSlug, oldFilePath, frontMatter, content: content ?? '', sha });
   } catch (error: unknown) {
     logger.error('PATCH', '更新联系人失败', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ error: '更新联系人失败' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.faces.updateFailed') }, { status: 500 });
   }
 }
 
@@ -397,12 +398,12 @@ export async function DELETE(req: NextRequest) {
   const session = await getSession();
   if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
     logger.warn('DELETE', '无权限', { role: session?.role });
-    return NextResponse.json({ error: '无权限' }, { status: 403 });
+    return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }
 
   const rl = rateLimit(`${session.uid}:faces-write`, 30, 60 * 1000);
   if (!rl.allowed) {
-    return NextResponse.json({ error: '操作过于频繁' }, { status: 429 });
+    return NextResponse.json({ error: getTranslate('api.common.rateLimited') }, { status: 429 });
   }
 
   try {
@@ -410,12 +411,12 @@ export async function DELETE(req: NextRequest) {
 
     if (!slug) {
       logger.warn('DELETE', '缺少联系人路径');
-      return NextResponse.json({ error: '缺少联系人路径' }, { status: 400 });
+      return NextResponse.json({ error: getTranslate('api.faces.missingSlug') }, { status: 400 });
     }
 
     // 防止路径穿越攻击：slug 必须是 /group/name 格式
     if (!/^\/[\w-]+\/[\w-]+$/.test(slug) || /\.\./.test(slug)) {
-      return NextResponse.json({ error: '无效的联系人路径' }, { status: 400 });
+      return NextResponse.json({ error: getTranslate('api.faces.invalidSlug') }, { status: 400 });
     }
 
     const filePath = `faces${slug}.md`;
@@ -424,14 +425,14 @@ export async function DELETE(req: NextRequest) {
     const fileData = await getFileFromGitHub(req, filePath);
     if (!fileData) {
       logger.warn('DELETE', '联系人不存在', { slug });
-      return NextResponse.json({ error: '联系人不存在' }, { status: 404 });
+      return NextResponse.json({ error: getTranslate('api.faces.contactNotFound') }, { status: 404 });
     }
 
     const { sha } = fileData;
 
     if (!canManageFace(session)) {
       logger.warn('DELETE', '无权删除联系人', { slug });
-      return NextResponse.json({ error: '无权删除此联系人' }, { status: 403 });
+      return NextResponse.json({ error: getTranslate('api.faces.noDeletePermission') }, { status: 403 });
     }
 
     const ghResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
@@ -448,13 +449,13 @@ export async function DELETE(req: NextRequest) {
     if (!ghResponse.ok) {
       const error = await ghResponse.json();
       logger.error('DELETE', '删除联系人失败', { error: error.error });
-      return NextResponse.json({ error: error.error ?? '删除联系人失败' }, { status: 500 });
+      return NextResponse.json({ error: error.error ?? getTranslate('api.faces.deleteFailed') }, { status: 500 });
     }
 
     logger.info('DELETE', '删除联系人成功', { slug });
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
     logger.error('DELETE', '删除联系人失败', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ error: '删除联系人失败' }, { status: 500 });
+    return NextResponse.json({ error: getTranslate('api.faces.deleteFailed') }, { status: 500 });
   }
 }

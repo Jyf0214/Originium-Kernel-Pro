@@ -13,6 +13,7 @@ import { apiHandler } from '@/lib/api-handler'
 import { createApiLogger } from '@/lib/api-logger'
 import { rateLimit, getClientIp } from '@/lib/rate-limit'
 import { getStorageProvider, isStorageConfigured } from '@/lib/storage/storage-provider'
+import { getTranslate } from '@/i18n/translate'
 import { storageNotConfigured, requireApiKeyPerm } from '../_helpers'
 
 const logger = createApiLogger('/api/storage/search')
@@ -215,7 +216,7 @@ export const GET = apiHandler(
     const { allowed, retryAfterMs } = rateLimit(`${ip}:storage-search`, 10, 60 * 1000)
     if (!allowed) {
       return NextResponse.json(
-        { error: '搜索过于频繁，请稍后再试' },
+        { error: getTranslate('api.storage.searchRateLimited') },
         { status: 429, headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) } },
       )
     }
@@ -226,10 +227,10 @@ export const GET = apiHandler(
 
     const query = req.nextUrl.searchParams.get('q')?.trim()
     if (!query) {
-      return NextResponse.json({ error: '搜索关键词不能为空' }, { status: 400 })
+      return NextResponse.json({ error: getTranslate('api.storage.searchEmptyKeyword') }, { status: 400 })
     }
     if (query.length < 2) {
-      return NextResponse.json({ error: '搜索关键词至少 2 个字符' }, { status: 400 })
+      return NextResponse.json({ error: getTranslate('api.storage.searchKeywordTooShort') }, { status: 400 })
     }
 
     const cachedResult = getCachedResult(query)
@@ -268,7 +269,7 @@ export const GET = apiHandler(
     } catch (err) {
       logger.error('GET', '搜索失败', { error: (err as Error).message })
       return NextResponse.json(
-        { error: '搜索失败' },
+        { error: getTranslate('api.storage.searchFailed') },
         { status: 500 },
       )
     }

@@ -8,6 +8,7 @@ import { CuteConfirm } from '@/components/ui/CuteConfirm';
 import { formatShortDate, renderReferenceLinks } from './diary-utils';
 import type { DiaryEntry } from './types';
 import type { WikiLinkMap } from '@/components/MarkdownRenderer/types';
+import { useI18n } from '@/hooks/use-i18n';
 
 /** 缓存 wiki-link 映射表，避免重复请求 */
 let cachedWikiLinkMap: WikiLinkMap | null = null;
@@ -62,6 +63,7 @@ export function DiaryCard({
   onDelete: (id: string) => void;
   onVersionHistory?: (id: string) => void;
 }) {
+  const { t } = useI18n();
   const isViewing = viewingId === diary.id;
   const wikiLinkMap = useWikiLinkMap();
 
@@ -76,7 +78,7 @@ export function DiaryCard({
             <h3 className="text-base sm:text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-1 sm:mb-2 flex items-center gap-2">
               {diary.pinned && <Pin size={16} className="text-amber-500 shrink-0 fill-amber-500" />}
               {diary.title}
-              {diary.group && diary.group !== '默认' && (
+              {diary.group && (
                 <span className="text-[10px] px-2 py-0.5 bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 rounded-full">{diary.group}</span>
               )}
             </h3>
@@ -102,7 +104,7 @@ export function DiaryCard({
               onClick={() => onTogglePin(diary.id)}
               disabled={pinning === diary.id}
               loading={pinning === diary.id}
-              title={diary.pinned ? '取消置顶' : '置顶'}
+              title={diary.pinned ? t('diary.unpin') : t('diary.pin')}
               className={`${
                 diary.pinned
                   ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20'
@@ -117,13 +119,13 @@ export function DiaryCard({
               rounded="sm"
               autoLoading={false}
               onClick={() => onEdit(diary.id)}
-              title="编辑"
+              title={t('diary.edit')}
               className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700"
               icon={<Edit3 size={14} />}
             />
             <CuteConfirm
               category="delete"
-              confirmText="确定要删除这篇日记吗？"
+              confirmText={t('diary.deleteDiaryConfirm')}
               onConfirm={() => onDelete(diary.id)}
               disabled={deleting === diary.id}
             >
@@ -134,8 +136,8 @@ export function DiaryCard({
                 rounded="sm"
                 disabled={deleting === diary.id}
                 loading={deleting === diary.id}
-                title="删除"
-                aria-label="删除"
+                title={t('diary.delete')}
+                aria-label={t('diary.delete')}
                 icon={<Trash2 size={14} />}
               />
             </CuteConfirm>
@@ -147,12 +149,12 @@ export function DiaryCard({
                 rounded="sm"
                 autoLoading={false}
                 onClick={() => onVersionHistory(diary.id)}
-                title="版本历史"
+                title={t('diary.versionHistory')}
                 className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700"
                 icon={<History size={14} />}
               />
             )}
-            <div className="p-1.5 sm:p-2 text-zinc-400 dark:text-zinc-500" title={isViewing ? '收起' : '展开'}>
+            <div className="p-1.5 sm:p-2 text-zinc-400 dark:text-zinc-500" title={isViewing ? t('diary.collapse') : t('diary.expand')}>
               {isViewing ? <X size={14} className="sm:size-4" /> : <Eye size={14} className="sm:size-4" />}
             </div>
           </div>

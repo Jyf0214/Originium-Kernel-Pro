@@ -5,6 +5,7 @@ import { Avatar } from '@/components/Avatar';
 import { Tag } from '@/components/ui/Tag';
 import { Button } from '@/components/ui/Button';
 import type { ArticleData, UserInfo, PostMetaPostConfig } from './types';
+import { useI18n } from '@/hooks/use-i18n';
 
 function TagsSection({ tags, show }: { tags?: string[]; show: boolean }) {
   if (!show || !tags?.length) return null;
@@ -36,6 +37,7 @@ function DateSection({ displayDate }: { displayDate: string | null }) {
 function SudoActions({ showRaw, rawContent, onToggleRaw }: {
   showRaw: boolean; rawContent: string; onToggleRaw: () => void;
 }) {
+  const { t } = useI18n();
   if (!rawContent) return null;
   return (
     <>
@@ -47,7 +49,7 @@ function SudoActions({ showRaw, rawContent, onToggleRaw }: {
         autoLoading={false}
       >
         {showRaw ? <Eye size={18} /> : <Code size={18} />}
-        <span className="font-bold">{showRaw ? '预览渲染' : '查看原始文件'}</span>
+        <span className="font-bold">{showRaw ? t('article.previewRender') : t('article.viewRaw')}</span>
       </Button>
     </>
   );
@@ -57,17 +59,18 @@ function ArticleLabelBadge({ postMeta, category }: {
   postMeta?: PostMetaPostConfig;
   category?: string;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex items-center gap-3 mb-4">
       {postMeta?.label && (
         <Tag variant="dark" size="sm">
-          文章
+          {t('article.article')}
         </Tag>
       )}
       {postMeta?.unread && (
         <Tag size="xs" variant="danger" className="inline-flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-          未读
+          {t('article.unread')}
         </Tag>
       )}
       {postMeta?.categories && category && (

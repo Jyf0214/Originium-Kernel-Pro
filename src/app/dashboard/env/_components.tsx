@@ -85,19 +85,13 @@ export const groupOrder: string[] = [
 
 const tagClass = 'rounded-lg text-[10px] leading-tight';
 
-export function tr(t: TFunc, key: string, fallback = ''): string {
-  const result = t(key);
-  if (result === key || typeof result !== 'string') return fallback;
-  return result;
-}
-
 function StatusBadge({ variable, t }: { variable: EnvVar; t: TFunc }) {
   return variable.required ? (
     <Tag color="error" className={tagClass}>
-      {t('env.required') || '必需'}
+      {t('env.required')}
     </Tag>
   ) : (
-    <Tag className={`${tagClass} bg-zinc-50 border-zinc-200 text-zinc-500`}>{t('env.optional') || '可选'}</Tag>
+    <Tag className={`${tagClass} bg-zinc-50 border-zinc-200 text-zinc-500`}>{t('env.optional')}</Tag>
   );
 }
 
@@ -113,10 +107,10 @@ function HintLine({ tone, icon, children }: { tone: 'amber' | 'blue'; icon: Reac
 
 export function EnvStatsCards({ summary, t }: { summary: EnvSummary; t: TFunc }) {
   const cells: { label: string; value: number; color: string }[] = [
-    { label: t('env.summary.total') || '总变量', value: summary.total, color: 'text-zinc-900' },
-    { label: t('env.summary.set') || '已设置', value: summary.set, color: 'text-emerald-600' },
-    { label: t('env.summary.requiredMissing') || '必需缺失', value: summary.required - summary.requiredSet, color: 'text-red-500' },
-    { label: t('env.summary.optionalMissing') || '可选缺失', value: summary.optional - summary.optionalSet, color: 'text-amber-500' },
+    { label: t('env.summary.total'), value: summary.total, color: 'text-zinc-900' },
+    { label: t('env.summary.set'), value: summary.set, color: 'text-emerald-600' },
+    { label: t('env.summary.requiredMissing'), value: summary.required - summary.requiredSet, color: 'text-red-500' },
+    { label: t('env.summary.optionalMissing'), value: summary.optional - summary.optionalSet, color: 'text-amber-500' },
   ];
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
@@ -135,14 +129,14 @@ function VariableStatusIcon({ variable, t }: { variable: EnvVar; t: TFunc }) {
     return (
       <div className="flex items-center gap-1.5 text-emerald-600">
         <CheckCircle2 size={16} />
-        <span className="text-sm font-medium">{t('env.set') || '已设置'}</span>
+        <span className="text-sm font-medium">{t('env.set')}</span>
       </div>
     );
   }
   return (
     <div className={`flex items-center gap-1.5 ${variable.required ? 'text-red-500' : 'text-amber-500'}`}>
       <XCircle size={16} />
-      <span className="text-sm font-medium">{t('env.notSet') || '未设置'}</span>
+      <span className="text-sm font-medium">{t('env.notSet')}</span>
     </div>
   );
 }
@@ -153,13 +147,13 @@ function VariableBadges({ variable, t }: { variable: EnvVar; t: TFunc }) {
       {variable.deprecated && (
         <Tag color="warning" className={tagClass}>
           <AlertTriangle size={10} className="inline-block mr-0.5" />
-          {t('env.ui.deprecated') || '已弃用'}
+          {t('env.ui.deprecated')}
         </Tag>
       )}
       {variable.systemInjected && (
         <Tag color="processing" className={tagClass}>
           <Sparkles size={10} className="inline-block mr-0.5" />
-          {t('env.ui.systemInjected') || '自动注入'}
+          {t('env.ui.systemInjected')}
         </Tag>
       )}
     </>
@@ -167,16 +161,14 @@ function VariableBadges({ variable, t }: { variable: EnvVar; t: TFunc }) {
 }
 
 function VariableHints({ variable, t }: { variable: EnvVar; t: TFunc }) {
-  const renamedHint = variable.renamedTo
-    ? tr(t, 'env.ui.renamedHint', 'The new name is {name}. Migration is recommended.').replace('{name}', variable.renamedTo)
-    : '';
-  const deprecatedHint = variable.deprecated ? tr(t, 'env.ui.deprecatedHint', 'This variable is deprecated.') : '';
-  const systemHint = variable.systemInjected ? tr(t, 'env.ui.systemInjectedHint', 'This variable is auto-injected.') : '';
+  const renamedHint = variable.renamedTo ? t('env.ui.renamedHint').replace('{name}', variable.renamedTo) : '';
+  const deprecatedHint = variable.deprecated ? t('env.ui.deprecatedHint') : '';
+  const systemHint = variable.systemInjected ? t('env.ui.systemInjectedHint') : '';
   return (
     <>
       {variable.renamedTo && (
         <HintLine tone="amber" icon={<Info size={12} />}>
-          {tr(t, 'env.ui.renamedTo', 'Renamed to {name}').replace('{name}', variable.renamedTo)}
+          {t('env.ui.renamedTo').replace('{name}', variable.renamedTo)}
           {renamedHint ? ` · ${renamedHint}` : ''}
         </HintLine>
       )}
@@ -195,7 +187,7 @@ function VariableHints({ variable, t }: { variable: EnvVar; t: TFunc }) {
 }
 
 function EnvVariableRow({ variable, groupKey, t }: { variable: EnvVar; groupKey: string; t: TFunc }) {
-  const description = tr(t, `env.vars.${groupKey}.${variable.name}`, '');
+  const description = t(`env.vars.${groupKey}.${variable.name}`);
   return (
     <div className="px-6 py-4">
       <div className="flex items-center justify-between gap-4">
@@ -239,8 +231,8 @@ function EnvGroupCard({
   const groupTotal = group.variables.length;
   const groupMissing = groupTotal - groupSet;
   const allReady = groupMissing === 0;
-  const groupName = tr(t, `${group.nameKey}.name`, group.name);
-  const groupDesc = group.descriptionKey ? tr(t, group.descriptionKey, '') : '';
+  const groupName = t(`${group.nameKey}.name`);
+  const groupDesc = group.descriptionKey ? t(group.descriptionKey) : '';
 
   return (
     <Card className="rounded-2xl border border-zinc-100 overflow-hidden" bordered={false} styles={{ body: { padding: 0 } }}>
@@ -259,10 +251,10 @@ function EnvGroupCard({
         </div>
         <div className="flex items-center gap-3 shrink-0">
           {allReady ? (
-            <Tag color="success" className="rounded-lg mr-2">{t('env.ui.allReady') || '全部就绪'}</Tag>
+            <Tag color="success" className="rounded-lg mr-2">{t('env.ui.allReady')}</Tag>
           ) : (
             <Tag color="warning" className="rounded-lg mr-2">
-              {tr(t, 'env.ui.missingCount', '{count} 项缺失').replace('{count}', String(groupMissing))}
+              {t('env.ui.missingCount').replace('{count}', String(groupMissing))}
             </Tag>
           )}
           {collapsed ? <ChevronDown size={16} className="text-zinc-400" /> : <ChevronUp size={16} className="text-zinc-400" />}
@@ -293,10 +285,10 @@ export function SummaryHero({ summary, t }: { summary: EnvSummary; t: TFunc }) {
         </div>
         <div className="flex-1 min-w-0">
           <h2 className="text-lg font-bold text-zinc-900 mb-1">
-            {isReady ? t('env.ready') || '环境配置完成' : t('env.notReady') || '缺少必要环境变量'}
+            {isReady ? t('env.ready') : t('env.notReady')}
           </h2>
           <p className="text-zinc-500 text-sm mb-4">
-            {tr(t, 'env.summary', '已设置 {set}/{total} 个变量 · 必需 {requiredSet}/{required} 个')
+            {t('env.summary')
               .replace('{set}', String(summary.set))
               .replace('{total}', String(summary.total))
               .replace('{requiredSet}', String(summary.requiredSet))
@@ -343,10 +335,10 @@ export function HeaderActions({
         onClick={() => onToggleAll(!allCollapsed)}
         autoLoading={false}
       >
-        {allCollapsed ? t('env.ui.expandAll') || '全部展开' : t('env.ui.collapseAll') || '全部折叠'}
+        {allCollapsed ? t('env.ui.expandAll') : t('env.ui.collapseAll')}
       </Button>
       <Button variant="default" rounded="md" icon={<RefreshCw size={14} />} onClick={onRefresh}>
-        {t('env.refresh') || '刷新'}
+        {t('env.refresh')}
       </Button>
     </div>
   );
