@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { List, X } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { TOC, buildTree, TocItem, useTocActive, slugify } from '@/components/ui/TOC';
 import type { TocHeading } from '@/components/ui/TOC';
 import { Hitokoto } from '@/components/Hitokoto';
@@ -88,14 +89,16 @@ function MobileTocDrawer({
           <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
             {t('posts.toc')}
           </h4>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
+            iconOnly
+            autoLoading={false}
             onClick={onClose}
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
             aria-label={t('posts.closeToc')}
-          >
-            <X size={16} />
-          </button>
+            icon={<X size={16} />}
+          />
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-3">
           <TocItem
@@ -124,14 +127,15 @@ export function PostSidebarTrigger({ content, headingCount, tocConfig }: PostSid
   return (
     <>
       <div className="lg:hidden w-full mb-4">
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
+          autoLoading={false}
           onClick={() => setDrawerOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors"
+          icon={<List size={14} />}
         >
-          <List size={14} />
           {t('posts.toc')}
-        </button>
+        </Button>
       </div>
       <AnimatePresence>
         {drawerOpen && (

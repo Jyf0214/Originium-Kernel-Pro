@@ -38,11 +38,11 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
       theme={{
         algorithm: theme.defaultAlgorithm,
         token: {
-          colorPrimary: '#1677ff',
+          colorPrimary: '#18181b',
           colorSuccess: '#52c41a',
           colorWarning: '#faad14',
           colorError: '#ff4d4f',
-          colorInfo: '#1677ff',
+          colorInfo: '#18181b',
           borderRadius: 8,
           fontSize: 14,
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',

@@ -145,7 +145,7 @@ export function CoverHero({
           />
         ) : (
           <div
-            className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 scale-110"
+            className="absolute inset-0 bg-gradient-to-br from-zinc-600 via-zinc-700 to-zinc-900 scale-110"
             style={{ filter: 'blur(0px) brightness(0.55)' }}
           />
         )}
@@ -163,7 +163,7 @@ export function CoverHero({
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
-              boxShadow: 'inset 80px -100px 250px 50px rgba(99, 102, 241, 0.15)',
+              boxShadow: 'inset 80px -100px 250px 50px rgba(113, 113, 122, 0.15)',
             }}
           />
         )}

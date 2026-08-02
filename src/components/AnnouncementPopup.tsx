@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Megaphone, X } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/ui';
 import { useI18n } from '@/hooks/use-i18n';
 import { getTranslate } from '@/i18n/translate';
@@ -146,17 +147,16 @@ export function AnnouncementPopup() {
             <div className="h-1 w-full bg-gradient-to-r from-amber-400 via-orange-400 to-red-400" />
 
             {/* 关闭按钮 */}
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
+              iconOnly
+              autoLoading={false}
               onClick={handleCancel}
-              className={cn(
-                'absolute top-4 right-4 p-1.5 rounded-lg z-10',
-                'hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors',
-                'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'
-              )}
+              className="absolute top-4 right-4 z-10"
               aria-label={t('components.announcementPopup.closeAnnouncement')}
-            >
-              <X size={16} />
-            </button>
+              icon={<X size={16} />}
+            />
 
             {/* 内容区 */}
             <div className="px-6 pt-5 pb-4">
@@ -206,18 +206,17 @@ export function AnnouncementPopup() {
                 </span>
               </label>
 
-              {/* 确认按钮 */}
-              <button
+              {/* 确认按钮 — 警告语义色保留 */}
+              <Button
+                variant="warning"
+                size="md"
+                block
+                autoLoading={false}
                 onClick={handleOk}
-                className={cn(
-                  'w-full py-2.5 rounded-xl text-sm font-medium transition-all',
-                  'bg-gradient-to-r from-amber-500 to-orange-500 text-white',
-                  'hover:from-amber-600 hover:to-orange-600 active:scale-[0.98]',
-                  'shadow-sm hover:shadow-md'
-                )}
+                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-sm hover:shadow-md"
               >
                 {t('components.announcementPopup.gotIt')}
-              </button>
+              </Button>
             </div>
           </motion.div>
         </motion.div>

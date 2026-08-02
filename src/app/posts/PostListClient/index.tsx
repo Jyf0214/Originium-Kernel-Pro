@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { LayoutGrid, List, AlignJustify } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { useI18n } from '@/hooks/use-i18n';
 import { PostListHeader } from './PostListHeader';
 import { GroupTabs } from './GroupTabs';
@@ -68,21 +69,19 @@ export function PostListClient({ posts, groups, coverConfig }: PostListClientPro
         : 'flex flex-col gap-2';
 
   const layoutToggle = (
-    <div className="flex items-center gap-1 p-1 bg-white rounded-xl border border-zinc-200">
+    <div className="flex items-center gap-1 p-1 bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700">
       {LAYOUT_OPTIONS.map(({ key, icon: Icon, label }) => (
-        <button
+        <Button
           key={key}
-          type="button"
+          variant="ghost"
+          size="sm"
+          iconOnly
+          autoLoading={false}
           onClick={() => handleLayoutChange(key)}
           title={t(label)}
-          className={`p-2 rounded-lg transition-colors duration-200 ${
-            layout === key
-              ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100'
-              : 'text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50'
-          }`}
-        >
-          <Icon size={16} />
-        </button>
+          className={layout === key ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'}
+          icon={<Icon size={16} />}
+        />
       ))}
     </div>
   );

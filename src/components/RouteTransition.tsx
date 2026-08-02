@@ -10,7 +10,7 @@ const PROGRESS_STEPS = [10, 30, 60, 80] as const;
  * Pjax 风格页面过渡 — 模拟加载进度条 + 淡入淡出
  *
  * 路由切换时：
- * 1. 顶部显示细长的加载进度条（蓝色渐变）
+ * 1. 顶部显示细长的加载进度条（zinc 中性色渐变）
  * 2. 旧页面淡出 + 上移
  * 3. 新页面淡入 + 下移
  */
@@ -78,7 +78,7 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
             <motion.div
               className="h-full rounded-r-full"
               style={{
-                background: 'linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6)',
+                background: 'linear-gradient(90deg, #a1a1aa, #52525b, #18181b)',
               }}
               initial={{ width: '0%' }}
               animate={{ width: `${progress}%` }}

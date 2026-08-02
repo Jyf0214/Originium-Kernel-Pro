@@ -64,7 +64,7 @@ function buildAccessItems(t: (key: string) => string) {
 function getPageLoadingConfig(config: ConfigState) {
   return {
     type: config.appearance.loading?.page?.type ?? 'waves',
-    color: config.appearance.loading?.page?.color ?? '#c084fc',
+    color: config.appearance.loading?.page?.color ?? '#71717a',
     position: config.appearance.loading?.page?.position ?? 'center',
   };
 }
@@ -72,7 +72,7 @@ function getPageLoadingConfig(config: ConfigState) {
 function getNavLoadingConfig(config: ConfigState) {
   return {
     type: config.appearance.loading?.navigation?.type ?? 'antd',
-    color: config.appearance.loading?.navigation?.color ?? '#c084fc',
+    color: config.appearance.loading?.navigation?.color ?? '#71717a',
   };
 }
 

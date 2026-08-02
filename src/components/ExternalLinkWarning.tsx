@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, createContext, useContext, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { AlertTriangle, ExternalLink, ShieldAlert, X } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/ui';
 import {
   modalContentVariants,
@@ -95,17 +96,16 @@ function WarningModal({
             <div className="h-1 w-full bg-gradient-to-r from-amber-400 via-orange-400 to-red-400" />
 
             {/* 关闭按钮 */}
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
+              iconOnly
+              autoLoading={false}
               onClick={onCancel}
-              className={cn(
-                'absolute top-4 right-4 p-1.5 rounded-lg z-10',
-                'hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors',
-                'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'
-              )}
+              className="absolute top-4 right-4 z-10"
               aria-label={t('externalLink.cancel')}
-            >
-              <X size={16} />
-            </button>
+              icon={<X size={16} />}
+            />
 
             {/* 内容区 */}
             <div className="px-6 pt-5 pb-4">
@@ -142,29 +142,27 @@ function WarningModal({
             {/* 底部按钮 */}
             <div className="px-6 pb-5 flex gap-3">
               {/* 取消按钮 */}
-              <button
+              <Button
+                variant="secondary"
+                size="md"
+                block
+                autoLoading={false}
                 onClick={onCancel}
-                className={cn(
-                  'flex-1 py-2.5 rounded-xl text-sm font-medium transition-all',
-                  'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300',
-                  'hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-[0.98]'
-                )}
               >
                 {t('externalLink.cancel')}
-              </button>
+              </Button>
 
-              {/* 继续前往按钮 */}
-              <button
+              {/* 继续前往按钮 — 警告语义色保留 */}
+              <Button
+                variant="warning"
+                size="md"
+                block
+                autoLoading={false}
                 onClick={onConfirm}
-                className={cn(
-                  'flex-1 py-2.5 rounded-xl text-sm font-medium transition-all',
-                  'bg-gradient-to-r from-amber-500 to-orange-500 text-white',
-                  'hover:from-amber-600 hover:to-orange-600 active:scale-[0.98]',
-                  'shadow-sm hover:shadow-md'
-                )}
+                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-sm hover:shadow-md"
               >
                 {t('externalLink.continue')}
-              </button>
+              </Button>
             </div>
           </motion.div>
         </motion.div>

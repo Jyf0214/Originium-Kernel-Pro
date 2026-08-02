@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+@theme {
+  /* 展示字体 — 用于 hero 标题等场景（font-display 工具类） */
+  --font-display: ui-serif, Georgia, "Noto Serif SC", "Source Han Serif SC", "Songti SC", SimSun, serif;
+}
+
 /* 使用 class 控制深色模式（而非 media query） */
 @custom-variant dark (&:where(.dark, .dark *));
 

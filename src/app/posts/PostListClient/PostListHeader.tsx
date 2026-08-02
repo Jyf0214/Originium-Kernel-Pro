@@ -1,7 +1,7 @@
 'use client';
 
-import { Search, BookOpen } from 'lucide-react';
-import { Input } from 'antd';
+import { Search, BookOpen, X } from 'lucide-react';
+import { Input } from '@/components/ui/Input';
 
 export function PostListHeader({
   searchTerm,
@@ -26,11 +26,20 @@ export function PostListHeader({
           placeholder={t('home.searchPlaceholder')}
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-12 h-12 text-base w-full rounded-2xl bg-white border-zinc-200 hover:border-zinc-300 focus:border-zinc-900 transition-colors"
-          size="large"
-          variant="outlined"
-          allowClear
+          className="pl-12 pr-10 text-base"
+          size="xl"
+          rounded="lg"
         />
+        {searchTerm && (
+          <button
+            type="button"
+            onClick={() => onSearchChange('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
+            aria-label={t('home.clearSearch')}
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
       <div className="flex items-center gap-2">
         {rightExtra}

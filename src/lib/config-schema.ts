@@ -79,12 +79,12 @@ export const zAppearanceConfig = z.object({
   loading: withFullDefault(z.object({
     page: withFullDefault(z.object({
       type: zLoadingType.default('spinner'),
-      color: z.string().default('#c084fc'),
+      color: z.string().default('#71717a'),
       position: zLoadingPosition.default('center'),
     })),
     navigation: withFullDefault(z.object({
       type: zLoadingType.default('spinner'),
-      color: z.string().default('#c084fc'),
+      color: z.string().default('#71717a'),
     })),
     slogans: z.array(z.string()).default([]),
   })),

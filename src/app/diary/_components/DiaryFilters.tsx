@@ -2,6 +2,7 @@
 
 import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { useI18n } from '@/hooks/use-i18n';
 
 export function DiaryFilters({
@@ -24,26 +25,26 @@ export function DiaryFilters({
     <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
       <div className="relative flex-1 min-w-[160px] sm:min-w-[200px] max-w-sm">
         <Search size={14} className="sm:size-4 absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-        <input
+        <Input
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           placeholder={t('diary.searchPlaceholder')}
-          className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 transition-all text-zinc-900 placeholder-zinc-400 text-xs sm:text-sm"
+          className="pl-9 sm:pl-10 pr-3 sm:pr-4 text-xs sm:text-sm"
         />
       </div>
-      <input
+      <Input
         type="date"
         value={startDate}
         onChange={(e) => setStartDate(e.target.value)}
-        className="px-2 sm:px-3 py-2 sm:py-2.5 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 transition-all text-zinc-900 text-xs sm:text-sm w-[130px] sm:w-auto"
+        className="text-xs sm:text-sm w-[130px] sm:w-auto"
         title={t('diary.startDate')}
       />
       <span className="text-zinc-400 text-xs sm:text-sm">—</span>
-      <input
+      <Input
         type="date"
         value={endDate}
         onChange={(e) => setEndDate(e.target.value)}
-        className="px-2 sm:px-3 py-2 sm:py-2.5 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 transition-all text-zinc-900 text-xs sm:text-sm w-[130px] sm:w-auto"
+        className="text-xs sm:text-sm w-[130px] sm:w-auto"
         title={t('diary.endDate')}
       />
     </div>

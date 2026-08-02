@@ -120,6 +120,7 @@
   },
   "home": {
     "searchPlaceholder": "Search content...",
+    "clearSearch": "Clear search",
     "postsDesc": "{count} posts",
     "facesDesc": "{count} contacts",
     "latestPosts": "Latest Posts",

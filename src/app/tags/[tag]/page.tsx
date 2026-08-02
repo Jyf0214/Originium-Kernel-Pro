@@ -76,7 +76,7 @@ export default async function TagPage({ params }: PageProps) {
             {taggedPosts.map((post) => (
               <article
                 key={post.slug}
-                className="group bg-white dark:bg-zinc-800 rounded-3xl border border-zinc-100 dark:border-zinc-700 overflow-hidden hover:border-zinc-300 dark:hover:border-zinc-500 hover:shadow-xl hover:shadow-zinc-100/80 transition-all duration-500 flex flex-col"
+                className="group bg-white dark:bg-zinc-800 rounded-2xl sm:rounded-[2rem] border border-zinc-200/60 dark:border-zinc-700/60 overflow-hidden hover:border-zinc-400 dark:hover:border-zinc-500 hover:shadow-xl hover:shadow-zinc-100 dark:hover:shadow-zinc-900 transition-all duration-500 flex flex-col"
               >
                 <div className="px-5 py-4 flex-1 flex flex-col">
                   {/* 标签 */}

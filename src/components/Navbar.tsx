@@ -135,14 +135,16 @@ function DrawerContent({
             {t('sidebar.originiumKernel')}
           </span>
         </Link>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="md"
+          iconOnly
+          autoLoading={false}
           onClick={closeDrawer}
-          className="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+          className="text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300"
           aria-label={t('components.Navbar.closeMenu')}
-        >
-          <X size={18} />
-        </button>
+          icon={<X size={18} />}
+        />
       </div>
 
       {/* 导航链接 */}
@@ -271,47 +273,55 @@ export function Navbar({ navConfig: navConfigProp, databaseConfigured = true }: 
   return (
     <>
       {/* 汉堡按钮 — 最右 */}
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="md"
+        iconOnly
+        autoLoading={false}
         onClick={() => state.setDrawerOpen(true)}
-        className="fixed top-3 right-3 z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+        className="fixed top-3 right-3 z-[60] text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100"
         aria-label={t('components.Navbar.openMenu')}
-      >
-        <Menu size={22} />
-      </button>
+        icon={<Menu size={22} />}
+      />
 
       {/* 快捷键按钮 — 汉堡左侧，仅 PC 端 */}
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="md"
+        iconOnly
+        autoLoading={false}
         onClick={() => state.setShortcutsOpen(true)}
-        className="fixed top-3 right-[48px] z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors hidden md:block"
+        className="fixed top-3 right-[48px] z-[60] text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hidden md:inline-flex"
         aria-label={t('components.Navbar.shortcutsHelp')}
         title={t('components.Navbar.shortcutsTitle')}
-      >
-        <Keyboard size={22} />
-      </button>
+        icon={<Keyboard size={22} />}
+      />
 
       {/* 深色模式切换 — 快捷键左侧 */}
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="md"
+        iconOnly
+        autoLoading={false}
         onClick={cycle}
-        className="fixed top-3 right-[48px] md:right-[84px] z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+        className="fixed top-3 right-[48px] md:right-[84px] z-[60] text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100"
         aria-label={mode === 'light' ? t('components.Navbar.lightMode') : mode === 'dark' ? t('components.Navbar.darkMode') : t('components.Navbar.followSystem')}
         title={mode === 'light' ? t('components.Navbar.lightMode') : mode === 'dark' ? t('components.Navbar.darkMode') : t('components.Navbar.followSystem')}
-      >
-        {mode === 'light' ? <Sun size={22} /> : mode === 'dark' ? <Moon size={22} /> : <Monitor size={22} />}
-      </button>
+        icon={mode === 'light' ? <Sun size={22} /> : mode === 'dark' ? <Moon size={22} /> : <Monitor size={22} />}
+      />
 
       {/* 搜索按钮 — 最左侧 */}
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="md"
+        iconOnly
+        autoLoading={false}
         onClick={() => state.setSearchOpen(true)}
-        className="fixed top-3 right-[84px] md:right-[120px] z-[60] p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+        className="fixed top-3 right-[84px] md:right-[120px] z-[60] text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100"
         aria-label={t('components.Navbar.search')}
         title={typeof navigator !== 'undefined' && navigator.platform?.includes('Mac') ? t('components.Navbar.searchMac') : t('components.Navbar.searchShortcut')}
-      >
-        <Search size={22} />
-      </button>
+        icon={<Search size={22} />}
+      />
 
       {/* 遮罩 */}
       {state.drawerOpen && (

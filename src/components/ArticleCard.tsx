@@ -112,13 +112,13 @@ function ArticleCoverSection({ article, coverConfig }: { article: Article; cover
 
   if (isHorizontal) {
     return (
-      <div className={`${coverPosition === 'right' ? 'order-last rounded-r-none sm:rounded-r-[2rem]' : 'rounded-l-none sm:rounded-l-[2rem]'} w-2/5 shrink-0 overflow-hidden`}>
+      <div className={`${coverPosition === 'right' ? 'order-last rounded-r-2xl sm:rounded-r-[2rem]' : 'rounded-l-2xl sm:rounded-l-[2rem]'} w-2/5 shrink-0 overflow-hidden`}>
         <ArticleCover article={article} horizontal defaultCover={coverConfig?.defaultCover?.[0]} />
       </div>
     );
   }
 
-  return <div className="rounded-t-none sm:rounded-t-[2rem] overflow-hidden"><ArticleCover article={article} defaultCover={coverConfig?.defaultCover?.[0]} /></div>;
+  return <div className="rounded-t-2xl sm:rounded-t-[2rem] overflow-hidden"><ArticleCover article={article} defaultCover={coverConfig?.defaultCover?.[0]} /></div>;
 }
 
 function FormatDate({ createdAt, postMeta }: { createdAt: string; postMeta?: PostMetaPageConfig }) {
@@ -188,7 +188,7 @@ export function ArticleCard({ article, wordcount, postMeta, coverConfig }: Artic
       initial="initial"
       animate="animate"
       exit="exit"
-      className={`group bg-white dark:bg-zinc-900 rounded-none sm:rounded-[2rem] border-0 sm:border-2 border-zinc-50 dark:border-zinc-800 overflow-hidden hover:border-zinc-900 dark:hover:border-zinc-600 transition-all duration-500 shadow-none sm:shadow-sm hover:shadow-2xl hover:shadow-zinc-100 dark:hover:shadow-zinc-900 ${isHorizontal ? 'flex' : 'flex flex-col'}`}
+      className={`group bg-white dark:bg-zinc-800 rounded-2xl sm:rounded-[2rem] border border-zinc-200/60 dark:border-zinc-700/60 overflow-hidden hover:border-zinc-400 dark:hover:border-zinc-500 transition-all duration-500 shadow-none sm:shadow-sm hover:shadow-xl hover:shadow-zinc-100 dark:hover:shadow-zinc-900 ui-interactive ${isHorizontal ? 'flex' : 'flex flex-col'}`}
     >
       <ArticleCoverSection article={article} coverConfig={coverConfig} />
       <div className="p-8 flex-1 flex flex-col">

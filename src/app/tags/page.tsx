@@ -91,7 +91,7 @@ export default function TagsPage() {
 
         {/* 标签云 */}
         {tags.length > 0 ? (
-          <div className="bg-white dark:bg-zinc-800 rounded-3xl border border-zinc-100 dark:border-zinc-700 p-8 md:p-12">
+          <div className="bg-white dark:bg-zinc-800 rounded-2xl sm:rounded-[2rem] border border-zinc-200/60 dark:border-zinc-700/60 p-8 md:p-12">
             <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
               {tags.map(({ name, count }) => {
                 const style = getTagStyle(count, maxCount, minCount);

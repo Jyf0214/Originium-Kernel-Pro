@@ -39,12 +39,12 @@ function TimelineItem({
       {/* 左侧时间线 */}
       <div className="flex flex-col items-center shrink-0">
         {/* 圆点标记 */}
-        <div className="relative z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-lg sm:text-xl shadow-lg shadow-blue-500/25">
+        <div className="relative z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-zinc-600 to-zinc-900 flex items-center justify-center text-white text-lg sm:text-xl shadow-lg shadow-zinc-500/25">
           {place.emoji}
         </div>
         {/* 连接线 */}
         {!isLast && (
-          <div className="w-px flex-1 bg-gradient-to-b from-blue-300 to-zinc-200 dark:from-blue-700 dark:to-zinc-700 min-h-[2rem]" />
+          <div className="w-px flex-1 bg-gradient-to-b from-zinc-300 to-zinc-200 dark:from-zinc-600 dark:to-zinc-700 min-h-[2rem]" />
         )}
       </div>
 
@@ -90,7 +90,7 @@ function TimelineItem({
 export function TravelContent({ places }: TravelContentProps) {
   const { t } = useI18n();
   return (
-    <div className="min-h-screen flex flex-col bg-white sm:bg-zinc-50 dark:bg-white sm:dark:bg-zinc-900">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 md:py-20">
         {/* 顶部 Banner */}
         <HeroBanner

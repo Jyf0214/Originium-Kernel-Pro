@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { AlertTriangle, Copy, RefreshCw, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/ui';
+import { Button } from '@/components/ui/Button';
 import { useI18n } from '@/hooks/use-i18n';
 
 export default function GlobalError({
@@ -35,7 +36,7 @@ export default function GlobalError({
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 p-4">
       <div className="max-w-md w-full text-center space-y-6">
         <div className="flex justify-center">
           <div className="rounded-full bg-red-50 p-4">
@@ -55,7 +56,7 @@ export default function GlobalError({
           <div className="text-left">
             <button
               onClick={() => setShowDetail(!showDetail)}
-              className="text-sm text-zinc-400 hover:text-zinc-600 flex items-center gap-1 mx-auto"
+              className="text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 flex items-center gap-1 mx-auto transition-colors"
             >
               <ChevronDown
                 className={cn(
@@ -66,7 +67,7 @@ export default function GlobalError({
               {t('error.detail')}
             </button>
             {showDetail && (
-              <pre className="mt-2 p-3 bg-zinc-100 rounded-lg text-xs text-zinc-700 overflow-auto">
+              <pre className="mt-2 p-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs text-zinc-700 dark:text-zinc-300 overflow-auto whitespace-pre-wrap break-all">
                 {isDev ? error.message : ''}
                 {error.digest ? `\n\nDigest: ${error.digest}` : ''}
               </pre>
@@ -75,20 +76,24 @@ export default function GlobalError({
         )}
         {/* 按钮组 */}
         <div className="flex gap-3 justify-center">
-          <button
+          <Button
+            variant="secondary"
+            size="md"
+            autoLoading={false}
             onClick={copyError}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm rounded-lg border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
           >
             <Copy className="h-4 w-4" />
             {copied ? t('error.copied') : t('error.copy')}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
+            size="md"
+            autoLoading={false}
             onClick={reset}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 transition-colors"
           >
             <RefreshCw className="h-4 w-4" />
             {t('error.retry')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -29,7 +29,7 @@ export function SecurityInfoModal({ onClose }: { onClose: () => void }) {
             <span>本页面仅管理员可查看，其他用户无法访问。</span>
           </li>
           <li className="flex items-start gap-2">
-            <ShieldAlert size={16} className="shrink-0 mt-0.5 text-blue-500" />
+            <ShieldAlert size={16} className="shrink-0 mt-0.5 text-zinc-500" />
             <span>日记内容加密后全部存储于数据库中，服务端无法直接读取明文。</span>
           </li>
           <li className="flex items-start gap-2">

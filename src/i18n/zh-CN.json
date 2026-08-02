@@ -120,6 +120,7 @@
   },
   "home": {
     "searchPlaceholder": "搜索内容...",
+    "clearSearch": "清除搜索",
     "postsDesc": "{count} 篇帖子",
     "facesDesc": "{count} 位联系人",
     "latestPosts": "最新帖子",

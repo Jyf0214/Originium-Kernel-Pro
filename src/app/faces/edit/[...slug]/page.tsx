@@ -21,11 +21,11 @@ export default function EditFacePage() {
   const { form, file, groups, loading } = useFaceData(fullPath);
   const { submitting, deleting, submit, remove } = useEditActions({ filePath });
 
-  if (loading || authLoading) return <div className="min-h-screen flex flex-col bg-zinc-50"><div className="flex-1 flex items-center justify-center"><GlobalLoading size="large" /></div></div>;
+  if (loading || authLoading) return <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900"><div className="flex-1 flex items-center justify-center"><GlobalLoading size="large" /></div></div>;
   if (!isSudo || !file) return null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <PageContainer maxWidth="4xl">
       <EditFaceBreadcrumb fullPath={fullPath} title={file.meta.title} t={t} />
       <EditFaceHeader title={file.meta.title} />

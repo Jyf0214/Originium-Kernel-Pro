@@ -18,6 +18,7 @@ import { PostNavigationShortcuts } from '@/components/PostNavigationShortcuts';
 import { TranslationSwitcher } from '@/components/TranslationSwitcher';
 import { PostSidebarCard } from '@/components/PostSidebarCard';
 import { ArticleExpiredBanner } from '@/components/ArticleExpiredBanner';
+import { Button } from '@/components/ui/Button';
 import { CopyrightNotice } from '@/components/ui/CopyrightNotice';
 import ShareButtons from '@/components/ui/ShareButtons';
 import QRCodeDialog from '@/components/ui/QRCodeDialog';
@@ -118,7 +119,7 @@ export function PostDetailBody({
 
       {/* 文章内容容器 — 卡片样式 */}
       <div className="relative">
-      <article className="bg-white dark:bg-zinc-800 rounded-3xl border border-zinc-100 dark:border-zinc-700 shadow-sm dark:shadow-zinc-900/50 p-6 sm:p-8 md:p-10 lg:p-12 animate-card-slidein">
+      <article className="bg-white dark:bg-zinc-800 rounded-2xl sm:rounded-[2rem] border border-zinc-200/60 dark:border-zinc-700/60 shadow-sm dark:shadow-zinc-900/50 p-6 sm:p-8 md:p-10 lg:p-12 animate-card-slidein">
         {/* 隐藏文章标识 — 仅展示标签 */}
         {isHidden && (
           <div className="mb-6">
@@ -227,15 +228,16 @@ export function PostDetailBody({
           url={fullUrl}
           config={buildShareConfig(appConfig)}
         />
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="md"
+          autoLoading={false}
           onClick={() => setQrOpen(true)}
-          className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500 transition-colors text-sm text-zinc-600 dark:text-zinc-300"
           title={t('posts.shareQR')}
+          icon={<QrCode size={16} />}
         >
-          <QrCode size={16} />
           {t('posts.qrCode')}
-        </button>
+        </Button>
         <PostLikeButton slug={fullPath} />
       </div>
 

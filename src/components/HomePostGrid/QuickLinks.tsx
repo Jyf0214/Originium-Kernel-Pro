@@ -16,7 +16,7 @@ export function QuickLinks({
     <section className="mb-12">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Link href="/posts" className="group">
-          <div className="bg-white dark:bg-zinc-800 rounded-3xl border border-zinc-100 dark:border-zinc-700 p-8 hover:border-zinc-300 dark:hover:border-zinc-500 hover:shadow-lg transition-all duration-300">
+          <div className="bg-white dark:bg-zinc-800 rounded-2xl sm:rounded-[2rem] border border-zinc-200/60 dark:border-zinc-700/60 p-8 hover:border-zinc-400 dark:hover:border-zinc-500 hover:shadow-lg transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 bg-zinc-50 dark:bg-zinc-900 rounded-2xl flex items-center justify-center group-hover:bg-zinc-900 group-hover:text-white transition-colors duration-300">
                 <BookOpen size={24} className="text-zinc-400 dark:text-zinc-500 group-hover:text-white transition-colors" />
@@ -31,7 +31,7 @@ export function QuickLinks({
         </Link>
         {isAdmin && (
           <Link href="/faces" className="group">
-            <div className="bg-white dark:bg-zinc-800 rounded-3xl border border-zinc-100 dark:border-zinc-700 p-8 hover:border-zinc-300 dark:hover:border-zinc-500 hover:shadow-lg transition-all duration-300">
+            <div className="bg-white dark:bg-zinc-800 rounded-2xl sm:rounded-[2rem] border border-zinc-200/60 dark:border-zinc-700/60 p-8 hover:border-zinc-400 dark:hover:border-zinc-500 hover:shadow-lg transition-all duration-300">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-zinc-50 dark:bg-zinc-900 rounded-2xl flex items-center justify-center group-hover:bg-zinc-900 group-hover:text-white transition-colors duration-300">
                   <Users size={24} className="text-zinc-400 dark:text-zinc-500 group-hover:text-white transition-colors" />

@@ -22,7 +22,7 @@ interface ProgressBarProps {
  * - 不显示百分比，纯视觉进度条
  */
 export function ProgressBar({
-  color = '#c084fc',
+  color = '#71717a',
   height = 3,
   completeDelay = 300,
   className,

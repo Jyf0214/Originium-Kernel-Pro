@@ -51,7 +51,7 @@ export function LoadingText({ tip = 'Loading...' }: { tip?: string }) {
   );
 }
 
-export function LoadingDots({ tip = 'Loading', color = '#c084fc' }: LoadingProps) {
+export function LoadingDots({ tip = 'Loading', color = '#71717a' }: LoadingProps) {
   return (
     <div className="flex flex-col items-center gap-3">
       <div className="loading-dots-animated">
@@ -81,7 +81,7 @@ export function LoadingGlow({ tip = 'Loading...' }: { tip?: string }) {
   );
 }
 
-export function LoadingWaves({ tip = 'Loading...', color = '#c084fc' }: LoadingProps) {
+export function LoadingWaves({ tip = 'Loading...', color = '#71717a' }: LoadingProps) {
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="flex items-end gap-1.5 h-10">
@@ -102,7 +102,7 @@ export function LoadingWaves({ tip = 'Loading...', color = '#c084fc' }: LoadingP
   );
 }
 
-export function LoadingAntIcon({ size = 'large', tip, color = '#c084fc', position = 'center' }: LoadingProps) {
+export function LoadingAntIcon({ size = 'large', tip, color = '#71717a', position = 'center' }: LoadingProps) {
   const fontSize = size === 'small' ? 14 : size === 'large' ? 24 : 18;
   const antIcon = <Loader2 size={fontSize} className="animate-spin" style={{ color }} />;
   const posClass = positionClasses[position] ?? positionClasses.center;
@@ -133,14 +133,14 @@ interface ResolvedLoadingConfig {
 function resolveNavConfig(type: LoadingType | undefined, color: string | undefined, loadingConfig: GlobalLoadingProps['loadingConfig']): Pick<ResolvedLoadingConfig, 'type' | 'color'> {
   return {
     type: type ?? loadingConfig?.navigation?.type ?? 'antd',
-    color: color ?? loadingConfig?.navigation?.color ?? '#c084fc',
+    color: color ?? loadingConfig?.navigation?.color ?? '#71717a',
   };
 }
 
 function resolvePageConfig(type: LoadingType | undefined, color: string | undefined, position: LoadingPosition | undefined, loadingConfig: GlobalLoadingProps['loadingConfig']): ResolvedLoadingConfig {
   return {
     type: type ?? loadingConfig?.page?.type ?? 'waves',
-    color: color ?? loadingConfig?.page?.color ?? '#c084fc',
+    color: color ?? loadingConfig?.page?.color ?? '#71717a',
     position: position ?? loadingConfig?.page?.position ?? 'center',
   };
 }

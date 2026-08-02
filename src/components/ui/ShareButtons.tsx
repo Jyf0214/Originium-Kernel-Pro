@@ -4,6 +4,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { tooltipVariants, tooltipTransition } from '@/components/ui/motion';
 import { Link, Check } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import {
   TwitterIcon,
   FacebookIcon,
@@ -110,10 +111,6 @@ function buildPlatforms(title: string, url: string): Record<string, PlatformDef>
 
 const SHARE_WINDOW_FEATURES = 'noopener,noreferrer,width=600,height=500';
 
-/** 分享按钮基础样式 */
-const BTN_BASE_CLASS =
-  'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500 transition-colors text-sm text-zinc-600 dark:text-zinc-400';
-
 function ShareButtonsInner({ title, url: initialUrl, config, locale: _locale }: ShareButtonsProps) {
   const { t } = useI18n();
   // 静态导出模式：getSiteUrl() 在构建时返回 example.com 占位值，
@@ -206,34 +203,35 @@ function ShareButtonsInner({ title, url: initialUrl, config, locale: _locale }: 
   return (
     <>
       {/* 复制链接 */}
-      <button
-        type="button"
+      <Button
+        variant="secondary"
+        size="md"
+        autoLoading={false}
         onClick={handleCopyLink}
-        className={`${BTN_BASE_CLASS} ${
-          copied
-            ? '!border-green-300 !bg-green-50 !text-green-600'
-            : ''
-        }`}
+        className={copied
+          ? '!border-green-300 !bg-green-50 !text-green-600'
+          : ''}
         title={t('components.ShareButtons.copyLink')}
       >
         {copied ? <Check size={16} /> : <Link size={16} />}
         {copyFailed ? <span className="text-red-500">{t('components.ShareButtons.copyFailed')}</span> : t('components.ShareButtons.copyLink')}
-      </button>
+      </Button>
 
       {/* 平台分享按钮 */}
       {visiblePlatforms.map((platform) => {
         if (platform.id === 'wechat') {
           return (
             <div key={platform.id} ref={wechatBtnRef} className="relative">
-              <button
-                type="button"
+              <Button
+                variant="secondary"
+                size="md"
+                autoLoading={false}
                 onClick={() => setWechatHintOpen((prev) => !prev)}
-                className={BTN_BASE_CLASS}
                 title={platform.name}
               >
                 {platform.icon}
                 {platform.name}
-              </button>
+              </Button>
 
               {/* 微信提示浮层——向下展开，带进出动效 */}
               <AnimatePresence>
@@ -271,16 +269,17 @@ function ShareButtonsInner({ title, url: initialUrl, config, locale: _locale }: 
         }
 
         return (
-          <button
+          <Button
             key={platform.id}
-            type="button"
+            variant="secondary"
+            size="md"
+            autoLoading={false}
             onClick={() => handleShare(platform.shareUrl)}
-            className={BTN_BASE_CLASS}
             title={platform.name}
           >
             {platform.icon}
             {platform.name}
-          </button>
+          </Button>
         );
       })}
     </>

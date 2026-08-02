@@ -256,7 +256,7 @@ export default function LoadingPreviewPage() {
   const { t } = useI18n();
   const [pageType, setPageType] = useState<string>('waves');
   const [navType, setNavType] = useState<string>('antd');
-  const [loadingColor, setLoadingColor] = useState<string>('#c084fc');
+  const [loadingColor, setLoadingColor] = useState<string>('#71717a');
   const [loadingPosition, setLoadingPosition] = useState<LoadingPosition>('center');
 
   return (

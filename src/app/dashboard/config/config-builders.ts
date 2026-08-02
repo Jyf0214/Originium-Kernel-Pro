@@ -123,8 +123,8 @@ export function buildAppearanceConfig(data: Record<string, unknown>): ConfigStat
     customCSS: (appearanceData?.customCSS as string) ?? '',
     customHead: (appearanceData?.customHead as string) ?? '',
     loading: (appearanceData?.loading as ConfigState['appearance']['loading']) ?? {
-      page: { type: 'waves', color: '#c084fc', position: 'center' },
-      navigation: { type: 'antd', color: '#c084fc' },
+      page: { type: 'waves', color: '#71717a', position: 'center' },
+      navigation: { type: 'antd', color: '#71717a' },
     },
     effects: buildEffectsConfig(appearanceData),
   };

@@ -15,11 +15,11 @@ appearance:
   loading:
     page:
       type: waves
-      color: '#c084fc'
+      color: '#71717a'
       position: center
     navigation:
       type: antd
-      color: '#c084fc'
+      color: '#71717a'
     slogans:
       - 欢迎拜访
       - 歡迎拜訪

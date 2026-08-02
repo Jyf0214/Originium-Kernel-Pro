@@ -72,7 +72,7 @@ function UserProfileContent() {
   );
 
   if (!user) return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-zinc-900">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
         <h1 className="text-4xl font-display font-black text-zinc-900 dark:text-zinc-100 mb-4">{t('error.404')}</h1>
         <p className="text-zinc-500 dark:text-zinc-400 mb-8">{t('error.notFound')}</p>
@@ -84,7 +84,7 @@ function UserProfileContent() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-zinc-900">
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
 
       <main className="flex-1">
         {/* User Profile Header */}

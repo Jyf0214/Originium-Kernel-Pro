@@ -27,8 +27,8 @@ export default function ConfigPage() {
       customHead: '',
       fontSize: 15,
       loading: {
-        page: { type: 'waves', color: '#c084fc', position: 'center' },
-        navigation: { type: 'antd', color: '#c084fc' },
+        page: { type: 'waves', color: '#71717a', position: 'center' },
+        navigation: { type: 'antd', color: '#71717a' },
         slogans: [],
       },
       effects: { mouseClick: false, backgroundParticles: false, confetti: false },
