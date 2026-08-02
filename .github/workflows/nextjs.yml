@@ -71,6 +71,10 @@ jobs:
         # 与 package.json 的 "type": "module" 冲突导致加载失败；
         # 项目改用 next.config.ts，basePath 通过 NEXT_PUBLIC_BASE_PATH 环境变量传入
         run: rm -f next.config.js
+      - name: Generate Prisma Client
+        # prisma/generated 被 .gitignore 排除，CI checkout 后不存在，需显式生成，
+        # 否则 next build 报 Module not found: Can't resolve '../../prisma/generated/prisma/client'
+        run: npm run db:generate
       - name: Build with Next.js (static export via webpack)
         run: ${{ steps.detect-package-manager.outputs.runner }} node scripts/build-wrapper.mjs
         env:
