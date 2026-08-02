@@ -50,6 +50,9 @@ jobs:
           # 动态判定：如果项目中存在 tsconfig.json，则通过 tsc --noEmit 进行严格的无产物类型检查。
           if [ -f tsconfig.json ]; then
             echo "TypeScript configuration found. Running strict type checks..."
+            # 先生成 Prisma Client：prisma/generated 被 .gitignore 排除，CI checkout 后不存在，
+            # 缺失会导致 db.ts 模块解析失败并级联产生大量 TS7006 隐式 any 错误
+            npm run db:generate
             npx tsc --noEmit
           else
             echo "No tsconfig.json found. Skipping TypeScript check."
