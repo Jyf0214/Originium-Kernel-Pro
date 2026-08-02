@@ -8,8 +8,12 @@
 # statusImg: 状态图片 URL（可选）
 # skills: 技能标签列表（可选）
 
+- name: "__default__"
+  avatar: "/avatar.jpg"
+  enable: true
+
 - name: "Jyf0214"
-  nickname: "Jyf"
+  nickname: "九月风"
   avatar: "https://avatars.githubusercontent.com/u/169313142?v=4"
   location: "中国"
   bio: ""
