@@ -558,7 +558,7 @@ describe('PrismaClient URL 处理', () => {
     expect(config?.connectionString).toContain('sslmode=no-verify')
   })
 
-  test('已含 sslmode 的 URL 替换为 no-verify', async () => {
+  test('已含 sslmode 的 URL 尊重显式配置，不覆盖', async () => {
     process.env.DATABASE_URL = 'postgres://localhost:5432/test?sslmode=disable'
     resetDbModules()
     mocks._PrismaPg.mockImplementation(function (opts: { connectionString: string }) { return { connectionString: opts.connectionString } })
@@ -567,7 +567,7 @@ describe('PrismaClient URL 处理', () => {
 
     const pgCall = mocks._PrismaPg.mock.calls[0]
     const config = pgCall?.[0] as { connectionString: string }
-    expect(config?.connectionString).toBe('postgres://localhost:5432/test?sslmode=no-verify')
+    expect(config?.connectionString).toBe('postgres://localhost:5432/test?sslmode=disable')
   })
 
   test('非 postgres URL 不添加 sslmode', async () => {
