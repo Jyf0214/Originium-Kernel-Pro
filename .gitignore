@@ -47,20 +47,14 @@ bun.lockb
 .qwen/skills/**
 !.qwen/skills/.gitkeep
 
-# 构建期生成产物
+# 构建期生成产物（public/avatar/data 均为生成或下载产物，不纳入版本控制）
 /data/
-!/data/pages-index.json
-!/data/travel.yaml
+/avatar/
+/public/
 
 # 构建期同步产物(由 npm run sync:pages 生成)
 /pages/
 *.md
-
-# 构建期下载产物(由 npm run download-avatar 生成)
-/avatar/*.jpg
-/avatar/*.jpeg
-/avatar/*.png
-/avatar/*.webp
 
 # 保留项目说明文件
 !README.md
