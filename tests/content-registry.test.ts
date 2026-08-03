@@ -51,15 +51,17 @@ const facesFiles: ContentFile[] = [
   },
 ];
 
+// mock 必须在顶层声明（vitest 会 hoist），注入固定内容数据
+vi.mock('../src/lib/content', () => ({
+  getContentFiles: vi.fn((section: 'posts' | 'faces' | 'diary') => {
+    if (section === 'posts') return postsFiles;
+    if (section === 'faces') return facesFiles;
+    return [];
+  }),
+}));
+
 beforeEach(() => {
   vi.resetModules();
-  vi.mock('../src/lib/content', () => ({
-    getContentFiles: vi.fn((section: 'posts' | 'faces' | 'diary') => {
-      if (section === 'posts') return postsFiles;
-      if (section === 'faces') return facesFiles;
-      return [];
-    }),
-  }));
   clearContentRegistry();
 });
 

@@ -1,6 +1,9 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 
+// 关键: 固定 NODE_ENV=development，使错误响应返回详细消息而非生产环境的通用消息
+Object.defineProperty(process.env, 'NODE_ENV', { value: 'development', writable: true, configurable: true, enumerable: true })
+
 /* ============================
  * Mock 声明（必须在顶层）
  * ============================ */
