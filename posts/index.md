@@ -1,7 +1,7 @@
 ---
-title: 日记
-description: 日常生活记录
+title: 博客
+description: 博客文章列表
 public: true
 ---
 
-这里是日记分区，记录日常生活的点滴。
+这里是博客分区，记录文章与随笔。

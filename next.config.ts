@@ -69,7 +69,7 @@ if (
       `╠══════════════════════════════════════════════════════════════════╣\n` +
       `║  运行时将自动回退到 ${fallback.padEnd(40)}║\n` +
       `║  建议在 Vercel Project Settings → Environment Variables 显式设置: ║\n` +
-      `║    APP_URL = https://zhou-z-boss.castorice.giize.com            ║\n` +
+      `║    APP_URL = https://your-domain.example.com                  ║\n` +
       `║  否则社交分享(og:url)、版权链接、构建预览等会使用临时 URL,    ║\n` +
       `║  影响 SEO 与分享稳定性。                                       ║\n` +
       `╚══════════════════════════════════════════════════════════════════╝\n`,

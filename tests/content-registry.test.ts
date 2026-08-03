@@ -1,4 +1,18 @@
-import { describe, test, expect } from 'vitest';
+/**
+ * content-registry.ts 单元测试
+ *
+ * 覆盖范围:
+ * - extractWikiLinks: [[标题]] 提取（纯函数）
+ * - getContentRegistry: 注册表构建、标题映射、条目字段
+ * - resolveWikiLink: 标题 → URL 解析
+ * - getBacklinks / getOutgoingReferences: 前后向引用
+ * - buildWikiLinkMap: 客户端映射构建
+ *
+ * 数据隔离: 通过 mock getContentFiles 注入固定内容数据，
+ * 不读取仓库真实的 posts/faces 目录，避免测试依赖内容文件。
+ */
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { ContentFile } from '../src/types/content';
 import {
   extractWikiLinks,
   getContentRegistry,
@@ -6,7 +20,52 @@ import {
   getBacklinks,
   getOutgoingReferences,
   buildWikiLinkMap,
+  clearContentRegistry,
 } from '../src/lib/content-registry';
+
+// 关键: NODE_ENV=development 使 CACHE_TTL=0，避免缓存污染测试
+Object.defineProperty(process.env, 'NODE_ENV', { value: 'development', writable: true, configurable: true, enumerable: true });
+
+/** 固定的内容文件数据（与真实内容结构等价，仅作测试夹具） */
+const postsFiles: ContentFile[] = [
+  {
+    slug: '/daily/2024-01-15',
+    meta: { title: '新的开始', date: '2024-01-15', author: 'Admin', tags: ['日常', '随笔'], description: '新的一年，新的开始' },
+    content: '今天是新年的第十五天。',
+    raw: '',
+  },
+  {
+    slug: '/travel-in-China/beijing',
+    meta: { title: '北京之行', date: '2024-06-20', author: 'Admin', tags: ['旅行', '北京'] },
+    content: '六月的北京，阳光明媚。',
+    raw: '',
+  },
+];
+
+const facesFiles: ContentFile[] = [
+  {
+    slug: '/friends/wang-wu',
+    meta: { title: '王五', date: '2024-02-14', tags: ['朋友', '旅行'] },
+    content: '在一次川西旅行中认识的朋友。',
+    raw: '',
+  },
+];
+
+beforeEach(() => {
+  vi.resetModules();
+  vi.mock('../src/lib/content', () => ({
+    getContentFiles: vi.fn((section: 'posts' | 'faces' | 'diary') => {
+      if (section === 'posts') return postsFiles;
+      if (section === 'faces') return facesFiles;
+      return [];
+    }),
+  }));
+  clearContentRegistry();
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe('extractWikiLinks', () => {
   test('应从文本中提取 [[标题]] 引用', () => {
@@ -55,7 +114,7 @@ describe('getContentRegistry', () => {
     }
   });
 
-  test('应包含已知的测试内容', () => {
+  test('应包含固定测试数据中的内容', () => {
     const reg = getContentRegistry();
     // posts/daily/2024-01-15.md 的标题是 "新的开始"
     const entry = reg.titleMap.get('新的开始');

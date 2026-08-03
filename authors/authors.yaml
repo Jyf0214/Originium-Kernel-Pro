@@ -8,15 +8,8 @@
 # statusImg: 状态图片 URL（可选）
 # skills: 技能标签列表（可选）
 
-- name: "__default__"
-  avatar: "/avatar.jpg"
-  enable: true
-
-- name: "Jyf0214"
-  nickname: "九月风"
-  avatar: "https://avatars.githubusercontent.com/u/169313142?v=4"
-  location: "中国"
-  bio: ""
-  enable: false
-  statusImg: ""
-  skills: []
+# 示例：
+# - name: "作者名"
+#   nickname: "显示昵称"
+#   avatar: "/avatar.jpg"
+#   enable: true

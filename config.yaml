@@ -29,7 +29,7 @@ appearance:
       - 不忘初心，一生浪漫
       - 最近还好吗？
       - 流星，落花，萤火
-      - 马���越空，晃荡越响
+      - 马车越空，晃荡越响
       - 在这里，时光静好
       - Hello ！
       - 心之所向，愿你常在
@@ -51,7 +51,7 @@ access:
 auth:
   allowRegistration: false
 avatar:
-  url: https://avatars.githubusercontent.com/u/169313142?v=4
+  url: ''
 nav:
   enable: true
   travelling: true
@@ -60,13 +60,13 @@ nav:
     - title: 网页
       item:
         - name: 博客
-          link: https://amiya.giize.com/
-          icon: /img/favicon.ico
+          link: ''
+          icon: ''
     - title: 项目
       item:
-        - name: Jyf0214
-          link: /Jyf0214
-          icon: /Jyf0214
+        - name: 项目主页
+          link: ''
+          icon: ''
 mourn:
   enable: true
   days:
@@ -88,7 +88,9 @@ copy:
     enable: false
     limitCount: 50
 social:
-  Github: https://github.com/Jyf0214
+  Github: ''
+  Twitter: ''
+  Email: ''
 cover:
   indexEnable: true
   asideEnable: true

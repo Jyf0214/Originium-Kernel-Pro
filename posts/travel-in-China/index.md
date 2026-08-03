@@ -1,8 +1,8 @@
 ---
-title: 中国旅行
-description: 在中国旅行的记录
+title: 旅行
+description: 旅行记录
 public: true
 groupName: 旅行
 ---
 
-在中国旅行的见闻和感受。
+在这里记录旅行的见闻与感受。
