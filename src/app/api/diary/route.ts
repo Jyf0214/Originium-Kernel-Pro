@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
+import { diaryReadGuard } from '@/lib/diary-guard';
 import { encryptContent } from '@/lib/diary-crypto';
 import { saveDiaryVersion } from '@/lib/diary-version';
 import { getTranslate } from '@/i18n/translate';
@@ -18,7 +19,10 @@ function scheduledFilter() {
   };
 }
 
-export const GET = apiHandler('GET', { label: getTranslate('api.diary.getDiaryList'), requireAdmin: true, requireDb: true }, async (req) => {
+export const GET = apiHandler('GET', { label: getTranslate('api.diary.getDiaryList'), requireDb: true }, async (req) => {
+  const guard = await diaryReadGuard();
+  if (guard) return guard;
+
   const { searchParams } = new URL(req.url);
   const search = searchParams.get('search')?.trim();
   const startDate = searchParams.get('startDate')?.trim();

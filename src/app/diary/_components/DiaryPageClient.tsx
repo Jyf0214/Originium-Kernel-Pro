@@ -28,47 +28,49 @@ export function DiaryPageClient() {
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <PageContainer maxWidth="4xl" padding="compact">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
-          <Button
-            variant="primary"
-            size="md"
-            autoLoading={false}
-            onClick={() => s.router.push('/diary/new')}
-            icon={<Plus size={14} />}
-          >
-            <span className="hidden sm:inline">{t('diary.newEntry')}</span>
-          </Button>
-          <Button
-            variant={showSettings ? 'primary' : 'secondary'}
-            size="md"
-            autoLoading={false}
-            onClick={() => setShowSettings(!showSettings)}
-            icon={<Settings size={14} />}
-            title={t('diary.settings')}
-          >
-            <span className="hidden sm:inline">{t('common.settings')}</span>
-          </Button>
-          <Button
-            variant="secondary"
-            size="md"
-            autoLoading={false}
-            onClick={() => s.router.push('/diary/drafts')}
-            icon={<FileText size={14} />}
-          >
-            <span className="hidden sm:inline">{t('diary.drafts')}</span>
-          </Button>
-          <Button
-            variant="secondary"
-            size="md"
-            autoLoading={false}
-            onClick={() => setShowSecurityInfo(true)}
-            icon={<ShieldAlert size={14} />}
-            className="text-amber-600 hover:bg-amber-50"
-            title={t('diary.securityPrivacyTitle')}
-          >
-            <span className="hidden sm:inline">{t('diary.securityPrivacy')}</span>
-          </Button>
-        </div>
+        {s.isAuthorized && (
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
+            <Button
+              variant="primary"
+              size="md"
+              autoLoading={false}
+              onClick={() => s.router.push('/diary/new')}
+              icon={<Plus size={14} />}
+            >
+              <span className="hidden sm:inline">{t('diary.newEntry')}</span>
+            </Button>
+            <Button
+              variant={showSettings ? 'primary' : 'secondary'}
+              size="md"
+              autoLoading={false}
+              onClick={() => setShowSettings(!showSettings)}
+              icon={<Settings size={14} />}
+              title={t('diary.settings')}
+            >
+              <span className="hidden sm:inline">{t('common.settings')}</span>
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
+              autoLoading={false}
+              onClick={() => s.router.push('/diary/drafts')}
+              icon={<FileText size={14} />}
+            >
+              <span className="hidden sm:inline">{t('diary.drafts')}</span>
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
+              autoLoading={false}
+              onClick={() => setShowSecurityInfo(true)}
+              icon={<ShieldAlert size={14} />}
+              className="text-amber-600 hover:bg-amber-50"
+              title={t('diary.securityPrivacyTitle')}
+            >
+              <span className="hidden sm:inline">{t('diary.securityPrivacy')}</span>
+            </Button>
+          </div>
+        )}
 
         <DiaryFilters
           searchText={s.searchText}
@@ -100,15 +102,17 @@ export function DiaryPageClient() {
           <EmptyState
             description={t('diary.noDiaries')}
             action={
-              <Button
-                variant="primary"
-                size="lg"
-                autoLoading={false}
-                onClick={() => s.router.push('/diary/new')}
-                icon={<Plus size={18} />}
-              >
-                {t('diary.writeFirst')}
-              </Button>
+              s.isAuthorized ? (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  autoLoading={false}
+                  onClick={() => s.router.push('/diary/new')}
+                  icon={<Plus size={18} />}
+                >
+                  {t('diary.writeFirst')}
+                </Button>
+              ) : undefined
             }
           />
         ) : (
@@ -122,11 +126,12 @@ export function DiaryPageClient() {
                 viewLoading={s.viewLoading}
                 deleting={s.deleting}
                 pinning={s.pinning}
+                isAdmin={s.isAuthorized}
                 onView={s.handleView}
                 onTogglePin={s.handleTogglePin}
                 onEdit={(id) => s.router.push(`/diary/${id}/edit`)}
                 onDelete={s.handleDelete}
-                onVersionHistory={(id) => setVersionHistoryDiaryId(id)}
+                onVersionHistory={s.isAuthorized ? (id) => setVersionHistoryDiaryId(id) : undefined}
               />
             ))}
           </div>

@@ -45,6 +45,7 @@ export function DiaryCard({
   viewLoading,
   deleting,
   pinning,
+  isAdmin,
   onView,
   onTogglePin,
   onEdit,
@@ -57,6 +58,8 @@ export function DiaryCard({
   viewLoading: boolean;
   deleting: string | null;
   pinning: string | null;
+  /** 是否管理员：公开只读模式下隐藏管理操作按钮 */
+  isAdmin?: boolean;
   onView: (d: DiaryEntry) => void;
   onTogglePin: (id: string) => void;
   onEdit: (id: string) => void;
@@ -96,63 +99,67 @@ export function DiaryCard({
             </div>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-            <Button
-              variant="ghost"
-              size="sm"
-              iconOnly
-              rounded="sm"
-              onClick={() => onTogglePin(diary.id)}
-              disabled={pinning === diary.id}
-              loading={pinning === diary.id}
-              title={diary.pinned ? t('diary.unpin') : t('diary.pin')}
-              className={`${
-                diary.pinned
-                  ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20'
-                  : 'text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700'
-              }`}
-              icon={<Pin size={14} className={diary.pinned ? 'fill-amber-500' : ''} />}
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              iconOnly
-              rounded="sm"
-              autoLoading={false}
-              onClick={() => onEdit(diary.id)}
-              title={t('diary.edit')}
-              className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-              icon={<Edit3 size={14} />}
-            />
-            <CuteConfirm
-              category="delete"
-              confirmText={t('diary.deleteDiaryConfirm')}
-              onConfirm={() => onDelete(diary.id)}
-              disabled={deleting === diary.id}
-            >
-              <Button
-                variant="dangerGhost"
-                size="sm"
-                iconOnly
-                rounded="sm"
-                disabled={deleting === diary.id}
-                loading={deleting === diary.id}
-                title={t('diary.delete')}
-                aria-label={t('diary.delete')}
-                icon={<Trash2 size={14} />}
-              />
-            </CuteConfirm>
-            {onVersionHistory && (
-              <Button
-                variant="ghost"
-                size="sm"
-                iconOnly
-                rounded="sm"
-                autoLoading={false}
-                onClick={() => onVersionHistory(diary.id)}
-                title={t('diary.versionHistory')}
-                className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-                icon={<History size={14} />}
-              />
+            {isAdmin && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  iconOnly
+                  rounded="sm"
+                  onClick={() => onTogglePin(diary.id)}
+                  disabled={pinning === diary.id}
+                  loading={pinning === diary.id}
+                  title={diary.pinned ? t('diary.unpin') : t('diary.pin')}
+                  className={`${
+                    diary.pinned
+                      ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20'
+                      : 'text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+                  }`}
+                  icon={<Pin size={14} className={diary.pinned ? 'fill-amber-500' : ''} />}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  iconOnly
+                  rounded="sm"
+                  autoLoading={false}
+                  onClick={() => onEdit(diary.id)}
+                  title={t('diary.edit')}
+                  className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                  icon={<Edit3 size={14} />}
+                />
+                <CuteConfirm
+                  category="delete"
+                  confirmText={t('diary.deleteDiaryConfirm')}
+                  onConfirm={() => onDelete(diary.id)}
+                  disabled={deleting === diary.id}
+                >
+                  <Button
+                    variant="dangerGhost"
+                    size="sm"
+                    iconOnly
+                    rounded="sm"
+                    disabled={deleting === diary.id}
+                    loading={deleting === diary.id}
+                    title={t('diary.delete')}
+                    aria-label={t('diary.delete')}
+                    icon={<Trash2 size={14} />}
+                  />
+                </CuteConfirm>
+                {onVersionHistory && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
+                    rounded="sm"
+                    autoLoading={false}
+                    onClick={() => onVersionHistory(diary.id)}
+                    title={t('diary.versionHistory')}
+                    className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                    icon={<History size={14} />}
+                  />
+                )}
+              </>
             )}
             <div className="p-1.5 sm:p-2 text-zinc-400 dark:text-zinc-500" title={isViewing ? t('diary.collapse') : t('diary.expand')}>
               {isViewing ? <X size={14} className="sm:size-4" /> : <Eye size={14} className="sm:size-4" />}

@@ -2,13 +2,17 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler, getParam } from '@/lib/api-handler';
+import { diaryReadGuard } from '@/lib/diary-guard';
 import { encryptContent, decryptContent } from '@/lib/diary-crypto';
 import { saveDiaryVersion } from '@/lib/diary-version';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/diary/[id]');
 
-export const GET = apiHandler('GET', { label: getTranslate('api.diary.getDiary'), requireAdmin: true, requireDb: true }, async (req, context) => {
+export const GET = apiHandler('GET', { label: getTranslate('api.diary.getDiary'), requireDb: true }, async (req, context) => {
+  const guard = await diaryReadGuard();
+  if (guard) return guard;
+
   const id = await getParam(context, 'id');
   const diary = await prisma.diary.findUnique({ where: { id } });
   if (!diary) {

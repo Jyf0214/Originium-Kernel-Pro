@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
+import { useConfig } from '@/hooks/use-config';
+import { isDiaryPublic } from '@/lib/diary-access';
 import { showError } from '@/lib/error';
 import { useI18n } from '@/hooks/use-i18n';
 import type { DiaryEntry } from './types';
@@ -35,8 +37,12 @@ export interface UseDiaryStateResult {
 
 export function useDiaryState(): UseDiaryStateResult {
   const { t } = useI18n();
-  const { user, isSudo, loading: authLoading } = useAuth();
+  const { user, isRoot, loading: authLoading } = useAuth();
+  const { config } = useConfig();
   const router = useRouter();
+
+  // access.diary 整体公开时，匿名与普通登录用户可只读访问日记
+  const diaryPublic = isDiaryPublic(config?.access?.diary);
 
   const [diaries, setDiaries] = useState<DiaryEntry[]>([]);
   const [groups, setGroups] = useState<string[]>([]);
@@ -71,7 +77,7 @@ export function useDiaryState(): UseDiaryStateResult {
     };
   }, [searchText]);
 
-  const isAuthorized = !authLoading && !!user && isSudo;
+  const isAuthorized = !authLoading && !!user && isRoot;
 
   const fetchDiaries = useCallback(async () => {
     try {
@@ -95,12 +101,15 @@ export function useDiaryState(): UseDiaryStateResult {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user || !isSudo) {
-      router.push('/login');
-      return;
+    if (!user || !isRoot) {
+      // 日记未公开时强制登录；公开时允许匿名只读
+      if (!diaryPublic) {
+        router.push('/login');
+        return;
+      }
     }
     void fetchDiaries();
-  }, [user, isSudo, authLoading, router, fetchDiaries]);
+  }, [user, isRoot, authLoading, router, fetchDiaries, diaryPublic]);
 
   const handleDelete = useCallback(async (id: string) => {
     setDeleting(id);
