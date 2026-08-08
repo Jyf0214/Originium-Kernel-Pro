@@ -21,7 +21,9 @@ function SidebarCollapseButton({ collapsed, onToggle }: SidebarCollapseButtonPro
     <button
       type="button"
       onClick={onToggle}
-      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all duration-300 w-full no-underline font-medium"
+      className={`flex items-center gap-3 py-2.5 rounded-xl text-sm text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all duration-300 w-full no-underline font-medium ${
+        collapsed ? 'justify-center px-0' : 'px-3'
+      }`}
       aria-label={collapsed ? t('components.Sidebar.expand') : t('components.Sidebar.collapse')}
       title={collapsed ? t('components.Sidebar.expand') : t('components.Sidebar.collapse')}
     >

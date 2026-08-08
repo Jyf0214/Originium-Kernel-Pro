@@ -21,7 +21,7 @@ interface SidebarProps {
 }
 
 function Sidebar({ isOpen, onClose, databaseConfigured = true }: SidebarProps) {
-  const { user, isSudo, logout } = useAuth();
+  const { user, logout } = useAuth();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const search = searchParams.toString();
@@ -30,13 +30,10 @@ function Sidebar({ isOpen, onClose, databaseConfigured = true }: SidebarProps) {
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
   const items: MenuItem[] = menuItems.filter((item) => {
-    // 角色过滤
+    // 角色过滤：仅当当前用户角色命中白名单时才显示
     if (item.roles && item.roles.length > 0) {
-      if (item.roles.includes('sudo')) {
-        if (!isSudo) return false;
-      } else {
-        return false;
-      }
+      const role = user?.role;
+      if (!role || !item.roles.includes(role)) return false;
     }
     // 数据库依赖过滤：requiresDb=true 时仅数据库已配置才显示
     if (item.requiresDb && !databaseConfigured) return false;
@@ -60,6 +57,11 @@ function Sidebar({ isOpen, onClose, databaseConfigured = true }: SidebarProps) {
     if (href.includes('?')) {
       const currentSearch = search ? `?${search}` : '';
       return currentPath + currentSearch === href;
+    }
+    // 无查询参数的项：当前处于回收站视图（status=pending_deletion）时不高亮，
+    // 该视图由带查询参数的回收站菜单项独占高亮
+    if (currentPath === path && search.includes('status=pending_deletion')) {
+      return false;
     }
     return true;
   }, [pathname, search]);
