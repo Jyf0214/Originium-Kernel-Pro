@@ -21,6 +21,7 @@ import type {
   AuthConfig,
   AvatarConfig,
   MusicConfig,
+  AccessConfig,
 } from '@/lib/config-schema';
 
 export interface FrontendConfig {
@@ -42,6 +43,7 @@ export interface FrontendConfig {
   avatar?: AvatarConfig;
   music?: MusicConfig;
   appearance?: AppearanceConfig;
+  access?: AccessConfig;
 }
 
 export function useConfig(): {

@@ -44,6 +44,7 @@ function mergeAppearance(
     : baseLoading;
   return {
     fontSize: override.fontSize ?? base.fontSize,
+    favicon: override.favicon ?? base.favicon,
     background,
     customCSS: override.customCSS ?? base.customCSS,
     customHead: override.customHead ?? base.customHead,
@@ -106,6 +107,7 @@ function mergeAppConfig(
     share: mergeSection(base.share, override.share),
     mainTone: mergeSection(base.mainTone, override.mainTone),
     footer: mergeSection(base.footer, override.footer),
+    music: mergeSection(base.music, override.music),
   };
 }
 
@@ -150,33 +152,47 @@ export const POST = apiHandler('POST', { label: getTranslate('api.config.updateL
 });
 
 /**
- * 从 GitHub 拉取配置
+ * 获取当前配置与 GitHub 远程配置状态
+ *
+ * 返回本地 loadConfig() 的完整配置，并附带 GitHub 同步状态元信息
+ * （githubConfigured / _remoteConfig / _remoteConfigStatus / _remoteConfigError）。
+ * 前端 dashboard 配置页与设置页依赖这些字段做差异对比。
  */
-export const PUT = apiHandler('PUT', { label: getTranslate('api.config.syncLabel'), requireAdmin: true }, async (_req, _ctx, session) => {
-  logger.info('PUT', '开始从 GitHub 同步配置', { role: session?.role });
+export const GET = apiHandler('GET', { label: getTranslate('api.config.getLabel'), requireAdmin: true }, async () => {
+  logger.info('GET', '获取当前配置');
+
+  const config = await loadConfig();
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
-  if (!repo || !token) {
-    logger.warn('PUT', 'GitHub 未配置');
-    return NextResponse.json({ error: getTranslate('api.config.githubNotConfigured') }, { status: 400 });
+  const githubConfigured = !!repo && !!token;
+
+  let remoteConfig = '';
+  let remoteStatus = '';
+  let remoteError = '';
+
+  if (!githubConfigured) {
+    remoteStatus = getTranslate('api.config.githubNotConfigured');
+  } else {
+    try {
+      const remote = await getFileFromGithub(repo, token, 'config.yaml');
+      if (remote) {
+        remoteConfig = remote.content;
+        remoteStatus = getTranslate('api.config.remoteSynced');
+      } else {
+        remoteStatus = getTranslate('api.config.yamlNotFound');
+      }
+    } catch (err) {
+      remoteStatus = getTranslate('api.config.remoteFetchFailed');
+      remoteError = err instanceof Error ? err.message : String(err);
+      logger.error('GET', '拉取远程配置失败', { error: remoteError });
+    }
   }
 
-  const remote = await getFileFromGithub(repo, token, 'config.yaml');
-  if (!remote) {
-    logger.warn('PUT', 'config.yaml 不存在');
-    return NextResponse.json({ error: getTranslate('api.config.yamlNotFound') }, { status: 404 });
-  }
-  const parsed = yaml.load(remote.content) as Partial<AppConfig>;
-  const validated = zAppConfig.safeParse(parsed);
-  if (!validated.success) {
-    logger.warn('PUT', '远程 YAML Zod 校验失败', { issues: validated.error.issues.map(i => i.path.join('.')) });
-    return NextResponse.json({ error: getTranslate('api.config.remoteValidationFailed') + validated.error.issues.map(i => i.path.join('.')).join(', ') }, { status: 400 });
-  }
-  const currentConfig = await loadConfig();
-  const mergedConfig = mergeAppConfig(currentConfig, validated.data);
-
-  logger.info('PUT', '从 GitHub 同步配置成功');
-  void logAudit('config_update', 'config', getTranslate('api.config.syncedFromGithub'), session?.uid ?? 'unknown');
-  clearConfigCache();
-  return NextResponse.json({ success: true, config: mergedConfig });
+  return NextResponse.json({
+    ...config,
+    githubConfigured,
+    _remoteConfig: remoteConfig,
+    _remoteConfigStatus: remoteStatus,
+    _remoteConfigError: remoteError,
+  });
 });

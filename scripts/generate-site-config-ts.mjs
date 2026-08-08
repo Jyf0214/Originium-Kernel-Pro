@@ -41,6 +41,7 @@ const frontendConfig = {
   auth: raw.auth ?? {},
   avatar: raw.avatar ?? {},
   music: raw.music ?? {},
+  access: raw.access ?? {},
 };
 
 const socialData = raw.social ?? {};
