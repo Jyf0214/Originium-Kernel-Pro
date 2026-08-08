@@ -44,8 +44,10 @@ next-env.d.ts
 lint-results.json
 bun.lock
 bun.lockb
-.qwen/skills/**
-!.qwen/skills/.gitkeep
+
+# 本地个人配置（qwen-code 工作区与项目规则说明，不纳入版本控制）
+.qwen/
+QWEN.md
 
 # 构建期生成产物（public/avatar/data 均为生成或下载产物，不纳入版本控制）
 /data/
@@ -59,10 +61,6 @@ bun.lockb
 # 保留项目说明文件
 !README.md
 !**/README.md
-
-# 保留 .qwen/agents 下所有 Markdown
-!.qwen/agents/
-!.qwen/agents/**/*.md
 
 # 构建时临时禁用的路由目录（由 filter-db-routes.mjs 生成，restore-db-routes.mjs 恢复）
 .disabled-routes/
