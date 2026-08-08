@@ -48,8 +48,7 @@ access:
     public: []
     private:
       - '*'
-auth:
-  allowRegistration: false
+auth: {}
 avatar:
   url: ''
 nav:
