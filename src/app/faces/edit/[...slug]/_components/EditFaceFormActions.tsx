@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Save, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { CuteConfirm } from '@/components/ui/CuteConfirm';
+import type { TFunc } from '@/i18n/keys';
 
 /** 表单底部操作按钮(返回 / 删除 / 保存) */
 export function EditFaceFormActions({
@@ -17,7 +18,7 @@ export function EditFaceFormActions({
   submitting: boolean;
   deleting: boolean;
   onDelete: () => void;
-  t: (key: string) => string;
+  t: TFunc;
 }) {
   return (
     <div className="flex items-center justify-between pt-6 border-t border-zinc-100">

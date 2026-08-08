@@ -7,6 +7,7 @@ import { useActiveHeading } from '@/hooks/use-active-heading';
 import { useI18n } from '@/hooks/use-i18n';
 import { slugify } from '@/lib/slugify';
 import { List } from 'lucide-react';
+import type { TFunc } from '@/i18n/keys';
 
 interface TocItem {
   id: string;
@@ -19,7 +20,7 @@ interface TableOfContentsProps {
   pageType?: 'post' | 'page';
 }
 
-function TocButton({ simple, onClick, expanded, t }: { simple?: boolean; onClick: () => void; expanded?: boolean; t: (key: string) => string }) {
+function TocButton({ simple, onClick, expanded, t }: { simple?: boolean; onClick: () => void; expanded?: boolean; t: TFunc }) {
   return (
     <button
       onClick={onClick}
@@ -80,7 +81,7 @@ interface TocPanelProps {
   panelRef: React.RefObject<HTMLDivElement | null>;
 }
 
-function TocPanel({ open, items, activeId, simple, maxLevel, numberEnabled, isShortScreen, onItemClick, panelRef, t }: TocPanelProps & { t: (key: string) => string }) {
+function TocPanel({ open, items, activeId, simple, maxLevel, numberEnabled, isShortScreen, onItemClick, panelRef, t }: TocPanelProps & { t: TFunc }) {
   return (
     <AnimatePresence>
       {open && (

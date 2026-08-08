@@ -15,6 +15,7 @@ import { useThemeMode } from '@/hooks/use-theme-mode';
 import { usePathname } from 'next/navigation';
 import LanguageSwitcher from '@/components/LanguageSwitcher/index';
 import type { NavConfig } from '@/lib/config-schema';
+import type { TFunc } from '@/i18n/keys';
 
 const SearchDialog = dynamic(
   () => import('@/components/SearchDialog').then((m) => ({ default: m.SearchDialog })),
@@ -75,7 +76,7 @@ function DrawerToolbar({
   onClose,
 }: {
   databaseConfigured: boolean;
-  t: (key: string) => string;
+  t: TFunc;
   onClose: () => void;
 }) {
   const { user } = useAuth();
@@ -109,7 +110,7 @@ function DrawerContent({
   navConfig: NavConfig | null;
   time: string;
   databaseConfigured: boolean;
-  t: (key: string) => string;
+  t: TFunc;
   closeDrawer: () => void;
 }) {
   const menuItems = navConfig?.enable && navConfig.menu

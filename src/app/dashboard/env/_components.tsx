@@ -26,12 +26,13 @@ import {
 } from 'lucide-react';
 import { Card, Tag, Progress } from 'antd';
 import { Button } from '@/components/ui/Button';
+import type { I18nKey, TFunc } from '@/i18n/keys';
 
 export interface EnvVar {
   name: string;
   isSet: boolean;
   required: boolean;
-  descriptionKey: string;
+  descriptionKey: I18nKey;
   deprecated?: boolean;
   renamedTo?: string;
   systemInjected?: boolean;
@@ -39,8 +40,9 @@ export interface EnvVar {
 
 export interface EnvGroup {
   name: string;
-  nameKey: string;
-  descriptionKey?: string;
+  /** 完整 i18n 键（含 .name 后缀），前端直接 t(nameKey) 解析 */
+  nameKey: I18nKey;
+  descriptionKey?: I18nKey;
   variables: EnvVar[];
 }
 
@@ -54,8 +56,6 @@ export interface EnvSummary {
   missingRequired: string[];
   isReady: boolean;
 }
-
-export type TFunc = (key: string, params?: Record<string, string | number>) => string;
 
 export const groupIcons: Record<string, React.ElementType> = {
   database: Database,
@@ -186,8 +186,9 @@ function VariableHints({ variable, t }: { variable: EnvVar; t: TFunc }) {
   );
 }
 
-function EnvVariableRow({ variable, groupKey, t }: { variable: EnvVar; groupKey: string; t: TFunc }) {
-  const description = t(`env.vars.${groupKey}.${variable.name}`);
+function EnvVariableRow({ variable, t }: { variable: EnvVar; t: TFunc }) {
+  // descriptionKey 由数据源（api/env-status）直接给出完整 i18n 键，避免前端二次拼接
+  const description = t(variable.descriptionKey);
   return (
     <div className="px-6 py-4">
       <div className="flex items-center justify-between gap-4">
@@ -213,14 +214,12 @@ function EnvVariableRow({ variable, groupKey, t }: { variable: EnvVar; groupKey:
 }
 
 function EnvGroupCard({
-  groupKey,
   group,
   collapsed,
   onToggle,
   icon: Icon,
   t,
 }: {
-  groupKey: string;
   group: EnvGroup;
   collapsed: boolean;
   onToggle: () => void;
@@ -231,7 +230,8 @@ function EnvGroupCard({
   const groupTotal = group.variables.length;
   const groupMissing = groupTotal - groupSet;
   const allReady = groupMissing === 0;
-  const groupName = t(`${group.nameKey}.name`);
+  // nameKey 为完整 i18n 键（数据源已含 .name 后缀），直接解析
+  const groupName = t(group.nameKey);
   const groupDesc = group.descriptionKey ? t(group.descriptionKey) : '';
 
   return (
@@ -263,7 +263,7 @@ function EnvGroupCard({
       {!collapsed && (
         <div className="divide-y divide-zinc-50">
           {group.variables.map((variable) => (
-            <EnvVariableRow key={variable.name} variable={variable} groupKey={groupKey} t={t} />
+            <EnvVariableRow key={variable.name} variable={variable} t={t} />
           ))}
         </div>
       )}
@@ -288,7 +288,7 @@ export function SummaryHero({ summary, t }: { summary: EnvSummary; t: TFunc }) {
             {isReady ? t('env.ready') : t('env.notReady')}
           </h2>
           <p className="text-zinc-500 text-sm mb-4">
-            {t('env.summary')
+            {t('env.summaryText')
               .replace('{set}', String(summary.set))
               .replace('{total}', String(summary.total))
               .replace('{requiredSet}', String(summary.requiredSet))
@@ -360,7 +360,6 @@ export function EnvGroupSection({
   const Icon = groupIcons[groupKey] ?? Server;
   return (
     <EnvGroupCard
-      groupKey={groupKey}
       group={group}
       icon={Icon}
       collapsed={collapsed}

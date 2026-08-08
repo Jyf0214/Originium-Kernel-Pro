@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { cn } from '@/lib/ui';
 import { useI18n } from '@/hooks/use-i18n';
+import type { TFunc } from '@/i18n/keys';
 import type { AuthorInfo } from '@/types/author';
 
 export interface CopyrightNoticeProps {
@@ -103,7 +104,7 @@ function CopyrightText({
   locale?: string;
   license: string;
   licenseUrl: string;
-  t: (key: string, params?: Record<string, string | number>) => string;
+  t: TFunc;
 }) {
   if (locale === 'en') {
     return (

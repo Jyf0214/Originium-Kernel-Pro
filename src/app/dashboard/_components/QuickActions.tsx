@@ -4,9 +4,10 @@ import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 import type { QuickAction } from '../_lib/types';
+import type { TFunc } from '@/i18n/keys';
 
 /** 仪表盘快捷操作区(写文章 / 文章管理 / 回收站) */
-export function QuickActions({ actions, t }: { actions: QuickAction[]; t: (key: string) => string }) {
+export function QuickActions({ actions, t }: { actions: QuickAction[]; t: TFunc }) {
   return (
     <div className="mb-10">
       <h2 className="text-lg font-bold text-zinc-900 mb-4">{t('dashboard.quickActions')}</h2>

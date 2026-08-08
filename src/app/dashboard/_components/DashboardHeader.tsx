@@ -1,9 +1,10 @@
 'use client';
 
 import type { User } from '@/hooks/use-auth';
+import type { TFunc } from '@/i18n/keys';
 
 /** 仪表盘欢迎语区域(用户名 + 控制台描述) */
-export function DashboardHeader({ user, t }: { user: User | null; t: (key: string) => string }) {
+export function DashboardHeader({ user, t }: { user: User | null; t: TFunc }) {
   return (
     <div className="mb-10">
       <div className="flex items-center gap-3 mb-2">

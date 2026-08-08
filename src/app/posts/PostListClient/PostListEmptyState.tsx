@@ -2,8 +2,9 @@
 
 import { motion } from 'motion/react';
 import { Sparkles } from 'lucide-react';
+import type { TFunc } from '@/i18n/keys';
 
-export function PostListEmptyState({ t }: { t: (key: string) => string }) {
+export function PostListEmptyState({ t }: { t: TFunc }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

@@ -1,6 +1,7 @@
 import { Clock, FileText, Globe } from 'lucide-react';
 
 import { getTranslate } from '@/i18n/translate';
+import type { TFunc } from '@/i18n/keys';
 import type { StatCardData, Stats } from './types';
 
 /** 计算百分比,分母为 0 时返回 0 */
@@ -9,7 +10,7 @@ function percent(numerator: number, denominator: number): number {
 }
 
 /** 根据 stats + i18n 构造统计卡片数据(总文章 / 已发布 / 草稿) */
-export function useStatCards(stats: Stats, t: (key: string) => string): StatCardData[] {
+export function useStatCards(stats: Stats, t: TFunc): StatCardData[] {
   const publishedRate = percent(stats.publishedArticles, stats.totalArticles);
   const draftRate = percent(stats.draftArticles, stats.totalArticles);
   const ofTotal = t('dashboard.ofTotal') ?? getTranslate('dashboard.ofTotal');

@@ -4,6 +4,7 @@ import { Pin, Calendar, Clock } from 'lucide-react';
 import { Tag } from '@/components/ui/Tag';
 import { Avatar } from '@/components/Avatar';
 import { formatPostDate } from '@/lib/formatDate';
+import type { TFunc } from '@/i18n/keys';
 import type { PostItem } from './types';
 
 function PostCardBodyFooter({
@@ -13,7 +14,7 @@ function PostCardBodyFooter({
 }: {
   post: PostItem;
   locale: string;
-  t: (key: string) => string;
+  t: TFunc;
 }) {
   return (
     <div className="mt-auto pt-3 border-t border-zinc-50 dark:border-zinc-800 flex items-center justify-between gap-2 text-zinc-500 dark:text-zinc-400 min-w-0">
@@ -54,7 +55,7 @@ export const PostCardBody = React.memo(function PostCardBody({
 }: {
   post: PostItem;
   locale: string;
-  t: (key: string) => string;
+  t: TFunc;
   position?: string;
   hasCover?: boolean;
 }) {

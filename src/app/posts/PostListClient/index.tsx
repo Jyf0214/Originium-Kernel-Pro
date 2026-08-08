@@ -11,6 +11,7 @@ import { PostCard } from '@/components/ui/PostCard';
 import { PostListEmptyState } from './PostListEmptyState';
 import { usePostFilter } from './use-post-filter';
 import type { PostListClientProps } from './types';
+import type { I18nKey } from '@/i18n/keys';
 
 export type { PostListClientProps } from './types';
 export type { GroupItem } from './types';
@@ -18,7 +19,7 @@ export type { PostItem, CoverConfig } from '@/components/ui/PostCard';
 
 type LayoutMode = 'grid' | 'list' | 'compact';
 
-const LAYOUT_OPTIONS: { key: LayoutMode; icon: typeof LayoutGrid; label: string }[] = [
+const LAYOUT_OPTIONS: { key: LayoutMode; icon: typeof LayoutGrid; label: I18nKey }[] = [
   { key: 'grid', icon: LayoutGrid, label: 'posts.gridView' },
   { key: 'list', icon: List, label: 'posts.listView' },
   { key: 'compact', icon: AlignJustify, label: 'posts.compactView' },

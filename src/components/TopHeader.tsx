@@ -3,8 +3,9 @@
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
 import { Menu, ChevronRight } from 'lucide-react';
+import type { I18nKey } from '@/i18n/keys';
 
-const breadcrumbMap: Record<string, string> = {
+const breadcrumbMap: Record<string, I18nKey> = {
   '/dashboard': 'dashboard.title',
   '/dashboard/articles': 'sidebar.articleManagement',
   '/dashboard/settings': 'settings.title',

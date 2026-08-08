@@ -8,13 +8,14 @@ import { FeedbackForm } from '@/components/FeedbackForm';
 import Footer from '@/components/Footer';
 import { VERSION } from '@/data/version';
 import { getTranslate } from '@/i18n/translate';
+import type { I18nKey } from '@/i18n/keys';
 
 const featureKeys = [
   { icon: BookOpen, titleKey: 'about.contentMgmt', descKey: 'about.contentMgmtDesc' },
   { icon: Shield, titleKey: 'about.securityFirst', descKey: 'about.securityFirstDesc' },
   { icon: Globe, titleKey: 'about.international', descKey: 'about.internationalDesc' },
   { icon: Github, titleKey: 'about.gitDriven', descKey: 'about.gitDrivenDesc' },
-];
+] satisfies { icon: typeof BookOpen; titleKey: I18nKey; descKey: I18nKey }[];
 
 export default function AboutPage() {
   const features = featureKeys.map((f) => ({

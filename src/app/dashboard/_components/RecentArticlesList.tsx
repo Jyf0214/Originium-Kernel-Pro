@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { Tag } from '@/components/ui/Tag';
+import type { TFunc } from '@/i18n/keys';
 
 import type { RecentArticle } from '../_lib/types';
 
@@ -15,7 +16,7 @@ function statusVariant(status: RecentArticle['status']): 'emerald' | 'amber' | '
 }
 
 /** 状态对应本地化文案 */
-function statusLabel(status: RecentArticle['status'], t: (key: string) => string): string {
+function statusLabel(status: RecentArticle['status'], t: TFunc): string {
   if (status === 'published') return t('article.published');
   if (status === 'pending_deletion') return t('article.pendingDeletion');
   return t('article.draft');
@@ -43,7 +44,7 @@ export function RecentArticlesList({
   locale,
 }: {
   articles: RecentArticle[];
-  t: (key: string) => string;
+  t: TFunc;
   locale: string;
 }) {
   const router = useRouter();

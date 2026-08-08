@@ -4,6 +4,7 @@ import React from 'react';
 import { useI18n } from '@/hooks/use-i18n';
 import ToggleField from '@/components/ui/ToggleField';
 import type { AccessConfig } from '@/lib/config-schema';
+import type { I18nKey } from '@/i18n/keys';
 
 /** 访问控制模块类型 */
 export type AccessModule = 'posts' | 'faces' | 'diary';
@@ -19,7 +20,7 @@ export interface AccessControlPanelProps {
 /** 访问模块配置项 */
 interface AccessModuleItem {
   key: AccessModule;
-  labelKey: string;
+  labelKey: I18nKey;
 }
 
 /** 模块配置列表 */

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import type { TFunc } from '@/i18n/keys';
 
 /** 编辑页面包屑导航 */
 export function EditFaceBreadcrumb({
@@ -11,7 +12,7 @@ export function EditFaceBreadcrumb({
 }: {
   fullPath: string;
   title: string;
-  t: (key: string) => string;
+  t: TFunc;
 }) {
   return (
     <nav className="flex items-center gap-2 text-sm text-zinc-400 mb-8 flex-wrap">

@@ -1,7 +1,6 @@
 import { showError } from '@/lib/error';
+import type { TFunc } from '@/i18n/keys';
 import type { SettingsFormValues } from './types';
-
-type Translator = (key: string) => string;
 
 /**
  * 调用后端接口更新用户名/昵称（不含头像）。
@@ -9,7 +8,7 @@ type Translator = (key: string) => string;
  */
 export async function saveProfile(
   values: SettingsFormValues,
-  t: Translator,
+  t: TFunc,
 ): Promise<boolean> {
   const res = await fetch('/api/user/profile', {
     method: 'PUT',

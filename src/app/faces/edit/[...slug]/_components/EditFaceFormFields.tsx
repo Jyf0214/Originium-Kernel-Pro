@@ -3,6 +3,7 @@
 import { Form, Input, Select } from 'antd';
 
 import type { GroupOption } from '../_lib/types';
+import type { TFunc } from '@/i18n/keys';
 
 const { TextArea } = Input;
 
@@ -10,7 +11,7 @@ const INPUT_CLASS = 'h-10 rounded-lg text-sm border-zinc-200 hover:border-zinc-3
 const LABEL_CLASS = 'text-zinc-700 font-medium';
 
 /** 姓名 + 邮箱 */
-export function NameEmailFields({ t }: { t: (key: string) => string }) {
+export function NameEmailFields({ t }: { t: TFunc }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <Form.Item
@@ -44,7 +45,7 @@ export function PhoneGroupFields({
   t,
 }: {
   groups: GroupOption[];
-  t: (key: string) => string;
+  t: TFunc;
 }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -78,7 +79,7 @@ export function PhoneGroupFields({
 }
 
 /** 详细内容 */
-export function ContentField({ t }: { t: (key: string) => string }) {
+export function ContentField({ t }: { t: TFunc }) {
   return (
     <Form.Item
       label={<span className={LABEL_CLASS}>{t('article.content')}</span>}

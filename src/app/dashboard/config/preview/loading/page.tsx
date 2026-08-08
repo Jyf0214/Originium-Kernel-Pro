@@ -9,6 +9,7 @@ import { Loader2, CircleDot, Sparkles, Orbit, Waves, ArrowLeft, TrendingUp } fro
 import Link from 'next/link';
 import type { Color } from 'antd/es/color-picker';
 import { Tag } from '@/components/ui/Tag';
+import type { TFunc } from '@/i18n/keys';
 
 type LoadingPosition = 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
@@ -231,7 +232,7 @@ function PreviewArea({
   );
 }
 
-function SizeComparisonCard({ t }: { t: (key: string) => string }) {
+function SizeComparisonCard({ t }: { t: TFunc }) {
   return (
     <Card title={t('loadingPreview.sizeComparison')} className="rounded-2xl border border-zinc-100">
       <div className="grid grid-cols-3 gap-8 py-8">

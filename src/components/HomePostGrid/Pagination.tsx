@@ -1,6 +1,7 @@
 import { memo, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import type { TFunc } from '@/i18n/keys';
 
 export const Pagination = memo(function Pagination({
   currentPage,
@@ -11,7 +12,7 @@ export const Pagination = memo(function Pagination({
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  t: (key: string) => string;
+  t: TFunc;
 }) {
   const handlePrev = useCallback(() => {
     onPageChange(Math.max(1, currentPage - 1));

@@ -3,6 +3,7 @@ import { ChevronDown } from 'lucide-react';
 import SidebarItem from './SidebarItem';
 import { groupKeys } from './sidebar-config';
 import type { MenuItem } from './types';
+import type { I18nKey, TFunc } from '@/i18n/keys';
 
 interface SidebarGroupProps {
   group: string;
@@ -11,7 +12,7 @@ interface SidebarGroupProps {
   onToggle: () => void;
   isActive: (href: string) => boolean;
   onItemClick: () => void;
-  t: (key: string) => string;
+  t: TFunc;
   collapsed?: boolean;
 }
 
@@ -26,7 +27,8 @@ const SidebarGroup = React.memo(function SidebarGroup({
   collapsed,
 }: SidebarGroupProps) {
   const isAdminGroup = group === 'admin';
-  const getGroupLabel = (g: string) => t(groupKeys[g] ?? g);
+  // groupKeys 覆盖全部菜单分组；未覆盖时回退显示分组原文
+  const getGroupLabel = (g: string) => t((groupKeys[g] ?? g) as I18nKey);
 
   return (
     <div className="space-y-1.5">

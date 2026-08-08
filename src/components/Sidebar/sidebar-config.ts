@@ -15,6 +15,7 @@ import {
   FolderOpen,
 } from 'lucide-react';
 import type { MenuItem } from './types';
+import type { I18nKey } from '@/i18n/keys';
 
 export const menuItems: MenuItem[] = [
   { key: 'sidebar.dashboard', icon: Home, href: '/dashboard', group: 'overview', requiresDb: true },
@@ -34,7 +35,7 @@ export const menuItems: MenuItem[] = [
   { key: 'sidebar.auditLogs', icon: ScrollText, href: '/dashboard/audit', group: 'admin', roles: ['sudo'], requiresDb: true },
 ];
 
-export const groupKeys: Record<string, string> = {
+export const groupKeys: Record<string, I18nKey> = {
   back: 'sidebar.returnDashboard',
   overview: 'dashboard.overview',
   content: 'dashboard.contentManagement',

@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import ProCard from '@/components/ui/ProCard';
 
 import type { RecentArticle } from '../_lib/types';
+import type { TFunc } from '@/i18n/keys';
 import { RecentArticlesList } from './RecentArticlesList';
 
 /** 最近文章卡片(ProCard 包装列表或空状态) */
@@ -17,7 +18,7 @@ export function RecentArticlesCard({
   locale,
 }: {
   articles: RecentArticle[];
-  t: (key: string) => string;
+  t: TFunc;
   locale: string;
 }) {
   return (

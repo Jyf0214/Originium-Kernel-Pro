@@ -2,6 +2,7 @@
 
 import { Hash } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import type { TFunc } from '@/i18n/keys';
 
 export function GroupTabs({
   groupNames,
@@ -14,7 +15,7 @@ export function GroupTabs({
   groupSlugMap: Map<string, string>;
   activeGroup: string | null;
   onSelect: (slug: string | null) => void;
-  t: (key: string) => string;
+  t: TFunc;
 }) {
   if (groupNames.length === 0) return null;
   return (

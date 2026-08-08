@@ -3,6 +3,7 @@
 import { Form, type FormInstance } from 'antd';
 
 import type { ContentFile } from '@/types/content';
+import type { TFunc } from '@/i18n/keys';
 import type { FormValues, GroupOption } from '../_lib/types';
 import {
   ContentField,
@@ -31,7 +32,7 @@ export function EditFaceForm({
   fullPath: string;
   onSubmit: (values: FormValues) => Promise<void>;
   onDelete: () => Promise<void>;
-  t: (key: string) => string;
+  t: TFunc;
 }) {
   return (
     <div className="bg-white rounded-2xl border border-zinc-100 p-6">

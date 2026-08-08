@@ -2,6 +2,7 @@
 
 import { Search, BookOpen, X } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
+import type { TFunc } from '@/i18n/keys';
 
 export function PostListHeader({
   searchTerm,
@@ -14,7 +15,7 @@ export function PostListHeader({
   searchTerm: string;
   onSearchChange: (value: string) => void;
   postCount: number;
-  t: (key: string) => string;
+  t: TFunc;
   locale: 'zh-CN' | 'en';
   rightExtra?: React.ReactNode;
 }) {

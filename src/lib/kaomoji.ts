@@ -14,9 +14,10 @@
  */
 
 import { getTranslate } from '@/i18n/translate';
+import type { I18nKey } from '@/i18n/keys';
 
 // ── 标签页切换 ──
-const TAB_TITLE_KEYS = [
+const TAB_TITLE_KEYS: readonly I18nKey[] = [
   'kaomoji.tabTitle.comeBack',
   'kaomoji.tabTitle.missYou',
   'kaomoji.tabTitle.dontGo',
@@ -32,10 +33,10 @@ const TAB_TITLE_KEYS = [
   'kaomoji.tabTitle.slacking',
   'kaomoji.tabTitle.playWithMe',
   'kaomoji.tabTitle.cuterWithoutYou',
-] as const;
+];
 
 // ── 删除确认 ──
-const DELETE_MESSAGES = [
+const DELETE_MESSAGES: readonly { kaomoji: string; textKey: I18nKey }[] = [
   { kaomoji: '(╥﹏╥)', textKey: 'kaomoji.delete.really' },
   { kaomoji: '(´；ω；`)', textKey: 'kaomoji.delete.noReturn' },
   { kaomoji: '(ಥ﹏ಥ)', textKey: 'kaomoji.delete.sad' },
@@ -44,52 +45,52 @@ const DELETE_MESSAGES = [
   { kaomoji: '(っ˘̩╭╮˘̩)っ', textKey: 'kaomoji.delete.abandon' },
   { kaomoji: '(゜ロ゜)', textKey: 'kaomoji.delete.eh' },
   { kaomoji: '(；´д｀)', textKey: 'kaomoji.delete.noTakeBack' },
-] as const;
+];
 
 // ── 退出登录 ──
-const LOGOUT_MESSAGES = [
+const LOGOUT_MESSAGES: readonly { kaomoji: string; textKey: I18nKey }[] = [
   { kaomoji: '(｡•́︿•̀｡)', textKey: 'kaomoji.logout.leaving' },
   { kaomoji: '(╥﹏╥)', textKey: 'kaomoji.logout.dontLeaveMe' },
   { kaomoji: '(っ˘̩╭╮˘̩)っ', textKey: 'kaomoji.logout.notDonePlaying' },
   { kaomoji: '(´；ω；`)', textKey: 'kaomoji.logout.comeBackSoon' },
   { kaomoji: '♪(´▽`)', textKey: 'kaomoji.logout.seeYou' },
   { kaomoji: '(◕‿◕)♡', textKey: 'kaomoji.logout.missYou' },
-] as const;
+];
 
 // ── 恢复操作 ──
-const RESTORE_MESSAGES = [
+const RESTORE_MESSAGES: readonly { kaomoji: string; textKey: I18nKey }[] = [
   { kaomoji: '(◕ᴗ◕✿)', textKey: 'kaomoji.restore.welcomeBack' },
   { kaomoji: '♪(´▽`)', textKey: 'kaomoji.restore.restored' },
   { kaomoji: '(≧▽≦)', textKey: 'kaomoji.restore.returned' },
   { kaomoji: '(●´∀｀●)', textKey: 'kaomoji.restore.foundAgain' },
-] as const;
+];
 
 // ── 重置/清空 ──
-const RESET_MESSAGES = [
+const RESET_MESSAGES: readonly { kaomoji: string; textKey: I18nKey }[] = [
   { kaomoji: '(゜ロ゜)', textKey: 'kaomoji.reset.clearAll' },
   { kaomoji: '(´・ω・`)', textKey: 'kaomoji.reset.goneAfter' },
   { kaomoji: '(｡ŏ﹏ŏ)', textKey: 'kaomoji.reset.allGone' },
-] as const;
+];
 
 // ── 提交确认 ──
-const SUBMIT_MESSAGES = [
+const SUBMIT_MESSAGES: readonly { kaomoji: string; textKey: I18nKey }[] = [
   { kaomoji: '(◕ᴗ◕✿)', textKey: 'kaomoji.submit.confirmSubmit' },
   { kaomoji: '(*´▽`*)', textKey: 'kaomoji.submit.ready' },
   { kaomoji: '(●´∀｀●)', textKey: 'kaomoji.submit.allGood' },
-] as const;
+];
 
 // ── 通用确认 ──
-const GENERAL_MESSAGES = [
+const GENERAL_MESSAGES: readonly { kaomoji: string; textKey: I18nKey }[] = [
   { kaomoji: '(◕ᴗ◕✿)', textKey: 'kaomoji.general.confirm' },
   { kaomoji: '(´・ω・`)', textKey: 'kaomoji.general.thoughtThrough' },
   { kaomoji: '(゜ロ゜)', textKey: 'kaomoji.general.sure' },
-] as const;
+];
 
 export type ConfirmCategory = 'delete' | 'logout' | 'restore' | 'reset' | 'submit' | 'general';
 
 interface ConfirmMessage { kaomoji: string; text: string }
 
-const CATEGORY_MAP: Record<string, readonly { kaomoji: string; textKey: string }[]> = {
+const CATEGORY_MAP: Record<string, readonly { kaomoji: string; textKey: I18nKey }[]> = {
   delete: DELETE_MESSAGES,
   logout: LOGOUT_MESSAGES,
   restore: RESTORE_MESSAGES,

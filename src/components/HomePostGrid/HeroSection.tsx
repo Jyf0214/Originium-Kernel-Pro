@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
+import type { TFunc } from '@/i18n/keys';
 
 export function HeroSection({
   heroTitleLine1,
@@ -9,7 +10,7 @@ export function HeroSection({
 }: {
   heroTitleLine1?: string;
   heroTitleLine2?: string;
-  t: (key: string, params?: Record<string, string | number>) => string;
+  t: TFunc;
 }) {
   return (
     <section className="mb-12">

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import React from 'react';
 import { Tag } from '@/components/ui/Tag';
 import { formatPostDate } from '@/lib/formatDate';
+import type { TFunc } from '@/i18n/keys';
 import type { PostItem, CoverConfig } from './types';
 import { PostCardCover } from './PostCardCover';
 import { PostCardBody } from './PostCardBody';
@@ -37,7 +38,7 @@ export const PostCard = React.memo(function PostCard({
   coverConfig?: CoverConfig;
   defaultCover?: string;
   locale: string;
-  t: (key: string) => string;
+  t: TFunc;
   compact?: boolean;
 }) {
   const { isRowLayout, isVerticalCover, borderClass } = getCoverLayout(coverConfig);

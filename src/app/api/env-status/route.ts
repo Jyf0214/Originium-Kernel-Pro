@@ -18,7 +18,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.envStatus.fetchS
   const envStatus = {
     database: {
       name: getTranslate('api.envStatus.groupDatabase'),
-      nameKey: 'env.groups.database',
+      nameKey: 'env.groups.database.name',
       descriptionKey: 'env.groups.database.desc',
       variables: [
         {
@@ -49,7 +49,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.envStatus.fetchS
     },
     auth: {
       name: getTranslate('api.envStatus.groupAuth'),
-      nameKey: 'env.groups.auth',
+      nameKey: 'env.groups.auth.name',
       descriptionKey: 'env.groups.auth.desc',
       variables: [
         {
@@ -62,7 +62,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.envStatus.fetchS
     },
     admin: {
       name: getTranslate('api.envStatus.groupAdmin'),
-      nameKey: 'env.groups.admin',
+      nameKey: 'env.groups.admin.name',
       descriptionKey: 'env.groups.admin.desc',
       variables: [
         {
@@ -81,7 +81,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.envStatus.fetchS
     },
     app: {
       name: getTranslate('api.envStatus.groupApp'),
-      nameKey: 'env.groups.app',
+      nameKey: 'env.groups.app.name',
       descriptionKey: 'env.groups.app.desc',
       variables: [
         {
@@ -94,7 +94,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.envStatus.fetchS
     },
     github: {
       name: getTranslate('api.envStatus.groupGithub'),
-      nameKey: 'env.groups.github',
+      nameKey: 'env.groups.github.name',
       descriptionKey: 'env.groups.github.desc',
       variables: [
         {
@@ -119,7 +119,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.envStatus.fetchS
     },
     giscus: {
       name: getTranslate('api.envStatus.groupGiscus'),
-      nameKey: 'env.groups.giscus',
+      nameKey: 'env.groups.giscus.name',
       descriptionKey: 'env.groups.giscus.desc',
       variables: [
         {
@@ -152,7 +152,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.envStatus.fetchS
       name: process.env.STORAGE_TYPE?.toLowerCase() === 'backblaze'
         ? getTranslate('api.envStatus.groupStorageB2')
         : getTranslate('api.envStatus.groupStorageWebdav'),
-      nameKey: 'env.groups.storage',
+      nameKey: 'env.groups.storage.name',
       descriptionKey: 'env.groups.storage.desc',
       variables: [
         {
@@ -218,7 +218,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.envStatus.fetchS
     },
     smtp: {
       name: getTranslate('api.envStatus.groupSmtp'),
-      nameKey: 'env.groups.smtp',
+      nameKey: 'env.groups.smtp.name',
       descriptionKey: 'env.groups.smtp.desc',
       variables: [
         {
@@ -261,7 +261,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.envStatus.fetchS
     },
     cron: {
       name: getTranslate('api.envStatus.groupCron'),
-      nameKey: 'env.groups.cron',
+      nameKey: 'env.groups.cron.name',
       descriptionKey: 'env.groups.cron.desc',
       variables: [
         {
@@ -274,7 +274,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.envStatus.fetchS
     },
     system: {
       name: getTranslate('api.envStatus.groupSystem'),
-      nameKey: 'env.groups.system',
+      nameKey: 'env.groups.system.name',
       descriptionKey: 'env.groups.system.desc',
       variables: [
         {

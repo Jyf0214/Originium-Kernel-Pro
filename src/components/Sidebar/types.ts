@@ -1,7 +1,9 @@
 import type { ElementType } from 'react';
+import type { I18nKey } from '@/i18n/keys';
 
 export interface MenuItem {
-  key: string;
+  /** i18n 翻译键（菜单文案统一走字典，不允许任意字符串） */
+  key: I18nKey;
   icon: ElementType;
   href: string;
   group: string;

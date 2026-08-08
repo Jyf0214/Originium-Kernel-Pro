@@ -6,6 +6,7 @@ import { Card } from 'antd';
 import { Loader2, Palette, Server } from 'lucide-react';
 import Link from 'next/link';
 import { PageContainer } from '@/components/ui/PageContainer';
+import type { TFunc } from '@/i18n/keys';
 
 interface CategoryItem {
   key: string;
@@ -16,7 +17,7 @@ interface CategoryItem {
   icon: React.ElementType;
 }
 
-function getCategoryItems(t: (key: string) => string): CategoryItem[] {
+function getCategoryItems(t: TFunc): CategoryItem[] {
   return [
     {
       key: 'loading',

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import ts from 'typescript';
 
 const ROOT = path.resolve(__dirname, '..');
 const ZH_PATH = path.join(ROOT, 'src/i18n/zh-CN.json');
@@ -30,7 +31,8 @@ function listAllFiles(
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (['node_modules', '.next', '.git', 'dist', 'build'].includes(entry.name)) continue;
+      // 排除依赖与构建产物目录：内容随构建变化，纳入扫描会导致检测结果不稳定
+      if (['node_modules', '.next', 'out', 'dist', 'build', '.disabled-routes', 'data', 'generated', '.qwen', '.husky'].includes(entry.name)) continue;
       out.push(...listAllFiles(full, exts));
     } else if (exts.some(e => entry.name.endsWith(e))) {
       out.push(full);
@@ -58,34 +60,75 @@ describe('i18n 双字典一致性', () => {
   });
 });
 
-// 默认跳过 — 启用方式:把 .skip 去掉,手动 it.only 自查
-describe.skip('i18n 未使用 key 检测(参考用)', () => {
-  it('列出未被代码引用的 i18n key', () => {
+describe('i18n 未使用 key 检测', () => {
+  /**
+   * 未引用 key 数量基线：0（不允许任何未使用键）。
+   *
+   * 扫描范围：src/、scripts/、tests/、prisma/（排除构建产物与生成代码）。
+   * 规则：字典中任何 key 都必须在代码中以字符串字面量形式被引用，
+   * 超过 0 即测试失败 → npm run test 非零退出 → 构建被阻断，禁止继续。
+   *
+   * 代码侧配套约束（src/i18n/keys.ts）：
+   * - I18nKey 类型推导自 zh-CN.json，所有 t()/getTranslate() 传键编译期校验；
+   * - 动态拼接引用已全部规范化（config.section 显式映射、env descriptionKey/
+   *   nameKey 直接携带完整键），代码中不允许再出现 t(`prefix.${var}`) 形式的拼接，
+   *   因此检测无需动态豁免机制。
+   */
+  const BASELINE_UNUSED_COUNT = 0;
+
+  it('未引用 i18n key 数量不得超过基线', () => {
     const searchRoots = [
-      path.join(ROOT, 'src/app'),
-      path.join(ROOT, 'src/components'),
-      path.join(ROOT, 'src/hooks'),
-      path.join(ROOT, 'src/lib'),
+      path.join(ROOT, 'src'),
+      path.join(ROOT, 'scripts'),
+      path.join(ROOT, 'tests'),
+      path.join(ROOT, 'prisma'),
     ];
-    const files = searchRoots.flatMap(d => listAllFiles(d));
+    const extraFiles = ['proxy.ts', 'next.config.ts', 'postcss.config.mjs', 'vitest.config.mjs', 'prisma.config.ts']
+      .map(f => path.join(ROOT, f))
+      .filter(f => fs.existsSync(f));
+    const files = searchRoots
+      .flatMap(d => listAllFiles(d))
+      .filter(f => !f.includes(`${path.sep}generated${path.sep}`))
+      .concat(extraFiles);
+
+    // 静态引用：逐文件用 TypeScript 编译器解析为 AST，收集字符串字面量与
+    // 无插值模板字符串的文本。AST 遍历能正确处理 JSX（scanner 会把 JSX 文本
+    // 连同表达式插值整体当作字符串 token，曾导致在用键漏检）。
+    const used = new Set<string>();
+    for (const f of files) {
+      const src = fs.readFileSync(f, 'utf8');
+      const scriptKind = f.endsWith('.tsx') ? ts.ScriptKind.TSX
+        : f.endsWith('.jsx') ? ts.ScriptKind.JSX
+        : f.endsWith('.js') ? ts.ScriptKind.JS
+        : ts.ScriptKind.TS;
+      const sourceFile = ts.createSourceFile(f, src, ts.ScriptTarget.Latest, /*setParentNodes*/ true, scriptKind);
+      const visit = (node: ts.Node): void => {
+        if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+          const lit = node.text;
+          if (lit.length >= 2 && lit.length <= 150 && !lit.includes('$')) {
+            used.add(lit);
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(sourceFile);
+    }
 
     const unused: string[] = [];
     for (const key of allKeys) {
-      // 转义所有正则元字符,避免 key 中含特殊字符误判
-      const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const re = new RegExp(`['"\`]${escaped}['"\`]`);
-      const found = files.some(f => {
-        const content = fs.readFileSync(f, 'utf8');
-        return re.test(content);
-      });
-      if (!found) unused.push(key);
+      if (!used.has(key)) unused.push(key);
     }
+
     if (unused.length > 0) {
       console.warn(
-        `\n[i18n] 以下 ${unused.length} 个 key 在代码中未被引用:\n  ` + unused.join('\n  '),
+        `\n[i18n] 以下 ${unused.length} 个 key 在代码中未被引用:\n  ` +
+          unused.sort().join('\n  '),
       );
     }
-    expect(unused.length).toBeGreaterThanOrEqual(0);
+    expect(
+      unused.length,
+      `未引用 i18n key 数量 ${unused.length} 超过基线 ${BASELINE_UNUSED_COUNT}，请清理多余 key（不允许任何未使用键）`,
+    ).toBeLessThanOrEqual(BASELINE_UNUSED_COUNT);
   });
 });
 

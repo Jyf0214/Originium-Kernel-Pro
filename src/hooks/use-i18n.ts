@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { translations, type I18nKeys } from '@/i18n/translate';
+import { translations, lookup, type Locale } from '@/i18n/translate';
+import type { TFunc } from '@/i18n/keys';
 import { safeGetItem, safeSetItem } from '@/lib/local-storage';
-
-type Locale = 'zh-CN' | 'en';
 
 /**
  * 获取当前语言的初始值
@@ -43,31 +42,11 @@ export function useI18n() {
     }
   }, []);
 
-  const t = useCallback((key: string, params?: Record<string, string | number>): string => {
-    const keys = key.split('.');
-    let value: string | I18nKeys | undefined = translations[locale];
-    
-    for (const k of keys) {
-      if (value && typeof value === 'object' && k in value) {
-        value = value[k];
-      } else {
-        return key;
-      }
-    }
-    
-    if (typeof value === 'string') {
-      if (params) {
-        let result = value;
-        Object.entries(params).forEach(([k, v]) => {
-          result = result.replace(new RegExp(`{${k}}`, 'g'), String(v));
-        });
-        return result;
-      }
-      return value;
-    }
-    
-    return key;
-  }, [locale]);
+  // 键解析复用 translate.ts 的 lookup，避免两处重复实现
+  const t: TFunc = useCallback(
+    (key, params) => lookup(locale, key, params),
+    [locale],
+  );
 
   return { locale, setLocale, t };
 }

@@ -51,9 +51,10 @@ import PostEditConfig from '@/components/ui/PostEditConfig';
 import ShareConfig from '@/components/ui/ShareConfig';
 import MainToneConfig from '@/components/ui/MainToneConfig';
 import FooterConfig from '@/components/ui/FooterConfig';
+import type { TFunc } from '@/i18n/keys';
 import type { ConfigState, NavConfigData, LoadingType, LoadingPosition } from './config-builders';
 
-function buildAccessItems(t: (key: string) => string) {
+function buildAccessItems(t: TFunc) {
   return [
     { key: 'posts' as const, label: t('config.accessPosts') },
     { key: 'faces' as const, label: t('config.accessFaces') },
@@ -142,7 +143,7 @@ export default function ConfigFormBody({
 }: {
   config: ConfigState;
   onConfigChange: (config: ConfigState) => void;
-  t: (key: string) => string;
+  t: TFunc;
 }) {
   const handlePageLoadingChange = (newConfig: { type: LoadingType; color: string; position?: LoadingPosition }) => {
     onConfigChange({

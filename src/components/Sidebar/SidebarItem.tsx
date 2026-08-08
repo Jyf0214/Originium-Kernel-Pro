@@ -1,13 +1,14 @@
 import React from 'react';
 import Link from 'next/link';
 import type { MenuItem } from './types';
+import type { TFunc } from '@/i18n/keys';
 
 interface SidebarItemProps {
   item: MenuItem;
   isActive: boolean;
   isAdminGroup: boolean;
   onItemClick: () => void;
-  t: (key: string) => string;
+  t: TFunc;
   collapsed?: boolean;
 }
 

@@ -6,9 +6,10 @@ import ConfigSection from '@/components/ui/ConfigSection';
 import { Settings, Save, Github, CheckCircle, XCircle } from 'lucide-react';
 import ConfigFormBody from './config-form-body';
 import type { ConfigState } from './config-builders';
+import type { I18nKey, TFunc } from '@/i18n/keys';
 import { cn } from '@/lib/ui';
 
-/** 侧边导航配置项 — key 用于 t() 翻译 */
+/** 侧边导航配置项 — id 用于锚点滚动，key 对应分区 */
 const sectionKeys = [
   { id: 'section-general', key: 'general' },
   { id: 'section-auth', key: 'auth' },
@@ -37,7 +38,36 @@ const sectionKeys = [
   { id: 'section-music', key: 'music' },
 ];
 
-function ConfigPageHeader({ t }: { t: (key: string) => string }) {
+/** 分区标题 i18n 键的显式映射（替代动态拼接，保证键可静态检测） */
+const sectionLabels: Record<string, I18nKey> = {
+  general: 'config.section.general',
+  auth: 'config.section.auth',
+  access: 'config.section.access',
+  background: 'config.section.background',
+  customCss: 'config.section.customCss',
+  customHead: 'config.section.customHead',
+  nav: 'config.section.nav',
+  mourn: 'config.section.mourn',
+  highlight: 'config.section.highlight',
+  copy: 'config.section.copy',
+  social: 'config.section.social',
+  author: 'config.section.author',
+  cover: 'config.section.cover',
+  error: 'config.section.error',
+  postmeta: 'config.section.postmeta',
+  wordcount: 'config.section.wordcount',
+  toc: 'config.section.toc',
+  copyright: 'config.section.copyright',
+  reward: 'config.section.reward',
+  postedit: 'config.section.postedit',
+  share: 'config.section.share',
+  maintone: 'config.section.maintone',
+  footer: 'config.section.footer',
+  loading: 'config.section.loading',
+  music: 'config.section.music',
+};
+
+function ConfigPageHeader({ t }: { t: TFunc }) {
   return (
     <div className="flex items-center gap-3">
       <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center shrink-0">
@@ -51,7 +81,7 @@ function ConfigPageHeader({ t }: { t: (key: string) => string }) {
   );
 }
 
-function RemoteFetchErrorAlert({ error, t }: { error: string; t: (key: string) => string }) {
+function RemoteFetchErrorAlert({ error, t }: { error: string; t: TFunc }) {
   return (
     <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-6 mb-4">
       <div className="flex items-center gap-3 mb-3">
@@ -78,7 +108,7 @@ function RemoteFetchErrorAlert({ error, t }: { error: string; t: (key: string) =
 /**
  * 侧边锚点导航栏 — 仅 lg 以上屏幕显示，固定在左侧
  */
-function SidebarNav({ activeId, t }: { activeId: string; t: (key: string) => string }) {
+function SidebarNav({ activeId, t }: { activeId: string; t: TFunc }) {
   const handleClick = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
@@ -101,7 +131,7 @@ function SidebarNav({ activeId, t }: { activeId: string; t: (key: string) => str
                 : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100',
             )}
           >
-            {t(`config.section.${sec.key}`)}
+            {t(sectionLabels[sec.key] ?? (sec.key as I18nKey))}
           </button>
         ))}
       </div>
@@ -122,7 +152,7 @@ export default function ConfigEditor({
 }: {
   config: ConfigState;
   onConfigChange: (config: ConfigState) => void;
-  t: (key: string) => string;
+  t: TFunc;
   githubConfigured: boolean;
   remoteConfigStatus: string;
   remoteConfigError: string;

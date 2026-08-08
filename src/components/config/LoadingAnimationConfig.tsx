@@ -4,6 +4,7 @@ import React from 'react';
 import { Select, ColorPicker } from 'antd';
 import { useI18n } from '@/hooks/use-i18n';
 import type { Color } from 'antd/es/color-picker';
+import type { TFunc } from '@/i18n/keys';
 
 /** 加载动画类型 */
 export type LoadingType = 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd' | 'progress';
@@ -43,7 +44,7 @@ export interface LoadingAnimationConfigProps {
 }
 
 /** 动画类型选项（组件内部使用，支持 i18n） */
-function useLoadingTypeOptions(t: (key: string) => string) {
+function useLoadingTypeOptions(t: TFunc) {
   return [
     { value: 'spinner', label: t('loadingPreview.spinner') },
     { value: 'antd', label: t('loadingPreview.antd') },
@@ -56,7 +57,7 @@ function useLoadingTypeOptions(t: (key: string) => string) {
 }
 
 /** 位置选项（组件内部使用，支持 i18n） */
-function usePositionOptions(t: (key: string) => string) {
+function usePositionOptions(t: TFunc) {
   return [
     { value: 'center', label: t('loadingPreview.center') },
     { value: 'top-left', label: t('loadingPreview.topLeft') },
