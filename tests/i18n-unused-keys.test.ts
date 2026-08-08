@@ -58,6 +58,25 @@ describe('i18n 双字典一致性', () => {
       expect.soft(v.trim(), `en[${k}] 为空`).not.toBe('');
     }
   });
+
+  it('字典中不允许 null/undefined 值', () => {
+    const badZh: string[] = [];
+    const badEn: string[] = [];
+    const walk = (obj: Record<string, unknown>, prefix: string, bad: string[]): void => {
+      for (const [k, v] of Object.entries(obj)) {
+        const key = prefix ? `${prefix}.${k}` : k;
+        if (v === null || v === undefined) {
+          bad.push(key);
+        } else if (v && typeof v === 'object' && !Array.isArray(v)) {
+          walk(v as Record<string, unknown>, key, bad);
+        }
+      }
+    };
+    walk(JSON.parse(fs.readFileSync(ZH_PATH, 'utf8')) as Record<string, unknown>, '', badZh);
+    walk(JSON.parse(fs.readFileSync(EN_PATH, 'utf8')) as Record<string, unknown>, '', badEn);
+    expect.soft(badZh, `zh 存在 null/undefined 值: ${badZh.join(', ')}`).toEqual([]);
+    expect.soft(badEn, `en 存在 null/undefined 值: ${badEn.join(', ')}`).toEqual([]);
+  });
 });
 
 describe('i18n 未使用 key 检测', () => {

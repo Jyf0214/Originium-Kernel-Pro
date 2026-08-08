@@ -224,7 +224,7 @@ describe('POST /api/auth/login', () => {
     const body = await res.json()
     expect(body.success).toBe(true)
     expect(body.user.email).toBe('admin@example.com')
-    expect(body.user.role).toBe('sudo')
+    expect(body.user.role).toBe('root')
     // 用户已写入 KV
     expect(mem.store.has('user:email:admin@example.com')).toBe(true)
   })

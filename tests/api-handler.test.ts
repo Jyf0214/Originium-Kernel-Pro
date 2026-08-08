@@ -10,7 +10,8 @@ Object.defineProperty(process.env, 'NODE_ENV', { value: 'development', writable:
 
 vi.mock('@/lib/auth', () => ({
   getSession: vi.fn(),
-  requireSudo: vi.fn(),
+  requireRoot: vi.fn(),
+  isRootRole: vi.fn(),
 }));
 
 vi.mock('@/lib/db', () => ({
@@ -18,7 +19,7 @@ vi.mock('@/lib/db', () => ({
 }));
 
 import { apiHandler, getParam, getMetricsSnapshot } from '@/lib/api-handler';
-import { getSession, requireSudo } from '@/lib/auth';
+import { getSession, requireRoot, isRootRole } from '@/lib/auth';
 
 /* ============================
  * 辅助工具
@@ -193,12 +194,13 @@ describe('apiHandler', () => {
         expect(res.status).toBe(200);
       });
 
-      test('sudo 角色正常放行', async () => {
+      test('root 角色正常放行', async () => {
         vi.mocked(getSession).mockResolvedValue({
           uid: 'u1',
           email: 'a@b.com',
-          role: 'sudo',
+          role: 'root',
         });
+        vi.mocked(isRootRole).mockReturnValue(true);
         const req = makeRequest('GET');
         const handler = apiHandler(
           'GET',
@@ -211,20 +213,20 @@ describe('apiHandler', () => {
       });
     });
 
-    describe('requireSudo', () => {
+    describe('requireRoot', () => {
       let receivedSession: unknown = null;
-      const captureSudoSession = (_req: NextRequest, _ctx: unknown, session: unknown) => {
+      const captureRootSession = (_req: NextRequest, _ctx: unknown, session: unknown) => {
         receivedSession = session;
         return NextResponse.json({ ok: true });
       };
 
-      test('requireSudo 返回 NextResponse 时透传错误', async () => {
-        const errorRes = NextResponse.json({ error: 'sudo 验证失败' }, { status: 403 });
-        vi.mocked(requireSudo).mockResolvedValue(errorRes);
+      test('requireRoot 返回 NextResponse 时透传错误', async () => {
+        const errorRes = NextResponse.json({ error: 'root 验证失败' }, { status: 403 });
+        vi.mocked(requireRoot).mockResolvedValue(errorRes);
         const req = makeRequest('GET');
         const handler = apiHandler(
           'GET',
-          { label: 'test', requireSudo: true },
+          { label: 'test', requireRoot: true },
           okHandler,
         );
 
@@ -232,23 +234,23 @@ describe('apiHandler', () => {
         expect(res.status).toBe(403);
       });
 
-      test('requireSudo 返回 session 时放行', async () => {
-        vi.mocked(requireSudo).mockResolvedValue({
-          uid: 'sudo1',
-          email: 's@b.com',
-          role: 'sudo',
+      test('requireRoot 返回 session 时放行', async () => {
+        vi.mocked(requireRoot).mockResolvedValue({
+          uid: 'root1',
+          email: 'r@b.com',
+          role: 'root',
         });
         const req = makeRequest('GET');
         receivedSession = null;
         const handler = apiHandler(
           'GET',
-          { label: 'test', requireSudo: true },
-          captureSudoSession,
+          { label: 'test', requireRoot: true },
+          captureRootSession,
         );
 
         const res = await handler(req);
         expect(res.status).toBe(200);
-        expect(receivedSession).toMatchObject({ uid: 'sudo1' });
+        expect(receivedSession).toMatchObject({ uid: 'root1' });
       });
     });
 

@@ -9,7 +9,7 @@
  *   - 开发 + 缺失 → 返回 64 字符随机 hex
  *   - 任意非空 → 原样返回 (当前实现未校验最小长度)
  * - createSession / getSession 往返 (mock cookies())
- * - requireAuth / requireAdmin / requireSudo 的 401/403 拒绝行为
+ * - requireAuth / requireAdmin / requireRoot 的 401/403 拒绝行为
  *
  * 注意:
  * - auth.ts 模块内有缓存的 _secret (Uint8Array),AUTH_SECRET 变更后
@@ -257,7 +257,7 @@ describe('createSession / getSession', () => {
   });
 });
 
-describe('requireAuth / requireAdmin / requireSudo', () => {
+describe('requireAuth / requireAdmin / requireRoot', () => {
   const TEST_SECRET = 'a'.repeat(64);
 
   beforeEach(() => {
@@ -275,7 +275,7 @@ describe('requireAuth / requireAdmin / requireSudo', () => {
 
   // 工具:创建 session 并把 token 注入到 cookie mock
   async function authedAs(
-    role: 'user' | 'admin' | 'sudo',
+    role: 'user' | 'admin' | 'root',
     overrides: Partial<{ uid: string; email: string; userGroup: string }> = {}
   ): Promise<void> {
     const { createSession } = await import('@/lib/auth');
@@ -335,35 +335,35 @@ describe('requireAuth / requireAdmin / requireSudo', () => {
       expect(result).toMatchObject({ role: 'admin' });
     });
 
-    it('sudo 角色 → 放行 (admin 检查兼容 sudo)', async () => {
-      await authedAs('sudo');
+    it('root 角色 → 放行 (admin 检查兼容 root)', async () => {
+      await authedAs('root');
       const { requireAdmin } = await import('@/lib/auth');
       const result = await requireAdmin();
-      expect(result).toMatchObject({ role: 'sudo' });
+      expect(result).toMatchObject({ role: 'root' });
     });
   });
 
-  describe('requireSudo', () => {
+  describe('requireRoot', () => {
     it('未登录 → 返回 401', async () => {
       mockCookieStore.get.mockReturnValue(undefined);
-      const { requireSudo } = await import('@/lib/auth');
-      const result = await requireSudo();
+      const { requireRoot } = await import('@/lib/auth');
+      const result = await requireRoot();
       expect(result).toBeInstanceOf(NextResponse);
       expect((result as NextResponse).status).toBe(401);
     });
 
     it('user 角色 → 返回 403', async () => {
       await authedAs('user');
-      const { requireSudo } = await import('@/lib/auth');
-      const result = await requireSudo();
+      const { requireRoot } = await import('@/lib/auth');
+      const result = await requireRoot();
       expect(result).toBeInstanceOf(NextResponse);
       expect((result as NextResponse).status).toBe(403);
     });
 
-    it('admin 角色 → 返回 403 (admin ≠ sudo)', async () => {
+    it('admin 角色 → 返回 403 (无 sudo 模式提权)', async () => {
       await authedAs('admin');
-      const { requireSudo } = await import('@/lib/auth');
-      const result = await requireSudo();
+      const { requireRoot } = await import('@/lib/auth');
+      const result = await requireRoot();
       expect(result).toBeInstanceOf(NextResponse);
       const response = result as NextResponse;
       expect(response.status).toBe(403);
@@ -371,11 +371,11 @@ describe('requireAuth / requireAdmin / requireSudo', () => {
       expect(body.error).toMatch(/超级管理员/);
     });
 
-    it('sudo 角色 → 放行', async () => {
-      await authedAs('sudo');
-      const { requireSudo } = await import('@/lib/auth');
-      const result = await requireSudo();
-      expect(result).toMatchObject({ role: 'sudo' });
+    it('root 角色 → 放行', async () => {
+      await authedAs('root');
+      const { requireRoot } = await import('@/lib/auth');
+      const result = await requireRoot();
+      expect(result).toMatchObject({ role: 'root' });
     });
   });
 });
@@ -383,7 +383,7 @@ describe('requireAuth / requireAdmin / requireSudo', () => {
 describe('hasRole', () => {
   it('null session → 总是 false', async () => {
     const { hasRole } = await import('@/lib/auth');
-    expect(hasRole(null, ['admin', 'sudo'])).toBe(false);
+    expect(hasRole(null, ['admin', 'root'])).toBe(false);
   });
 
   it('user session 命中 user 角色', async () => {
@@ -392,10 +392,10 @@ describe('hasRole', () => {
     expect(hasRole(session, ['user'])).toBe(true);
   });
 
-  it('user session 不命中 admin/sudo 角色', async () => {
+  it('user session 不命中 admin/root 角色', async () => {
     const { hasRole } = await import('@/lib/auth');
     const session = { uid: 'U1', email: 'a@b.com', role: 'user' as const };
-    expect(hasRole(session, ['admin', 'sudo'])).toBe(false);
+    expect(hasRole(session, ['admin', 'root'])).toBe(false);
   });
 
   it('admin session 命中 admin 角色', async () => {
