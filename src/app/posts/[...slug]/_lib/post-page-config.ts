@@ -9,12 +9,6 @@ export function buildTocConfig(appConfig: FrontendConfig) {
   };
 }
 
-export function buildShareSites(appConfig: FrontendConfig): string[] | undefined {
-  const sitesStr = appConfig.share?.sharejs?.sites;
-  if (!sitesStr || typeof sitesStr !== 'string') return undefined;
-  return sitesStr.split(',').map((s) => s.trim()).filter(Boolean);
-}
-
 export function computeWordStats(content: string) {
   const wordCount = content.length;
   const readingTime = Math.ceil(wordCount / 500);
@@ -28,15 +22,9 @@ export function buildCopyrightConfig(appConfig: FrontendConfig) {
     license: appConfig.copyright?.license ?? 'CC BY-NC-SA 4.0',
     licenseUrl: appConfig.copyright?.licenseUrl ?? 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
     authorLink: appConfig.copyright?.authorLink ?? '/',
+    authorHref: appConfig.copyright?.authorHref ?? '',
     authorImgFront: appConfig.avatar?.url,
     decode: appConfig.copyright?.decode,
-  };
-}
-
-export function buildShareConfig(appConfig: FrontendConfig) {
-  return {
-    enable: appConfig.share?.sharejs?.enable ?? false,
-    sites: buildShareSites(appConfig),
   };
 }
 

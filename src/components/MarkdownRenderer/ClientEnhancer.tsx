@@ -28,16 +28,19 @@ export function ClientEnhancer({ containerRef }: { containerRef: React.RefObject
     }
   }, [t]);
 
-  /* ── 代码块：折叠/展开 ── */
+  /* ── 代码块：折叠/展开（高度由构建时 data-height-limit 指定） ── */
   const handleToggleCollapse = useCallback((btn: HTMLElement) => {
     const pre = btn.closest('pre');
     if (!pre) return;
-    const isCollapsed = pre.classList.contains('max-h-40');
+    const limit = Number(pre.dataset.heightLimit ?? 0);
+    const isCollapsed = pre.style.maxHeight !== '' && pre.style.maxHeight !== 'none';
     if (isCollapsed) {
-      pre.classList.remove('max-h-40', 'overflow-hidden');
+      pre.style.maxHeight = 'none';
+      pre.style.overflow = 'visible';
       btn.textContent = t('components.markdown.collapse');
     } else {
-      pre.classList.add('max-h-40', 'overflow-hidden');
+      pre.style.maxHeight = limit > 0 ? `${limit}px` : '10rem';
+      pre.style.overflow = 'hidden';
       btn.textContent = t('components.markdown.expand');
     }
   }, [t]);

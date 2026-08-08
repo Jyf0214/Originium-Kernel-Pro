@@ -20,7 +20,7 @@ import { PostSidebarCard } from '@/components/PostSidebarCard';
 import { ArticleExpiredBanner } from '@/components/ArticleExpiredBanner';
 import { Button } from '@/components/ui/Button';
 import { CopyrightNotice } from '@/components/ui/CopyrightNotice';
-import ShareButtons from '@/components/ui/ShareButtons';
+import ShareButtons from '@/components/ShareButtons';
 import QRCodeDialog from '@/components/ui/QRCodeDialog';
 import { PostLikeButton } from '@/components/PostLikeButton';
 import { Hitokoto } from '@/components/Hitokoto';
@@ -30,7 +30,7 @@ import type { FrontendConfig } from '@/hooks/use-config';
 import type { WikiLinkMap } from '@/components/MarkdownRenderer/types';
 import type { BacklinkInfo, RegistryEntry } from '@/lib/content-registry';
 import type { AuthorInfo } from '@/types/author';
-import { buildCopyrightConfig, buildShareConfig } from '../_lib/post-page-config';
+import { buildCopyrightConfig } from '../_lib/post-page-config';
 import { tPosts } from '../_lib/post-i18n';
 import { useI18n } from '@/hooks/use-i18n';
 import { useScrollProgress } from '@/hooks/use-scroll-progress';
@@ -52,8 +52,8 @@ export function PostDetailBody({
   breadcrumbs,
   wordCount,
   readingTime,
-  showWordCount,
-  highlight: _highlight,
+  totalWordCount,
+  wordcount,
   appConfig,
   wikiLinkMap: _wikiLinkMap,
   backlinks,
@@ -74,8 +74,9 @@ export function PostDetailBody({
   breadcrumbs: Crumb[];
   wordCount: number;
   readingTime: number;
-  showWordCount: boolean;
-  highlight: FrontendConfig['highlight'];
+  /** 全站公开文章总字数（wordcount.totalWordcount 展示用） */
+  totalWordCount: number;
+  wordcount: FrontendConfig['wordcount'];
   appConfig: FrontendConfig;
   wikiLinkMap?: WikiLinkMap;
   backlinks?: BacklinkInfo[];
@@ -226,7 +227,7 @@ export function PostDetailBody({
         <ShareButtons
           title={file.meta.title as string}
           url={fullUrl}
-          config={buildShareConfig(appConfig)}
+          config={appConfig.share ?? null}
         />
         <Button
           variant="secondary"
@@ -258,15 +259,28 @@ export function PostDetailBody({
         <LazyGiscus slug={fullPath} />
       </div>
 
-      {showWordCount && (
-        <div className="mt-12 px-6 py-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-100 dark:border-zinc-700">
-          <div className="text-sm text-zinc-500 dark:text-zinc-400 text-center">
-            <span>{t('posts.wordCountLabel', { count: wordCount.toLocaleString() })}</span>
-            <span className="mx-2 text-zinc-300 dark:text-zinc-600">|</span>
-            <span>{t('posts.readingTimeLabel', { minutes: readingTime })}</span>
+      {/* 字数统计 — enable 总开关 + 三子开关分别展示 */}
+      {(() => {
+        const stats = wordcount?.enable === true
+          ? [
+              wordcount.postWordcount ? t('posts.wordCountLabel', { count: wordCount.toLocaleString() }) : null,
+              wordcount.min2read ? t('posts.readingTimeLabel', { minutes: readingTime }) : null,
+              wordcount.totalWordcount ? t('posts.totalWordsLabel', { count: totalWordCount.toLocaleString() }) : null,
+            ].filter((s): s is string => !!s)
+          : [];
+        return stats.length > 0 ? (
+          <div className="mt-12 px-6 py-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-100 dark:border-zinc-700">
+            <div className="text-sm text-zinc-500 dark:text-zinc-400 text-center">
+              {stats.map((s, i) => (
+                <span key={i}>
+                  {i > 0 && <span className="mx-2 text-zinc-300 dark:text-zinc-600">|</span>}
+                  {s}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        ) : null;
+      })()}
 
       <PostRelated posts={relatedPosts} />
 

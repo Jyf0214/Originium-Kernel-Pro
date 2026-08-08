@@ -2,25 +2,9 @@ import { NextResponse } from 'next/server';
 import { apiHandler } from '@/lib/api-handler';
 import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
+import { countChars } from '@/lib/content-stats';
 import { getDb } from '@/lib/db';
 import { getTranslate } from '@/i18n/translate';
-
-/** 清除 Markdown 标记，统计有效字符数 */
-function countChars(text: string): number {
-  return text
-    .replace(/<[^>]+>/g, '')
-    .replace(/^#{1,6}\s+/gm, '')
-    .replace(/[*_]{1,3}/g, '')
-    .replace(/`{1,3}[^`]*`{1,3}/g, '')
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '')
-    .replace(/^>\s+/gm, '')
-    .replace(/^[-*_]{3,}\s*$/gm, '')
-    .replace(/^---[\s\S]*?---\s*/m, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .length;
-}
 
 /** 从 slug 提取分类（第一级目录名） */
 function extractCategory(slug: string): string {

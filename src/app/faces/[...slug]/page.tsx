@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { ArrowLeft, Code, Eye } from 'lucide-react';
 import { GlobalLoading } from '@/components/Loading';
 import Footer from '@/components/Footer';
+import TableOfContents from '@/components/TableOfContents';
 import { notFound, useParams } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
@@ -182,6 +183,8 @@ export default function FaceDetailPage() {
           />
           <FaceDetailContent file={file} showRaw={showRaw} rawContent={rawContent} fullPath={fullPath} />
         </article>
+        {/* 页面级目录（toc.page 开启时显示，服务 faces 长文页） */}
+        <TableOfContents content={rawContent || file.content} pageType="page" />
       </PageContainer>
       <Footer />
     </div>

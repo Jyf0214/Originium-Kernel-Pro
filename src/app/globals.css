@@ -157,6 +157,28 @@ pre {
   text-transform: uppercase;
   user-select: none;
 }
+/* 构建时 HTML 代码块右上角工具条：语言徽章 + 复制 + 折叠 */
+.code-toolbar {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+pre:hover .code-toolbar {
+  opacity: 1;
+}
+.code-toolbar .code-lang-badge {
+  position: static;
+}
+.code-toolbar .code-copy-btn {
+  position: static;
+  opacity: 1;
+}
 .code-copy-btn {
   position: absolute;
   top: 0.5rem;
@@ -166,6 +188,20 @@ pre {
 }
 pre:hover .code-copy-btn {
   opacity: 1;
+}
+.code-collapse-btn {
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  border-radius: 0.25rem;
+  background: rgba(255,255,255,0.1);
+  color: rgb(161 161 170);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  user-select: none;
+}
+.code-collapse-btn:hover {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
 }
 
 /* 全局焦点可见性样式 */

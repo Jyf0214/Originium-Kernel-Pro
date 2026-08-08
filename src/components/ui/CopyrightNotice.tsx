@@ -16,6 +16,8 @@ export interface CopyrightNoticeProps {
     license: string;
     licenseUrl: string;
     authorLink: string;
+    /** 作者站外链接（非空时作者名跳转站外，优先于 authorLink） */
+    authorHref?: string;
     authorImgFront?: string;
     location?: string;
     decode?: boolean;
@@ -39,13 +41,20 @@ function AuthorInfoRow({
   displayLocation,
   bio,
   authorLink,
+  authorHref,
 }: {
   displayAvatar?: string;
   displayAuthor: string;
   displayLocation?: string;
   bio?: string;
   authorLink: string;
+  authorHref?: string;
 }) {
+  const authorName = (
+    <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors truncate">
+      {displayAuthor}
+    </span>
+  );
   return (
     <>
       <div className="flex items-center gap-3 mb-4">
@@ -60,12 +69,20 @@ function AuthorInfoRow({
           <div className="rounded-full w-10 h-10 bg-zinc-200 dark:bg-zinc-700 shrink-0" aria-hidden />
         )}
         <div className="flex items-center gap-2 min-w-0">
-          <Link
-            href={authorLink}
-            className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors truncate"
-          >
-            {displayAuthor}
-          </Link>
+          {authorHref ? (
+            <a
+              href={authorHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors truncate"
+            >
+              {authorName}
+            </a>
+          ) : (
+            <Link href={authorLink} className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors truncate">
+              {authorName}
+            </Link>
+          )}
           {displayLocation && (
             <span className="text-xs text-zinc-400 dark:text-zinc-500 shrink-0">{displayLocation}</span>
           )}
@@ -147,6 +164,7 @@ export function CopyrightNotice({
         displayLocation={displayLocation}
         bio={authorInfo?.bio}
         authorLink={config.authorLink}
+        authorHref={config.authorHref}
       />
 
       {/* 文章标题 + 原创/转载标识（移动端隐藏，避免与顶部标题重复） */}

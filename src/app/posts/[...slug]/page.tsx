@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 
 import { getContentFile, getContentFiles, getContentIndexes, filterPublicFiles, getAllSlugs, getAdjacentPosts } from '@/lib/content';
 import { buildWikiLinkMap, getBacklinks, getOutgoingReferences } from '@/lib/content-registry';
+import { computeTotalWordCount } from '@/lib/content-stats';
 import { loadConfig } from '@/lib/config';
 import { getAuthorByName } from '@/lib/authors';
 import { getSiteUrl } from '@/const/url';
@@ -71,6 +72,7 @@ export default async function PostDetailPage({ params }: PageProps) {
         title={file.meta.title}
         author={file.meta.author}
         date={file.meta.date}
+        updated={file.meta.updated}
         type={file.meta.type}
         tags={file.meta.tags}
         cover={file.meta.cover}
@@ -114,7 +116,8 @@ async function buildViewModel(
   const wikiLinkMap = buildWikiLinkMap();
 
   // 构建时预渲染 Markdown → HTML（使 curl / AI 爬虫可获取完整正文）
-  const htmlContent = await renderMarkdownToHtml(content, { wikiLinkMap });
+  // highlight 配置控制代码块：语言徽章 / 复制 / 折叠 / 换行 / 主题
+  const htmlContent = await renderMarkdownToHtml(content, { wikiLinkMap, highlight: appConfig.highlight });
   const backlinks = getBacklinks('posts', fullPath);
   const outgoingRefs = getOutgoingReferences('posts', fullPath);
   const authorName = typeof meta.author === 'string' ? meta.author : '';
@@ -157,9 +160,9 @@ async function buildViewModel(
     breadcrumbs: buildBreadcrumbs(slug),
     wordCount: stats.wordCount,
     readingTime: stats.readingTime,
+    totalWordCount: computeTotalWordCount(),
     headingCount: stats.headingCount,
-    showWordCount: appConfig.wordcount?.enable ?? false,
-    highlight: appConfig.highlight,
+    wordcount: appConfig.wordcount,
     tocConfig,
     appConfig,
     wikiLinkMap,

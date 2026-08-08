@@ -18,6 +18,7 @@ import rehypeRaw from 'rehype-raw';
 import rehypeKatex from 'rehype-katex';
 import rehypePrismPlus from 'rehype-prism-plus';
 import rehypeStringify from 'rehype-stringify';
+import { getTranslate } from '@/i18n/translate';
 import { slugify } from './slugify';
 
 /* ── Wiki 链接预处理 ── */
@@ -201,15 +202,142 @@ function rehypeHeadingIds(): any {
 
 /* ── 主渲染函数 ── */
 
+export interface HighlightRenderOptions {
+  theme?: string;
+  copy?: boolean;
+  lang?: boolean;
+  shrink?: boolean;
+  heightLimit?: number;
+  wordWrap?: boolean;
+}
+
 export interface RenderMarkdownOptions {
   wikiLinkMap?: Record<string, { url: string; title: string }>;
+  /** 代码块显示配置（highlight 段）：语言徽章 / 复制按钮 / 折叠 / 换行 / 主题 */
+  highlight?: HighlightRenderOptions;
 }
+
+/**
+ * 为构建时 HTML 的代码块应用 highlight 配置：
+ * - lang：语言徽章（右上角）
+ * - copy：一键复制按钮
+ * - shrink + heightLimit：超长代码块折叠（初始状态由 shrink 决定）
+ * - wordWrap：是否自动换行
+ * - theme：data-theme 钩子（供 CSS 主题化）
+ */
+/* eslint-disable @typescript-eslint/no-explicit-any -- unified hast AST 遍历必须用 any */
+function rehypeCodeBlockEnhance(highlight?: HighlightRenderOptions): any {
+  return (tree: any) => {
+    if (!highlight) return;
+    const {
+      copy = true,
+      lang = true,
+      shrink = false,
+      heightLimit = 330,
+      wordWrap = true,
+      theme,
+    } = highlight;
+
+    /** 应用换行策略（wordWrap：自动换行；否则横向滚动） */
+    function applyWordWrap(node: any, baseStyle: Record<string, string>) {
+      if (wordWrap) {
+        baseStyle.whiteSpace = 'pre-wrap';
+        baseStyle.wordBreak = 'break-word';
+      } else {
+        baseStyle.whiteSpace = 'pre';
+        baseStyle.overflowX = 'auto';
+      }
+      node.properties.style = baseStyle;
+    }
+
+    /** 超长代码块折叠标记与初始折叠样式，返回是否超长 */
+    function applyShrinkMark(node: any, baseStyle: Record<string, string>, textLength: number) {
+      const exceedsLimit = heightLimit > 0 && textLength > heightLimit;
+      if (!exceedsLimit) return false;
+      node.properties['data-shrinkable'] = '1';
+      node.properties['data-height-limit'] = String(heightLimit);
+      if (shrink) {
+        node.properties.style = { ...baseStyle, maxHeight: `${heightLimit}px`, overflow: 'hidden' };
+      }
+      return true;
+    }
+
+    /** 右上角工具条：语言徽章 + 复制按钮 + 折叠按钮 */
+    function buildToolbar(langName: string | undefined, exceedsLimit: boolean) {
+      const showToolbar = (lang && langName) || copy || exceedsLimit;
+      if (!showToolbar) return null;
+      const children: any[] = [];
+      if (lang && langName) {
+        children.push({
+          type: 'element',
+          tagName: 'span',
+          properties: { className: ['code-lang-badge'] },
+          children: [{ type: 'text', value: langName }],
+        });
+      }
+      if (copy) {
+        children.push({
+          type: 'element',
+          tagName: 'button',
+          properties: { type: 'button', className: ['code-copy-btn'] },
+          children: [{ type: 'text', value: getTranslate('components.markdown.copy') }],
+        });
+      }
+      if (exceedsLimit) {
+        children.push({
+          type: 'element',
+          tagName: 'button',
+          properties: { type: 'button', className: ['code-collapse-btn'] },
+          children: [{
+            type: 'text',
+            value: getTranslate(shrink ? 'components.markdown.expand' : 'components.markdown.collapse'),
+          }],
+        });
+      }
+      return {
+        type: 'element',
+        tagName: 'div',
+        properties: { className: ['code-toolbar'] },
+        children,
+      };
+    }
+
+    /** 提取 code 子元素与语言名 */
+    function extractCodeInfo(node: any) {
+      const code = node.children?.find((c: any) => c?.type === 'element' && c.tagName === 'code');
+      const langName = Array.isArray(code?.properties?.className)
+        ? (code.properties.className as string[]).find((c: string) => c.startsWith('language-'))?.slice('language-'.length)
+        : undefined;
+      return { code, langName };
+    }
+
+    function walk(node: any) {
+      if (!node || typeof node !== 'object') return;
+      if (node.type === 'element' && node.tagName === 'pre') {
+        const { code, langName } = extractCodeInfo(node);
+        const text = code ? hastTextContent(code) : '';
+
+        node.properties = node.properties || {};
+        const baseStyle: Record<string, string> = { ...(node.properties.style ?? {}) };
+        applyWordWrap(node, baseStyle);
+        // 主题钩子（CSS 通过 [data-theme] 定制 token 配色）
+        if (theme) node.properties['data-theme'] = theme;
+        const exceedsLimit = applyShrinkMark(node, baseStyle, text.length);
+        const toolbar = buildToolbar(langName, exceedsLimit);
+        if (toolbar) node.children = [toolbar, ...node.children];
+      }
+      if (Array.isArray(node.children)) node.children.forEach(walk);
+    }
+    walk(tree);
+  };
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export async function renderMarkdownToHtml(
   content: string,
   options: RenderMarkdownOptions = {},
 ): Promise<string> {
-  const { wikiLinkMap } = options;
+  const { wikiLinkMap, highlight } = options;
   const processed = preprocessWikiLinks(content, wikiLinkMap);
 
   const pipeline = unified()
@@ -224,6 +352,7 @@ export async function renderMarkdownToHtml(
     .use(rehypeHeadingOffset, 1)
     .use(rehypeHeadingIds)
     .use(rehypeMermaid)
+    .use(rehypeCodeBlockEnhance, highlight)
     .use(rehypeStringify);
 
   const result = await pipeline.process(processed);

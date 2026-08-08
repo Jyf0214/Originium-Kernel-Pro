@@ -9,6 +9,18 @@ import { EASE_STANDARD } from '@/components/ui/motion';
 import { useI18n } from '@/hooks/use-i18n';
 import type { AuthorInfo } from '@/types/author';
 
+/** #rrggbb → rgba() 字符串，解析失败时回退到中性灰 */
+function hexToRgba(hex: string, alpha: number): string {
+  const m = hex.replace('#', '');
+  const r = parseInt(m.slice(0, 2), 16);
+  const g = parseInt(m.slice(2, 4), 16);
+  const b = parseInt(m.slice(4, 6), 16);
+  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) {
+    return `rgba(113, 113, 122, ${alpha})`;
+  }
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 /** 原创/转载标识徽章 — 跨上下文共享 */
 function TypeBadge({
   typeStr,
@@ -90,31 +102,119 @@ const itemVariants: Variants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE_STANDARD } },
 };
 
+/* ── 封面背景层 ── */
+
+function CoverBackground({
+  coverRef,
+  parallax,
+  coverStr,
+  fullBleed,
+  accentColor,
+}: {
+  coverRef: React.RefObject<HTMLDivElement | null>;
+  parallax: { scale: number; translateY: number };
+  coverStr?: string;
+  fullBleed?: boolean;
+  accentColor?: string;
+}) {
+  return (
+    <div
+      ref={coverRef}
+      className="absolute inset-0"
+      style={{
+        transform: `scale(${parallax.scale}) translateY(${parallax.translateY}px)`,
+        willChange: 'transform',
+      }}
+    >
+      {coverStr ? (
+        <Image
+          src={coverStr}
+          alt=""
+          fill
+          sizes="100vw"
+          className="absolute inset-0 object-cover scale-110"
+          style={{
+            filter: fullBleed ? 'blur(8px) brightness(0.55)' : 'blur-sm',
+          }}
+          priority
+        />
+      ) : (
+        <div
+          className="absolute inset-0 scale-110"
+          style={
+            accentColor
+              ? {
+                  background: `linear-gradient(135deg, ${accentColor} 0%, #3f3f46 55%, #18181b 100%)`,
+                  filter: 'brightness(0.75)',
+                }
+              : {
+                  background: 'linear-gradient(135deg, #52525b 0%, #3f3f46 55%, #18181b 100%)',
+                  filter: 'brightness(0.75)',
+                }
+          }
+        />
+      )}
+      {/* 渐变遮罩层 — 从底部到顶部的暗度过渡 */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
+      {/* 暗角效果 — 四周渐暗，聚焦中心 */}
+      <div
+        className="absolute inset-0 md:block hidden"
+        style={{
+          background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%)',
+        }}
+      />
+      {/* inset box-shadow 光晕 — 模拟 Anzhiyu 主题色光晕效果 */}
+      {fullBleed && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            boxShadow: accentColor
+              ? `inset 80px -100px 250px 50px ${hexToRgba(accentColor, 0.25)}`
+              : 'inset 80px -100px 250px 50px rgba(113, 113, 122, 0.15)',
+          }}
+        />
+      )}
+      {/* 暗色模式氛围层 — 额外压暗 */}
+      <div className="absolute inset-0 bg-black/0 dark:bg-black/20 transition-colors duration-300" />
+    </div>
+  );
+}
+
 /* ── 封面 Hero ── */
 
 export function CoverHero({
   titleStr,
   authorStr,
   dateStr,
+  updatedStr,
+  showUpdated,
   typeStr,
   tagsArr,
   coverStr,
   fullBleed = false,
   authorInfo,
+  accentColor,
 }: {
   titleStr: string;
   authorStr?: string;
   dateStr?: string;
+  /** 更新日期（postMeta.post.dateType=both 时展示） */
+  updatedStr?: string;
+  /** 是否展示更新日期（dateType=both） */
+  showUpdated?: boolean;
   typeStr?: string;
   tagsArr: string[];
   coverStr?: string;
   /** 全屏宽模式：去掉负 margin 和圆角，封面撑满视口 */
   fullBleed?: boolean;
   authorInfo?: AuthorInfo | null;
+  /** 主色调（#rrggbb）：无封面时用于渐变背景，有封面时用于光晕 */
+  accentColor?: string;
 }) {
   const coverRef = useRef<HTMLDivElement>(null);
   const parallax = useCoverParallax(coverRef);
   const [mounted, setMounted] = useState(false);
+  const { t } = useI18n();
 
   useEffect(() => {
     setMounted(true);
@@ -122,54 +222,7 @@ export function CoverHero({
 
   return (
     <header className={`relative overflow-hidden ${fullBleed ? 'aspect-video mb-0' : '-m-6 sm:-m-8 md:-m-10 lg:-m-12 mb-12 rounded-t-3xl'}`}>
-      {/* 封面图片层 — 艺术化处理：旋转 + 模糊 + 暗化 + 缩放视差 */}
-      <div
-        ref={coverRef}
-        className="absolute inset-0"
-        style={{
-          transform: `scale(${parallax.scale}) translateY(${parallax.translateY}px)`,
-          willChange: 'transform',
-        }}
-      >
-        {coverStr ? (
-          <Image
-            src={coverStr}
-            alt=""
-            fill
-            sizes="100vw"
-            className="absolute inset-0 object-cover scale-110"
-            style={{
-              filter: fullBleed ? 'blur(8px) brightness(0.55)' : 'blur-sm',
-            }}
-            priority
-          />
-        ) : (
-          <div
-            className="absolute inset-0 bg-gradient-to-br from-zinc-600 via-zinc-700 to-zinc-900 scale-110"
-            style={{ filter: 'blur(0px) brightness(0.55)' }}
-          />
-        )}
-        {/* 渐变遮罩层 — 从底部到顶部的暗度过渡 */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
-        {/* 暗角效果 — 四周渐暗，聚焦中心 */}
-        <div
-          className="absolute inset-0 md:block hidden"
-          style={{
-            background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%)',
-          }}
-        />
-        {/* inset box-shadow 光晕 — 模拟 Anzhiyu 主题色光晕效果 */}
-        {fullBleed && (
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              boxShadow: 'inset 80px -100px 250px 50px rgba(113, 113, 122, 0.15)',
-            }}
-          />
-        )}
-        {/* 暗色模式氛围层 — 额外压暗 */}
-        <div className="absolute inset-0 bg-black/0 dark:bg-black/20 transition-colors duration-300" />
-      </div>
+      <CoverBackground coverRef={coverRef} parallax={parallax} coverStr={coverStr} fullBleed={fullBleed} accentColor={accentColor} />
 
       {/* 底部渐变过渡 — 从封面色过渡到页面背景色 */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent via-black/20 to-zinc-50 dark:to-zinc-900 z-[1]" />
@@ -221,6 +274,16 @@ export function CoverHero({
                   month: 'long',
                   day: 'numeric',
                 })}
+                {showUpdated && updatedStr && (
+                  <span className="text-white/60">
+                    · {t('posts.updatedOn')}{' '}
+                    {new Date(updatedStr).toLocaleDateString('zh-CN', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </span>
+                )}
               </time>
             )}
           </motion.div>
