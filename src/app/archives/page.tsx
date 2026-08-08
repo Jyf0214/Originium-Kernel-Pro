@@ -1,6 +1,8 @@
 import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
+import { loadConfig } from '@/lib/config';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { Tag } from '@/components/ui/Tag';
+import { LazyImage } from '@/components/ui/LazyImage';
 import Link from 'next/link';
 import { getTranslate } from '@/i18n/translate';
 import type { Metadata } from 'next';
@@ -18,12 +20,14 @@ interface YearGroup {
     title: string;
     date: string;
     tags: string[];
+    cover?: string;
   }[];
 }
 
-export default function ArchivesPage() {
+export default async function ArchivesPage() {
   const allFiles = getContentFiles('posts');
   const indexes = getContentIndexes('posts');
+  const config = await loadConfig();
 
   // 仅展示 public 且未隐藏的帖子（与首页、帖子列表页保持一致）
   const publicFiles = filterPublicFiles(allFiles, indexes);
@@ -35,6 +39,7 @@ export default function ArchivesPage() {
       title: f.meta.title,
       date: f.meta.date ?? '',
       tags: f.meta.tags ?? [],
+      cover: typeof f.meta.cover === 'string' ? f.meta.cover : undefined,
     }))
     .filter((p) => p.date !== '');
 
@@ -71,6 +76,10 @@ export default function ArchivesPage() {
     return `${month}-${day}`;
   };
 
+  // 归档封面缩略图：archivesEnable 开启时显示封面（文章封面缺失时回退到默认封面）
+  const showCover = config.cover?.archivesEnable ?? true;
+  const defaultCover = config.cover?.defaultCover?.[0];
+
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
       <PageContainer maxWidth="4xl" padding="wide">
@@ -99,6 +108,21 @@ export default function ArchivesPage() {
                     key={post.slug}
                     className="flex items-center gap-4 py-2 border-b border-zinc-100 dark:border-zinc-700 last:border-b-0"
                   >
+                    {showCover && (post.cover ?? defaultCover) && (
+                      <Link
+                        href={`/posts${post.slug}`}
+                        className="shrink-0 ui-interactive"
+                        aria-label={post.title}
+                      >
+                        <LazyImage
+                          src={post.cover ?? defaultCover!}
+                          alt={post.title}
+                          width={64}
+                          height={44}
+                          className="rounded-lg object-cover"
+                        />
+                      </Link>
+                    )}
                     <time className="text-sm text-zinc-400 dark:text-zinc-500 font-mono shrink-0 w-10">
                       {formatShortDate(post.date)}
                     </time>

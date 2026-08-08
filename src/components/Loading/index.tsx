@@ -3,16 +3,11 @@
 import { useMemo } from 'react';
 import { Spin } from 'antd';
 import { Loader2 } from 'lucide-react';
+import { useConfig } from '@/hooks/use-config';
 import { ProgressBar } from './ProgressBar';
 
 type LoadingType = 'spinner' | 'text' | 'dots' | 'glow' | 'waves' | 'antd' | 'progress';
 type LoadingPosition = 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
-
-interface LoadingConfig {
-  type: LoadingType;
-  color: string;
-  position?: LoadingPosition;
-}
 
 interface LoadingProps {
   size?: 'small' | 'default' | 'large';
@@ -117,8 +112,8 @@ interface GlobalLoadingProps extends LoadingProps {
   type?: LoadingType;
   forNavigation?: boolean;
   loadingConfig?: {
-    page?: LoadingConfig;
-    navigation?: { type: LoadingType; color: string };
+    page?: { type: LoadingType; color?: string; position?: LoadingPosition };
+    navigation?: { type: LoadingType; color?: string };
     slogans?: string[];
   };
   slogans?: string[];
@@ -183,10 +178,16 @@ function LoadingRenderer({ finalType, finalColor, finalPosition, size, tip }: {
 
 export function GlobalLoading(props: GlobalLoadingProps) {
   const { type, size, tip, color, position, forNavigation, loadingConfig, slogans: directSlogans } = props;
-  const resolved = resolveLoadingConfig({ type, size, tip, color, position, forNavigation, loadingConfig });
 
-  // 随机选择一条标语
-  const sloganList = directSlogans ?? loadingConfig?.slogans;
+  // 未显式传入 loadingConfig 时，自动读取站点配置 appearance.loading（所有调用点统一生效）
+  const { config } = useConfig();
+  const appearanceLoading = config?.appearance?.loading;
+  const effectiveLoadingConfig = loadingConfig ?? appearanceLoading;
+
+  const resolved = resolveLoadingConfig({ type, size, tip, color, position, forNavigation, loadingConfig: effectiveLoadingConfig });
+
+  // 随机选择一条标语（直接传入的 slogans 优先于配置）
+  const sloganList = directSlogans ?? effectiveLoadingConfig?.slogans;
   const slogan = useMemo(() => {
     if (!sloganList || sloganList.length === 0) return null;
     return sloganList[Math.floor(Math.random() * sloganList.length)] ?? null;
