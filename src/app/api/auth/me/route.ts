@@ -41,6 +41,7 @@ export async function GET() {
         role: user.role,
         userGroup: user.userGroup,
         avatar: avatar ?? undefined,
+        twoFactorEnabled: user.twoFactorEnabled === true,
       },
     });
   } catch (error) {

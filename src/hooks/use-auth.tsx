@@ -23,6 +23,7 @@ export interface User {
   role: UserRole;
   userGroup?: string;
   avatar?: string;
+  twoFactorEnabled?: boolean;
 }
 
 interface AuthContextType {

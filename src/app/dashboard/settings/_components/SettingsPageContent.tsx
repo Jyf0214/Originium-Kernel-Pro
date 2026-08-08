@@ -7,6 +7,8 @@ import ConfigSection from '@/components/ui/ConfigSection';
 import { SettingsPageHeader } from './SettingsPageHeader';
 import { SettingsForm } from './SettingsForm';
 import { ApiKeyCard } from './ApiKeyCard';
+import { TwoFactorCard } from './TwoFactorCard';
+import { ChangePasswordCard } from './ChangePasswordCard';
 import { useConfigData } from '../_lib/use-config-data';
 import { useSettingsForm } from '../_lib/use-settings-form';
 import { useSettingsSave } from '../_lib/use-settings-save';
@@ -46,6 +48,8 @@ export function SettingsPageContent() {
           <SettingsForm form={form} loading={loading} onSubmit={handleSave} />
         </ConfigSection>
         <ApiKeyCard />
+        <TwoFactorCard />
+        <ChangePasswordCard />
         {DiffModal}
       </div>
     </div>
