@@ -36,6 +36,7 @@ export default async function PostsPage() {
       slug: f.slug,
       title: f.meta.title,
       date: f.meta.date,
+      updated: typeof f.meta.updated === 'string' ? f.meta.updated : undefined,
       author: f.meta.author,
       authorAvatar: authorInfo?.avatar,
       authorNickname: authorInfo?.nickname,
@@ -76,7 +77,7 @@ export default async function PostsPage() {
         <div className="flex gap-8 items-start">
           <PostNavigation initialTree={navigationTree} />
           <div className="flex-1 min-w-0">
-            <PostListClient posts={posts} groups={groups} coverConfig={config.cover} />
+            <PostListClient posts={posts} groups={groups} coverConfig={config.cover} postMeta={config.postMeta?.page} />
           </div>
         </div>
       </main>

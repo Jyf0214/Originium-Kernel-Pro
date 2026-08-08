@@ -6,9 +6,10 @@ import { Calendar } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 import { Tag } from '@/components/ui/Tag';
-import { formatPostDate } from '@/lib/formatDate';
+import { formatPostDate, resolveDisplayDate } from '@/lib/formatDate';
 import type { TFunc } from '@/i18n/keys';
 import type { PostItem, CoverConfig } from './types';
+import type { PostMetaDisplayConfig } from '@/lib/config-types';
 import { PostCardCover } from './PostCardCover';
 import { PostCardBody } from './PostCardBody';
 
@@ -32,6 +33,7 @@ export const PostCard = React.memo(function PostCard({
   locale,
   t,
   compact,
+  postMeta,
 }: {
   post: PostItem;
   index: number;
@@ -40,8 +42,12 @@ export const PostCard = React.memo(function PostCard({
   locale: string;
   t: TFunc;
   compact?: boolean;
+  /** 列表页文章元信息显示配置（postMeta.page） */
+  postMeta?: PostMetaDisplayConfig;
 }) {
   const { isRowLayout, isVerticalCover, borderClass } = getCoverLayout(coverConfig);
+  const showTags = postMeta?.tags ?? true;
+  const shownDate = resolveDisplayDate(post.date, post.updated, postMeta?.dateType);
 
   // 紧凑模式：单行展示，无封面，仅标题+标签+日期
   if (compact) {
@@ -55,7 +61,7 @@ export const PostCard = React.memo(function PostCard({
         className="group bg-white dark:bg-zinc-800 rounded-2xl sm:rounded-2xl border-b border-zinc-100 dark:border-zinc-700 sm:border sm:border-zinc-100 dark:sm:border-zinc-700 px-4 sm:px-5 py-3 hover:border-zinc-300 dark:hover:border-zinc-600 hover:shadow-lg hover:shadow-zinc-100 dark:hover:shadow-zinc-900 transition-all duration-300"
       >
         <div className="flex items-center gap-3">
-          {post.tags.length > 0 && (
+          {showTags && post.tags.length > 0 && (
             <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
               {post.tags.slice(0, 2).map((tag) => (
                 <Tag key={tag} variant="light" size="md">
@@ -69,10 +75,10 @@ export const PostCard = React.memo(function PostCard({
               {post.title}
             </h2>
           </Link>
-          {post.date && (
+          {shownDate && (
             <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 dark:text-zinc-500 flex-shrink-0">
               <Calendar size={12} />
-              <span>{formatPostDate(post.date, locale)}</span>
+              <span>{formatPostDate(shownDate, locale, postMeta?.dateFormat ?? 'simple')}</span>
             </div>
           )}
         </div>
@@ -90,7 +96,7 @@ export const PostCard = React.memo(function PostCard({
       className={`group bg-white dark:bg-zinc-800 rounded-2xl sm:rounded-[2rem] overflow-hidden transition-all duration-500 shadow-none sm:shadow-sm hover:shadow-xl hover:shadow-zinc-100 dark:hover:shadow-zinc-900 ui-interactive ${isRowLayout ? 'flex' : 'flex flex-col'} ${borderClass}`}
     >
       <PostCardCover post={post} coverConfig={coverConfig} defaultCover={defaultCover} />
-      <PostCardBody post={post} locale={locale} t={t} position={coverConfig?.position} hasCover={isVerticalCover} />
+      <PostCardBody post={post} locale={locale} t={t} position={coverConfig?.position} hasCover={isVerticalCover} postMeta={postMeta} />
     </motion.article>
   );
 });

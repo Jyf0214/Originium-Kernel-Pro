@@ -2,6 +2,8 @@ export interface PostItem {
   slug: string;
   title: string;
   date?: string;
+  /** 更新日期（frontmatter updated，postMeta.dateType=updated/both 时展示） */
+  updated?: string;
   author?: string;
   /** 作者头像（来自 authors.yaml） */
   authorAvatar?: string;

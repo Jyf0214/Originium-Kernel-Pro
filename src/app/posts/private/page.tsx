@@ -1,5 +1,6 @@
 import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { getSession } from '@/lib/auth';
+import { loadConfig } from '@/lib/config';
 import { getAuthorByName } from '@/lib/authors';
 import { PostListClient } from '../PostListClient';
 import { redirect } from 'next/navigation';
@@ -24,6 +25,7 @@ export default async function PrivatePostsPage() {
 
   const allFiles = getContentFiles('posts');
   const indexes = getContentIndexes('posts');
+  const config = await loadConfig();
 
   // 仅展示 private 的帖子（目录标记 public: false），排除 hidden 帖子
   const privateFiles = allFiles.filter((file) => {
@@ -43,6 +45,7 @@ export default async function PrivatePostsPage() {
       slug: f.slug,
       title: f.meta.title,
       date: f.meta.date,
+      updated: typeof f.meta.updated === 'string' ? f.meta.updated : undefined,
       author: f.meta.author,
       authorAvatar: authorInfo?.avatar,
       authorNickname: authorInfo?.nickname,
@@ -68,7 +71,7 @@ export default async function PrivatePostsPage() {
           私人内容
         </h1>
         <p className="text-zinc-400 dark:text-zinc-500 text-lg mb-12">仅登录用户可见的私人帖子</p>
-        <PostListClient posts={posts} groups={groups} />
+        <PostListClient posts={posts} groups={groups} postMeta={config.postMeta?.page} />
       </main>
     </div>
   );

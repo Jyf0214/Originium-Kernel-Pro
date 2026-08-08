@@ -21,6 +21,7 @@ export function HomePostGrid({
   heroTitleLine2,
   defaultCover,
   coverConfig,
+  postMeta,
 }: HomePostGridProps) {
   const { t, locale } = useI18n();
   const {
@@ -72,6 +73,7 @@ export function HomePostGrid({
                     defaultCover={defaultCover}
                     t={t}
                     locale={locale}
+                    postMeta={postMeta}
                   />
                 ))
               : (

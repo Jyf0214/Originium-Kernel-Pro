@@ -39,7 +39,7 @@ function getSavedLayout(): LayoutMode {
   return 'grid';
 }
 
-export function PostListClient({ posts, groups, coverConfig }: PostListClientProps) {
+export function PostListClient({ posts, groups, coverConfig, postMeta }: PostListClientProps) {
   const { t, locale } = useI18n();
   const [layout, setLayout] = useState<LayoutMode>(() => getSavedLayout());
 
@@ -117,6 +117,7 @@ export function PostListClient({ posts, groups, coverConfig }: PostListClientPro
               locale={locale}
               t={t}
               compact={layout === 'compact'}
+              postMeta={postMeta}
             />
           ))}
         </AnimatePresence>

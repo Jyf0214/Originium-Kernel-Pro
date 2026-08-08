@@ -31,6 +31,7 @@ export default async function HomePage() {
       slug: f.slug,
       title: f.meta.title,
       date: f.meta.date,
+      updated: typeof f.meta.updated === 'string' ? f.meta.updated : undefined,
       author: f.meta.author,
       authorAvatar: authorInfo?.avatar,
       authorNickname: authorInfo?.nickname,
@@ -56,6 +57,7 @@ export default async function HomePage() {
         heroTitleLine2={config.site.heroTitleLine2}
         defaultCover={config.cover?.defaultCover?.[0]}
         coverConfig={config.cover}
+        postMeta={config.postMeta?.page}
       />
     </div>
   );
