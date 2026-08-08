@@ -73,7 +73,19 @@
     "verifierCodeHint": "请输入验证器 App 中显示的 6 位验证码",
     "verify": "验证",
     "verifyFailed": "验证失败",
-    "verifySuccess": "验证成功"
+    "verifySuccess": "验证成功",
+    "sudoModeActive": "sudo 模式已激活",
+    "sudoModeDesc": "输入管理员密码，15 分钟内获得超级管理员权限",
+    "sudoModeEnterFailed": "进入 sudo 模式失败",
+    "sudoModeEntry": "进入 sudo 模式",
+    "sudoModeExited": "sudo 模式已退出",
+    "sudoModeExit": "退出 sudo 模式",
+    "sudoModeExitFailed": "退出 sudo 模式失败",
+    "sudoModeExpiresIn": "剩余 {minutes} 分钟",
+    "sudoModePasswordPlaceholder": "请输入管理员密码",
+    "sudoModeSubmit": "验证并进入",
+    "sudoModeSubmitting": "验证中...",
+    "sudoModeTitle": "进入 sudo 模式"
   },
   "validation": {
     "required": "此项为必填项",
@@ -98,7 +110,9 @@
     "heroTitleLine1": "Write. Sync.",
     "heroTitleLine2": "Deploy.",
     "emptyTitle": "这里空空如也",
-    "pinned": "置顶"
+    "pinned": "置顶",
+    "categories": "分类",
+    "tags": "标签"
   },
   "dashboard": {
     "title": "控制台",
@@ -173,7 +187,6 @@
     "fileManager": "文件管理",
     "contentStats": "内容统计",
     "auditLogs": "审计日志",
-    "webVitals": "性能监控",
     "home": "首页"
   },
   "article": {
@@ -186,7 +199,7 @@
   },
   "user": {
     "settings": "账号设置",
-    "sudo": "超级管理员",
+    "root": "超级管理员",
     "admin": "管理员",
     "user": "普通用户"
   },
@@ -636,6 +649,7 @@
     "notFound": "帖子未找到",
     "wordCountLabel": "本文字数: {count} 字",
     "readingTimeLabel": "预计阅读: {minutes} 分钟",
+    "totalWordsLabel": "全站字数: {count} 字",
     "shareQR": "分享二维码",
     "closeToc": "关闭目录",
     "hiddenOnly": "仅展示",
@@ -646,6 +660,7 @@
     "privateMetaTitle": "私人内容 - Originium Kernel",
     "qrCode": "二维码",
     "reprint": "转载",
+    "updatedOn": "更新于",
     "tagDescription": "标签「{tag}」下的文章",
     "toc": "目录",
     "unit": "篇",
@@ -841,6 +856,7 @@
       "missingCredentials": "缺少登录信息或密码",
       "missingKeyId": "缺少密钥 ID",
       "missingParams": "缺少必要参数",
+      "missingPassword": "缺少密码",
       "passwordDataCorrupted": "用户密码数据异常，请联系管理员",
       "passwordResetSuccess": "密码重置成功",
       "queryFailed": "查询失败",
@@ -875,7 +891,14 @@
       "verifyTooFrequent": "验证尝试过于频繁，请 {seconds} 秒后重试",
       "weakNewPassword": "新密码不符合安全要求",
       "weakPassword": "密码不符合安全要求",
-      "unnamedKey": "未命名密钥"
+      "unnamedKey": "未命名密钥",
+      "sudoModeActive": "sudo 模式已激活",
+      "sudoModeAdminOnly": "仅管理员可以使用 sudo 模式",
+      "sudoModeEnterFailed": "进入 sudo 模式失败",
+      "sudoModeExited": "sudo 模式已退出",
+      "sudoModeExitFailed": "退出 sudo 模式失败",
+      "sudoModeNotNeeded": "当前角色无需进入 sudo 模式",
+      "sudoModeWrongPassword": "密码错误，无法进入 sudo 模式"
     },
     "backlinks": {
       "invalidParams": "参数无效：需要 section (posts|faces) 和 slug",
@@ -890,10 +913,10 @@
     },
     "config": {
       "githubNotConfigured": "GitHub 未配置",
-      "remoteValidationFailed": "远程配置校验失败",
       "saveToRemoteFailed": "配置保存到远程仓库失败",
-      "syncLabel": "同步配置",
-      "syncedFromGithub": "站点配置已从 GitHub 同步更新",
+      "getLabel": "获取配置",
+      "remoteSynced": "远程配置已同步",
+      "remoteFetchFailed": "拉取远程配置失败",
       "updateLabel": "更新配置",
       "updated": "站点配置已更新",
       "validationFailed": "配置校验失败",
@@ -920,6 +943,7 @@
       "getVersionHistory": "获取日记版本历史",
       "no": "否",
       "notFound": "日记不存在",
+      "privateDiary": "日记未公开，仅管理员可访问",
       "saveDraft": "保存草稿",
       "titleAndContentRequired": "标题和内容不能为空",
       "togglePin": "切换置顶状态",
@@ -1063,8 +1087,8 @@
       "getUser": "获取用户信息",
       "getUserList": "获取用户列表",
       "invalidRole": "无效的角色",
-      "sudoOnlyModifySudo": "仅超级管理员可以修改超级管理员角色",
-      "sudoOnlyPromote": "仅超级管理员可以设置管理员或超级管理员角色",
+      "rootOnlyModifyRoot": "仅超级管理员可以修改超级管理员角色",
+      "rootOnlyPromote": "仅超级管理员可以设置管理员或超级管理员角色",
       "updateUser": "更新用户信息"
     },
     "wikiLinkMap": {
@@ -1731,19 +1755,6 @@
     "subtitle": "记录走过的每一个地方",
     "title": "旅行足迹"
   },
-  "webVitals": {
-    "featureCwvDesc": "LCP、INP、CLS、TTFB 等核心性能指标，基于真实用户数据采集",
-    "featurePercentileDesc": "P50 / P75 / P95 分位数，按页面和指标维度聚合",
-    "featurePercentileTitle": "分位数统计",
-    "featureRealtimeDesc": "数据自动持久化，不受 Serverless 冷启动影响",
-    "featureRealtimeTitle": "实时监控",
-    "featureReliabilityDesc": "由 Vercel 平台直接采集，数据完整、准确、可追溯",
-    "featureReliabilityTitle": "生产级可靠性",
-    "migratedDesc": "Web Vitals 数据现在由 Vercel 平台直接采集和存储，不再使用自建的内存存储方案。请前往 Vercel Dashboard 查看完整的性能数据。",
-    "migratedTitle": "数据已迁移到 Vercel Analytics",
-    "openAnalytics": "打开 Vercel Analytics",
-    "subtitle": "Core Web Vitals 性能指标监控"
-  },
   "kaomoji": {
     "delete": {
       "really": "真的要删掉吗...",
@@ -1822,7 +1833,7 @@
       "passwordNeedUppercase": "密码必须包含至少 1 个大写字母",
       "requireAdmin": "需要管理员权限",
       "requireLogin": "需要登录",
-      "requireSudo": "需要超级管理员权限"
+      "requireRoot": "需要超级管理员权限"
     },
     "config": {
       "authorPrefix": "作者: ",
@@ -1895,6 +1906,14 @@
       "b2PathNotFound": "B2: 路径不存在: {key}",
       "webdavNotConfigured": "WebDAV 未配置,请在 .env.local 设置 WEBDAV_URL/WEBDAV_USER/WEBDAV_PASS",
       "webdavUnexpectedStat": "stat 返回了意外的数组类型"
+    },
+    "formatDate": {
+      "today": "今天",
+      "yesterday": "昨天",
+      "daysAgo": "{days} 天前",
+      "weeksAgo": "{weeks} 周前",
+      "monthsAgo": "{months} 个月前",
+      "yearsAgo": "{years} 年前"
     }
   }
 }

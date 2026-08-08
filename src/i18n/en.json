@@ -73,7 +73,19 @@
     "verifierCodeHint": "Enter the 6-digit code shown in your authenticator app",
     "verify": "Verify",
     "verifyFailed": "Verification failed",
-    "verifySuccess": "Verification successful"
+    "verifySuccess": "Verification successful",
+    "sudoModeActive": "Sudo mode active",
+    "sudoModeDesc": "Enter your admin password to gain super admin access for 15 minutes",
+    "sudoModeEnterFailed": "Failed to enter sudo mode",
+    "sudoModeEntry": "Enter sudo mode",
+    "sudoModeExited": "Sudo mode exited",
+    "sudoModeExit": "Exit sudo mode",
+    "sudoModeExitFailed": "Failed to exit sudo mode",
+    "sudoModeExpiresIn": "{minutes} minutes left",
+    "sudoModePasswordPlaceholder": "Enter your admin password",
+    "sudoModeSubmit": "Verify & enter",
+    "sudoModeSubmitting": "Verifying...",
+    "sudoModeTitle": "Enter sudo mode"
   },
   "validation": {
     "required": "This field is required",
@@ -98,7 +110,9 @@
     "heroTitleLine1": "Write. Sync.",
     "heroTitleLine2": "Deploy.",
     "emptyTitle": "The kernel is empty",
-    "pinned": "Pinned"
+    "pinned": "Pinned",
+    "categories": "Category",
+    "tags": "Tag"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -173,7 +187,6 @@
     "fileManager": "File Manager",
     "contentStats": "Content Stats",
     "auditLogs": "Audit Logs",
-    "webVitals": "Web Vitals",
     "home": "Home"
   },
   "article": {
@@ -186,7 +199,7 @@
   },
   "user": {
     "settings": "Account Settings",
-    "sudo": "Super Admin",
+    "root": "Super Admin",
     "admin": "Admin",
     "user": "User"
   },
@@ -636,6 +649,7 @@
     "notFound": "Post not found",
     "wordCountLabel": "{count} words",
     "readingTimeLabel": "{minutes} min read",
+    "totalWordsLabel": "Site total: {count} words",
     "shareQR": "Share QR Code",
     "closeToc": "Close table of contents",
     "hiddenOnly": "Members only",
@@ -646,6 +660,7 @@
     "privateMetaTitle": "Private Content - Originium Kernel",
     "qrCode": "QR Code",
     "reprint": "Reprint",
+    "updatedOn": "Updated on",
     "tagDescription": "Posts tagged 「{tag}」",
     "toc": "Table of Contents",
     "unit": "posts",
@@ -841,6 +856,7 @@
       "missingCredentials": "Missing login credentials",
       "missingKeyId": "Missing key ID",
       "missingParams": "Missing required parameters",
+      "missingPassword": "Password is missing",
       "passwordDataCorrupted": "User password data is corrupted, please contact the administrator",
       "passwordResetSuccess": "Password reset successfully",
       "queryFailed": "Query failed",
@@ -875,7 +891,14 @@
       "verifyTooFrequent": "Too many verification attempts, please retry in {seconds} seconds",
       "weakNewPassword": "New password does not meet security requirements",
       "weakPassword": "Password does not meet security requirements",
-      "unnamedKey": "Unnamed key"
+      "unnamedKey": "Unnamed key",
+      "sudoModeActive": "Sudo mode active",
+      "sudoModeAdminOnly": "Only admins can use sudo mode",
+      "sudoModeEnterFailed": "Failed to enter sudo mode",
+      "sudoModeExited": "Sudo mode exited",
+      "sudoModeExitFailed": "Failed to exit sudo mode",
+      "sudoModeNotNeeded": "Current role does not need sudo mode",
+      "sudoModeWrongPassword": "Incorrect password, cannot enter sudo mode"
     },
     "backlinks": {
       "invalidParams": "Invalid parameters: section (posts|faces) and slug are required",
@@ -890,10 +913,10 @@
     },
     "config": {
       "githubNotConfigured": "GitHub not configured",
-      "remoteValidationFailed": "Remote config validation failed",
       "saveToRemoteFailed": "Failed to save config to remote repository",
-      "syncLabel": "Sync Config",
-      "syncedFromGithub": "Site config synced from GitHub",
+      "getLabel": "Get Config",
+      "remoteSynced": "Remote config synced",
+      "remoteFetchFailed": "Failed to fetch remote config",
       "updateLabel": "Update Config",
       "updated": "Site config updated",
       "validationFailed": "Config validation failed",
@@ -920,6 +943,7 @@
       "getVersionHistory": "Get diary version history",
       "no": "No",
       "notFound": "Diary not found",
+      "privateDiary": "Diary is not public, only administrators can access it",
       "saveDraft": "Save draft",
       "titleAndContentRequired": "Title and content are required",
       "togglePin": "Toggle pin status",
@@ -1063,8 +1087,8 @@
       "getUser": "Get user info",
       "getUserList": "Get user list",
       "invalidRole": "Invalid role",
-      "sudoOnlyModifySudo": "Only sudo can modify sudo role",
-      "sudoOnlyPromote": "Only sudo can set admin or sudo role",
+      "rootOnlyModifyRoot": "Only root can modify root role",
+      "rootOnlyPromote": "Only root can set admin or root role",
       "updateUser": "Update user info"
     },
     "wikiLinkMap": {
@@ -1731,19 +1755,6 @@
     "subtitle": "Every place we have been",
     "title": "Travel Footprints"
   },
-  "webVitals": {
-    "featureCwvDesc": "Core performance metrics such as LCP, INP, CLS and TTFB, collected from real user data",
-    "featurePercentileDesc": "P50 / P75 / P95 percentiles, aggregated by page and metric",
-    "featurePercentileTitle": "Percentile statistics",
-    "featureRealtimeDesc": "Data is persisted automatically, unaffected by Serverless cold starts",
-    "featureRealtimeTitle": "Real-time monitoring",
-    "featureReliabilityDesc": "Collected directly by the Vercel platform, complete, accurate and traceable",
-    "featureReliabilityTitle": "Production-grade reliability",
-    "migratedDesc": "Web Vitals data is now collected and stored directly by the Vercel platform, no longer using the self-hosted in-memory solution. Visit the Vercel Dashboard for the full performance data.",
-    "migratedTitle": "Data migrated to Vercel Analytics",
-    "openAnalytics": "Open Vercel Analytics",
-    "subtitle": "Core Web Vitals performance monitoring"
-  },
   "kaomoji": {
     "delete": {
       "really": "Are you sure you want to delete it?",
@@ -1822,7 +1833,7 @@
       "passwordNeedUppercase": "Password must contain at least 1 uppercase letter",
       "requireAdmin": "Admin access required",
       "requireLogin": "Login required",
-      "requireSudo": "Super admin access required"
+      "requireRoot": "Super admin access required"
     },
     "config": {
       "authorPrefix": "Author: ",
@@ -1895,6 +1906,14 @@
       "b2PathNotFound": "B2: path not found: {key}",
       "webdavNotConfigured": "WebDAV not configured. Set WEBDAV_URL/WEBDAV_USER/WEBDAV_PASS in .env.local",
       "webdavUnexpectedStat": "stat returned an unexpected array type"
+    },
+    "formatDate": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "daysAgo": "{days} days ago",
+      "weeksAgo": "{weeks} weeks ago",
+      "monthsAgo": "{months} months ago",
+      "yearsAgo": "{years} years ago"
     }
   }
 }
