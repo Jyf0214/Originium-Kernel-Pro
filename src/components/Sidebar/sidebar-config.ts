@@ -11,7 +11,6 @@ import {
   Eye,
   BarChart3,
   ScrollText,
-  Gauge,
   FolderOpen,
 } from 'lucide-react';
 import type { MenuItem } from './types';
@@ -31,7 +30,6 @@ export const menuItems: MenuItem[] = [
   { key: 'sidebar.configPreview', icon: Eye, href: '/dashboard/config/preview', group: 'admin', roles: ['sudo'], requiresDb: true },
   { key: 'sidebar.envVariables', icon: Activity, href: '/dashboard/env', group: 'admin', roles: ['sudo'], requiresDb: true },
   { key: 'sidebar.contentStats', icon: BarChart3, href: '/dashboard/stats', group: 'admin', roles: ['sudo'], requiresDb: true },
-  { key: 'sidebar.webVitals', icon: Gauge, href: '/dashboard/web-vitals', group: 'admin', roles: ['sudo'], requiresDb: true },
   { key: 'sidebar.auditLogs', icon: ScrollText, href: '/dashboard/audit', group: 'admin', roles: ['sudo'], requiresDb: true },
 ];
 
