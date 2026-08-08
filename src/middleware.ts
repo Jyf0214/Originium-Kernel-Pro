@@ -12,7 +12,6 @@
  * - /api/health     → 公开
  * - /api/posts/**   → 公开（点赞、查询）
  * - /api/faces      → 公开
- * - /api/authors    → 公开
  * - 其他 /api/**    → 必须登录
  *
  * 注意：此 middleware 仅做粗粒度拦截，细粒度权限（如 sudo、API 密钥权限）
@@ -43,14 +42,9 @@ const PUBLIC_PATHS = new Set([
   '/api/auth/me',
   '/api/auth/reset-password',
   '/api/auth/apikey-login',
-  '/api/posts',
   '/api/posts/like',
   '/api/faces',
-  '/api/authors',
   '/api/feedback',
-  '/api/share',
-  '/api/web-vitals',
-  '/api/report-error',
 ]);
 
 /** 公开路径前缀 */
@@ -58,7 +52,6 @@ const PUBLIC_PREFIXES = [
   '/api/auth/2fa/',   // 2FA 流程需要公开访问（但有临时令牌验证）
   '/api/articles',    // 文章公开查询
   '/api/diary',       // 日记公开查询（具体权限由路由控制）
-  '/api/u/',          // 用户主页路由
 ];
 
 function isPublicPath(pathname: string): boolean {

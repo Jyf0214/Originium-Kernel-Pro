@@ -1,6 +1,6 @@
 # Originium Kernel
 
-一个基于 Next.js 16 构建的现代内容发布平台，支持文章管理、GitHub 同步、用户系统、工单系统、人脸画廊与 WebDAV 存储池等功能。
+一个基于 Next.js 16 构建的现代内容发布平台，支持文章管理、GitHub 同步、用户系统、人脸画廊与 WebDAV 存储池等功能。
 
 ## 核心功能
 
@@ -10,8 +10,6 @@
 - **日记管理** - 日记内容全部存储于数据库，支持创建、编辑、删除、置顶、分组、引用与草稿自动保存
 - **GitHub 同步** - 通过 Octokit 将配置同步到 GitHub 仓库
 - **用户管理** - 三级权限系统（sudo/admin/user），支持双因素认证
-- **工单系统** - 可自定义工单模板，支持多种字段类型（input / textarea / dropdown）
-- **文章删除申请** - 普通用户可对私密 Posts 发起删除申请，管理员审批
 - **回收站** - 文章删除后进入回收站，30 天缓冲期可恢复
 - **存储池（WebDAV / Backblaze B2）** - 通过环境变量 `STORAGE_TYPE` 切换存储后端：WebDAV（Nextcloud / 群晖 / 坚果云等）或 Backblaze B2（S3 兼容，支持 Cloudflare CDN 免费出口流量）。支持文件夹级 ACL、公开/私有访问与目录密码
 - **全局搜索** - `Ctrl/Cmd+K` 唤起搜索面板，跨文章/Posts/Faces/页面
@@ -133,8 +131,8 @@ npm run start
 
 | 角色 | 权限 |
 |------|------|
-| `user` | 创建/编辑/删除自己的文章、Posts、Faces；发起文章删除申请 |
-| `admin` | `user` 全部权限 + 管理所有用户、系统配置、工单模板、文章删除申请、回收站 |
+| `user` | 创建/编辑/删除自己的文章、Posts、Faces |
+| `admin` | `user` 全部权限 + 管理所有用户、系统配置、回收站 |
 | `sudo` | `admin` 全部权限 + WebDAV 存储池管理（`/dashboard/storage` 唯一入口） |
 
 权限检查统一通过 `apiHandler` 的 `requireAdmin`（含 `admin` 与 `sudo`）实现；`/dashboard/storage` 单独要求 `sudo`。

@@ -204,20 +204,4 @@ export function getDb(): IDatabase {
   return dbInstance
 }
 
-// 存储辅助函数
-export const storage = {
-  async saveFile(path: string, content: string) {
-    const db = getDb()
-    const base64 = Buffer.from(content).toString('base64')
-    await db.set(`file:${path}`, base64)
-  },
-
-  async getFile(path: string): Promise<string | null> {
-    const db = getDb()
-    const base64 = await db.get(`file:${path}`)
-    if (!base64) return null
-    return Buffer.from(base64, 'base64').toString('utf-8')
-  }
-}
-
 export default prisma

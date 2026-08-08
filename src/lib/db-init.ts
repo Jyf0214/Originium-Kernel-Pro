@@ -80,9 +80,3 @@ async function doInit(): Promise<{ created: boolean; error?: string }> {
     return initResult;
   }
 }
-
-export function resetInitState(): void {
-  initAttempted = false;
-  initResult = null;
-  initPromise = null;
-}

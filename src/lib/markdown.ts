@@ -43,16 +43,3 @@ export function parseMarkdown(markdown: string): ParsedMarkdown {
 export function generateMarkdown(frontMatter: FrontMatter, content: string): string {
   return matter.stringify(content, frontMatter);
 }
-
-/**
- * Format date for display
- */
-export function formatDate(dateString?: string): string {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}

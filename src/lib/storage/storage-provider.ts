@@ -11,7 +11,6 @@
  * - 返回值类型与 lib/storage/types.ts 对齐
  */
 import type { FileStat } from 'webdav'
-import { getTranslate } from '@/i18n/translate'
 
 /** 存储后端类型标识 */
 export type StorageBackend = 'webdav' | 'backblaze'
@@ -124,26 +123,6 @@ export async function getStorageProvider(): Promise<StorageProvider> {
 
   console.warn(`[storage] 激活后端: ${activeProvider.backend}`)
   return activeProvider
-}
-
-/**
- * 获取当前激活的存储提供者（同步版本）
- *
- * 仅在已初始化后使用。若未初始化则抛出错误。
- * 调用方应先调用 getStorageProvider() 确保 provider 已初始化。
- */
-export function getStorageProviderSync(): StorageProvider {
-  if (!activeProvider) {
-    throw new Error(getTranslate('lib.storage.notInitialized'))
-  }
-  return activeProvider
-}
-
-/**
- * 重置提供者单例（仅供测试使用）
- */
-export function resetStorageProvider(): void {
-  activeProvider = null
 }
 
 /**
