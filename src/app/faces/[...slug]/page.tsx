@@ -6,10 +6,10 @@ import { Avatar } from '@/components/Avatar';
 import { LazyMarkdownRenderer as MarkdownRenderer } from '@/components/MarkdownRenderer/dynamic';
 import { BacklinkPanel } from '@/components/BacklinkPanel';
 import Link from 'next/link';
-import { ArrowLeft, Code, Eye } from 'lucide-react';
+import { ArrowLeft, Code, Eye, Pencil } from 'lucide-react';
 import { GlobalLoading } from '@/components/Loading';
 import Footer from '@/components/Footer';
-import TableOfContents from '@/components/TableOfContents';
+import { TOC } from '@/components/ui/TOC';
 import { notFound, useParams } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
@@ -57,12 +57,13 @@ function BreadcrumbsNav({ slugArray }: { slugArray: string[] }) {
   );
 }
 
-function FaceDetailHeader({ file, isRoot, rawContent, showRaw, setShowRaw }: {
+function FaceDetailHeader({ file, isRoot, rawContent, showRaw, setShowRaw, fullPath }: {
   file: ContentFile;
   isRoot: boolean;
   rawContent: string;
   showRaw: boolean;
   setShowRaw: (v: boolean) => void;
+  fullPath: string;
 }) {
   const { config: siteConfig } = useConfig();
   const { t } = useI18n();
@@ -91,7 +92,17 @@ function FaceDetailHeader({ file, isRoot, rawContent, showRaw, setShowRaw }: {
         </div>
       )}
       {isRoot && rawContent && (
-        <div className="mt-6">
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Link href={`/faces/edit${fullPath}`}>
+            <Button
+              variant="secondary"
+              size="sm"
+              autoLoading={false}
+              icon={<Pencil size={18} />}
+            >
+              {t('faces.editContact')}
+            </Button>
+          </Link>
           <Button
             onClick={() => setShowRaw(!showRaw)}
             variant="ghost"
@@ -137,6 +148,7 @@ export default function FaceDetailPage() {
   const fullPath = '/' + slugArray.join('/');
   const { isRoot } = useAuth();
   const { t } = useI18n();
+  const { config } = useConfig();
 
   const [file, setFile] = React.useState<ContentFile | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -180,11 +192,21 @@ export default function FaceDetailPage() {
             rawContent={rawContent}
             showRaw={showRaw}
             setShowRaw={setShowRaw}
+            fullPath={fullPath}
           />
           <FaceDetailContent file={file} showRaw={showRaw} rawContent={rawContent} fullPath={fullPath} />
         </article>
         {/* 页面级目录（toc.page 开启时显示，服务 faces 长文页） */}
-        <TableOfContents content={rawContent || file.content} pageType="page" />
+        {config?.toc?.page === true && (
+          <TOC
+            content={rawContent || file.content}
+            config={{
+              number: config.toc.number,
+              expand: config.toc.expand,
+              styleSimple: config.toc.styleSimple,
+            }}
+          />
+        )}
       </PageContainer>
       <Footer />
     </div>

@@ -1,18 +1,23 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { FacesListClient, type FaceItem, type GroupItem } from './FacesListClient';
 import { useI18n } from '@/hooks/use-i18n';
+import { useAuth } from '@/hooks/use-auth';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { Button } from '@/components/ui/Button';
 import Footer from '@/components/Footer';
 
 export default function FacesPage() {
   const [data, setData] = React.useState<{faces: FaceItem[], groups: GroupItem[]}>({faces: [], groups: []});
   const [loading, setLoading] = React.useState(true);
   const { t } = useI18n();
+  const { isRoot } = useAuth();
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -54,6 +59,15 @@ export default function FacesPage() {
         <PageHeader
           title={t('nav.faces')}
           description={t('home.facesDesc', { count: data.faces?.length || 0 })}
+          actions={
+            isRoot ? (
+              <Link href="/faces/new">
+                <Button variant="primary" size="sm" rounded="md" autoLoading={false} icon={<Plus size={16} />}>
+                  {t('faces.newFace')}
+                </Button>
+              </Link>
+            ) : undefined
+          }
         />
         <FacesListClient faces={data.faces || []} groups={data.groups || []} />
       </PageContainer>
