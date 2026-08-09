@@ -1,5 +1,6 @@
 { pkgs, ... }: {
  channel = "unstable";
+
  packages = [
    pkgs.git
    pkgs.openssl
