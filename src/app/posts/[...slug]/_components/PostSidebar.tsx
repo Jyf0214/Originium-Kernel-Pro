@@ -4,8 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { List, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { TOC, buildTree, TocItem, useTocActive, slugify } from '@/components/ui/TOC';
-import type { TocHeading } from '@/components/ui/TOC';
+import { TOC, buildTree, TocItem, useTocActive, extractHeadings } from '@/components/ui/TOC';
 import { Hitokoto } from '@/components/Hitokoto';
 import { useAvailableWidth } from '@/hooks/use-available-width';
 import { useI18n } from '@/hooks/use-i18n';
@@ -19,20 +18,6 @@ interface PostSidebarConfig {
     expand: boolean;
     styleSimple: boolean;
   };
-}
-
-/** 从 Markdown 提取 h2~h4 标题 */
-function extractHeadings(content: string): TocHeading[] {
-  const regex = /^(#{1,6})\s+(.+)$/gm;
-  const result: TocHeading[] = [];
-  let match: RegExpExecArray | null;
-  while ((match = regex.exec(content)) !== null) {
-    const level = match[1]!.length;
-    if (level <= 1 || level > 4) continue;
-    const text = match[2]!.replace(/[`*_~\[\]()]/g, '').trim();
-    result.push({ id: slugify(text), text, level });
-  }
-  return result;
 }
 
 /** 移动端半屏抽屉 */

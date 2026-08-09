@@ -14,6 +14,33 @@ export { TocItem } from './TocItem';
 export { useTocActive } from './use-toc-active';
 export { slugify } from '@/lib/slugify';
 
+/**
+ * 从 Markdown 内容提取 h2~h4 标题（全站唯一实现）。
+ *
+ * - 剥离 Markdown 链接语法 [visible](url) → visible
+ * - 剥离行内格式字符（`*_~[]()`）
+ * - 与 MarkdownRenderer HeadingAnchor 共用 slugify，确保锚点 id 一致
+ */
+export function extractHeadings(content: string): TocHeading[] {
+  const regex = /^(#{1,6})\s+(.+)$/gm;
+  const result: TocHeading[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(content)) !== null) {
+    const level = match[1]!.length;
+    // 跳过 h1（通常是文章标题），只处理 h2-h4
+    if (level <= 1) continue;
+    if (level > 4) continue;
+    let text = match[2]!.trim();
+    // 去除 Markdown 链接语法 [visible](url) → visible
+    text = text.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');
+    // 去除 Markdown 格式字符
+    text = text.replace(/[`*_~\[\]()]/g, '').trim();
+    const id = slugify(text);
+    result.push({ id, text, level });
+  }
+  return result;
+}
+
 // 将扁平的标题列表按 level 构造成嵌套树
 export function buildTree(items: TocHeading[]): TocNode[] {
   const root: TocNode[] = [];
@@ -63,21 +90,7 @@ function TOCInner({ content, config, locale, showMobileUI = true }: TOCProps) {
     return () => window.removeEventListener('resize', checkHeight);
   }, []);
 
-  const headings = useMemo<TocHeading[]>(() => {
-    const regex = /^(#{1,6})\s+(.+)$/gm;
-    const result: TocHeading[] = [];
-    let match: RegExpExecArray | null;
-    while ((match = regex.exec(content)) !== null) {
-      const level = match[1]!.length;
-      // 跳过 h1（通常是文章标题），只处理 h2-h4
-      if (level <= 1) continue;
-      if (level > 4) continue;
-      const text = match[2]!.replace(/[`*_~\[\]()]/g, '').trim();
-      const id = slugify(text);
-      result.push({ id, text, level });
-    }
-    return result;
-  }, [content]);
+  const headings = useMemo<TocHeading[]>(() => extractHeadings(content), [content]);
 
   const tree = useMemo(() => buildTree(headings), [headings]);
   const activeId = useTocActive(headings);
