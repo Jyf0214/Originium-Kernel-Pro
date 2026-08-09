@@ -45,6 +45,7 @@ const PUBLIC_PATHS = new Set([
   '/api/posts/like',
   '/api/faces',
   '/api/feedback',
+  '/api/translations', // 公开文章翻译查询（路由设计为公开，读取公开文章索引）
 ]);
 
 /** 公开路径前缀 */

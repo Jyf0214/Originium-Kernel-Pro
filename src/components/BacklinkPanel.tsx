@@ -77,10 +77,12 @@ export function BacklinkPanel({
     return null;
   });
   const [loading, setLoading] = useState(!data);
+  const [loginRequired, setLoginRequired] = useState(false);
 
   // 客户端动态加载（用于没有服务端数据的场景）
   useEffect(() => {
     if (data) return; // 已有数据，跳过
+    if (loginRequired) return;
 
     let cancelled = false;
 
@@ -90,13 +92,18 @@ export function BacklinkPanel({
         const res = await fetch(
           `/api/backlinks?section=${encodeURIComponent(section)}&slug=${encodeURIComponent(slug)}`,
         );
+        if (res.status === 401) {
+          // 引用关系含私密内容标题，未登录时明确提示而非静默失败
+          if (!cancelled) setLoginRequired(true);
+          return;
+        }
         if (!res.ok) return;
         const json = await res.json();
         if (!cancelled) {
           setData(json);
         }
       } catch {
-        // 静默失败，面板不展示
+        // 网络异常，面板不展示
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -106,7 +113,7 @@ export function BacklinkPanel({
 
     void fetchBacklinks();
     return () => { cancelled = true; };
-  }, [section, slug, data]);
+  }, [section, slug, data, loginRequired]);
 
   if (loading) {
     return (
@@ -114,6 +121,20 @@ export function BacklinkPanel({
         <div className="flex items-center gap-2 text-sm text-zinc-400 dark:text-zinc-500">
           <GitBranch size={14} className="animate-pulse" />
           <span>{t('components.backlinkPanel.loading')}</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (loginRequired) {
+    return (
+      <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-700">
+        <div className="flex items-center gap-2 text-sm text-zinc-400 dark:text-zinc-500">
+          <GitBranch size={14} />
+          <span>{t('components.backlinkPanel.loginRequired')}</span>
+          <Link href="/login" className="text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 underline underline-offset-2">
+            {t('components.backlinkPanel.signIn')}
+          </Link>
         </div>
       </div>
     );

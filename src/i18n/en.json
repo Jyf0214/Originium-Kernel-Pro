@@ -1612,8 +1612,10 @@
       "backlinks": "Referenced by",
       "faceLabel": "Faces",
       "loading": "Loading related references...",
+      "loginRequired": "Sign in to view related references",
       "outgoing": "References",
       "postLabel": "Posts",
+      "signIn": "Sign in",
       "title": "Related References"
     },
     "continueReadingPrompt": {

@@ -1612,8 +1612,10 @@
       "backlinks": "被引用",
       "faceLabel": "面孔",
       "loading": "加载关联引用...",
+      "loginRequired": "登录后可查看关联引用",
       "outgoing": "引用了",
       "postLabel": "文章",
+      "signIn": "去登录",
       "title": "关联引用"
     },
     "continueReadingPrompt": {
