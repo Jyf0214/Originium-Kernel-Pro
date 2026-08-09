@@ -57,8 +57,8 @@ interface Props {
   disabled?: boolean;
 }
 
-/** 加载旋转指示器（容器内局部使用） */
-function LoadingSpinner() {
+/** 刷新遮罩（半透明覆盖 + 旋转指示器，与按钮/页面加载器区分） */
+function RefreshingOverlay() {
   return (
     <div className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center rounded-lg">
       <RefreshCw size={20} className="text-zinc-400 animate-spin" />
@@ -183,7 +183,7 @@ function EmptyDirectoryView({
 }) {
   return (
     <div className="relative">
-      {refreshing && <LoadingSpinner />}
+      {refreshing && <RefreshingOverlay />}
       {showCreateButtons && (
         <div className="mb-4 px-1">
           <CreateActionBar newFolderLabel={newFolderLabel} uploadLabel={uploadLabel} onNewFolder={onNewFolder} onUpload={onUpload} disabled={disabled} />
@@ -370,7 +370,7 @@ export function StorageFileGrid({
       onDrop={handleDrop}
       onClick={() => setSelectedEntry(null)}
     >
-      {refreshing && <LoadingSpinner />}
+      {refreshing && <RefreshingOverlay />}
 
       {/* 拖拽上传覆盖层 */}
       {dragging && onDropUpload && (

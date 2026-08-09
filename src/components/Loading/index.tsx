@@ -24,7 +24,8 @@ const positionClasses: Record<string, string> = {
   'bottom-right': 'items-end justify-end pb-10 pr-10',
 };
 
-export function LoadingSpinner({ size = 'large', tip, position = 'center' }: LoadingProps) {
+/** antd Spin 页面加载器（与 ui/Button/LoadingSpinner 的按钮图标版区分） */
+export function SpinLoading({ size = 'large', tip, position = 'center' }: LoadingProps) {
   const posClass = positionClasses[position] ?? positionClasses.center;
   return (
     <div className={`flex ${posClass}`}>
@@ -158,7 +159,7 @@ function LoadingRenderer({ finalType, finalColor, finalPosition, size, tip }: {
 }) {
   switch (finalType) {
     case 'spinner':
-      return <LoadingSpinner size={size} tip={tip} position={finalPosition} />;
+      return <SpinLoading size={size} tip={tip} position={finalPosition} />;
     case 'text':
       return <LoadingText tip={tip} />;
     case 'dots':
@@ -172,7 +173,7 @@ function LoadingRenderer({ finalType, finalColor, finalPosition, size, tip }: {
     case 'progress':
       return <ProgressBar color={finalColor} />;
     default:
-      return <LoadingSpinner size={size} tip={tip} position={finalPosition} />;
+      return <SpinLoading size={size} tip={tip} position={finalPosition} />;
   }
 }
 
