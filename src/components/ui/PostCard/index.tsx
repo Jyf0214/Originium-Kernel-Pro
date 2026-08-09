@@ -6,7 +6,7 @@ import { compactCardVariants, cardVariants, staggerDelay } from '@/components/ui
 import { Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { Tag } from '@/components/ui/Tag';
-import { formatPostDate, resolveDisplayDate } from '@/lib/formatDate';
+import { formatPostDate, resolveDisplayDate } from '@/lib/format-date';
 import { useConfig } from '@/hooks/use-config';
 import { useVisitedPosts } from '@/hooks/use-visited-posts';
 import type { TFunc } from '@/i18n/keys';

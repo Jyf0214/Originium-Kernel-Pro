@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import { motion, type Variants } from 'motion/react';
 import Image from 'next/image';
 import { Calendar, User } from 'lucide-react';
-import { useCoverParallax } from '@/hooks/useCoverParallax';
+import { useCoverParallax } from '@/hooks/use-cover-parallax';
 import { EASE_STANDARD } from '@/components/ui/motion';
 import { useI18n } from '@/hooks/use-i18n';
 import type { AuthorInfo } from '@/types/author';

@@ -26,19 +26,13 @@ function resolveSiteUrl(): string {
 
   const vercelProd = process.env.VERCEL_PROJECT_PRODUCTION_URL;
   if (vercelProd) {
-    console.warn(
-      `[url] APP_URL 未设置,使用 Vercel VERCEL_PROJECT_PRODUCTION_URL 兜底: https://${vercelProd}` +
-        `。建议在 Vercel Project Settings 中显式设置 APP_URL 以便 canonical 稳定。`,
-    );
+    console.warn(`[url] APP_URL 未设置,使用 Vercel VERCEL_PROJECT_PRODUCTION_URL 兜底: https://${vercelProd}。建议在 Vercel Project Settings 中显式设置 APP_URL 以便 canonical 稳定。`);
     return `https://${vercelProd}`;
   }
 
   const vercelUrl = process.env.VERCEL_URL;
   if (vercelUrl) {
-    console.warn(
-      `[url] APP_URL / VERCEL_PROJECT_PRODUCTION_URL 均未设置,使用 VERCEL_URL 兜底(可能是预览部署): https://${vercelUrl}` +
-        `。建议在 Vercel Project Settings 中显式设置 APP_URL。`,
-    );
+    console.warn(`[url] APP_URL / VERCEL_PROJECT_PRODUCTION_URL 均未设置,使用 VERCEL_URL 兜底(可能是预览部署): https://${vercelUrl}。建议在 Vercel Project Settings 中显式设置 APP_URL。`);
     return `https://${vercelUrl}`;
   }
 
@@ -46,9 +40,7 @@ function resolveSiteUrl(): string {
   // 运行时仍会抛错,所以生产部署不受影响(运维必须在 Vercel 设置 APP_URL)
   if (isBuilding) return 'https://example.com';
 
-  throw new Error(
-    '生产环境必须设置 APP_URL 或 VERCEL_PROJECT_PRODUCTION_URL / VERCEL_URL 之一',
-  );
+  throw new Error('APP_URL or VERCEL_PROJECT_PRODUCTION_URL / VERCEL_URL must be set in production');
 }
 
 let _siteUrl: string | undefined;

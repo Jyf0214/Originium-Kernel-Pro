@@ -6,7 +6,7 @@ import { buildWikiLinkMap, getBacklinks, getOutgoingReferences } from '@/lib/con
 import { computeTotalWordCount } from '@/lib/content-stats';
 import { loadConfig } from '@/lib/config';
 import { getAuthorByName } from '@/lib/authors';
-import { getSiteUrl } from '@/const/url';
+import { getSiteUrl } from '@/lib/site-url';
 
 import { isPrivateSlug } from './_lib/post-utils';
 import { getRelatedPosts } from './_lib/related-posts';
@@ -131,11 +131,11 @@ async function buildViewModel(
 
   // 系列文章导航：读取 frontmatter 中的 series 字段
   const seriesName = typeof meta.series === 'string' ? meta.series : '';
-  let seriesInfo: { seriesName: string; articles: { slug: string; title: string; isCurrent: boolean }[] } | undefined;
+  let seriesInfo: { seriesName: string; posts: { slug: string; title: string; isCurrent: boolean }[] } | undefined;
   if (seriesName) {
     const indexes = getContentIndexes('posts');
     const allFiles = filterPublicFiles(getContentFiles('posts'), indexes);
-    const seriesArticles = allFiles
+    const seriesPosts = allFiles
       .filter((f) => typeof f.meta.series === 'string' && f.meta.series === seriesName)
       .sort((a, b) => {
         // 按日期升序排列（系列内从旧到新）
@@ -148,7 +148,7 @@ async function buildViewModel(
         title: f.meta.title,
         isCurrent: f.slug === fullPath,
       }));
-    seriesInfo = { seriesName, articles: seriesArticles };
+    seriesInfo = { seriesName, posts: seriesPosts };
   }
 
   return {

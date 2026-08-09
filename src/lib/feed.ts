@@ -1,6 +1,6 @@
 import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
 import { loadConfig } from '@/lib/config';
-import { getSiteUrl } from '@/const/url';
+import { getSiteUrl } from '@/lib/site-url';
 import path from 'path';
 import type { ContentFile } from '@/types/content';
 

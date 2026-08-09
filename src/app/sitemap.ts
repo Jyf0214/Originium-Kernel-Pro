@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getContentFiles, getContentIndexes, filterPublicFiles } from '@/lib/content';
-import { getSiteUrl } from '@/const/url';
+import { getSiteUrl } from '@/lib/site-url';
 
 export const dynamic = 'force-static';
 

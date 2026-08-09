@@ -95,7 +95,7 @@ export function PostDetailBody({
   /** 密码哈希值（SHA-256） */
   passwordHash?: string;
   /** 系列文章导航信息 */
-  seriesInfo?: { seriesName: string; articles: { slug: string; title: string; isCurrent: boolean }[] };
+  seriesInfo?: { seriesName: string; posts: { slug: string; title: string; isCurrent: boolean }[] };
   /** 构建时预渲染的 HTML 内容 */
   htmlContent?: string;
 }) {
@@ -156,10 +156,10 @@ export function PostDetailBody({
         <div className="h-px bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-700 to-transparent mb-12" />
 
         {/* 系列文章导航 — 在文章正文前显示 */}
-        {seriesInfo && seriesInfo.articles.length > 1 && (
+        {seriesInfo && seriesInfo.posts.length > 1 && (
           <SeriesNavigation
             seriesName={seriesInfo.seriesName}
-            articles={seriesInfo.articles}
+            posts={seriesInfo.posts}
           />
         )}
 

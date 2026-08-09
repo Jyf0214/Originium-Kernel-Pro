@@ -1,4 +1,4 @@
-import { getSiteUrl } from '@/const/url';
+import { getSiteUrl } from '@/lib/site-url';
 
 interface JsonLdProps {
   title: string;

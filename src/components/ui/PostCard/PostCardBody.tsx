@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Pin, Calendar, Clock } from 'lucide-react';
 import { Tag } from '@/components/ui/Tag';
 import { Avatar } from '@/components/Avatar';
-import { formatPostDate, resolveDisplayDate } from '@/lib/formatDate';
+import { formatPostDate, resolveDisplayDate } from '@/lib/format-date';
 import { useConfig } from '@/hooks/use-config';
 import { useVisitedPosts } from '@/hooks/use-visited-posts';
 import type { TFunc } from '@/i18n/keys';
