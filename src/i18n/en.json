@@ -1121,6 +1121,10 @@
     "licensePrefix": "License: ",
     "defaultAuthorLine": "Copyright belongs to the author"
   },
+  "rewardArea": {
+    "title": "Support Me",
+    "desc": "If this article helped you, feel free to buy me a coffee"
+  },
   "feedback": {
     "bugReport": "Bug Report",
     "featureRequest": "Feature Request",

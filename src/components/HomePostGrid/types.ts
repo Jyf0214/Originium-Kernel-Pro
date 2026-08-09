@@ -11,4 +11,8 @@ export interface HomePostGridProps {
   coverConfig?: CoverConfig;
   /** 列表页文章元信息显示配置（postMeta.page） */
   postMeta?: PostMetaDisplayConfig;
+  /** 公开文章总数（快捷入口卡片展示用） */
+  postCount?: number;
+  /** 联系人总数（快捷入口卡片展示用，仅管理员可见） */
+  facesCount?: number;
 }

@@ -25,6 +25,7 @@ export function buildCopyrightConfig(appConfig: FrontendConfig) {
     authorHref: appConfig.copyright?.authorHref ?? '',
     authorImgFront: appConfig.avatar?.url,
     decode: appConfig.copyright?.decode,
+    labels: appConfig.copyright?.labels,
   };
 }
 

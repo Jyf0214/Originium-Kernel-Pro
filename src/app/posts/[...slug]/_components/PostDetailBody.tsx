@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { ArrowLeft, QrCode } from 'lucide-react';
 import Link from 'next/link';
@@ -25,6 +25,10 @@ import QRCodeDialog from '@/components/ui/QRCodeDialog';
 import { PostLikeButton } from '@/components/PostLikeButton';
 import { Hitokoto } from '@/components/Hitokoto';
 import { BacklinkPanel } from '@/components/BacklinkPanel';
+import RewardArea from '@/components/RewardArea';
+import CopyInterceptor from '@/components/CopyInterceptor';
+import PostEditLink from '@/components/PostEditLink';
+import { LazyLoad } from '@/components/ui/LazyLoad';
 import type { RelatedPost } from '../_lib/related-posts';
 import type { FrontendConfig } from '@/hooks/use-config';
 import type { WikiLinkMap } from '@/components/MarkdownRenderer/types';
@@ -34,6 +38,7 @@ import { buildCopyrightConfig } from '../_lib/post-page-config';
 import { tPosts } from '../_lib/post-i18n';
 import { useI18n } from '@/hooks/use-i18n';
 import { useScrollProgress } from '@/hooks/use-scroll-progress';
+import { useVisitedPosts } from '@/hooks/use-visited-posts';
 import { useSetPostTitle } from '@/contexts/PostPageContext';
 
 // 评论区保留动态加载（需要客户端 OAuth）
@@ -99,8 +104,14 @@ export function PostDetailBody({
   const contentRef = useRef<HTMLDivElement>(null);
   const { t } = useI18n();
   const { progress, savedPosition, restorePosition, dismissPosition } = useScrollProgress(fullPath);
+  const { markVisited } = useVisitedPosts();
   const titleStr = typeof file.meta.title === 'string' ? file.meta.title : '';
   useSetPostTitle(titleStr);
+
+  // 记录文章已访问（支撑列表页未读标记）
+  useEffect(() => {
+    markVisited(fullPath);
+  }, [markVisited, fullPath]);
 
   return (
     <>
@@ -116,7 +127,10 @@ export function PostDetailBody({
         nextSlug={adjacentPosts.next?.slug ?? null}
       />
       <div className="flex-1 min-w-0 max-w-3xl">
-      <PostBreadcrumb slug={fullPath} crumbs={breadcrumbs} t={tPosts} />
+      <div className="flex items-center justify-between gap-4">
+        <PostBreadcrumb slug={fullPath} crumbs={breadcrumbs} t={tPosts} />
+        <PostEditLink slug={fullPath} />
+      </div>
 
       {/* 文章内容容器 — 卡片样式 */}
       <div className="relative">
@@ -195,6 +209,13 @@ export function PostDetailBody({
         />
       </article>
 
+      {/* 复制附加版权 — 监听正文复制事件（超长复制自动附带版权信息） */}
+      <CopyInterceptor
+        articleRef={contentRef}
+        authorName={(file.meta.author as string | undefined) ?? (appConfig.footer?.owner as { author?: string } | undefined)?.author}
+        authorInfo={authorInfo}
+      />
+
       {/* 浮动信息卡片 — 桌面端右侧 */}
       <div className="hidden 2xl:block absolute top-0 w-52" style={{ left: 'calc(100% + 1.5rem)' }}>
         <div className="sticky top-24">
@@ -242,6 +263,9 @@ export function PostDetailBody({
         <PostLikeButton slug={fullPath} />
       </div>
 
+      {/* 赞赏 — 配置 reward.enable 且至少一个二维码时显示 */}
+      <RewardArea />
+
       {/* 一言 — 文章底部 */}
       <div className="mt-10">
         <Hitokoto />
@@ -254,10 +278,10 @@ export function PostDetailBody({
         onClose={() => setQrOpen(false)}
       />
 
-      {/* 评论区 — 最下面 */}
-      <div className="mt-12 max-w-3xl">
+      {/* 评论区 — 滚动到视口附近才挂载（懒加载，避免首屏加载评论脚本） */}
+      <LazyLoad className="mt-12 max-w-3xl">
         <LazyGiscus slug={fullPath} />
-      </div>
+      </LazyLoad>
 
       {/* 字数统计 — enable 总开关 + 三子开关分别展示 */}
       {(() => {

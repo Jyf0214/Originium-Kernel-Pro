@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Pin, Calendar, Clock } from 'lucide-react';
 import { Tag } from '@/components/ui/Tag';
 import { Avatar } from '@/components/Avatar';
 import { formatPostDate, resolveDisplayDate } from '@/lib/formatDate';
+import { useConfig } from '@/hooks/use-config';
+import { useVisitedPosts } from '@/hooks/use-visited-posts';
 import type { TFunc } from '@/i18n/keys';
 import type { PostItem } from './types';
 import type { PostMetaDisplayConfig } from '@/lib/config-types';
@@ -42,6 +44,42 @@ function resolveMetaFlags(postMeta: PostMetaDisplayConfig | undefined, slug: str
   return { showTags, showCategories, showLabel, category };
 }
 
+/** 分类/标签元信息行（受 postMeta.tags/categories/label 配置控制） */
+function MetaRow({
+  showCategories,
+  showTags,
+  showLabel,
+  category,
+  tags,
+  t,
+}: {
+  showCategories: boolean;
+  showTags: boolean;
+  showLabel: boolean;
+  category?: string;
+  tags: string[];
+  t: TFunc;
+}) {
+  const hasContent = (showCategories && category) || (showTags && tags.length > 0);
+  if (!hasContent) return null;
+  return (
+    <div className="flex flex-wrap gap-1 mb-2 overflow-hidden">
+      {showCategories && category && (
+        <Tag variant="light" size="xs" className="truncate max-w-[120px]">
+          {showLabel && <span className="opacity-70 mr-0.5">{t('home.categories')}:</span>}
+          {category}
+        </Tag>
+      )}
+      {showTags && tags.slice(0, 2).map((tag) => (
+        <Tag key={tag} variant="light" size="xs" className="truncate max-w-[120px]">
+          {showLabel && <span className="opacity-70 mr-0.5">{t('home.tags')}:</span>}
+          {tag}
+        </Tag>
+      ))}
+    </div>
+  );
+}
+
 function PostCardBodyFooter({
   post,
   locale,
@@ -72,7 +110,7 @@ function PostCardBodyFooter({
         {post.readingTime && post.readingTime > 0 && (
           <span className="flex items-center gap-0.5">
             <Clock size={10} />
-            <span>{post.readingTime}分钟</span>
+            <span>{t('posts.readingTimeLabel', { minutes: post.readingTime })}</span>
           </span>
         )}
         {shownDate && (
@@ -110,6 +148,15 @@ export const PostCardBody = React.memo(function PostCardBody({
   // postMeta 开关：tags/categories/label 控制元信息展示
   const { showTags, showCategories, showLabel, category } = resolveMetaFlags(postMeta, post.slug);
 
+  // 未读标记（postMeta.post.unread）：已访问过的文章不再显示圆点
+  const { config } = useConfig();
+  const { visited } = useVisitedPosts();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const showUnread = mounted && config?.postMeta?.post?.unread === true && !visited.has(post.slug);
+
   return (
     <div className={`px-4 sm:px-5 py-3 sm:py-4 flex-1 flex flex-col overflow-hidden min-h-[180px] z-10 ${getBodyRoundClass(position)} ${glassClass} ${borderClass}`}>
       {post.pinned && (
@@ -120,25 +167,25 @@ export const PostCardBody = React.memo(function PostCardBody({
           </Tag>
         </div>
       )}
-      {(showCategories && category) || (showTags && post.tags.length > 0) ? (
-        <div className="flex flex-wrap gap-1 mb-2 overflow-hidden">
-          {showCategories && category && (
-            <Tag variant="light" size="xs" className="truncate max-w-[120px]">
-              {showLabel && <span className="opacity-70 mr-0.5">{t('home.categories')}:</span>}
-              {category}
-            </Tag>
-          )}
-          {showTags && post.tags.slice(0, 2).map((tag) => (
-            <Tag key={tag} variant="light" size="xs" className="truncate max-w-[120px]">
-              {showLabel && <span className="opacity-70 mr-0.5">{t('home.tags')}:</span>}
-              {tag}
-            </Tag>
-          ))}
-        </div>
-      ) : null}
+      <MetaRow
+        showCategories={showCategories}
+        showTags={showTags}
+        showLabel={showLabel}
+        category={category}
+        tags={post.tags}
+        t={t}
+      />
       <Link href={`/posts${post.slug}`} className="block group/title">
-        <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-1.5 line-clamp-2 leading-snug group-hover/title:text-zinc-600 dark:group-hover/title:text-zinc-300 transition-colors duration-200">
-          {post.title}
+        <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-1.5 leading-snug group-hover/title:text-zinc-600 dark:group-hover/title:text-zinc-300 transition-colors duration-200">
+          <span className="flex items-start gap-1.5">
+            {showUnread && (
+              <span
+                className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0 mt-2"
+                aria-label={t('components.PostMetaConfig.unreadMarker')}
+              />
+            )}
+            <span className="line-clamp-2">{post.title}</span>
+          </span>
         </h2>
       </Link>
       {post.description && (

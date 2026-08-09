@@ -1121,6 +1121,10 @@
     "licensePrefix": "许可协议: ",
     "defaultAuthorLine": "本文著作权归作者所有"
   },
+  "rewardArea": {
+    "title": "赞赏",
+    "desc": "如果觉得我的文章对你有用，请随意赞赏"
+  },
   "feedback": {
     "bugReport": "Bug 报告",
     "featureRequest": "功能建议",

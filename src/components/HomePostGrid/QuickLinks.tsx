@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { BookOpen, Users, ArrowRight } from 'lucide-react';
+import type { TFunc } from '@/i18n/keys';
 
 export function QuickLinks({
   postCount,
@@ -10,7 +11,7 @@ export function QuickLinks({
   postCount: number;
   facesCount: number;
   isAdmin: boolean;
-  t: (key: string, params?: Record<string, string | number>) => string;
+  t: TFunc;
 }) {
   return (
     <section className="mb-12">

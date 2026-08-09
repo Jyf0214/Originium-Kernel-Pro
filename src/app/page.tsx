@@ -58,6 +58,8 @@ export default async function HomePage() {
         defaultCover={config.cover?.defaultCover?.[0]}
         coverConfig={config.cover}
         postMeta={config.postMeta?.page}
+        postCount={publicPosts.length}
+        facesCount={getContentFiles('faces').length}
       />
     </div>
   );

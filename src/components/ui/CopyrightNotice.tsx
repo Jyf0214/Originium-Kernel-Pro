@@ -21,6 +21,15 @@ export interface CopyrightNoticeProps {
     authorImgFront?: string;
     location?: string;
     decode?: boolean;
+    /** 版权文案自定义（config.copyright.labels，未配置时回退 i18n 默认） */
+    labels?: {
+      authorSection?: string;
+      authorPrefix?: string;
+      sourcePrefix?: string;
+      licensePrefix?: string;
+      original?: string;
+      reprint?: string;
+    };
   };
   locale?: string;
   /** 作者列表数据 — 优先级高于 config 中的静态字段 */
@@ -42,6 +51,8 @@ function AuthorInfoRow({
   bio,
   authorLink,
   authorHref,
+  authorPrefix,
+  sourcePrefix,
 }: {
   displayAvatar?: string;
   displayAuthor: string;
@@ -49,6 +60,8 @@ function AuthorInfoRow({
   bio?: string;
   authorLink: string;
   authorHref?: string;
+  authorPrefix: string;
+  sourcePrefix: string;
 }) {
   const authorName = (
     <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors truncate">
@@ -69,6 +82,7 @@ function AuthorInfoRow({
           <div className="rounded-full w-10 h-10 bg-zinc-200 dark:bg-zinc-700 shrink-0" aria-hidden />
         )}
         <div className="flex items-center gap-2 min-w-0">
+          <span className="text-xs text-zinc-400 dark:text-zinc-500 shrink-0">{authorPrefix}</span>
           {authorHref ? (
             <a
               href={authorHref}
@@ -84,7 +98,9 @@ function AuthorInfoRow({
             </Link>
           )}
           {displayLocation && (
-            <span className="text-xs text-zinc-400 dark:text-zinc-500 shrink-0">{displayLocation}</span>
+            <span className="text-xs text-zinc-400 dark:text-zinc-500 shrink-0">
+              {sourcePrefix}{displayLocation}
+            </span>
           )}
         </div>
       </div>
@@ -96,16 +112,19 @@ function AuthorInfoRow({
 }
 
 /** 许可证链接 */
-function LicenseLink({ license, licenseUrl }: { license: string; licenseUrl: string }) {
+function LicenseLink({ license, licenseUrl, licensePrefix }: { license: string; licenseUrl: string; licensePrefix: string }) {
   return (
-    <a
-      href={licenseUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-xs text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors underline underline-offset-2 decoration-zinc-300 dark:decoration-zinc-600"
-    >
-      {license}
-    </a>
+    <span className="text-xs text-zinc-500 dark:text-zinc-400">
+      {licensePrefix}
+      <a
+        href={licenseUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors underline underline-offset-2 decoration-zinc-300 dark:decoration-zinc-600"
+      >
+        {license}
+      </a>
+    </span>
   );
 }
 
@@ -115,18 +134,20 @@ function CopyrightText({
   locale,
   license,
   licenseUrl,
+  licensePrefix,
   t,
 }: {
   type: 'original' | 'reprint';
   locale?: string;
   license: string;
   licenseUrl: string;
+  licensePrefix: string;
   t: TFunc;
 }) {
   if (locale === 'en') {
     return (
       <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-        Licensed under <LicenseLink license={license} licenseUrl={licenseUrl} />. All rights reserved.
+        Licensed under <LicenseLink license={license} licenseUrl={licenseUrl} licensePrefix={licensePrefix} />. All rights reserved.
       </p>
     );
   }
@@ -137,6 +158,36 @@ function CopyrightText({
         : t('components.CopyrightNotice.licenseReprint', { license })}
     </p>
   );
+}
+
+/** 解析版权文案（config.copyright.labels 优先，回退 i18n 默认） */
+function resolveLabels(
+  labels: CopyrightNoticeProps['config']['labels'] | undefined,
+  t: TFunc,
+) {
+  return {
+    authorSection: labels?.authorSection ?? t('components.articleCopyright.authorSection'),
+    authorPrefix: labels?.authorPrefix ?? t('components.articleCopyright.authorPrefix'),
+    sourcePrefix: labels?.sourcePrefix ?? t('components.articleCopyright.sourcePrefix'),
+    licensePrefix: labels?.licensePrefix ?? t('components.articleCopyright.licensePrefix'),
+    original: labels?.original ?? t('components.CopyrightNotice.original'),
+    reprint: labels?.reprint ?? t('components.CopyrightNotice.reprint'),
+  };
+}
+
+/** 解析展示字段（authorInfo 优先，回退 config 静态字段） */
+function resolveDisplayFields(
+  config: CopyrightNoticeProps['config'],
+  authorInfo: AuthorInfo | null | undefined,
+  author: string,
+  title: string,
+) {
+  return {
+    displayAuthor: authorInfo?.nickname ?? (config.decode ? decodeHtml(author) : author),
+    displayTitle: config.decode ? decodeHtml(title) : title,
+    displayAvatar: authorInfo?.avatar ?? config.authorImgFront,
+    displayLocation: authorInfo?.location ?? config.location,
+  };
 }
 
 export function CopyrightNotice({
@@ -151,13 +202,14 @@ export function CopyrightNotice({
   const { t } = useI18n();
   if (!config.enable) return null;
 
-  const displayAuthor = authorInfo?.nickname ?? (config.decode ? decodeHtml(author) : author);
-  const displayTitle = config.decode ? decodeHtml(title) : title;
-  const displayAvatar = authorInfo?.avatar ?? config.authorImgFront;
-  const displayLocation = authorInfo?.location ?? config.location;
+  const labels = resolveLabels(config.labels, t);
+  const { displayAuthor, displayTitle, displayAvatar, displayLocation } = resolveDisplayFields(config, authorInfo, author, title);
 
   return (
     <div className="bg-zinc-50 dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 p-6">
+      <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-3">
+        {labels.authorSection}
+      </div>
       <AuthorInfoRow
         displayAvatar={displayAvatar}
         displayAuthor={displayAuthor}
@@ -165,6 +217,8 @@ export function CopyrightNotice({
         bio={authorInfo?.bio}
         authorLink={config.authorLink}
         authorHref={config.authorHref}
+        authorPrefix={labels.authorPrefix}
+        sourcePrefix={labels.sourcePrefix}
       />
 
       {/* 文章标题 + 原创/转载标识（移动端隐藏，避免与顶部标题重复） */}
@@ -180,19 +234,19 @@ export function CopyrightNotice({
               : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
           )}
         >
-          {type === 'original' ? t('components.CopyrightNotice.original') : t('components.CopyrightNotice.reprint')}
+          {type === 'original' ? labels.original : labels.reprint}
         </span>
       </div>
 
       {/* 许可证信息 */}
       {config.license && (
         <div className="mb-3">
-          <LicenseLink license={config.license} licenseUrl={config.licenseUrl} />
+          <LicenseLink license={config.license} licenseUrl={config.licenseUrl} licensePrefix={labels.licensePrefix} />
         </div>
       )}
 
       {/* 版权声明文本 */}
-      <CopyrightText type={type} locale={locale} license={config.license} licenseUrl={config.licenseUrl} t={t} />
+      <CopyrightText type={type} locale={locale} license={config.license} licenseUrl={config.licenseUrl} licensePrefix={labels.licensePrefix} t={t} />
     </div>
   );
 }

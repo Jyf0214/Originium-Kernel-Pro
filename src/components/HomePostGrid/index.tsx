@@ -4,8 +4,10 @@ import { AnimatePresence } from 'motion/react';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useI18n } from '@/hooks/use-i18n';
+import { useAuth } from '@/hooks/use-auth';
 import { CategoryBar } from '@/components/CategoryBar';
 import { HeroSection } from './HeroSection';
+import { QuickLinks } from './QuickLinks';
 import { PostCard } from '@/components/ui/PostCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Pagination } from './Pagination';
@@ -22,8 +24,12 @@ export function HomePostGrid({
   defaultCover,
   coverConfig,
   postMeta,
+  postCount,
+  facesCount,
 }: HomePostGridProps) {
   const { t, locale } = useI18n();
+  const { userRole, isRoot } = useAuth();
+  const isAdmin = userRole === 'admin' || isRoot;
   const {
     selectedTag,
     setSelectedTag,
@@ -40,6 +46,13 @@ export function HomePostGrid({
       <HeroSection
         heroTitleLine1={heroTitleLine1}
         heroTitleLine2={heroTitleLine2}
+        t={t}
+      />
+
+      <QuickLinks
+        postCount={postCount ?? 0}
+        facesCount={facesCount ?? 0}
+        isAdmin={isAdmin}
         t={t}
       />
 

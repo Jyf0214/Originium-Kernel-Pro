@@ -29,8 +29,8 @@ export function HeroSection({
         transition={{ delay: 0.1 }}
         className="text-5xl md:text-7xl font-display font-black tracking-tighter text-zinc-900 dark:text-zinc-100 mb-4"
       >
-        <div>{heroTitleLine1 ?? t('home.heroTitleLine1')}</div>
-        <div className="text-zinc-300 -mt-4 md:-mt-6">{heroTitleLine2 ?? t('home.heroTitleLine2')}</div>
+        <div>{heroTitleLine1?.trim() ? heroTitleLine1 : t('home.heroTitleLine1')}</div>
+        <div className="text-zinc-300 -mt-4 md:-mt-6">{heroTitleLine2?.trim() ? heroTitleLine2 : t('home.heroTitleLine2')}</div>
       </motion.h1>
     </section>
   );
