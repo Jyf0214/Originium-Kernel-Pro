@@ -48,7 +48,7 @@ export const DEFAULT_FOOTER_BADGES: FooterBadge[] = [
 ];
 
 export const DEFAULT_FOOTER_TYPED_TEXTS = [getTranslate('footerConfig.typedText1'), getTranslate('footerConfig.typedText2'), getTranslate('footerConfig.typedText3')];
-const DEFAULT_TIME_FORMAT = getTranslate('footerConfig.defaultTimeFormat');
+const DEFAULT_TIME_FORMAT = getTranslate('footerBrand.defaultTimeFormat');
 
 // ─── Default Value Resolver ──────────────────────────
 // 将配置中的各字段统一解析为最终值，缺失时使用默认值兜底。

@@ -4,12 +4,15 @@
     "cancel": "Cancel",
     "save": "Save",
     "delete": "Delete",
+    "deleteFailed": "Delete failed",
     "edit": "Edit",
     "create": "Create",
     "back": "Back",
     "next": "Next",
     "previous": "Previous",
     "confirm": "Confirm",
+    "copied": "Copied",
+    "copiedToClipboard": "Copied to clipboard",
     "success": "Success",
     "error": "Error",
     "info": "Info",
@@ -138,7 +141,6 @@
     "contentConsole": "This is your content console",
     "articleManage": {
       "articleListLoadFailed": "Failed to load article list",
-      "deleteFailed": "Delete failed",
       "deleteFailedStatus": "Delete failed ({status})",
       "permanentDeleteConfirm": "Deleted articles cannot be recovered",
       "recycleBinEmpty": "Recycle bin is empty",
@@ -343,7 +345,6 @@
     "pageError": "Something went wrong",
     "unexpected": "An unexpected error occurred. Please try again later.",
     "detail": "Error details",
-    "copied": "Copied",
     "copy": "Copy",
     "retry": "Retry"
   },
@@ -475,7 +476,6 @@
     "deleteDraft": "Delete draft",
     "deleteDraftConfirm": "Delete this draft?",
     "deleteDraftFailed": "Failed to delete draft",
-    "deleteFailed": "Delete failed",
     "discard": "Discard",
     "draftDetected": "An unfinished draft was detected ({time}). Restore it?",
     "draftListLoadFailed": "Failed to load draft list",
@@ -703,7 +703,6 @@
     "loadFaceFailed": "Failed to load contact",
     "loadDataFailed": "Failed to load data",
     "saveFailed": "Save failed",
-    "deleteFailed": "Delete failed",
     "breadcrumbEdit": "Edit",
     "editContact": "Edit Contact",
     "modifyInfo": "Modify info for {title}",
@@ -829,7 +828,6 @@
       "changePasswordSuccess": "Password changed successfully",
       "createFailed": "Creation failed",
       "currentPasswordWrong": "Incorrect current password",
-      "deleteFailed": "Deletion failed",
       "enterApiKey": "Please enter an API key",
       "enterEmail": "Please enter an email address",
       "enterVerificationCode": "Please enter the verification code",
@@ -922,7 +920,7 @@
       "exportCountLabel": "Exported {count} diaries in total",
       "exportDateLabel": "Date: {date}",
       "exportDiary": "Export diary",
-      "exportLimitExceeded": "Export count {totalCount} exceeds the limit {maxEntries}",
+      "exportLimitExceeded": "Export count {count} exceeds the limit {max}",
       "exportPinnedLabel": "Pinned: {pinned}",
       "exportTagsLabel": "Tags: {tags}",
       "exportTimeLabel": "Exported at: {time}",
@@ -1024,7 +1022,7 @@
       "descriptionMustBeString": "description must be a string or null",
       "destinationEmpty": "Destination path cannot be empty",
       "emptyRequestBody": "Request body is empty",
-      "fileTooLarge": "File size {size} exceeds the limit {limit}",
+      "fileTooLarge": "File size {size} exceeds the limit {max}",
       "folderMetaNotFound": "Folder metadata not found",
       "invalidFilePath": "Invalid file path",
       "invalidJson": "Request body is not valid JSON",
@@ -1107,7 +1105,6 @@
     "feedback": "Feedback & Suggestions"
   },
   "copyInterceptor": {
-    "copied": "Copied to clipboard",
     "sourcePrefix": "Source: ",
     "licensePrefix": "License: ",
     "defaultAuthorLine": "Copyright belongs to the author"
@@ -1155,8 +1152,7 @@
     "typedText1": "Recording every day with heart",
     "typedText2": "Words are the longest-lasting affection",
     "typedText3": "Life needs rituals",
-    "scrollToTop": "Scroll to Top",
-    "defaultTimeFormat": "This site has been running for {days} days {hours} hours {minutes} minutes {seconds} seconds"
+    "scrollToTop": "Scroll to Top"
   },
   "storage": {
     "title": "Storage Pool",
@@ -1179,7 +1175,6 @@
     "noFilesHint": "Click \"Upload File\" to add files, or \"New Folder\" to create a subdirectory",
     "empty": "Empty",
     "create": "Create",
-    "cancel": "Cancel",
     "delete": "Delete",
     "deleteFileConfirm": "Confirm File Deletion",
     "deleteFolderConfirm": "Confirm Folder Deletion",
@@ -1188,7 +1183,6 @@
     "createSuccess": "Folder created",
     "settingsUpdated": "Settings updated",
     "loadFailed": "Load failed",
-    "deleteFailed": "Delete failed",
     "createFailed": "Create failed",
     "fileTooLarge": "File exceeds 50MB limit",
     "refresh": "Refresh",
@@ -1331,8 +1325,7 @@
       "closeSidebar": "Close sidebar"
     },
     "TableOfContents": {
-      "toc": "Table of Contents",
-      "articleToc": "Article Table of Contents"
+      "toc": "Table of Contents"
     },
     "TopHeader": {
       "openSidebar": "Open sidebar"
@@ -1552,7 +1545,6 @@
     "QRCodeDialog": {
       "copy": "Copy",
       "copyFailed": "Failed",
-      "copied": "Copied",
       "openInNewWindow": "Open in new window"
     },
     "RewardConfig": {
@@ -1645,7 +1637,6 @@
     "markdown": {
       "collapse": "Collapse",
       "collapseCode": "Collapse code",
-      "copied": "Copied",
       "copy": "Copy",
       "copyCode": "Copy code",
       "copyFailed": "Copy failed",
@@ -1674,7 +1665,6 @@
     }
   },
   "githubDiff": {
-    "cancel": "Cancel",
     "confirmChanges": "Confirm config changes",
     "confirmSubmit": "Confirm submit",
     "noChanges": "No changes",
@@ -1826,7 +1816,6 @@
       "authorSection": "Author of this article",
       "copyrightAuthorLine": "Copyright of this article belongs to the author",
       "faviconLocalPath": "favicon must be a local path under the public directory (starting with /), external URLs are not supported",
-      "footerTimeFormat": "This site has been running for {days} days {hours} hours {minutes} minutes {seconds} seconds",
       "licenseAgreementPrefix": "License: ",
       "licensePrefix": "License: ",
       "original": "Original",
@@ -1845,8 +1834,7 @@
     "error": {
       "clickToCopy": "Click to copy the error message",
       "copy": "Copy",
-      "copyFailed": "Copy failed",
-      "copied": "Copied to clipboard"
+      "copyFailed": "Copy failed"
     },
     "files": {
       "debugUnavailable": "Debug information unavailable",

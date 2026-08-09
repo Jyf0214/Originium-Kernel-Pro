@@ -4,12 +4,15 @@
     "cancel": "取消",
     "save": "保存",
     "delete": "删除",
+    "deleteFailed": "删除失败",
     "edit": "编辑",
     "create": "创建",
     "back": "返回",
     "next": "下一步",
     "previous": "上一步",
     "confirm": "确认",
+    "copied": "已复制",
+    "copiedToClipboard": "已复制到剪贴板",
     "success": "成功",
     "error": "错误",
     "info": "提示",
@@ -138,7 +141,6 @@
     "contentConsole": "这是您的内容控制台",
     "articleManage": {
       "articleListLoadFailed": "文章列表加载失败",
-      "deleteFailed": "删除失败",
       "deleteFailedStatus": "删除失败 ({status})",
       "permanentDeleteConfirm": "永久删除后无法恢复哦",
       "recycleBinEmpty": "回收站为空",
@@ -343,7 +345,6 @@
     "pageError": "页面出错了",
     "unexpected": "发生意外错误，请稍后重试",
     "detail": "错误详情",
-    "copied": "已复制",
     "copy": "复制",
     "retry": "重试"
   },
@@ -475,7 +476,6 @@
     "deleteDraft": "删除草稿",
     "deleteDraftConfirm": "确定要删除这篇草稿吗？",
     "deleteDraftFailed": "删除草稿失败",
-    "deleteFailed": "删除失败",
     "discard": "不要了",
     "draftDetected": "检测到上次未完成的草稿（{time}），要恢复吗？",
     "draftListLoadFailed": "加载草稿列表失败",
@@ -703,7 +703,6 @@
     "loadFaceFailed": "加载联系人失败",
     "loadDataFailed": "加载数据失败",
     "saveFailed": "保存失败",
-    "deleteFailed": "删除失败",
     "breadcrumbEdit": "编辑",
     "editContact": "编辑联系人",
     "modifyInfo": "修改 {title} 的信息",
@@ -829,7 +828,6 @@
       "changePasswordSuccess": "密码修改成功",
       "createFailed": "创建失败",
       "currentPasswordWrong": "当前密码错误",
-      "deleteFailed": "删除失败",
       "enterApiKey": "请输入 API 密钥",
       "enterEmail": "请输入邮箱",
       "enterVerificationCode": "请输入验证码",
@@ -922,7 +920,7 @@
       "exportCountLabel": "共导出 {count} 篇日记",
       "exportDateLabel": "日期: {date}",
       "exportDiary": "导出日记",
-      "exportLimitExceeded": "导出数量 {totalCount} 超过限制 {maxEntries}",
+      "exportLimitExceeded": "导出数量 {count} 超过限制 {max}",
       "exportPinnedLabel": "置顶: {pinned}",
       "exportTagsLabel": "标签: {tags}",
       "exportTimeLabel": "导出时间: {time}",
@@ -1024,7 +1022,7 @@
       "descriptionMustBeString": "description 必须是 string 或 null",
       "destinationEmpty": "目标路径不能为空",
       "emptyRequestBody": "请求体为空",
-      "fileTooLarge": "文件大小 {size} 超过限制 {limit}",
+      "fileTooLarge": "文件大小 {size} 超过限制 {max}",
       "folderMetaNotFound": "文件夹元数据不存在",
       "invalidFilePath": "无效的文件路径",
       "invalidJson": "请求体不是合法 JSON",
@@ -1107,7 +1105,6 @@
     "feedback": "反馈与建议"
   },
   "copyInterceptor": {
-    "copied": "已复制到剪贴板",
     "sourcePrefix": "来源: ",
     "licensePrefix": "许可协议: ",
     "defaultAuthorLine": "本文著作权归作者所有"
@@ -1155,8 +1152,7 @@
     "typedText1": "用心记录每一天",
     "typedText2": "文字是最长情的告白",
     "typedText3": "生活需要仪式感",
-    "scrollToTop": "回到顶部",
-    "defaultTimeFormat": "本站已运行 {days} 天 {hours} 小时 {minutes} 分 {seconds} 秒"
+    "scrollToTop": "回到顶部"
   },
   "storage": {
     "title": "存储池",
@@ -1179,7 +1175,6 @@
     "noFilesHint": "点击「上传文件」添加文件,或「新建文件夹」创建子目录",
     "empty": "空",
     "create": "创建",
-    "cancel": "取消",
     "delete": "删除",
     "deleteFileConfirm": "确认删除文件",
     "deleteFolderConfirm": "确认删除文件夹",
@@ -1188,7 +1183,6 @@
     "createSuccess": "文件夹创建成功",
     "settingsUpdated": "设置已更新",
     "loadFailed": "加载失败",
-    "deleteFailed": "删除失败",
     "createFailed": "创建失败",
     "fileTooLarge": "文件超过 50MB 限制",
     "refresh": "刷新",
@@ -1331,8 +1325,7 @@
       "closeSidebar": "关闭侧边栏"
     },
     "TableOfContents": {
-      "toc": "目录",
-      "articleToc": "文章目录"
+      "toc": "目录"
     },
     "TopHeader": {
       "openSidebar": "打开侧边栏"
@@ -1552,7 +1545,6 @@
     "QRCodeDialog": {
       "copy": "复制",
       "copyFailed": "失败",
-      "copied": "已复制",
       "openInNewWindow": "在新窗口打开"
     },
     "RewardConfig": {
@@ -1645,7 +1637,6 @@
     "markdown": {
       "collapse": "折叠",
       "collapseCode": "折叠代码",
-      "copied": "已复制",
       "copy": "复制",
       "copyCode": "复制代码",
       "copyFailed": "复制失败",
@@ -1674,7 +1665,6 @@
     }
   },
   "githubDiff": {
-    "cancel": "取消",
     "confirmChanges": "确认配置变更",
     "confirmSubmit": "确认提交",
     "noChanges": "无变更",
@@ -1826,7 +1816,6 @@
       "authorSection": "本文作者",
       "copyrightAuthorLine": "本文著作权归作者所有",
       "faviconLocalPath": "favicon 必须是 public 目录下的本地路径(以 / 开头),不支持外部 URL",
-      "footerTimeFormat": "本站已运行 {days} 天 {hours} 小时 {minutes} 分 {seconds} 秒",
       "licenseAgreementPrefix": "许可协议: ",
       "licensePrefix": "许可: ",
       "original": "原创",
@@ -1845,8 +1834,7 @@
     "error": {
       "clickToCopy": "点击复制错误信息",
       "copy": "复制",
-      "copyFailed": "复制失败",
-      "copied": "已复制到剪贴板"
+      "copyFailed": "复制失败"
     },
     "files": {
       "debugUnavailable": "调试信息不可用",

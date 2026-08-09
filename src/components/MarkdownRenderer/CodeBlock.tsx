@@ -253,7 +253,7 @@ export function UnhighlightedCodeBlock({
           aria-label={t('components.markdown.copyCode')}
         >
           {copied ? <Check size={14} /> : <Copy size={14} />}
-          {copied ? t('components.markdown.copied') : t('components.markdown.copy')}
+          {copied ? t('common.copied') : t('components.markdown.copy')}
         </button>
         <code>{children}</code>
       </pre>

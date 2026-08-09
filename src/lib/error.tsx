@@ -25,7 +25,7 @@ export function showError(msg: string, duration = 4) {
           onClick={(e) => {
             e.stopPropagation();
             navigator.clipboard.writeText(msg).then(() => {
-              message.success({ content: getTranslate('lib.error.copied'), key: copiedKey, duration: 1.5 });
+              message.success({ content: getTranslate('common.copiedToClipboard'), key: copiedKey, duration: 1.5 });
             }).catch(() => {
               message.error({ content: getTranslate('lib.error.copyFailed'), key: copiedKey, duration: 1.5 });
             });

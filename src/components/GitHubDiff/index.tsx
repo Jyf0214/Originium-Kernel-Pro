@@ -126,7 +126,7 @@ export function GitHubDiffModal({
       {/* 底部操作栏 */}
       <div className="flex items-center justify-end gap-2 px-4 py-3 sm:px-5 sm:py-4">
         <Button onClick={onCancel} disabled={loading} variant="default" size="sm" autoLoading={false}>
-          {t('githubDiff.cancel')}
+          {t('common.cancel')}
         </Button>
         <Button
           variant="primary"

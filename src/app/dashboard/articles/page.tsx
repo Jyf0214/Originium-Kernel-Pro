@@ -68,7 +68,7 @@ export default function ArticlesPage() {
         setArticles(articles.filter(a => a.id !== id));
         message.success(t('common.success'));
       } else {
-        const body = await res.json().catch(() => ({ error: t('dashboard.articleManage.deleteFailed') }));
+        const body = await res.json().catch(() => ({ error: t('common.deleteFailed') }));
         showError(body.error || t('dashboard.articleManage.deleteFailedStatus', { status: res.status }));
       }
     } catch {

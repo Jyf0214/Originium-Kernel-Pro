@@ -106,7 +106,7 @@ export default function QRCodeDialog({ open, url: initialUrl, title, onClose }: 
             }`}
           >
             {copied ? <Check size={14} /> : <Copy size={14} />}
-            {copyFailed ? t('components.QRCodeDialog.copyFailed') : copied ? t('components.QRCodeDialog.copied') : t('components.QRCodeDialog.copy')}
+            {copyFailed ? t('components.QRCodeDialog.copyFailed') : copied ? t('common.copied') : t('components.QRCodeDialog.copy')}
           </button>
         </div>
 

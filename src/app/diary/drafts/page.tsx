@@ -55,7 +55,7 @@ export default function DiaryDraftsPage() {
     setDeleting(id);
     try {
       const res = await fetch(`/api/diary/draft?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error(t('diary.deleteFailed'));
+      if (!res.ok) throw new Error(t('common.deleteFailed'));
       setDrafts((prev) => prev.filter((d) => d.id !== id));
     } catch {
       showError(t('diary.deleteDraftFailed'));

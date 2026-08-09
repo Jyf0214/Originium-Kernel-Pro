@@ -83,7 +83,7 @@ export default function GlobalError({
             onClick={copyError}
           >
             <Copy className="h-4 w-4" />
-            {copied ? t('error.copied') : t('error.copy')}
+            {copied ? t('common.copied') : t('error.copy')}
           </Button>
           <Button
             variant="primary"

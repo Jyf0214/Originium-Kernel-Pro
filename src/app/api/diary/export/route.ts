@@ -13,7 +13,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.diary.exportDiar
   const totalCount = await prisma.diary.count();
   if (totalCount > MAX_ENTRIES) {
     return NextResponse.json(
-      { error: getTranslate('api.diary.exportLimitExceeded', { totalCount, maxEntries: MAX_ENTRIES }) },
+      { error: getTranslate('api.diary.exportLimitExceeded', { count: totalCount, max: MAX_ENTRIES }) },
       { status: 413 },
     );
   }

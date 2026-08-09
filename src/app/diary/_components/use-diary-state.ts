@@ -115,14 +115,14 @@ export function useDiaryState(): UseDiaryStateResult {
     setDeleting(id);
     try {
       const res = await fetch(`/api/diary/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error(t('diary.deleteFailed'));
+      if (!res.ok) throw new Error(t('common.deleteFailed'));
       if (viewingId === id) {
         setViewingId(null);
         setViewContent('');
       }
       await fetchDiaries();
     } catch {
-      showError(t('diary.deleteFailed'));
+      showError(t('common.deleteFailed'));
     } finally {
       setDeleting(null);
     }

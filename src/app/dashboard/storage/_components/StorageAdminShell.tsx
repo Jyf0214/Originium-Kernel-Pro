@@ -88,7 +88,7 @@ export function StorageAdminShell() {
     deleteFile: t('storage.deleteFileConfirm'),
     deleteFolder: t('storage.deleteFolderConfirm'),
     deleteDesc: t('storage.deleteConfirmDesc'),
-    cancel: t('storage.cancel'),
+    cancel: t('common.cancel'),
     create: t('storage.create'),
     folderNameLabel: t('storage.folderName'),
     folderNamePlaceholder: t('storage.folderNamePlaceholder'),

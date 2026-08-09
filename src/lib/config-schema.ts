@@ -356,7 +356,7 @@ export const zFooterOwnerConfig = z.object({
 export const zFooterRuntimeConfig = z.object({
   enable: z.boolean().default(false),
   launchTime: z.string().default('04/01/2021 00:00:00'),
-  timeFormat: z.string().default(getTranslate('lib.config.footerTimeFormat')),
+  timeFormat: z.string().default(getTranslate('footerBrand.defaultTimeFormat')),
   onlineHours: z.object({
     start: z.number().int().min(0).max(23).default(9),
     end: z.number().int().min(0).max(23).default(18),

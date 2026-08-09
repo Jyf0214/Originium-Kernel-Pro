@@ -86,7 +86,7 @@ export function rootNotAllowedResponse(): NextResponse {
 /** 上传文件过大时返回的 413 响应 */
 export function payloadTooLargeResponse(size: number): NextResponse {
   return NextResponse.json(
-    { error: getTranslate('api.storage.fileTooLarge', { size, limit: MAX_UPLOAD_SIZE }) },
+    { error: getTranslate('api.storage.fileTooLarge', { size, max: MAX_UPLOAD_SIZE }) },
     { status: 413 }
   )
 }

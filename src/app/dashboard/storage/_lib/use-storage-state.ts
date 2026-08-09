@@ -335,7 +335,7 @@ export function useStorageState(): UseStorageState {
           }
           message.error(err.message);
         } else {
-          message.error(getTranslate('storage.deleteFailed'));
+          message.error(getTranslate('common.deleteFailed'));
         }
       }
     },
@@ -366,7 +366,7 @@ export function useStorageState(): UseStorageState {
           }
           message.error(err.message);
         } else {
-          message.error(getTranslate('storage.deleteFailed'));
+          message.error(getTranslate('common.deleteFailed'));
         }
       }
     },

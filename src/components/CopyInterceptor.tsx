@@ -49,7 +49,7 @@ export default function CopyInterceptor({ articleRef, authorName, authorInfo }: 
 
       const limit = cfg.copyright?.limitCount ?? 50;
 
-      message.info(t('copyInterceptor.copied'));
+      message.info(t('common.copiedToClipboard'));
 
       if (cfg.copyright?.enable && selectedText.length >= limit && copyrightCfg) {
         e.clipboardData?.setData('text/plain', selectedText + buildCopyrightText(copyrightCfg, location));

@@ -50,7 +50,7 @@ export function useEditActions({ filePath }: UseEditActionsParams) {
       router.push('/faces');
     } catch (err) {
       console.error('删除失败:', err);
-      showError(err instanceof Error ? err.message : t('faces.deleteFailed'));
+      showError(err instanceof Error ? err.message : t('common.deleteFailed'));
     } finally {
       setDeleting(false);
     }

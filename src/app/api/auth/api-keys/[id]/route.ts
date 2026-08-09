@@ -33,7 +33,7 @@ export const DELETE = apiHandler<{ id: string }>(
       return new NextResponse(null, { status: 204 });
     } catch (err) {
       console.error('[api-keys.delete] 删除失败', err);
-      return NextResponse.json({ error: getTranslate('api.auth.deleteFailed') }, { status: 500 });
+      return NextResponse.json({ error: getTranslate('common.deleteFailed') }, { status: 500 });
     }
   }
 );
