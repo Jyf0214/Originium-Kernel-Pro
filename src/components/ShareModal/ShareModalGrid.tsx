@@ -1,6 +1,6 @@
 'use client';
 
-import type { PlatformDef } from './types';
+import type { PlatformDef } from '@/components/ShareButtons/types';
 
 interface ShareModalGridProps {
   platforms: PlatformDef[];

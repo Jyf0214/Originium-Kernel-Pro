@@ -18,15 +18,15 @@ import {
    平台映射
    ============================================================ */
 
-/** 构建全部平台映射 */
-function buildPlatforms(): Record<string, PlatformDef> {
+/** 构建全部平台映射（icon 尺寸参数化，ShareButtons 用 20、ShareModal 用 28） */
+function buildPlatforms(iconSize = 20): Record<string, PlatformDef> {
   return {
     twitter: {
       id: 'twitter',
       name: 'Twitter',
       color: '#000000',
       hoverColor: '#333333',
-      icon: <TwitterIcon size={20} />,
+      icon: <TwitterIcon size={iconSize} />,
       shareUrl: (url, title) =>
         `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
     },
@@ -35,7 +35,7 @@ function buildPlatforms(): Record<string, PlatformDef> {
       name: 'Facebook',
       color: '#1877F2',
       hoverColor: '#1664D9',
-      icon: <FacebookIcon size={20} />,
+      icon: <FacebookIcon size={iconSize} />,
       shareUrl: (url) =>
         `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
     },
@@ -44,7 +44,7 @@ function buildPlatforms(): Record<string, PlatformDef> {
       name: getTranslate('components.ShareButtons.platforms.weibo'),
       color: '#E6162D',
       hoverColor: '#C81023',
-      icon: <WeiboIcon size={20} />,
+      icon: <WeiboIcon size={iconSize} />,
       shareUrl: (url, title) =>
         `https://service.weibo.com/share/share.php?title=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
     },
@@ -53,7 +53,7 @@ function buildPlatforms(): Record<string, PlatformDef> {
       name: getTranslate('components.ShareButtons.platforms.wechat'),
       color: '#07C160',
       hoverColor: '#06AD56',
-      icon: <WeChatIcon size={20} />,
+      icon: <WeChatIcon size={iconSize} />,
       shareUrl: () => null, // 复制链接提示
     },
     qq: {
@@ -61,7 +61,7 @@ function buildPlatforms(): Record<string, PlatformDef> {
       name: 'QQ',
       color: '#12B7F5',
       hoverColor: '#0EA5E9',
-      icon: <QQIcon size={20} />,
+      icon: <QQIcon size={iconSize} />,
       shareUrl: (url, title) =>
         `https://connect.qq.com/widget/shareqq/index.html?title=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
     },
@@ -70,7 +70,7 @@ function buildPlatforms(): Record<string, PlatformDef> {
       name: 'Telegram',
       color: '#0088CC',
       hoverColor: '#0077B3',
-      icon: <TelegramIcon size={20} />,
+      icon: <TelegramIcon size={iconSize} />,
       shareUrl: (url, title) =>
         `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
     },
@@ -79,7 +79,7 @@ function buildPlatforms(): Record<string, PlatformDef> {
       name: 'WhatsApp',
       color: '#25D366',
       hoverColor: '#128C7E',
-      icon: <WhatsAppIcon size={20} />,
+      icon: <WhatsAppIcon size={iconSize} />,
       shareUrl: (url, title) =>
         `https://api.whatsapp.com/send?text=${encodeURIComponent(title + ' ' + url)}`,
     },
@@ -88,7 +88,7 @@ function buildPlatforms(): Record<string, PlatformDef> {
       name: 'Reddit',
       color: '#FF4500',
       hoverColor: '#CC3700',
-      icon: <RedditIcon size={20} />,
+      icon: <RedditIcon size={iconSize} />,
       shareUrl: (url, title) =>
         `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`,
     },
@@ -97,7 +97,7 @@ function buildPlatforms(): Record<string, PlatformDef> {
       name: 'LinkedIn',
       color: '#0A66C2',
       hoverColor: '#004182',
-      icon: <LinkedInIcon size={20} />,
+      icon: <LinkedInIcon size={iconSize} />,
       shareUrl: (url) =>
         `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
     },
@@ -106,18 +106,22 @@ function buildPlatforms(): Record<string, PlatformDef> {
       name: 'Email',
       color: '#EA4335',
       hoverColor: '#D33426',
-      icon: <EmailIcon size={20} />,
+      icon: <EmailIcon size={iconSize} />,
       shareUrl: (url, title) =>
         `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`,
     },
   };
 }
 
-/** 模块级缓存，避免每次渲染重新构建 JSX 元素 */
-let _platformsCache: Record<string, PlatformDef> | null = null;
-function getPlatforms(): Record<string, PlatformDef> {
-  _platformsCache ??= buildPlatforms();
-  return _platformsCache;
+/** 模块级缓存（按 icon 尺寸），避免每次渲染重新构建 JSX 元素 */
+const _platformsCache = new Map<number, Record<string, PlatformDef>>();
+function getPlatforms(iconSize = 20): Record<string, PlatformDef> {
+  let cached = _platformsCache.get(iconSize);
+  if (!cached) {
+    cached = buildPlatforms(iconSize);
+    _platformsCache.set(iconSize, cached);
+  }
+  return cached;
 }
 
 /* ============================================================

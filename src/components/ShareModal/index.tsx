@@ -6,79 +6,12 @@ import { modalContentVariants, modalTransition } from '@/components/ui/motion';
 import { Button } from '@/components/ui/Button';
 import { X } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
-import { getTranslate } from '@/i18n/translate';
+import { getPlatforms } from '@/components/ShareButtons/share-platforms';
 import { ShareModalGrid } from './ShareModalGrid';
 import { ShareModalFooter } from './ShareModalFooter';
 import { useCopyFeedback } from './use-copy-feedback';
-import type { PlatformDef, ShareModalProps } from './types';
-import {
-  TwitterIcon,
-  FacebookIcon,
-  WeiboIcon,
-  WeChatIcon,
-  QQIcon,
-  TelegramIcon,
-} from '@/components/ui/SocialIcons';
-
-/* ============================================================
-   平台注册表
-   ============================================================ */
-
-const ALL_PLATFORMS: Record<string, PlatformDef> = {
-  twitter: {
-    id: 'twitter',
-    name: 'Twitter',
-    color: '#000000',
-    hoverColor: '#333333',
-    icon: <TwitterIcon size={28} />,
-    shareUrl: (url, title) =>
-      `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
-  },
-  facebook: {
-    id: 'facebook',
-    name: 'Facebook',
-    color: '#1877F2',
-    hoverColor: '#1664D9',
-    icon: <FacebookIcon size={28} />,
-    shareUrl: (url) =>
-      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-  },
-  weibo: {
-    id: 'weibo',
-    name: getTranslate('components.ShareButtons.platforms.weibo'),
-    color: '#E6162D',
-    hoverColor: '#C81023',
-    icon: <WeiboIcon size={28} />,
-    shareUrl: (url, title) =>
-      `https://service.weibo.com/share/share.php?title=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
-  },
-  wechat: {
-    id: 'wechat',
-    name: getTranslate('components.ShareButtons.platforms.wechat'),
-    color: '#07C160',
-    hoverColor: '#06AD56',
-    icon: <WeChatIcon size={28} />,
-    shareUrl: () => null,
-  },
-  qq: {
-    id: 'qq',
-    name: 'QQ',
-    color: '#12B7F5',
-    hoverColor: '#0EA5E9',
-    icon: <QQIcon size={28} />,
-    shareUrl: (url, title) =>
-      `https://connect.qq.com/widget/shareqq/index.html?title=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
-  },
-  telegram: {
-    id: 'telegram',
-    name: 'Telegram',
-    color: '#0088CC',
-    hoverColor: '#0077B3',
-    icon: <TelegramIcon size={28} />,
-    shareUrl: (url, title) =>
-      `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
-  },
-};
+import type { PlatformDef } from '@/components/ShareButtons/types';
+import type { ShareModalProps } from './types';
 
 /* ============================================================
    分享弹窗
@@ -95,9 +28,11 @@ export default function ShareModal({
   const shareUrl = urlProp ?? (typeof window !== 'undefined' ? window.location.href : '');
   const shareTitle = titleProp ?? (typeof document !== 'undefined' ? document.title : '');
 
+  // 复用 ShareButtons 的平台注册表（28px 图标适配弹窗网格）
+  const allPlatforms = getPlatforms(28);
   const displayPlatforms = platformOverride
-    ? platformOverride.filter(k => ALL_PLATFORMS[k]).map(k => ALL_PLATFORMS[k]!)
-    : Object.values(ALL_PLATFORMS);
+    ? platformOverride.filter(k => allPlatforms[k]).map(k => allPlatforms[k]!)
+    : Object.values(allPlatforms);
 
   const { copied, toast, copy, showToast } = useCopyFeedback(shareUrl);
 
