@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useCallback } from 'react';
-import { Button } from '@/components/ui/Button';
+import { FilterPill } from '@/components/ui/FilterPill';
 
 interface CategoryBarProps {
   tags?: string[];
@@ -36,35 +36,27 @@ export const CategoryBar = React.memo(function CategoryBar({
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {/* 全部按钮：重置所有筛选 */}
-        <Button
+        <FilterPill
+          selected={selectedTag === null}
           onClick={() => { onSelectTag(null); }}
-          variant={selectedTag === null ? 'primary' : 'ghost'}
-          size="sm"
-          autoLoading={false}
-          rounded="full"
-          className={`shrink-0${selectedTag === null ? ' shadow-sm' : ''}`}
         >
           全部
-        </Button>
+        </FilterPill>
 
         {/* 标签按钮 */}
         {tags.length > 0 && (
           <>
             <div className="shrink-0 w-px bg-zinc-200 my-1.5" aria-hidden="true" />
             {tags.map((tag) => (
-              <Button
+              <FilterPill
                 key={`tag-${tag}`}
+                selected={selectedTag === tag}
                 onClick={() => {
                   onSelectTag(selectedTag === tag ? null : tag);
                 }}
-                variant={selectedTag === tag ? 'primary' : 'ghost'}
-                size="sm"
-                autoLoading={false}
-                rounded="full"
-                className={`shrink-0${selectedTag === tag ? ' shadow-sm' : ''}`}
               >
                 #{tag}
-              </Button>
+              </FilterPill>
             ))}
           </>
         )}

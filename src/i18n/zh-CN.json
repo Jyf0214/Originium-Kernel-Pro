@@ -1514,18 +1514,21 @@
     },
     "Navbar": {
       "about": "关于",
+      "archives": "归档",
       "closeMenu": "关闭菜单",
       "darkMode": "深色模式",
       "faviconAlt": "网站图标",
       "followSystem": "跟随系统",
       "lightMode": "浅色模式",
       "openMenu": "打开菜单",
+      "privatePosts": "私人帖子",
       "search": "搜索",
       "searchMac": "搜索 (⌘K)",
       "searchShortcut": "搜索 (Ctrl+K)",
       "shortcutsHelp": "快捷键帮助",
       "shortcutsTitle": "快捷键 (?)",
       "tags": "标签",
+      "travel": "旅行足迹",
       "travelling": "旅行中"
     },
     "PostLikeButton": {

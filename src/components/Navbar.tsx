@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
-import { Clock, MapPin, Search, Sun, Moon, Monitor, Keyboard, Menu, X, Home, FileText, Info, Hash } from 'lucide-react';
+import { Clock, MapPin, Search, Sun, Moon, Monitor, Keyboard, Menu, X, Home, FileText, Info, Hash, Archive, Lock } from 'lucide-react';
 import { useThemeMode } from '@/hooks/use-theme-mode';
 import { usePathname } from 'next/navigation';
 import LanguageSwitcher from '@/components/LanguageSwitcher/index';
@@ -113,6 +113,7 @@ function DrawerContent({
   t: TFunc;
   closeDrawer: () => void;
 }) {
+  const { user } = useAuth();
   const menuItems = navConfig?.enable && navConfig.menu
     ? navConfig.menu.flatMap((group) => group.item)
     : [];
@@ -162,8 +163,13 @@ function DrawerContent({
           />
         ))}
         <DrawerLink href="/posts" pathname={pathname} icon={<FileText size={18} />} label={t('sidebar.posts')} onClick={closeDrawer} />
+        <DrawerLink href="/archives" pathname={pathname} icon={<Archive size={18} />} label={t('components.Navbar.archives')} onClick={closeDrawer} />
         <DrawerLink href="/tags" pathname={pathname} icon={<Hash size={18} />} label={t('components.Navbar.tags')} onClick={closeDrawer} />
+        <DrawerLink href="/travel" pathname={pathname} icon={<MapPin size={18} />} label={t('components.Navbar.travel')} onClick={closeDrawer} />
         <DrawerLink href="/about" pathname={pathname} icon={<Info size={18} />} label={t('components.Navbar.about')} onClick={closeDrawer} />
+        {user && (
+          <DrawerLink href="/posts/private" pathname={pathname} icon={<Lock size={18} />} label={t('components.Navbar.privatePosts')} onClick={closeDrawer} />
+        )}
       </nav>
 
       {/* 底部 */}

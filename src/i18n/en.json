@@ -1514,18 +1514,21 @@
     },
     "Navbar": {
       "about": "About",
+      "archives": "Archives",
       "closeMenu": "Close menu",
       "darkMode": "Dark mode",
       "faviconAlt": "Site icon",
       "followSystem": "Follow system",
       "lightMode": "Light mode",
       "openMenu": "Open menu",
+      "privatePosts": "Private posts",
       "search": "Search",
       "searchMac": "Search (⌘K)",
       "searchShortcut": "Search (Ctrl+K)",
       "shortcutsHelp": "Keyboard shortcuts help",
       "shortcutsTitle": "Shortcuts (?)",
       "tags": "Tags",
+      "travel": "Travel",
       "travelling": "Travelling"
     },
     "PostLikeButton": {
