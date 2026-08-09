@@ -357,16 +357,11 @@
     "heroTitle2": "Hero Title Line 2",
     "background": "背景设置",
     "backgroundUrl": "背景图片URL",
-    "backgroundUrlPlaceholder": "输入图片直链地址",
-    "backgroundUrlHint": "留空则不使用自定义背景",
     "overlayOpacity": "蒙板透明度",
-    "overlayOpacityHint": "0% 为完全透明，100% 为完全不透明",
-    "githubConfigured": "GitHub 已配置",
     "githubNotConfigured": "GitHub 未配置",
     "save": "保存配置",
     "saveSuccess": "配置保存成功！",
     "language": "语言",
-    "languageHint": "选择网站显示语言",
     "customCSS": "自定义 CSS",
     "customHead": "自定义 Head 标签",
     "accessControl": "访问控制",
@@ -737,11 +732,8 @@
     "color": "自定义颜色",
     "position": "加载位置",
     "preview": "效果预览",
-    "pageLoading": "轻加载（页面内数据加载）",
-    "navLoading": "重加载（路由导航/F5刷新）",
     "animationType": "动画类型",
     "colorLabel": "颜色",
-    "positionLabel": "加载位置",
     "spinner": "环形加载 (spinner)",
     "antd": "Ant Design 图标 (antd)",
     "text": "文字动画 (text)",
@@ -754,7 +746,6 @@
     "dots": "三色弹跳 (dots)",
     "glow": "光晕渐变 (glow)",
     "waves": "波浪动画 (waves)",
-    "progress": "顶部进度条 (progress)",
     "positionCenter": "居中",
     "positionTopLeft": "左上角",
     "positionTopRight": "右上角",
@@ -1316,8 +1307,6 @@
     "ShareButtons": {
       "linkCopied": "链接已复制",
       "copyFailed": "复制失败",
-      "copied": "已复制",
-      "wechatCopyHint": "复制链接到微信分享",
       "wechatHint": "请在微信中粘贴链接分享",
       "share": "分享",
       "copyLink": "复制链接",
@@ -1347,15 +1336,6 @@
     },
     "TopHeader": {
       "openSidebar": "打开侧边栏"
-    },
-    "AuthorStatusConfig": {
-      "enableCard": "启用作者卡片",
-      "enableCardDesc": "在文章页等位置显示作者状态卡片",
-      "statusImageUrl": "状态图片 URL",
-      "skillTags": "技能标签",
-      "skillPlaceholder": "例如: 🤖️ 数码科技爱好者",
-      "add": "添加",
-      "noSkills": "暂无技能标签"
     },
     "CodeBlockConfig": {
       "highlightTheme": "代码高亮主题",
@@ -1640,9 +1620,6 @@
       "close": "关闭",
       "position": "上次阅读到 {pct}% 处",
       "restore": "继续阅读"
-    },
-    "gitHubStatus": {
-      "title": "GitHub 同步状态"
     },
     "languageSwitcher": {
       "jaName": "日本語",

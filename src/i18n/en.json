@@ -357,16 +357,11 @@
     "heroTitle2": "Hero Title Line 2",
     "background": "Background Settings",
     "backgroundUrl": "Background Image URL",
-    "backgroundUrlPlaceholder": "Enter direct image link",
-    "backgroundUrlHint": "Leave empty to disable custom background",
     "overlayOpacity": "Overlay Opacity",
-    "overlayOpacityHint": "0% is fully transparent, 100% is fully opaque",
-    "githubConfigured": "GitHub Configured",
     "githubNotConfigured": "GitHub Not Configured",
     "save": "Save Configuration",
     "saveSuccess": "Configuration saved successfully!",
     "language": "Language",
-    "languageHint": "Select site display language",
     "customCSS": "Custom CSS",
     "customHead": "Custom Head Tags",
     "accessControl": "Access Control",
@@ -737,11 +732,8 @@
     "color": "Custom Color",
     "position": "Loading Position",
     "preview": "Effect Preview",
-    "pageLoading": "Page Loading (in-page data loading)",
-    "navLoading": "Navigation Loading (route/F5 refresh)",
     "animationType": "Animation Type",
     "colorLabel": "Color",
-    "positionLabel": "Position",
     "spinner": "Spinner",
     "antd": "Ant Design Icon (antd)",
     "text": "Text Animation (text)",
@@ -754,7 +746,6 @@
     "dots": "Bouncing Dots (dots)",
     "glow": "Glow Gradient (glow)",
     "waves": "Wave Animation (waves)",
-    "progress": "Top Progress Bar (progress)",
     "positionCenter": "Center",
     "positionTopLeft": "Top Left",
     "positionTopRight": "Top Right",
@@ -1316,8 +1307,6 @@
     "ShareButtons": {
       "linkCopied": "Link copied",
       "copyFailed": "Copy failed",
-      "copied": "Copied",
-      "wechatCopyHint": "Copy the link and paste it in WeChat to share",
       "wechatHint": "Please paste the link in WeChat to share",
       "share": "Share",
       "copyLink": "Copy link",
@@ -1347,15 +1336,6 @@
     },
     "TopHeader": {
       "openSidebar": "Open sidebar"
-    },
-    "AuthorStatusConfig": {
-      "enableCard": "Enable author card",
-      "enableCardDesc": "Show author status card on article pages",
-      "statusImageUrl": "Status Image URL",
-      "skillTags": "Skill tags",
-      "skillPlaceholder": "e.g.: 🤖️ Tech enthusiast",
-      "add": "Add",
-      "noSkills": "No skill tags"
     },
     "CodeBlockConfig": {
       "highlightTheme": "Code highlight theme",
@@ -1640,9 +1620,6 @@
       "close": "Close",
       "position": "Last read at {pct}%",
       "restore": "Continue reading"
-    },
-    "gitHubStatus": {
-      "title": "GitHub Sync Status"
     },
     "languageSwitcher": {
       "jaName": "日本語",
