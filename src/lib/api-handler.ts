@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { getSession, requireSudo, type SessionPayload } from '@/lib/auth';
+import { getSession, requireRoot, isRootRole, type SessionPayload } from '@/lib/auth';
 import { getTranslate } from '@/i18n/translate';
 
 /* ---------- API 响应性能指标 ---------- */
@@ -38,7 +38,7 @@ export interface ApiHandlerOptions {
   label: string;
   requireAuth?: boolean;
   requireAdmin?: boolean;
-  requireSudo?: boolean;
+  requireRoot?: boolean;
   /** 是否要求数据库可用，不可用时返回 503 */
   requireDb?: boolean;
 }
@@ -87,16 +87,16 @@ async function checkAuth(
       console.warn(`[API] ${method} ${pathname}${querySummary(req)} → 401 未登录`);
       return { error: NextResponse.json({ error: getTranslate('lib.api.unauthorized') }, { status: 401 }) };
     }
-    if (options.requireAdmin && session.role !== 'admin' && session.role !== 'sudo') {
+    if (options.requireAdmin && session.role !== 'admin' && !isRootRole(session.role)) {
       console.warn(`[API] ${method} ${pathname}${querySummary(req)} → 403 用户 ${session.uid} 无管理员权限`);
       return { error: NextResponse.json({ error: getTranslate('lib.api.forbidden') }, { status: 403 }) };
     }
     return { session };
   }
-  if (options.requireSudo) {
-    const result = await requireSudo();
+  if (options.requireRoot) {
+    const result = await requireRoot();
     if (result instanceof NextResponse) {
-      console.warn(`[API] ${method} ${pathname}${querySummary(req)} → ${result.status} sudo 验证失败`);
+      console.warn(`[API] ${method} ${pathname}${querySummary(req)} → ${result.status} root 权限验证失败`);
       return { error: result };
     }
     return { session: result };

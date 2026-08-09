@@ -3,7 +3,7 @@
  * Originium Kernel — 纯客户端逻辑
  */
 
-export type UserRole = 'user' | 'admin' | 'sudo';
+export type UserRole = 'user' | 'admin' | 'root';
 
 export interface UserProfile {
   uid: string;

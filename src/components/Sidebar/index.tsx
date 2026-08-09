@@ -8,6 +8,7 @@ import SidebarHeader from './SidebarHeader';
 import SidebarUserMenu from './SidebarUserMenu';
 import SidebarGroup from './SidebarGroup';
 import SidebarCollapseButton from './SidebarCollapseButton';
+import SudoModeButton from './SudoModeButton';
 import { useSidebarCollapsed } from './use-sidebar-collapsed';
 import { menuItems } from './sidebar-config';
 import { showCuteLogoutConfirm } from '@/components/ui/CuteLogout';
@@ -21,7 +22,7 @@ interface SidebarProps {
 }
 
 function Sidebar({ isOpen, onClose, databaseConfigured = true }: SidebarProps) {
-  const { user, logout } = useAuth();
+  const { user, isRoot, logout } = useAuth();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const search = searchParams.toString();
@@ -33,7 +34,10 @@ function Sidebar({ isOpen, onClose, databaseConfigured = true }: SidebarProps) {
     // 角色过滤：仅当当前用户角色命中白名单时才显示
     if (item.roles && item.roles.length > 0) {
       const role = user?.role;
-      if (!role || !item.roles.includes(role)) return false;
+      if (!role) return false;
+      // 白名单含 root 时，sudo 模式（admin 提权）同样命中
+      if (item.roles.includes('root') && isRoot) return true;
+      if (!item.roles.includes(role)) return false;
     }
     // 数据库依赖过滤：requiresDb=true 时仅数据库已配置才显示
     if (item.requiresDb && !databaseConfigured) return false;
@@ -96,10 +100,14 @@ function Sidebar({ isOpen, onClose, databaseConfigured = true }: SidebarProps) {
           />
         ))}
 
-        {/* 桌面端折叠按钮 */}
+        {/* sudo 模式入口（admin 提权）与桌面端折叠按钮 */}
         {!showCloseButton && (
-          <SidebarCollapseButton collapsed={collapsed} onToggle={toggleCollapsed} />
+          <>
+            <SudoModeButton collapsed={desktopCollapsed} />
+            <SidebarCollapseButton collapsed={collapsed} onToggle={toggleCollapsed} />
+          </>
         )}
+        {showCloseButton && <SudoModeButton />}
       </nav>
     </div>
   );

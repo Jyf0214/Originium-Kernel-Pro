@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { getSession, normalizeRole, isSudoModeActive } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { getUserAvatarAsync } from '@/lib/config';
 import { createApiLogger } from '@/lib/api-logger';
@@ -30,7 +30,8 @@ export async function GET() {
 
     const user = JSON.parse(userStr);
     const avatar = await getUserAvatarAsync();
-    
+    const sudoModeActive = await isSudoModeActive(session);
+
     logger.info('GET', '获取用户信息成功', { uid: session.uid });
     return NextResponse.json({
       authenticated: true,
@@ -38,10 +39,11 @@ export async function GET() {
         uid: user.uid,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: normalizeRole(user.role),
         userGroup: user.userGroup,
         avatar: avatar ?? undefined,
         twoFactorEnabled: user.twoFactorEnabled === true,
+        sudoModeActive,
       },
     });
   } catch (error) {

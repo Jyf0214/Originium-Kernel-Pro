@@ -26,7 +26,7 @@ export default function DiaryDraftsPage() {
   const [drafts, setDrafts] = React.useState<DraftItem[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [deleting, setDeleting] = React.useState<string | null>(null);
-  const { user, isSudo, loading: authLoading } = useAuth();
+  const { user, isRoot, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const fetchDrafts = React.useCallback(async () => {
@@ -44,12 +44,12 @@ export default function DiaryDraftsPage() {
 
   React.useEffect(() => {
     if (authLoading) return;
-    if (!user || !isSudo) {
+    if (!user || !isRoot) {
       router.push('/login');
       return;
     }
     void fetchDrafts();
-  }, [user, isSudo, authLoading, router, fetchDrafts]);
+  }, [user, isRoot, authLoading, router, fetchDrafts]);
 
   const handleDelete = async (id: string) => {
     setDeleting(id);
@@ -77,7 +77,7 @@ export default function DiaryDraftsPage() {
   };
 
   if (authLoading) return <GlobalLoading />;
-  if (!user || !isSudo) return null;
+  if (!user || !isRoot) return null;
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">

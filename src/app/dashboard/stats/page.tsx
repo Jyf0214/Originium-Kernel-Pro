@@ -103,7 +103,7 @@ function Timeline({ posts }: { posts: RecentPost[] }) {
 /* ---------- 页面主体 ---------- */
 
 export default function StatsPage() {
-  const { user, isSudo, loading: authLoading } = useAuth();
+  const { user, isRoot, loading: authLoading } = useAuth();
   const { t } = useI18n();
   const [data, setData] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -127,10 +127,10 @@ export default function StatsPage() {
   }, [t]);
 
   useEffect(() => {
-    if (!authLoading && user && isSudo) {
+    if (!authLoading && user && isRoot) {
       void fetchStats();
     }
-  }, [authLoading, user, isSudo, fetchStats]);
+  }, [authLoading, user, isRoot, fetchStats]);
 
   if (authLoading) return <GlobalLoading />;
 

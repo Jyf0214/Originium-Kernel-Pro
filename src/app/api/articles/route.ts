@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import type { getSession } from '@/lib/auth';
+import { isRootRole, type getSession } from '@/lib/auth';
 import { getUserAvatar } from '@/lib/config';
 import { getAccessibleContent } from '@/lib/content-access';
 import type { ContentFile } from '@/types/content';
@@ -60,7 +60,7 @@ async function loadDrafts(
   authorFilter: string | null,
 ) {
   const allDrafts = await getDraftsFromDb();
-  const isAdmin = session?.role === 'sudo' || session?.role === 'admin';
+  const isAdmin = isRootRole(session?.role) || session?.role === 'admin';
   let drafts = isAdmin ? allDrafts : allDrafts.filter((d) => d.authorId === session?.uid);
   if (authorFilter) {
     drafts = drafts.filter((d) => d.authorId === authorFilter);
@@ -89,7 +89,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.articles.article
     published = published.filter((p: { author?: string }) => p.author === authorFilter);
   }
 
-  // 草稿：仅已登录用户可查看，非 sudo/admin 只能看到自己的草稿
+  // 草稿：仅已登录用户可查看，非 admin/root 只能看到自己的草稿
   const drafts = isAuthenticated ? await loadDrafts(session, authorFilter) : [];
 
   // 合并，按日期降序

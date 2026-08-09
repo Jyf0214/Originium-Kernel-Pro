@@ -14,8 +14,8 @@
  * - /api/faces      → 公开
  * - 其他 /api/**    → 必须登录
  *
- * 注意：此 middleware 仅做粗粒度拦截，细粒度权限（如 sudo、API 密钥权限）
- * 仍由各路由内的 requireSudo() / requireApiKeyPermission() 负责。
+ * 注意：此 middleware 仅做粗粒度拦截，细粒度权限（如 root、API 密钥权限）
+ * 仍由各路由内的 requireRoot() / requireApiKeyPermission() 负责。
  */
 import { type NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
@@ -122,10 +122,10 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  // 管理员路径：检查角色
+  // 管理员路径：检查角色（'sudo' 为存量数据兼容，与 'root' 等价）
   if (isAdminPath(pathname)) {
     const role = payload.role;
-    if (role !== 'admin' && role !== 'sudo') {
+    if (role !== 'admin' && role !== 'root' && role !== 'sudo') {
       return NextResponse.json(
         { error: '需要管理员权限' },
         { status: 403 },

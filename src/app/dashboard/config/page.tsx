@@ -89,7 +89,7 @@ export default function ConfigPage() {
   });
 
   useEffect(() => {
-    if (userRole !== 'sudo' && userRole !== 'admin') {
+    if (userRole !== 'admin' && userRole !== 'root') {
       setLoading(false);
       return;
     }

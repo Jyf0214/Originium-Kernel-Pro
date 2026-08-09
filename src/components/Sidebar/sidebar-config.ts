@@ -25,12 +25,12 @@ export const menuItems: MenuItem[] = [
   { key: 'sidebar.trash', icon: Trash2, href: '/dashboard/articles?status=pending_deletion', group: 'manage', requiresDb: true },
   { key: 'sidebar.diary', icon: FileText, href: '/diary', group: 'personal', requiresDb: true },
   { key: 'sidebar.settings', icon: Settings, href: '/dashboard/settings', group: 'account', requiresDb: true },
-  { key: 'sidebar.fileManager', icon: FolderOpen, href: '/dashboard/storage', group: 'storage', roles: ['sudo'], requiresDb: true },
-  { key: 'sidebar.systemConfig', icon: Settings, href: '/dashboard/config', group: 'admin', roles: ['sudo'], requiresDb: true },
-  { key: 'sidebar.configPreview', icon: Eye, href: '/dashboard/config/preview', group: 'admin', roles: ['sudo'], requiresDb: true },
-  { key: 'sidebar.envVariables', icon: Activity, href: '/dashboard/env', group: 'admin', roles: ['sudo'], requiresDb: true },
-  { key: 'sidebar.contentStats', icon: BarChart3, href: '/dashboard/stats', group: 'admin', roles: ['sudo'], requiresDb: true },
-  { key: 'sidebar.auditLogs', icon: ScrollText, href: '/dashboard/audit', group: 'admin', roles: ['sudo'], requiresDb: true },
+  { key: 'sidebar.fileManager', icon: FolderOpen, href: '/dashboard/storage', group: 'storage', roles: ['root'], requiresDb: true },
+  { key: 'sidebar.systemConfig', icon: Settings, href: '/dashboard/config', group: 'admin', roles: ['root'], requiresDb: true },
+  { key: 'sidebar.configPreview', icon: Eye, href: '/dashboard/config/preview', group: 'admin', roles: ['root'], requiresDb: true },
+  { key: 'sidebar.envVariables', icon: Activity, href: '/dashboard/env', group: 'admin', roles: ['root'], requiresDb: true },
+  { key: 'sidebar.contentStats', icon: BarChart3, href: '/dashboard/stats', group: 'admin', roles: ['root'], requiresDb: true },
+  { key: 'sidebar.auditLogs', icon: ScrollText, href: '/dashboard/audit', group: 'admin', roles: ['root'], requiresDb: true },
 ];
 
 export const groupKeys: Record<string, I18nKey> = {

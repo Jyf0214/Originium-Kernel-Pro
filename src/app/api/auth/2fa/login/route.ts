@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createSession, verifyTempToken, clearTempToken } from '@/lib/auth';
+import { createSession, verifyTempToken, clearTempToken, normalizeRole } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { verifyTotp } from '@/lib/totp';
 import { getUserAvatarAsync } from '@/lib/config';
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
     await createSession({
       uid: user.uid,
       email: user.email,
-      role: user.role as 'user' | 'admin' | 'sudo',
+      role: normalizeRole(user.role),
       userGroup: user.userGroup,
     });
 

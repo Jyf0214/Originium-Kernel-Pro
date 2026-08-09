@@ -26,7 +26,7 @@ interface NewFaceFormValues {
 
 export default function NewFacePage() {
   const router = useRouter();
-  const { isSudo, loading: authLoading } = useAuth();
+  const { isRoot, loading: authLoading } = useAuth();
   const { t } = useI18n();
   const [form] = Form.useForm<NewFaceFormValues>();
   const [submitting, setSubmitting] = useState(false);
@@ -101,7 +101,7 @@ export default function NewFacePage() {
   }
 
   /** 非管理员显示无权限提示 */
-  if (!isSudo) {
+  if (!isRoot) {
     return (
       <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
         <PageContainer maxWidth="4xl">

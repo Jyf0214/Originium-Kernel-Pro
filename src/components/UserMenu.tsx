@@ -11,12 +11,13 @@ import { useRouter } from 'next/navigation';
 import { showCuteLogoutConfirm } from '@/components/ui/CuteLogout';
 
 export function UserMenu() {
-  const { user, userRole, logout } = useAuth();
+  const { user, userRole, isRoot, logout } = useAuth();
   const avatarUrl = useBuildTimeAvatar();
   const { t } = useI18n();
   const router = useRouter();
 
-  const isSudo = userRole === 'sudo' || userRole === 'admin';
+  // 管理员或拥有 root 权限（root 角色 / sudo 模式）时展示徽标
+  const showRootBadge = userRole === 'admin' || isRoot;
   const userUid = user?.uid ?? '';
   const displayName = user?.name ?? user?.displayName ?? 'User';
 
@@ -65,9 +66,9 @@ export function UserMenu() {
           <div className="hidden md:block">
             <div className="flex items-center gap-1.5">
               <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100 leading-tight">{displayName}</span>
-              {isSudo && (
+              {showRootBadge && (
                 <span className="text-xs text-amber-600 font-medium" style={{ borderRadius: 6 }}>
-                  {t('user.sudo')}
+                  {t('user.root')}
                 </span>
               )}
             </div>

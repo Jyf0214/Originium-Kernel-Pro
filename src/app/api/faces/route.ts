@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { loadConfig, canAccess, hasDatabase } from '@/lib/config';
-import { type SessionPayload, getSession } from '@/lib/auth';
+import { type SessionPayload, getSession, isRootRole } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
 import { rateLimit } from '@/lib/rate-limit';
 import { getTranslate } from '@/i18n/translate';
@@ -37,7 +37,7 @@ export async function GET() {
     const dbAvailable = hasDatabase();
     const allFiles = getContentFiles('faces');
     const indexes = getContentIndexes('faces');
-    const isAdmin = session?.role === 'admin' || session?.role === 'sudo';
+    const isAdmin = session?.role === 'admin' || isRootRole(session?.role);
 
   logger.info('GET', '读取通讯录列表');
 
@@ -87,7 +87,7 @@ export async function GET() {
  */
 function canManageFace(session: SessionPayload | null): boolean {
   if (!session) return false;
-  return session.role === 'admin' || session.role === 'sudo';
+  return session.role === 'admin' || isRootRole(session.role);
 }
 
 /**
@@ -144,7 +144,7 @@ function validateNameAndGroup(name: string, group: string): NextResponse | null 
  */
 export async function POST(req: NextRequest) {
   const session = await getSession();
-  if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
+  if (!session || (session.role !== 'admin' && !isRootRole(session.role))) {
     logger.warn('POST', '无权限', { role: session?.role });
     return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }
@@ -396,7 +396,7 @@ async function handlePatchContact(req: NextRequest, body: Record<string, unknown
  */
 export async function DELETE(req: NextRequest) {
   const session = await getSession();
-  if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
+  if (!session || (session.role !== 'admin' && !isRootRole(session.role))) {
     logger.warn('DELETE', '无权限', { role: session?.role });
     return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }

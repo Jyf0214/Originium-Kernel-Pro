@@ -10,17 +10,17 @@ import { GlobalLoading } from '@/components/Loading';
 import { StorageAdminShell } from './_components/StorageAdminShell';
 
 export default function StoragePage() {
-  const { isSudo, loading } = useAuth();
+  const { isRoot, loading } = useAuth();
   const router = useRouter();
   const hasRedirected = useRef(false);
 
   useEffect(() => {
     if (loading) return;
-    if (!isSudo && !hasRedirected.current) {
+    if (!isRoot && !hasRedirected.current) {
       hasRedirected.current = true;
       router.push('/dashboard');
     }
-  }, [loading, isSudo, router]);
+  }, [loading, isRoot, router]);
 
   if (loading) {
     return (
@@ -30,7 +30,7 @@ export default function StoragePage() {
     );
   }
 
-  if (!isSudo) return null;
+  if (!isRoot) return null;
 
   return <StorageAdminShell />;
 }

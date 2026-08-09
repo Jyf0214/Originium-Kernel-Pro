@@ -17,12 +17,12 @@ export default function EditFacePage() {
   const params = useParams();
   const { t } = useI18n();
   const { fullPath, filePath } = buildFacePaths(params?.slug);
-  const { isSudo, authLoading } = useEditPermission();
+  const { isRoot, authLoading } = useEditPermission();
   const { form, file, groups, loading } = useFaceData(fullPath);
   const { submitting, deleting, submit, remove } = useEditActions({ filePath });
 
   if (loading || authLoading) return <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900"><div className="flex-1 flex items-center justify-center"><GlobalLoading size="large" /></div></div>;
-  if (!isSudo || !file) return null;
+  if (!isRoot || !file) return null;
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">

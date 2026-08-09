@@ -57,9 +57,9 @@ function BreadcrumbsNav({ slugArray }: { slugArray: string[] }) {
   );
 }
 
-function FaceDetailHeader({ file, isSudo, rawContent, showRaw, setShowRaw }: {
+function FaceDetailHeader({ file, isRoot, rawContent, showRaw, setShowRaw }: {
   file: ContentFile;
-  isSudo: boolean;
+  isRoot: boolean;
   rawContent: string;
   showRaw: boolean;
   setShowRaw: (v: boolean) => void;
@@ -90,7 +90,7 @@ function FaceDetailHeader({ file, isSudo, rawContent, showRaw, setShowRaw }: {
           ))}
         </div>
       )}
-      {isSudo && rawContent && (
+      {isRoot && rawContent && (
         <div className="mt-6">
           <Button
             onClick={() => setShowRaw(!showRaw)}
@@ -135,7 +135,7 @@ export default function FaceDetailPage() {
   const params = useParams();
   const slugArray = params?.slug as string[] || [];
   const fullPath = '/' + slugArray.join('/');
-  const { isSudo } = useAuth();
+  const { isRoot } = useAuth();
   const { t } = useI18n();
 
   const [file, setFile] = React.useState<ContentFile | null>(null);
@@ -176,7 +176,7 @@ export default function FaceDetailPage() {
         <article>
           <FaceDetailHeader
             file={file}
-            isSudo={isSudo}
+            isRoot={isRoot}
             rawContent={rawContent}
             showRaw={showRaw}
             setShowRaw={setShowRaw}

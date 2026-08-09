@@ -8,7 +8,7 @@
  * 用途:在浏览器中通过 API 密钥登录,替代账号密码
  */
 import { type NextRequest, NextResponse } from 'next/server';
-import { hashApiKey, createSession, createTempToken } from '@/lib/auth';
+import { hashApiKey, createSession, createTempToken, normalizeRole } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { createApiLogger } from '@/lib/api-logger';
 import { checkRateLimit } from '@/lib/rate-limit';
@@ -80,9 +80,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ requires2FA: true });
   }
 
-  // 运行时验证 role 值，防止无效角色传递到 session
-  const validRoles = ['user', 'admin', 'sudo'] as const;
-  const safeRole = validRoles.includes(user.role as typeof validRoles[number]) ? user.role as typeof validRoles[number] : 'user';
+  // 运行时验证 role 值，防止无效角色传递到 session；存量 'sudo' 归一化为 'root'
+  const validRoles = ['user', 'admin', 'root', 'sudo'] as const;
+  const safeRole = validRoles.includes(user.role as typeof validRoles[number]) ? normalizeRole(user.role) : 'user';
 
   // 创建 Session Cookie
   await createSession({

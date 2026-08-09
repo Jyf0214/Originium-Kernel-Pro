@@ -19,8 +19,8 @@ function EditorContent() {
   const { user, loading: authLoading } = useAuth();
   const { t } = useI18n();
 
-  // 管理员/超级管理员权限检查
-  const isAdmin = user?.role === 'admin' || user?.role === 'sudo';
+  // 管理员/超级管理员权限检查（me 接口已归一化角色，root 即最高权限）
+  const isAdmin = user?.role === 'admin' || user?.role === 'root';
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {

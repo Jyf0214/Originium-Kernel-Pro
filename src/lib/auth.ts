@@ -42,12 +42,71 @@ function getSecretEncoder(): Uint8Array {
 export interface SessionPayload {
   uid: string;
   email: string;
-  role: 'user' | 'admin' | 'sudo';
+  role: 'user' | 'admin' | 'root';
   userGroup?: string;
   /** 会话版本号，密码修改时递增，用于吊销旧 JWT */
   sv?: number;
   /** API 密钥权限配置(Cookie 认证时为 undefined) */
   permissions?: ApiKeyPermissions;
+}
+
+/** 角色是否为 root（兼容存量 'sudo' 数据，'sudo' 与 'root' 等价） */
+export function isRootRole(role: string | undefined | null): boolean {
+  return role === 'root' || role === 'sudo';
+}
+
+/** 归一化角色：存量 'sudo' 统一视为 'root'，其余角色原样返回 */
+export function normalizeRole(role: string): 'user' | 'admin' | 'root' {
+  if (role === 'sudo' || role === 'root') return 'root';
+  if (role === 'admin') return 'admin';
+  return 'user';
+}
+
+/** sudo 模式（admin 临时提权）有效期：15 分钟 */
+export const SUDO_MODE_TTL_MS = 15 * 60 * 1000;
+
+/** sudo 模式 JWT 载荷 */
+export interface SudoModePayload {
+  uid: string;
+  purpose: 'sudo_mode';
+}
+
+/**
+ * 签发 sudo 模式令牌并写入 cookie
+ * admin 用户验证密码后调用，15 分钟内视为拥有 root 权限
+ */
+export async function createSudoMode(uid: string): Promise<void> {
+  const token = await new SignJWT({ uid, purpose: 'sudo_mode' })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('15m')
+    .sign(getSecretEncoder());
+  (await cookies()).set('sudo_mode', token, {
+    expires: new Date(Date.now() + SUDO_MODE_TTL_MS),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+  });
+}
+
+/** 检查 sudo 模式是否激活（uid 匹配且未过期） */
+export async function isSudoModeActive(session: SessionPayload): Promise<boolean> {
+  const token = (await cookies()).get('sudo_mode')?.value;
+  if (!token) return false;
+  try {
+    const { payload } = await jwtVerify(token, getSecretEncoder(), {
+      algorithms: ['HS256'],
+    });
+    return payload.purpose === 'sudo_mode' && payload.uid === session.uid;
+  } catch {
+    return false;
+  }
+}
+
+/** 清除 sudo 模式 cookie */
+export async function clearSudoMode() {
+  (await cookies()).delete('sudo_mode');
 }
 
 /**
@@ -185,9 +244,11 @@ async function authenticateApiKeyCore(): Promise<{ session: SessionPayload; curr
     const userRaw = await db.get(`user:uid:${row.uid}`);
     if (!userRaw) return null;
     const user = JSON.parse(userRaw) as { uid: string; email: string; role: string; userGroup?: string };
-    // role 白名单校验，防止损坏数据提权
-    const validRoles = ['user', 'admin', 'sudo'] as const;
-    const role = validRoles.includes(user.role as typeof validRoles[number]) ? user.role as SessionPayload['role'] : 'user';
+    // role 白名单校验，防止损坏数据提权；存量 'sudo' 归一化为 'root'
+    const validRoles = ['user', 'admin', 'root', 'sudo'] as const;
+    const role: 'user' | 'admin' | 'root' = validRoles.some((r) => r === user.role)
+      ? normalizeRole(user.role)
+      : 'user';
     // 加载 API 密钥权限配置
     const permissions = parsePermissions(row.permissions);
     return {
@@ -311,6 +372,7 @@ export async function deleteSession() {
   const cookieStore = await cookies();
   cookieStore.delete('session');
   cookieStore.delete('temp_2fa');
+  cookieStore.delete('sudo_mode');
 }
 
 /**
@@ -343,22 +405,23 @@ export async function requireAdmin() {
   if (!session) {
     return NextResponse.json({ error: getTranslate('lib.auth.requireLogin') }, { status: 401 });
   }
-  if (session.role !== 'admin' && session.role !== 'sudo') {
+  if (session.role !== 'admin' && !isRootRole(session.role)) {
     return NextResponse.json({ error: getTranslate('lib.auth.requireAdmin') }, { status: 403 });
   }
   return session;
 }
 
 /**
- * 权限中间件 — 仅限超级管理员
+ * 权限中间件 — 仅限 root（超级管理员）
+ * root 角色直接放行；admin 角色在 sudo 模式（15 分钟提权）内同样放行
  */
-export async function requireSudo() {
+export async function requireRoot() {
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: getTranslate('lib.auth.requireLogin') }, { status: 401 });
   }
-  if (session.role !== 'sudo') {
-    return NextResponse.json({ error: getTranslate('lib.auth.requireSudo') }, { status: 403 });
+  if (!isRootRole(session.role) && !(await isSudoModeActive(session))) {
+    return NextResponse.json({ error: getTranslate('lib.auth.requireRoot') }, { status: 403 });
   }
   return session;
 }
@@ -366,7 +429,7 @@ export async function requireSudo() {
 /**
  * 检查用户是否拥有指定角色
  */
-export function hasRole(session: SessionPayload | null, roles: ('user' | 'admin' | 'sudo')[]): boolean {
+export function hasRole(session: SessionPayload | null, roles: ('user' | 'admin' | 'root')[]): boolean {
   if (!session) return false;
   return roles.includes(session.role);
 }

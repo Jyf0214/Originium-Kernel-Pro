@@ -61,7 +61,7 @@ async function doInit(): Promise<{ created: boolean; error?: string }> {
       email: adminEmail,
       username,
       password: hashedPwd,
-      role: 'sudo' as const,
+      role: 'root' as const,
       createdAt: now,
       updatedAt: now,
     };

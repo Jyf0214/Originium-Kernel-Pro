@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { getSession, isRootRole } from '@/lib/auth';
 import { updateFileInGithub } from '@/lib/github';
 import { createApiLogger } from '@/lib/api-logger';
 import { getTranslate } from '@/i18n/translate';
@@ -13,7 +13,7 @@ const logger = createApiLogger('/api/github/sync');
  */
 export async function POST(req: NextRequest) {
   const session = await getSession();
-  if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
+  if (!session || (session.role !== 'admin' && !isRootRole(session.role))) {
     logger.warn('POST', '无权限', { role: session?.role });
     return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }

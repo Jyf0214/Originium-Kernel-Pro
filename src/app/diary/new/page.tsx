@@ -16,7 +16,7 @@ function genId(): string {
 
 export default function NewDiaryPage() {
   const { t } = useI18n();
-  const { user, isSudo, loading: authLoading } = useAuth();
+  const { user, isRoot, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const existingDraftId = searchParams?.get('draft');
@@ -31,7 +31,7 @@ export default function NewDiaryPage() {
 
   if (authLoading) return <GlobalLoading />;
   if (!user) return null;
-  if (!isSudo) {
+  if (!isRoot) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
         <p className="text-zinc-400 dark:text-zinc-500 text-lg">{t('common.accessDenied')}</p>

@@ -4,6 +4,7 @@ import { loadConfig, canAccess, hasDatabase, type AppConfig } from '@/lib/config
 import { getDraft, saveDraft } from '@/lib/draft-storage';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler, getParam } from '@/lib/api-handler';
+import { isRootRole } from '@/lib/auth';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/articles/[id]');
@@ -106,7 +107,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.articles.fetchAr
     const meta = JSON.parse(metaStr) as Record<string, unknown>;
     if (meta.status === 'draft') {
       // session 来自 apiHandler 注入（requireAuth=false 时为 undefined）
-      if (!session || (meta.authorId !== session.uid && session.role !== 'admin' && session.role !== 'sudo')) {
+      if (!session || (meta.authorId !== session.uid && session.role !== 'admin' && !isRootRole(session.role))) {
         logger.warn('GET', '无权限查看草稿', { id, uid: session?.uid });
         return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
       }
@@ -138,7 +139,7 @@ function checkArticlePermission(
   meta: Record<string, unknown>,
   session: { uid: string; role: string },
 ): boolean {
-  if (meta.authorId !== session.uid && session.role !== 'admin' && session.role !== 'sudo') {
+  if (meta.authorId !== session.uid && session.role !== 'admin' && !isRootRole(session.role)) {
     logger.warn('PATCH', '无权限', { id: meta.id as string, uid: session.uid });
     return false;
   }
@@ -279,7 +280,7 @@ export const DELETE = apiHandler('DELETE', { label: getTranslate('api.articles.d
 
   // 数据库无记录 → 文件系统发布的文章，构造元数据后移入回收站
   if (!metaStr) {
-    if (session!.role !== 'admin' && session!.role !== 'sudo') {
+    if (session!.role !== 'admin' && !isRootRole(session!.role)) {
       return NextResponse.json({ error: getTranslate('api.articles.noDeletePermission') }, { status: 403 });
     }
     const { getContentFile } = await import('@/lib/content');
@@ -313,7 +314,7 @@ export const DELETE = apiHandler('DELETE', { label: getTranslate('api.articles.d
   }
 
   // 所有角色统一移入回收站
-  if (meta.authorId !== session!.uid && session!.role !== 'admin' && session!.role !== 'sudo') {
+  if (meta.authorId !== session!.uid && session!.role !== 'admin' && !isRootRole(session!.role)) {
     logger.warn('DELETE', '无权限', { id, authorId: meta.authorId, uid: session!.uid });
     return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }

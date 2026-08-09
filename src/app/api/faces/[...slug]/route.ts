@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getContentFile } from '@/lib/content';
 import { loadConfig, canAccess, hasDatabase } from '@/lib/config';
-import { getSession } from '@/lib/auth';
+import { getSession, isRootRole } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
 import { getTranslate } from '@/i18n/translate';
 
@@ -26,7 +26,7 @@ export async function GET(
   const session = await getSession();
   const isAuthenticated = !!session;
   const dbAvailable = hasDatabase();
-  const isAdmin = session?.role === 'admin' || session?.role === 'sudo';
+  const isAdmin = session?.role === 'admin' || isRootRole(session?.role);
 
   const file = getContentFile('faces', fullPath);
 

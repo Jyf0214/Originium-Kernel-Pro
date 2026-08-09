@@ -2,7 +2,7 @@
 
 import { updateFileInGithub, deleteFileFromGithub } from '@/lib/github';
 import { generateMarkdown, type FrontMatter } from '@/lib/markdown';
-import { getSession } from '@/lib/auth';
+import { getSession, isRootRole } from '@/lib/auth';
 import { getEnvConfig } from '@/lib/env';
 import { createApiLogger } from '@/lib/api-logger';
 import { getTranslate } from '@/i18n/translate';
@@ -46,7 +46,7 @@ function generateSlug(name: string): string {
 async function checkPermission(): Promise<boolean> {
   const session = await getSession();
   if (!session) return false;
-  return session.role === 'admin' || session.role === 'sudo';
+  return session.role === 'admin' || isRootRole(session.role);
 }
 
 /**

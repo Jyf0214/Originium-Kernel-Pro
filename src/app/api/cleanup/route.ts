@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
 import { getDb } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getSession, isRootRole } from '@/lib/auth';
 import { getEnvConfig } from '@/lib/env';
 import { DELETION_PERIOD_DAYS } from '@/lib/constants';
 import { createApiLogger } from '@/lib/api-logger';
@@ -20,7 +20,7 @@ const logger = createApiLogger('/api/cleanup');
 
 async function isCleanupAuthorized(req: NextRequest): Promise<boolean> {
   const session = await getSession();
-  if (session && (session.role === 'admin' || session.role === 'sudo')) {
+  if (session && (session.role === 'admin' || isRootRole(session.role))) {
     return true;
   }
   const cronSecret = req.headers.get('x-cron-secret');
@@ -117,7 +117,7 @@ export const POST = apiHandler('POST', { label: getTranslate('api.cleanup.cleanu
 export async function GET() {
   try {
     const session = await getSession();
-    if (!session || (session.role !== 'admin' && session.role !== 'sudo')) {
+    if (!session || (session.role !== 'admin' && !isRootRole(session.role))) {
       logger.warn('GET', '未授权', { role: session?.role });
       return NextResponse.json({ error: getTranslate('api.cleanup.unauthorized') }, { status: 401 });
     }

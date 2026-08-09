@@ -14,7 +14,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import https from 'node:https'
 import http2 from 'node:http2'
-import { getSession } from '@/lib/auth'
+import { getSession, isRootRole } from '@/lib/auth'
 import { getStorageProvider, isStorageConfigured, type StorageProvider } from '@/lib/storage/storage-provider'
 import { checkAccess } from '@/lib/storage/acl'
 import { isValidPath, joinPath } from '@/lib/storage/path'
@@ -214,7 +214,7 @@ function debugInfoResponse(
   backend: string,
 ): NextResponse | null {
   if (new URL(req.url).searchParams.get('_debug') !== '1') return null
-  if (session?.role !== 'sudo' || process.env.NODE_ENV !== 'development') {
+  if (!isRootRole(session?.role) || process.env.NODE_ENV !== 'development') {
     return NextResponse.json({ error: getTranslate('lib.files.debugUnavailable') }, { status: 403 })
   }
   return NextResponse.json({

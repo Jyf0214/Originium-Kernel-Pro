@@ -30,7 +30,7 @@ interface AuditData {
 /* ---------- 页面主体 ---------- */
 
 export default function AuditPage() {
-  const { user, isSudo, loading: authLoading } = useAuth();
+  const { user, isRoot, loading: authLoading } = useAuth();
   const { t } = useI18n();
   const [data, setData] = useState<AuditData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,10 +66,10 @@ export default function AuditPage() {
   }, [pageSize, t]);
 
   useEffect(() => {
-    if (!authLoading && user && isSudo) {
+    if (!authLoading && user && isRoot) {
       void fetchLogs(page, actionFilter ?? undefined, operatorFilter ?? undefined);
     }
-  }, [authLoading, user, isSudo, page, fetchLogs, actionFilter, operatorFilter]);
+  }, [authLoading, user, isRoot, page, fetchLogs, actionFilter, operatorFilter]);
 
   const handleSearch = () => {
     setPage(1);

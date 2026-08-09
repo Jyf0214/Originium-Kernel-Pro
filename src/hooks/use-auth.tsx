@@ -13,7 +13,7 @@ export class TwoFactorRequiredError extends Error {
   }
 }
 
-export type UserRole = 'user' | 'admin' | 'sudo';
+export type UserRole = 'user' | 'admin' | 'root';
 
 export interface User {
   uid: string;
@@ -24,23 +24,38 @@ export interface User {
   userGroup?: string;
   avatar?: string;
   twoFactorEnabled?: boolean;
+  /** admin 处于 sudo 模式（15 分钟提权）时为 true */
+  sudoModeActive?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   userRole: UserRole | null;
-  isSudo: boolean;
+  /** 是否拥有 root 权限（root 角色或 sudo 模式激活） */
+  isRoot: boolean;
+  /** admin 是否处于 sudo 模式 */
+  sudoModeActive: boolean;
+  /** admin 进入 sudo 模式的剩余有效期（毫秒时间戳），未激活为 null */
+  sudoModeExpiresAt: number | null;
   login: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
+  /** admin 输入密码进入 sudo 模式（15 分钟） */
+  enterSudoMode: (password: string) => Promise<void>;
+  /** 退出 sudo 模式 */
+  exitSudoMode: () => Promise<void>;
 }
+
+/** sudo 模式时长与后端 SUDO_MODE_TTL_MS 保持一致 */
+const SUDO_MODE_TTL_MS = 15 * 60 * 1000;
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sudoModeExpiresAt, setSudoModeExpiresAt] = useState<number | null>(null);
   const { t } = useI18n();
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -61,11 +76,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await res.json();
         if (data.authenticated) {
           setUser({ ...data.user, displayName: data.user.name });
+          // sudo 模式激活时本地记录到期时间；未激活则清除
+          if (data.user.sudoModeActive) {
+            setSudoModeExpiresAt((prev) => prev ?? Date.now() + SUDO_MODE_TTL_MS);
+          } else {
+            setSudoModeExpiresAt(null);
+          }
         } else {
           setUser(null);
+          setSudoModeExpiresAt(null);
         }
       } else {
         setUser(null);
+        setSudoModeExpiresAt(null);
       }
     } catch (err: unknown) {
       const error = err as Error;
@@ -73,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.warn('Auth refresh timed out');
       }
       setUser(null);
+      setSudoModeExpiresAt(null);
     } finally {
       setLoading(false);
     }
@@ -137,22 +161,79 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         message.info(t('common.info'));
       }
       setUser(null);
+      setSudoModeExpiresAt(null);
     } catch (err) {
       console.error('登出错误:', err);
       message.error(t('auth.logoutFailed'));
       setUser(null);
+      setSudoModeExpiresAt(null);
     }
   }, [t]);
+
+  const enterSudoMode = useCallback(async (password: string) => {
+    const res = await fetch('/api/auth/sudo-mode', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const error = data.error ?? t('auth.sudoModeEnterFailed');
+      message.error(error);
+      throw new Error(error);
+    }
+    setSudoModeExpiresAt(Date.now() + SUDO_MODE_TTL_MS);
+    setUser((prev) => (prev ? { ...prev, sudoModeActive: true } : prev));
+    message.success(t('auth.sudoModeActive'));
+  }, [t]);
+
+  const exitSudoMode = useCallback(async () => {
+    try {
+      const res = await fetch('/api/auth/sudo-mode', { method: 'DELETE' });
+      if (!res.ok) {
+        message.error(t('auth.sudoModeExitFailed'));
+        return;
+      }
+      setSudoModeExpiresAt(null);
+      setUser((prev) => (prev ? { ...prev, sudoModeActive: false } : prev));
+      message.info(t('auth.sudoModeExited'));
+    } catch {
+      message.error(t('auth.sudoModeExitFailed'));
+    }
+  }, [t]);
+
+  // sudo 模式到期自动退出并刷新状态
+  useEffect(() => {
+    if (sudoModeExpiresAt === null) return;
+    const remaining = sudoModeExpiresAt - Date.now();
+    if (remaining <= 0) {
+      setSudoModeExpiresAt(null);
+      setUser((prev) => (prev ? { ...prev, sudoModeActive: false } : prev));
+      return;
+    }
+    const timer = setTimeout(() => {
+      setSudoModeExpiresAt(null);
+      setUser((prev) => (prev ? { ...prev, sudoModeActive: false } : prev));
+      void refresh();
+    }, remaining);
+    return () => clearTimeout(timer);
+  }, [sudoModeExpiresAt, refresh]);
+
+  const isRoot = (user?.role === 'root' || user?.sudoModeActive === true) ?? false;
 
   const contextValue = useMemo(() => ({
     user,
     loading,
     userRole: user?.role ?? null,
-    isSudo: user?.role === 'sudo' || false,
+    isRoot,
+    sudoModeActive: user?.sudoModeActive ?? false,
+    sudoModeExpiresAt,
     login,
     logout,
     refresh,
-  }), [user, loading, login, logout, refresh]);
+    enterSudoMode,
+    exitSudoMode,
+  }), [user, loading, isRoot, sudoModeExpiresAt, login, logout, refresh, enterSudoMode, exitSudoMode]);
 
   return (
     <AuthContext.Provider value={contextValue}>

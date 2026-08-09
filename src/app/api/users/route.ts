@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
+import { isRootRole } from '@/lib/auth';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/users');
@@ -109,7 +110,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.users.getUserLis
 
   // 用户名/UID 查询同样需要管理员权限，防止任意登录用户探测其他用户信息
   if (username || uid) {
-    if (session!.role !== 'sudo' && session!.role !== 'admin') {
+    if (session!.role !== 'admin' && !isRootRole(session!.role)) {
       logger.warn('GET', '禁止查询用户信息', { role: session!.role, username, uid });
       return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
     }
@@ -135,7 +136,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.users.getUserLis
     return NextResponse.json(userData, { headers: cacheHeaders });
   }
 
-  if (session!.role !== 'sudo' && session!.role !== 'admin') {
+  if (session!.role !== 'admin' && !isRootRole(session!.role)) {
     logger.warn('GET', '禁止访问', { role: session!.role });
     return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }

@@ -21,12 +21,12 @@ export default function EditDiaryPage({ params }: PageProps) {
   const [initialDate, setInitialDate] = React.useState('');
   const [initialGroup, setInitialGroup] = React.useState('');
   const [pageLoading, setPageLoading] = React.useState(true);
-  const { user, isSudo, loading: authLoading } = useAuth();
+  const { user, isRoot, loading: authLoading } = useAuth();
   const router = useRouter();
 
   React.useEffect(() => {
     if (authLoading) return;
-    if (!user || !isSudo) {
+    if (!user || !isRoot) {
       router.push('/login');
       return;
     }
@@ -53,10 +53,10 @@ export default function EditDiaryPage({ params }: PageProps) {
       }
     }
     void init();
-  }, [params, router, authLoading, user, isSudo, t]);
+  }, [params, router, authLoading, user, isRoot, t]);
 
   if (authLoading || pageLoading) return <GlobalLoading />;
-  if (!user || !isSudo) return null;
+  if (!user || !isRoot) return null;
   if (!id) return null;
 
   return (

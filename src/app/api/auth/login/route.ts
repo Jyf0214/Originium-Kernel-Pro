@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { createSession, createTempToken, type SessionPayload } from '@/lib/auth';
+import { createSession, createTempToken, normalizeRole } from '@/lib/auth';
 import { getUserAvatarAsync } from '@/lib/config';
 import { verifyPassword, hashPassword } from '@/lib/hash';
 import { ensureAdminUser } from '@/lib/db-init';
@@ -139,8 +139,9 @@ export async function POST(req: NextRequest) {
 
     const avatar = await getUserAvatarAsync();
 
-    const validRoles = ['user', 'admin', 'sudo'] as const;
-    const role = validRoles.includes(user.role as 'user' | 'admin' | 'sudo') ? user.role as SessionPayload['role'] : 'user';
+    // 运行时验证 role 值，防止无效角色传递到 session；存量 'sudo' 归一化为 'root'
+    const validRoles = ['user', 'admin', 'root', 'sudo'] as const;
+    const role = validRoles.includes(user.role as typeof validRoles[number]) ? normalizeRole(user.role) : 'user';
 
     await createSession({
       uid: user.uid,

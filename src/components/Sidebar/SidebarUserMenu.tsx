@@ -32,8 +32,8 @@ export default function SidebarUserMenu({ user, onLogout, collapsed }: SidebarUs
             {user?.name ?? t('common.user')}
           </div>
           <div className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 truncate uppercase tracking-tighter">
-            {user?.role === 'sudo'
-              ? t('user.sudo')
+            {user?.role === 'root'
+              ? t('user.root')
               : user?.role === 'admin'
                 ? t('user.admin')
                 : t('user.user')}

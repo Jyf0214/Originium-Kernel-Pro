@@ -4,6 +4,7 @@ import { getUserAvatar } from '@/lib/config';
 import type { UserRole } from '@/lib/user';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler, getParam } from '@/lib/api-handler';
+import { isRootRole } from '@/lib/auth';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/users/[uid]');
@@ -14,19 +15,20 @@ function validateRoleChange(
   targetUser: Record<string, unknown>,
   session: { role: string } | undefined,
 ): NextResponse | null {
-  const validRoles: UserRole[] = ['user', 'admin', 'sudo'];
+  // 存量 'sudo' 归一化后仅接受 user/admin/root
+  const validRoles: UserRole[] = ['user', 'admin', 'root'];
   if (!validRoles.includes(role)) {
     logger.warn('PATCH', '无效角色', { role });
     return NextResponse.json({ error: getTranslate('api.users.invalidRole') }, { status: 400 });
   }
-  if (session && session.role !== 'sudo') {
-    if (role === 'admin' || role === 'sudo') {
-      logger.warn('PATCH', '权限不足：admin 不能将用户提升为 admin 或 sudo', { requestedRole: role });
-      return NextResponse.json({ error: getTranslate('api.users.sudoOnlyPromote') }, { status: 403 });
+  if (session && !isRootRole(session.role)) {
+    if (role === 'admin' || role === 'root') {
+      logger.warn('PATCH', '权限不足：admin 不能将用户提升为 admin 或 root', { requestedRole: role });
+      return NextResponse.json({ error: getTranslate('api.users.rootOnlyPromote') }, { status: 403 });
     }
-    if (targetUser.role === 'sudo') {
+    if (isRootRole(targetUser.role as string)) {
       logger.warn('PATCH', '权限不足：admin 不能降级超级管理员');
-      return NextResponse.json({ error: getTranslate('api.users.sudoOnlyModifySudo') }, { status: 403 });
+      return NextResponse.json({ error: getTranslate('api.users.rootOnlyModifyRoot') }, { status: 403 });
     }
   }
   return null;
