@@ -6,6 +6,16 @@ site:
   lang: zh-CN
 appearance:
   fontSize: 15
+  # 字体族自定义：空字符串 = 使用默认字体。
+  # body=正文字体（如 "Noto Sans SC", sans-serif），sans=通用默认字体
+  # （默认即站点当前字体栈），display=标题/展示字体，
+  # mono=等宽字体（Markdown 代码块除外，代码块强制默认等宽），ui=UI 组件字体
+  fontFamily:
+    body: ''
+    sans: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+    display: ''
+    mono: ''
+    ui: ''
   favicon: ''
   background:
     url: ''

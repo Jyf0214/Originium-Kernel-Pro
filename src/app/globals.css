@@ -2,8 +2,17 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  /* 展示字体 — 用于 hero 标题等场景（font-display 工具类） */
+  /* 展示字体 — 用于 hero 标题等场景（font-display 工具类）。
+     配置注入的 --font-display 同名变量会覆盖此默认值 */
   --font-display: ui-serif, Georgia, "Noto Serif SC", "Source Han Serif SC", "Songti SC", SimSun, serif;
+}
+
+/* 代码块强制默认等宽字体，不随 fontFamily.mono 配置变化：
+   Markdown 代码块（.prose pre/code）与裸 <pre>（faces 详情等）属代码展示场景 */
+pre,
+pre code,
+.prose :where(code) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
 }
 
 /* 使用 class 控制深色模式（而非 media query） */
@@ -26,6 +35,8 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  /* 正文字体：配置注入的 --font-body 优先，未配置回退 Tailwind 默认 sans */
+  font-family: var(--font-body, var(--font-sans));
   background-color: #ffffff;
   color: #18181b;
   transition: background-color 0.3s ease, color 0.3s ease;

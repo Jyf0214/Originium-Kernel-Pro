@@ -45,7 +45,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
           colorInfo: '#18181b',
           borderRadius: 8,
           fontSize: 14,
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontFamily: 'var(--font-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif)',
         },
         components: {
           Button: {

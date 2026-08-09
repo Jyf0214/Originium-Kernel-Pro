@@ -57,6 +57,26 @@ export default async function RootLayout({children}: {children: React.ReactNode}
             }}
           />
         )}
+        {/* 字体族：从构建时配置读取 fontFamily 并设置 CSS 变量（仅注入非空值） */}
+        {(() => {
+          const f = config.appearance?.fontFamily;
+          if (!f) return null;
+          const pairs: [string, string][] = [
+            ['--font-body', f.body],
+            ['--font-sans', f.sans],
+            ['--font-display', f.display],
+            ['--font-mono', f.mono],
+            ['--font-ui', f.ui],
+          ].filter(([, v]) => v) as [string, string][];
+          if (pairs.length === 0) return null;
+          return (
+            <script
+              dangerouslySetInnerHTML={{
+                __html: pairs.map(([k, v]) => `document.documentElement.style.setProperty('${k}','${v}')`).join(';'),
+              }}
+            />
+          );
+        })()}
         {/* 构建时注入固定头像路径 /avatar.jpg（由 prebuild 脚本下载），运行时不依赖外部 URL */}
         <script
           dangerouslySetInnerHTML={{

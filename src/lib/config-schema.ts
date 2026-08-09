@@ -70,6 +70,19 @@ export const zAppearanceConfig = z.object({
     (v) => v === '' || v.startsWith('/'),
     { message: getTranslate('lib.config.faviconLocalPath') },
   ).default(''),
+  fontFamily: withFullDefault(z.object({
+    // 字体栈自定义：空字符串表示使用默认字体栈。
+    // body=正文字体，sans=通用默认字体（--font-sans，font-sans 类与全局继承），
+    // display=标题/展示字体（font-display 类），
+    // mono=等宽字体（font-mono 类，Markdown 代码块除外——代码块强制默认等宽），
+    // ui=antd 等 UI 组件字体
+    body: z.string().default(''),
+    // sans 默认即站点默认字体栈，未配置时保持 Tailwind/antd 默认
+    sans: z.string().default('-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'),
+    display: z.string().default(''),
+    mono: z.string().default(''),
+    ui: z.string().default(''),
+  })),
   background: withFullDefault(z.object({
     url: z.string().default(''),
     opacity: z.number().min(0).max(1).default(1),
