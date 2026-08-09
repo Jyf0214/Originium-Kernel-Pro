@@ -23,6 +23,14 @@ export interface AppearanceConfig {
   fontSize?: number;
   /** 自定义网站图标源图片路径(public 目录下),构建时自动生成 favicon.ico / favicon.svg / icon-192.png / icon-512.png,留空使用默认图标 */
   favicon?: string;
+  /** 字体栈自定义:空字符串表示使用默认字体栈(body=正文,sans=通用,--font-sans,display=标题,mono=等宽,ui=UI 组件) */
+  fontFamily?: {
+    body?: string;
+    sans?: string;
+    display?: string;
+    mono?: string;
+    ui?: string;
+  };
   background: {
     url: string;
     opacity: number;
