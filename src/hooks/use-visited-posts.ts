@@ -27,7 +27,9 @@ export function useVisitedPosts(): {
   visited: Set<string>;
   markVisited: (slug: string) => void;
 } {
-  const [visited, setVisited] = useState<Set<string>>(() => readVisited());
+  // 初始空集合与 SSR 一致：渲染期读取 localStorage 会导致 hydration mismatch
+  // （SSR 无 localStorage 渲染空集合，客户端有数据渲染非空集合 → React 整树重建）
+  const [visited, setVisited] = useState<Set<string>>(() => new Set());
 
   const markVisited = useCallback((slug: string) => {
     setVisited((prev) => {
@@ -44,8 +46,9 @@ export function useVisitedPosts(): {
     });
   }, []);
 
-  // 跨标签页同步
+  // 水合完成后读取本地访问记录并监听跨标签页同步
   useEffect(() => {
+    setVisited(readVisited());
     const onStorage = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY) setVisited(readVisited());
     };

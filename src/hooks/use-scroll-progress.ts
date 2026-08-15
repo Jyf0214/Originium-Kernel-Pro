@@ -25,16 +25,19 @@ export function useScrollProgress(pageKey?: string): {
 } {
   const [progress, setProgress] = useState(0);
   const rafRef = useRef<number>(0);
-  const [savedPosition, setSavedPosition] = useState<number | null>(() => {
-    if (pageKey && typeof window !== 'undefined') {
-      const saved = safeGetItem(STORAGE_KEY_PREFIX + pageKey);
-      if (saved) {
-        const pct = parseFloat(saved);
-        if (pct > 0.05 && pct < 0.85) return pct;
-      }
+  // 初始 null 与 SSR 一致：渲染期读取 localStorage 会导致 hydration mismatch
+  // （SSR 无 localStorage 渲染 null，客户端有记录渲染数值 → React 整树重建）
+  const [savedPosition, setSavedPosition] = useState<number | null>(null);
+
+  // 水合完成后读取保存的阅读位置（5%~85% 范围内才恢复）
+  useEffect(() => {
+    if (!pageKey) return;
+    const saved = safeGetItem(STORAGE_KEY_PREFIX + pageKey);
+    if (saved) {
+      const pct = parseFloat(saved);
+      if (pct > 0.05 && pct < 0.85) setSavedPosition(pct);
     }
-    return null;
-  });
+  }, [pageKey]);
 
   const handleScroll = useCallback(() => {
     // 取消上一帧尚未执行的更新，确保每帧最多触发一次 setState

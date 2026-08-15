@@ -24,13 +24,22 @@ function getInitialLocale(): Locale {
 }
 
 export function useI18n() {
-  const [locale, setLocaleState] = useState<Locale>(getInitialLocale);
+  // 初始值必须与 SSR 一致（zh-CN）：
+  // 若在 useState 初始化时读取 localStorage/navigator（客户端值），
+  // 会与静态导出预渲染的 zh-CN HTML 产生 hydration mismatch，
+  // React 将丢弃 SSR DOM 整树重建，导致页面加载时明显闪动
+  const [locale, setLocaleState] = useState<Locale>('zh-CN');
   const initialized = useRef(false);
 
   useEffect(() => {
     if (!initialized.current) {
       initialized.current = true;
     }
+  }, []);
+
+  // 水合完成后应用用户偏好语言（localStorage 优先，其次浏览器语言）
+  useEffect(() => {
+    setLocaleState(getInitialLocale());
   }, []);
 
   const setLocale = useCallback((newLocale: Locale) => {

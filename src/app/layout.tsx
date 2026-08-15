@@ -14,6 +14,7 @@ import { ThirdPartyScripts } from '@/components/ThirdPartyScripts';
 import { EffectsManager } from '@/components/effects/dynamic';
 import FooterWrapper from '@/components/Footer/FooterWrapper';
 import { getTranslate } from '@/i18n/translate';
+import { ThreeColumnLayout } from '@/components/ui/ThreeColumnLayout';
 
 export const metadata: Metadata = {
   title: 'Originium Kernel',
@@ -96,14 +97,21 @@ export default async function RootLayout({children}: {children: React.ReactNode}
         <Providers>
           <AuthProvider>
             <Navbar navConfig={config.nav} siteTitle={config.site.title} databaseConfigured={hasDatabase()} />
-            <div id="main-content" className="flex-1" tabIndex={-1}>
-              <RouteTransition>
+            <ThreeColumnLayout
+              leftSidebar={null}
+              rightSidebar={null}
+            >
+              <div id="main-content" className="flex flex-col min-h-screen">
+                <div className="flex-1">
+                  <RouteTransition>
                     <Suspense>
                       {children}
                     </Suspense>
-              </RouteTransition>
-            </div>
-            <FooterWrapper />
+                  </RouteTransition>
+                </div>
+                <FooterWrapper />
+              </div>
+            </ThreeColumnLayout>
           </AuthProvider>
           <MusicPlayerWrapper />
         </Providers>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { LayoutGrid, List, AlignJustify } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -41,7 +41,14 @@ function getSavedLayout(): LayoutMode {
 
 export function PostListClient({ posts, groups, coverConfig, postMeta }: PostListClientProps) {
   const { t, locale } = useI18n();
-  const [layout, setLayout] = useState<LayoutMode>(() => getSavedLayout());
+  // 初始 grid 与 SSR 一致：渲染期读取 localStorage 会导致 hydration mismatch
+  // （SSR 无 localStorage 渲染 grid，客户端按保存的偏好渲染其他布局 → React 整树重建）
+  const [layout, setLayout] = useState<LayoutMode>('grid');
+
+  // 水合完成后应用用户保存的布局偏好
+  useEffect(() => {
+    setLayout(getSavedLayout());
+  }, []);
 
   const handleLayoutChange = useCallback((mode: LayoutMode) => {
     setLayout(mode);

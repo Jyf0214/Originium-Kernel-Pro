@@ -7,6 +7,7 @@ import { GlobalLoading } from '@/components/Loading';
 import { FeatureDisabledView } from '@/components/ui/FeatureDisabledView';
 import Sidebar from '@/components/Sidebar/index';
 import TopHeader from '@/components/TopHeader';
+import { ThreeColumnLayout } from '@/components/ui/ThreeColumnLayout';
 
 interface DashboardLayoutClientProps {
   children: React.ReactNode;
@@ -38,12 +39,16 @@ export default function DashboardLayoutClient({ children, databaseConfigured }: 
   }
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} databaseConfigured={databaseConfigured} />
-      <div className="flex-1 flex flex-col min-h-screen bg-zinc-50">
+    <ThreeColumnLayout
+      leftSidebar={(
+        <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} databaseConfigured={databaseConfigured} />
+      )}
+      rightSidebar={null}
+    >
+      <div className="flex flex-col min-h-screen bg-zinc-50">
         <TopHeader onMenuClick={openSidebar} />
         <main className="flex-1">{children}</main>
       </div>
-    </div>
+    </ThreeColumnLayout>
   );
 }
