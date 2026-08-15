@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { modalContentVariants, modalTransition } from '@/components/ui/motion';
+import { modalContentVariants, modalTransition, DURATION } from '@/components/ui/motion';
 import { Button } from '@/components/ui/Button';
 import { X } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
@@ -91,7 +91,7 @@ export default function ShareModal({
             initial="initial"
             animate="animate"
             exit="exit"
-            transition={{ ...modalTransition, duration: 0.25 }}
+            transition={{ ...modalTransition, duration: DURATION.SLOW }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-zinc-100">

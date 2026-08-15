@@ -46,7 +46,7 @@ export function TopHeader({ onMenuClick }: TopHeaderProps) {
         <button
           type="button"
           onClick={onMenuClick}
-          className="md:hidden flex items-center justify-center w-6 h-6 rounded text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 dark:hover:text-zinc-400 dark:hover:bg-zinc-700 transition-colors shrink-0"
+          className="md:hidden flex items-center justify-center w-6 h-6 rounded text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 dark:hover:text-zinc-400 dark:hover:bg-zinc-700 active:scale-90 transition-all duration-150 shrink-0"
           aria-label={t('components.TopHeader.openSidebar')}
         >
           <Menu size={14} />

@@ -330,17 +330,17 @@ export function Navbar({ navConfig: navConfigProp, databaseConfigured = true }: 
         icon={<Search size={22} />}
       />
 
-      {/* 遮罩 */}
-      {state.drawerOpen && (
-        <div
-          className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm"
-          onClick={state.closeDrawer}
-        />
-      )}
+      {/* 遮罩：常驻以实现淡入淡出，关闭时允许点击穿透 */}
+      <div
+        className={`fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
+          state.drawerOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={state.closeDrawer}
+      />
 
       {/* 抽屉 */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] z-[80] bg-white dark:bg-zinc-900 shadow-2xl border-l border-zinc-200 dark:border-zinc-700 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] z-[80] bg-white dark:bg-zinc-900 shadow-2xl border-l border-zinc-200 dark:border-zinc-700 transform transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
           state.drawerOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >

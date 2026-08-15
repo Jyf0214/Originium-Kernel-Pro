@@ -21,13 +21,13 @@ export function StatCard({ card }: { card: StatCardData }) {
   const trendColor = card.trend && card.trend.rate >= 50 ? 'text-emerald-600' : 'text-zinc-500';
 
   return (
-    <div className="bg-white rounded-2xl border border-zinc-100 p-5 hover:shadow-lg hover:shadow-zinc-100 transition-all duration-300 group ui-interactive">
+    <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700 p-5 hover:shadow-lg hover:shadow-zinc-100 dark:hover:shadow-zinc-900/40 transition-all duration-200 group ui-interactive">
       <div className="flex items-start justify-between mb-4">
-        <div className={`w-10 h-10 ${card.color} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+        <div className={`w-10 h-10 ${card.color} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
           <Icon size={18} className={card.textColor} />
         </div>
         {card.trend && (
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-50">
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-50 dark:bg-zinc-700/60">
             <TrendIcon card={card} />
             <span className={`text-[11px] font-semibold ${trendColor}`}>
               {card.trend.rate}%
@@ -35,10 +35,10 @@ export function StatCard({ card }: { card: StatCardData }) {
           </div>
         )}
       </div>
-      <div className="text-3xl font-black text-zinc-900 mb-1 truncate">{card.value}</div>
-      <div className="text-xs text-zinc-400 font-medium mb-3">{card.title}</div>
+      <div className="text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-1 truncate">{card.value}</div>
+      <div className="text-xs text-zinc-400 dark:text-zinc-500 font-medium mb-3">{card.title}</div>
       {card.progress && (
-        <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+        <div className="w-full h-1.5 bg-zinc-100 dark:bg-zinc-700 rounded-full overflow-hidden">
           <div
             className={`h-full ${card.progress.color} rounded-full transition-all duration-700`}
             style={{ width: `${card.progress.value}%` }}

@@ -21,10 +21,10 @@ export default function Loading() {
           <div className="h-5 w-20 bg-zinc-200 dark:bg-zinc-700 rounded animate-pulse" />
         </div>
 
-        {/* 4 个骨架卡片 — 匹配 PostCard 网格布局 */}
+        {/* 4 个骨架卡片 — 匹配 PostCard 网格布局（index 错落宽度） */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {Array.from({ length: 4 }).map((_, i) => (
-            <PostCardSkeleton key={i} />
+            <PostCardSkeleton key={i} index={i} />
           ))}
         </div>
       </main>

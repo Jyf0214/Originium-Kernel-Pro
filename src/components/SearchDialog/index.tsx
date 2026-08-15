@@ -5,7 +5,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'motion/react';
-import { modalContentVariants, modalTransition } from '@/components/ui/motion';
+import { modalContentVariants, modalTransition, DURATION } from '@/components/ui/motion';
 
 import { SearchEmpty } from './SearchEmpty';
 import { SearchHistory } from './SearchHistory';
@@ -53,7 +53,7 @@ export function SearchDialog({ open, onClose }: SearchDialogProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
+          transition={{ duration: DURATION.FAST }}
           className="fixed inset-0 z-50 flex items-start justify-center pt-[12vh] sm:pt-[15vh] bg-black/50 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"

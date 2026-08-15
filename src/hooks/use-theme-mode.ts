@@ -19,15 +19,33 @@ function resolveDark(mode: ThemeMode, systemDark: boolean): boolean {
   return mode === 'dark';
 }
 
-/** 将 <html> class 同步为 dark / 空 */
-function applyClass(dark: boolean) {
+/**
+ * 应用主题时临时禁用过渡，避免切换瞬间出现全屏色块渐变。
+ * 在 class 变更前后把 html/body 的 transition 置 none，强制浏览器
+ * 接受改动后再于下一帧恢复，使主题切换"咔嚓"完成而非渐变过渡。
+ */
+function applyClassSmoothly(dark: boolean) {
   if (typeof document === 'undefined') return;
   const html = document.documentElement;
+  const prevHtmlTransition = html.style.transition;
+  const prevBodyTransition = document.body.style.transition;
+
+  html.style.transition = 'none';
+  document.body.style.transition = 'none';
+
   if (dark) {
     html.classList.add('dark');
   } else {
     html.classList.remove('dark');
   }
+
+  // 强制同步布局，让浏览器在恢复 transition 前接受改动
+  void html.offsetHeight;
+
+  requestAnimationFrame(() => {
+    html.style.transition = prevHtmlTransition;
+    document.body.style.transition = prevBodyTransition;
+  });
 }
 
 /**
@@ -60,10 +78,10 @@ export function useThemeMode() {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
-  // mode 或 systemDark 变化时同步 <html> class
+  // mode 或 systemDark 变化时同步 <html> class（切换瞬间禁用过渡防色块渐变）
   useEffect(() => {
     if (!mounted) return;
-    applyClass(resolveDark(mode, systemDark));
+    applyClassSmoothly(resolveDark(mode, systemDark));
   }, [mode, systemDark, mounted]);
 
   const setMode = useCallback((next: ThemeMode) => {

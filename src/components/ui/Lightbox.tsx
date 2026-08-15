@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { X, ChevronLeft, ChevronRight, Keyboard } from 'lucide-react';
 import { cn } from '@/lib/ui';
-import { EASE_STANDARD, EASE_FAST } from '@/components/ui/motion';
+import { EASE_STANDARD, EASE_FAST, DURATION } from '@/components/ui/motion';
 import { useI18n } from '@/hooks/use-i18n';
 
 /** 键盘快捷键提示是否已关闭的 localStorage key */
@@ -179,7 +179,7 @@ export function Lightbox({ images, alts, initialIndex, onClose, isOpen = true }:
                 key={`lightbox-alt-${currentIndex}`}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, ease: EASE_FAST }}
+                transition={{ duration: DURATION.MID, ease: EASE_FAST }}
                 className="text-white/80 text-sm text-center max-w-[80vw] truncate"
               >
                 {currentAlt}
@@ -233,7 +233,7 @@ export function Lightbox({ images, alts, initialIndex, onClose, isOpen = true }:
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.25, ease: EASE_STANDARD }}
+                transition={{ duration: DURATION.MID, ease: EASE_STANDARD }}
                 className="absolute top-16 left-1/2 -translate-x-1/2 z-20 bg-zinc-800/90 backdrop-blur-sm rounded-xl px-5 py-3 flex items-center gap-4 text-white/90 text-sm shadow-lg border border-white/10 cursor-pointer"
                 onClick={dismissHint}
               >

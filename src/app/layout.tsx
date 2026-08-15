@@ -44,10 +44,10 @@ export default async function RootLayout({children}: {children: React.ReactNode}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon.ico" sizes="48x48" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
-        {/* 暗色模式 FOUC 防护：在 React hydration 前读取 localStorage 并应用 dark 类 */}
+        {/* 暗色模式 FOUC 防护：在 React hydration 前读取 localStorage 并应用 dark 类（兼容 light/dark/system 三态，未设置时跟随系统偏好） */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var m=localStorage.getItem('theme-mode');if(m==='dark')document.documentElement.classList.add('dark')}catch(e){}})()`,
+            __html: `(function(){try{var m=localStorage.getItem('theme-mode');var dark=m==='dark'||((!m||m==='system')&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(dark)document.documentElement.classList.add('dark')}catch(e){}})()`,
           }}
         />
         {/* 字体大小：从构建时配置读取 fontSize 并设置 CSS 变量 */}

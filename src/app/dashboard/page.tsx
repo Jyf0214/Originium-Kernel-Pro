@@ -1,7 +1,9 @@
 'use client';
 
+import { motion } from 'motion/react';
 import { GlobalLoading } from '@/components/Loading';
 import { PageContainer } from '@/components/ui/PageContainer';
+import { compactCardVariants, DURATION, EASE_FAST, staggerDelay } from '@/components/ui/motion';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 
@@ -34,11 +36,25 @@ export default function DashboardPage() {
       <DashboardHeader user={user} t={t} />
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-10">
         {statCards.map((card, index) => (
-          <StatCard key={index} card={card} />
+          <motion.div
+            key={index}
+            variants={compactCardVariants}
+            initial="initial"
+            animate="animate"
+            transition={{ duration: DURATION.MID, ease: EASE_FAST, delay: staggerDelay(index, 0.06) }}
+          >
+            <StatCard card={card} />
+          </motion.div>
         ))}
       </div>
-      <QuickActions actions={quickActions} t={t} />
-      <RecentArticlesCard articles={recentArticles} t={t} locale={locale} />
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: DURATION.MID, ease: EASE_FAST, delay: staggerDelay(statCards.length, 0.06) }}
+      >
+        <QuickActions actions={quickActions} t={t} />
+        <RecentArticlesCard articles={recentArticles} t={t} locale={locale} />
+      </motion.div>
     </PageContainer>
   );
 }

@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, ListMusic, X, Music } from 'lucide-react';
-import { tooltipVariants, tooltipTransition } from '@/components/ui/motion';
+import { tooltipVariants, tooltipTransition, DURATION } from '@/components/ui/motion';
 import { useConfig } from '@/hooks/use-config';
 import { useI18n } from '@/hooks/use-i18n';
 
@@ -99,7 +99,7 @@ function ProgressPanel({
           initial={{ width: 0, opacity: 0 }}
           animate={{ width: 'auto', opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
-          transition={{ duration: 0.25 }}
+          transition={{ duration: DURATION.MID }}
           className="flex flex-col gap-1.5 overflow-hidden"
         >
           <div className="text-xs font-medium text-zinc-900 dark:text-zinc-100 whitespace-nowrap max-w-[140px] truncate">

@@ -28,7 +28,7 @@ const SidebarItem = React.memo(function SidebarItem({
       href={item.href}
       prefetch={false}
       onClick={onItemClick}
-      className={`flex items-center gap-3 rounded-xl text-sm transition-all duration-300 group/item no-underline ${
+      className={`flex items-center gap-3 rounded-xl text-sm transition-all duration-200 group/item no-underline ${
         collapsed ? 'px-0 py-2.5 justify-center' : 'px-3 py-2.5'
       } ${
         isActive

@@ -47,7 +47,7 @@ const SidebarGroup = React.memo(function SidebarGroup({
           </span>
           <ChevronDown
             size={12}
-            className={`text-zinc-200 dark:text-zinc-700 transition-transform duration-300 ${
+            className={`text-zinc-200 dark:text-zinc-700 transition-transform duration-200 ${
               isCollapsed ? '-rotate-90' : ''
             }`}
           />

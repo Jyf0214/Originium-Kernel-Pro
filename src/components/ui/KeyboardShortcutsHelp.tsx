@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { modalContentVariants, modalTransition } from '@/components/ui/motion';
+import { modalContentVariants, modalTransition, DURATION } from '@/components/ui/motion';
 import { X } from 'lucide-react';
 import { useI18n } from '@/hooks/use-i18n';
 import { getTranslate } from '@/i18n/translate';
@@ -57,7 +57,7 @@ export function KeyboardShortcutsHelp({ open, onClose, visibleKeys }: KeyboardSh
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
+          transition={{ duration: DURATION.FAST }}
           className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
