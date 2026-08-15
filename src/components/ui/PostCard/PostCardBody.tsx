@@ -96,7 +96,8 @@ function PostCardBodyFooter({
   const shownDate = resolveDisplayDate(post.date, post.updated, dateType);
   return (
     <div className="mt-auto pt-3 border-t border-zinc-50 dark:border-zinc-800 flex items-center justify-between gap-2 text-zinc-500 dark:text-zinc-400 min-w-0">
-      <div className="flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+      {/* 作者区：占满剩余空间，超长作者名截断（flex-1 + min-w-0 使 truncate 生效） */}
+      <div className="flex items-center gap-1.5 flex-1 min-w-0">
         <Avatar
           name={post.authorNickname ?? post.author ?? ''}
           avatarUrl={post.authorAvatar}
@@ -106,17 +107,18 @@ function PostCardBodyFooter({
           {post.authorNickname ?? post.author ?? t('home.anonymous')}
         </span>
       </div>
-      <div className="flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400 shrink-0 whitespace-nowrap">
+      {/* 阅读时间/日期区：允许收缩，空间不足时逐项截断而非挤出屏幕 */}
+      <div className="flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400 min-w-0">
         {post.readingTime && post.readingTime > 0 && (
-          <span className="flex items-center gap-0.5">
-            <Clock size={10} />
-            <span>{t('posts.readingTimeLabel', { minutes: post.readingTime })}</span>
+          <span className="flex items-center gap-0.5 min-w-0">
+            <Clock size={10} className="shrink-0" />
+            <span className="truncate">{t('posts.readingTimeLabel', { minutes: post.readingTime })}</span>
           </span>
         )}
         {shownDate && (
-          <span className="flex items-center gap-0.5">
-            <Calendar size={10} />
-            <span>{formatPostDate(shownDate, locale, dateFormat)}</span>
+          <span className="flex items-center gap-0.5 min-w-0">
+            <Calendar size={10} className="shrink-0" />
+            <span className="truncate">{formatPostDate(shownDate, locale, dateFormat)}</span>
           </span>
         )}
       </div>

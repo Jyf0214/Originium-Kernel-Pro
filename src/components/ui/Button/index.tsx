@@ -4,7 +4,7 @@ import { memo, forwardRef } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/ui';
 import type { ButtonProps, ButtonVariant, ButtonSize, ButtonRounded } from './button-types';
-import { variantStyles, sizePadding, iconOnlySize, roundedStyles, BASE_BUTTON_CLASSES } from './button-styles';
+import { variantStyles, sizePadding, iconOnlySize, responsiveIconSize, roundedStyles, BASE_BUTTON_CLASSES } from './button-styles';
 import { useAutoLoading } from './use-auto-loading';
 import { LoadingSpinner } from './LoadingSpinner';
 
@@ -59,7 +59,7 @@ export const Button = memo(
         roundedStyles[rounded ?? 'md'],
         block && 'w-full',
         !!isLoading && 'animate-btn-loading',
-        isResponsiveIcon && `max-sm:w-auto ${iconOnlySize[size]}`,
+        isResponsiveIcon && responsiveIconSize[size],
         className,
       );
 

@@ -27,6 +27,15 @@ export const iconOnlySize: Record<ButtonSize, string> = {
   lg: 'w-11 h-11',
 };
 
+/** 图标+文字响应式按钮（icon+children）：仅移动端退回"纯图标按钮"尺寸。
+    桌面端显示图标+文字，必须使用 sizePadding 正常内边距，
+    不能套用 iconOnlySize 的固定宽高（会把文字挤成逐字换行） */
+export const responsiveIconSize: Record<ButtonSize, string> = {
+  sm: 'max-sm:w-7 max-sm:h-7 max-sm:px-0',
+  md: 'max-sm:w-9 max-sm:h-9 max-sm:px-0',
+  lg: 'max-sm:w-11 max-sm:h-11 max-sm:px-0',
+};
+
 export const roundedStyles: Record<ButtonRounded, string> = {
   sm: 'rounded-lg',
   md: 'rounded-xl',

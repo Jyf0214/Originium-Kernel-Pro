@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '@/hooks/use-auth';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
@@ -54,20 +55,34 @@ function Sidebar({ isOpen, onClose, databaseConfigured = true }: SidebarProps) {
 
   const isActive = useCallback((href: string) => {
     const [path = ''] = href.split('?');
-    if (path === '/dashboard') return pathname === '/dashboard';
     const currentPath = pathname ?? '';
-    if (!currentPath.startsWith(path)) return false;
-    // href 带查询参数时，必须完整匹配（防止 /dashboard/articles 同时高亮两个）
+
+    // 带查询参数的菜单项（如回收站视图）：pathname + search 必须完整匹配
     if (href.includes('?')) {
       const currentSearch = search ? `?${search}` : '';
       return currentPath + currentSearch === href;
     }
-    // 无查询参数的项：当前处于回收站视图（status=pending_deletion）时不高亮，
-    // 该视图由带查询参数的回收站菜单项独占高亮
-    if (currentPath === path && search.includes('status=pending_deletion')) {
-      return false;
+
+    // /dashboard 仅自身页面高亮，不因子路由（/dashboard/xxx）点亮
+    if (path === '/dashboard') return currentPath === '/dashboard';
+
+    // 精确命中
+    if (currentPath === path) {
+      // 回收站视图（status=pending_deletion）由带查询参数的回收站菜单项独占高亮
+      return !search.includes('status=pending_deletion');
     }
-    return true;
+
+    // 子路径场景（如 /dashboard/config/preview 之于 /dashboard/config）：
+    // 仅当没有更具体的菜单项命中当前路径时才高亮父项，防止两个菜单项同时高亮
+    if (currentPath.startsWith(path)) {
+      return !menuItems.some((other) => {
+        if (other.href === href) return false;
+        const otherPath = other.href.split('?')[0] ?? '';
+        return otherPath.length > path.length && currentPath.startsWith(otherPath);
+      });
+    }
+
+    return false;
   }, [pathname, search]);
 
   const grouped = items.reduce<Record<string, MenuItem[]>>((acc, item) => {
@@ -122,20 +137,29 @@ function Sidebar({ isOpen, onClose, databaseConfigured = true }: SidebarProps) {
       >
         {renderContent(false, hydrated && collapsed)}
       </div>
-      {isOpen && (
-        <div
-          className="md:hidden fixed inset-0 bg-zinc-900/40 backdrop-blur-md z-[998] transition-opacity duration-300"
-          aria-hidden="true"
-          onClick={onClose}
-        />
-      )}
-      <div
-        id="primary-sidebar"
-        className="md:hidden fixed top-0 h-screen w-[300px] overflow-y-auto z-[999] bg-white dark:bg-zinc-900 shadow-[20px_0_60px_-15px_rgba(0,0,0,0.3)] transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
-        style={{ left: 0, transform: isOpen ? 'translateX(0)' : 'translateX(-100%)' }}
-      >
-        {renderContent(true)}
-      </div>
+      {/* 移动端遮罩与抽屉：Portal 到 body。
+          侧栏可能被渲染在 display:none 的父容器内（如三栏布局移动端隐藏左栏），
+          若不脱离父容器，fixed 子元素会被一并隐藏导致抽屉无法打开 */}
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <>
+            {isOpen && (
+              <div
+                className="md:hidden fixed inset-0 bg-zinc-900/40 backdrop-blur-md z-[998] transition-opacity duration-300"
+                aria-hidden="true"
+                onClick={onClose}
+              />
+            )}
+            <div
+              id="primary-sidebar"
+              className="md:hidden fixed top-0 h-screen w-[300px] max-w-[85vw] overflow-y-auto z-[999] bg-white dark:bg-zinc-900 shadow-[20px_0_60px_-15px_rgba(0,0,0,0.3)] transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+              style={{ left: 0, transform: isOpen ? 'translateX(0)' : 'translateX(-100%)' }}
+            >
+              {renderContent(true)}
+            </div>
+          </>,
+          document.body,
+        )}
     </>
   );
 }
