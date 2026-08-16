@@ -13,6 +13,7 @@
  */
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { ContentFile } from '../src/types/content';
+import type * as ConfigModule from '../src/lib/config';
 import {
   extractWikiLinks,
   getContentRegistry,
@@ -65,7 +66,7 @@ vi.mock('../src/lib/content', () => ({
 // config access 规则在测试环境中一律放行（真实规则由 config.yaml 驱动，
 // 已在页面层/API 层过滤，此处只验证映射构建逻辑）
 vi.mock('../src/lib/config', async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = await importOriginal<typeof ConfigModule>();
   return {
     ...actual,
     canAccess: vi.fn(() => true),
