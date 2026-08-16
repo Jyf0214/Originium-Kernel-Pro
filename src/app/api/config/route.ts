@@ -141,23 +141,28 @@ export const POST = apiHandler('POST', { label: getTranslate('api.config.updateL
   const currentConfig = await loadConfig();
   const mergedConfig = mergeAppConfig(currentConfig, validated.data);
 
-  // 持久化到 GitHub（如果配置了远程仓库）
+  // 持久化到 GitHub；未配置远程仓库时明确报错（配置无法持久化时禁止"假成功"）
   const githubRepo = process.env.GITHUB_REPO;
   const githubToken = process.env.GITHUB_TOKEN;
-  if (githubRepo && githubToken) {
-    const yamlContent = yaml.dump(mergedConfig, { lineWidth: -1 });
-    try {
-      await updateFileInGithub({
-        repo: githubRepo,
-        token: githubToken,
-        path: 'config.yaml',
-        content: yamlContent,
-        message: 'chore: update site config',
-      });
-    } catch (err) {
-      logger.error('POST', '配置写入 GitHub 失败', { error: err instanceof Error ? err.message : String(err) });
-      return NextResponse.json({ error: getTranslate('api.config.saveToRemoteFailed') }, { status: 500 });
-    }
+  if (!githubRepo || !githubToken) {
+    logger.warn('POST', 'GitHub 仓库未配置，配置更改无法持久化');
+    return NextResponse.json(
+      { error: getTranslate('api.config.githubNotConfigured') },
+      { status: 500 },
+    );
+  }
+  const yamlContent = yaml.dump(mergedConfig, { lineWidth: -1 });
+  try {
+    await updateFileInGithub({
+      repo: githubRepo,
+      token: githubToken,
+      path: 'config.yaml',
+      content: yamlContent,
+      message: 'chore: update site config',
+    });
+  } catch (err) {
+    logger.error('POST', '配置写入 GitHub 失败', { error: err instanceof Error ? err.message : String(err) });
+    return NextResponse.json({ error: getTranslate('api.config.saveToRemoteFailed') }, { status: 500 });
   }
 
   logger.info('POST', '配置已合并并持久化');

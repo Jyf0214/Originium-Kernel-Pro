@@ -100,12 +100,15 @@ export const POST = apiHandler('POST', { label: getTranslate('api.posts.like') }
     return NextResponse.json({ count: current, liked: true });
   }
 
-  // 原子递增：读取当前值 → +1 → 写回
+  // 原子递增：UPSERT 计数，避免并发读-改-写丢失计数
   const countKey = `${LIKE_COUNT_PREFIX}${slug}`;
-  const currentRaw = await db.get(countKey);
-  const current = currentRaw ? Number(currentRaw) || 0 : 0;
-  const newCount = current + 1;
-  await db.set(countKey, String(newCount));
+  const rows = await db.prisma.$queryRaw<{ v: string | null }[]>`
+    INSERT INTO originium_kv (k, v, created_at)
+    VALUES (${countKey}, '1', NOW())
+    ON CONFLICT (k) DO UPDATE SET v = ((CAST(originium_kv.v AS INTEGER)) + 1)::TEXT
+    RETURNING v
+  `;
+  const newCount = Number(rows[0]?.v) || 1;
 
   // 记录双重去重标记（带 TTL）
   await Promise.all([

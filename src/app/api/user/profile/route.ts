@@ -123,6 +123,9 @@ function validateAndSanitizeInput(body: Record<string, unknown>): {
   if (name !== undefined && typeof name !== 'string') {
     return { avatar, username, name, sanitized: { value: null }, error: getTranslate('api.user.nameMustBeString') };
   }
+  if (name !== undefined && typeof name === 'string' && name.trim().length === 0) {
+    return { avatar, username, name, sanitized: { value: null }, error: getTranslate('api.user.invalidName') };
+  }
 
   if (areAllUndefined(avatar, username, name)) {
     return { avatar, username, name, sanitized: { value: null }, error: getTranslate('api.user.noFieldsToUpdate') };
