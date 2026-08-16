@@ -3,6 +3,8 @@ import { getEnvConfig } from '@/lib/env';
 import { Octokit } from 'octokit';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
+import { composeFileContent } from '@/lib/github';
+import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/github');
@@ -12,6 +14,26 @@ const logger = createApiLogger('/api/github');
  * POST: 创建/更新/删除文件
  * GET: 读取文件
  */
+
+/** 允许访问的仓库路径白名单：仅站点内容目录与配置文件 */
+const ALLOWED_EXACT_PATHS = ['config.yaml'];
+const ALLOWED_PREFIXES = ['posts/', 'faces/'];
+
+/** 路径是否在白名单内（防读取/写入仓库任意文件） */
+function isAllowedRepoPath(path: string): boolean {
+  if (ALLOWED_EXACT_PATHS.includes(path)) return true;
+  return ALLOWED_PREFIXES.some((prefix) => path.startsWith(prefix));
+}
+
+/**
+ * API 密钥细粒度权限检查
+ * Cookie 认证(浏览器)直接通过；密钥认证检查 posts_* 权限
+ */
+async function requireGithubPerm(action: 'posts_read' | 'posts_write'): Promise<NextResponse | null> {
+  const authResult = await getSessionWithKeyId();
+  if (!authResult) return null;
+  return requireApiKeyPermission(authResult.session, authResult.currentKeyId, action);
+}
 
 function validateGithubEnv(): { owner: string; repo: string; octokit: Octokit } | NextResponse {
   const env = getEnvConfig();
@@ -40,18 +62,6 @@ async function getFileSha(
   return undefined;
 }
 
-async function composeFileContent(
-  content: string | undefined,
-  frontMatter: unknown,
-  body: string | undefined,
-): Promise<string> {
-  if (frontMatter && body !== undefined) {
-    const yamlModule = await import('js-yaml');
-    return `---\n${yamlModule.default.dump(frontMatter)}---\n\n${body}`;
-  }
-  return content ?? '';
-}
-
 async function executeDeleteAction(
   octokit: Octokit,
   owner: string,
@@ -76,13 +86,18 @@ export const POST = apiHandler('POST', { label: getTranslate('api.github.operati
   const { action, path, content, message, frontMatter, body } = await req.json();
   logger.info('POST', '开始 GitHub 操作', { action, path });
 
+  // API 密钥认证的请求需 posts_write 权限
+  const denied = await requireGithubPerm('posts_write');
+  if (denied) return denied;
+
   if (!action || !path) {
     logger.warn('POST', '缺少必需参数');
     return NextResponse.json({ error: getTranslate('api.github.missingParams') }, { status: 400 });
   }
 
-  // 路径穿越防护：拒绝含 .. 或 \ 的路径
-  if (typeof path === 'string' && (path.includes('..') || path.includes('\\') || path.startsWith('/'))) {
+  // 路径守卫：非字符串直接拒绝（数组/对象的 includes 语义不同，可绕过检查）；
+  // 拒绝含 .. 或 \ 的路径；仅允许白名单目录（posts/ faces/ config.yaml）
+  if (typeof path !== 'string' || path.includes('..') || path.includes('\\') || path.startsWith('/') || !isAllowedRepoPath(path)) {
     return NextResponse.json({ error: getTranslate('api.storage.invalidFilePath') }, { status: 400 });
   }
 
@@ -117,10 +132,14 @@ export const GET = apiHandler('GET', { label: getTranslate('api.github.readFile'
     return NextResponse.json({ error: getTranslate('api.github.missingPath') }, { status: 400 });
   }
 
-  // 路径穿越防护：拒绝含 .. 或 \ 的路径
-  if (path.includes('..') || path.includes('\\') || path.startsWith('/')) {
+  // 路径守卫：仅允许白名单目录（posts/ faces/ config.yaml）且不含穿越片段
+  if (typeof path !== 'string' || path.includes('..') || path.includes('\\') || path.startsWith('/') || !isAllowedRepoPath(path)) {
     return NextResponse.json({ error: getTranslate('api.storage.invalidFilePath') }, { status: 400 });
   }
+
+  // API 密钥认证的请求需 posts_read 权限
+  const denied = await requireGithubPerm('posts_read');
+  if (denied) return denied;
 
   logger.info('GET', '读取 GitHub 文件', { path });
   const env = getEnvConfig();
@@ -134,6 +153,9 @@ export const GET = apiHandler('GET', { label: getTranslate('api.github.readFile'
 
   const { data } = await octokit.rest.repos.getContent({ owner, repo, path });
 
+  // 文件内容随认证态变化，禁止 CDN 缓存
+  const privateHeaders = { 'Cache-Control': 'private, no-cache, no-store', 'Vary': 'Cookie' };
+
   if (Array.isArray(data)) {
     logger.info('GET', '目录列表读取成功', { path, count: data.length });
     return NextResponse.json(data.map(file => ({
@@ -141,7 +163,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.github.readFile'
       path: file.path,
       type: file.type,
       sha: file.sha,
-    })));
+    })), { headers: privateHeaders });
   }
 
   if ('content' in data) {
@@ -149,7 +171,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.github.readFile'
     const matter = await import('gray-matter');
     const { data: frontMatter, content: body } = matter.default(raw);
     logger.info('GET', '文件读取成功', { path });
-    return NextResponse.json({ raw, frontMatter, body, sha: data.sha });
+    return NextResponse.json({ raw, frontMatter, body, sha: data.sha }, { headers: privateHeaders });
   }
 
   logger.warn('GET', '无效路径', { path });

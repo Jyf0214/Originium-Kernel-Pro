@@ -45,11 +45,24 @@ export async function getFileFromGithub(repo: string, token: string, path: strin
       return { content, sha: data.sha };
     }
     return null;
-   
+
   } catch (error: unknown) {
     if (error instanceof Error && 'status' in error && error.status === 404) return null;
     throw error;
   }
+}
+
+/** 组装 front matter + body 的 Markdown 文件内容；无 front matter 时直接返回 content */
+export async function composeFileContent(
+  content: string | undefined,
+  frontMatter: unknown,
+  body: string | undefined,
+): Promise<string> {
+  if (frontMatter && body !== undefined) {
+    const yamlModule = await import('js-yaml');
+    return `---\n${yamlModule.default.dump(frontMatter)}---\n\n${body}`;
+  }
+  return content ?? '';
 }
 
 /** 创建或更新 GitHub 上的文件 */

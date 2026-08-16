@@ -1,13 +1,25 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { loadConfig, canAccess, hasDatabase, type AppConfig } from '@/lib/config';
 import { getDraft, saveDraft } from '@/lib/draft-storage';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler, getParam } from '@/lib/api-handler';
-import { isRootRole } from '@/lib/auth';
+import { isRootRole, getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
+import { getFileFromGithub, updateFileInGithub, composeFileContent } from '@/lib/github';
+import { getEnvConfig } from '@/lib/env';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/articles/[id]');
+
+/**
+ * API 密钥细粒度权限检查（文章读写）
+ * Cookie 认证(浏览器)直接通过；密钥认证检查 posts_* 权限
+ */
+async function requireArticlePerm(action: 'posts_read' | 'posts_write' | 'posts_delete'): Promise<NextResponse | null> {
+  const authResult = await getSessionWithKeyId();
+  if (!authResult) return null;
+  return requireApiKeyPermission(authResult.session, authResult.currentKeyId, action);
+}
 
 /**
  * Article Detail API (GET, PATCH, DELETE)
@@ -32,19 +44,23 @@ async function handleDraftArticleResponse(
 
 async function handlePublishedArticleResponse(
   meta: Record<string, unknown>,
-  req: NextRequest,
 ): Promise<NextResponse | null> {
   if (!(meta.status === 'published' && meta.slug)) {
     return null;
   }
   try {
-    const ghResponse = await fetch(
-      `${req.nextUrl.origin}/api/github?path=posts${String(meta.slug)}.md`,
+    const env = getEnvConfig();
+    if (!env.githubRepo || !env.githubToken) return null;
+    const fileData = await getFileFromGithub(
+      env.githubRepo,
+      env.githubToken,
+      `posts${String(meta.slug)}.md`,
     );
-    if (!ghResponse.ok) {
+    if (!fileData) {
       return null;
     }
-    const { frontMatter, body } = await ghResponse.json();
+    const matter = await import('gray-matter');
+    const { data: frontMatter, content: body } = matter.default(fileData.content);
     return NextResponse.json({
       id: meta.id,
       slug: meta.slug,
@@ -99,6 +115,9 @@ async function handleFileSystemLookup(
 export const GET = apiHandler('GET', { label: getTranslate('api.articles.fetchArticleDetail') }, async (req, context, session) => {
   const id = await getParam(context, 'id');
   logger.info('GET', '获取文章详情', { id });
+  // API 密钥认证的请求需 posts_read 权限
+  const denied = await requireArticlePerm('posts_read');
+  if (denied) return denied;
   logger.info('GET', '读取文章详情', { id });
   const db = getDb();
 
@@ -113,7 +132,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.articles.fetchAr
       }
       return handleDraftArticleResponse(id, meta);
     }
-    const publishedResponse = await handlePublishedArticleResponse(meta, req);
+    const publishedResponse = await handlePublishedArticleResponse(meta);
     if (publishedResponse) {
       return publishedResponse;
     }
@@ -150,7 +169,6 @@ async function handlePublishArticle(
   body: Record<string, unknown>,
   updated: Record<string, unknown>,
   id: string,
-  req: NextRequest,
   db: ReturnType<typeof getDb>,
 ): Promise<NextResponse> {
   const postSlug = (body.slug as string) || (updated.slug as string) || `/${String(updated.authorName)}/${id}`;
@@ -160,28 +178,30 @@ async function handlePublishArticle(
   }
   const filePath = `posts${postSlug}.md`;
 
-  const ghResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'create',
+  const env = getEnvConfig();
+  if (!env.githubRepo || !env.githubToken) {
+    logger.error('PATCH', 'GitHub 配置缺失');
+    return NextResponse.json({ error: getTranslate('api.github.missingConfig') }, { status: 500 });
+  }
+
+  try {
+    await updateFileInGithub({
+      repo: env.githubRepo,
+      token: env.githubToken,
       path: filePath,
-      frontMatter: {
+      content: await composeFileContent(undefined, {
         title: updated.title,
         author: updated.authorName,
         date: updated.createdAt,
         tags: (updated.tags as string[]) || [],
         ...(updated.coverImage ? { cover: updated.coverImage } : {}),
         ...(updated.description ? { description: updated.description } : {}),
-      },
-      body: (updated.content as string) || '',
+      }, (updated.content as string) || ''),
       message: `feat: publish post "${String(updated.title)}"`,
-    }),
-  });
-
-  if (!ghResponse.ok) {
-    const error = await ghResponse.json() as { error?: string };
-    return NextResponse.json({ error: error.error ?? getTranslate('api.articles.publishFailed') }, { status: 500 });
+    });
+  } catch (error: unknown) {
+    logger.error('PATCH', '发布文章失败', { error: error instanceof Error ? error.message : String(error) });
+    return NextResponse.json({ error: getTranslate('api.articles.publishFailed') }, { status: 500 });
   }
 
   updated.status = 'published';
@@ -222,6 +242,9 @@ async function handleDraftSave(
 
 export const PATCH = apiHandler('PATCH', { label: getTranslate('api.articles.updateArticle'), requireAuth: true }, async (req, context, session) => {
   const id = await getParam(context, 'id');
+  // API 密钥认证的请求需 posts_write 权限
+  const denied = await requireArticlePerm('posts_write');
+  if (denied) return denied;
   const body = await req.json() as Record<string, unknown>;
   logger.info('PATCH', '更新文章', { id });
   const db = getDb();
@@ -248,7 +271,7 @@ export const PATCH = apiHandler('PATCH', { label: getTranslate('api.articles.upd
       description: typeof body.description === 'string' ? body.description : meta.description,
       updatedAt: new Date().toISOString(),
     };
-    return handlePublishArticle(body, updated, id, req, db);
+    return handlePublishArticle(body, updated, id, db);
   }
 
   return handleDraftSave(body, meta, id, db);
@@ -274,6 +297,9 @@ async function moveToRecycleBin(
 
 export const DELETE = apiHandler('DELETE', { label: getTranslate('api.articles.deleteArticle'), requireAuth: true }, async (req, context, session) => {
   const id = await getParam(context, 'id');
+  // API 密钥认证的请求需 posts_delete 权限
+  const denied = await requireArticlePerm('posts_delete');
+  if (denied) return denied;
   logger.info('DELETE', '删除文章', { id });
   const db = getDb();
   const metaStr = await db.get(`article:data:${id}`);

@@ -28,7 +28,10 @@
  *   - app/api/user/           用户信息 API
  *   - app/api/users/          用户列表 API
  *   - app/api/github/         GitHub 同步 API
- *   - app/api/webhooks/       Webhook API
+ *   - app/api/articles/       文章 API
+ *   - app/api/storage/        文件存储 API
+ *   - app/api/posts/          点赞 API
+ *   - app/api/health/         健康检查 API
  *   - app/api/cleanup         清理 API
  *   - app/api/feedback        反馈 API
  *
@@ -93,7 +96,10 @@ const DB_ROUTE_PATHS = [
   'src/app/api/cleanup',
   'src/app/api/feedback',
   'src/app/api/github',
-  'src/app/api/webhooks',
+  'src/app/api/articles',
+  'src/app/api/storage',
+  'src/app/api/posts',
+  'src/app/api/health',
 ];
 
 /** 需要在 GitHub Pages 部署时移除的路由目录（相对于 ROOT）

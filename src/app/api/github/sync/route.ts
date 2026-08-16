@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { getSession, isRootRole } from '@/lib/auth';
+import { getSession, isRootRole, getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { updateFileInGithub } from '@/lib/github';
 import { createApiLogger } from '@/lib/api-logger';
 import { getTranslate } from '@/i18n/translate';
@@ -16,6 +16,13 @@ export async function POST(req: NextRequest) {
   if (!session || (session.role !== 'admin' && !isRootRole(session.role))) {
     logger.warn('POST', '无权限', { role: session?.role });
     return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
+  }
+
+  // API 密钥认证的请求需 posts_write 权限
+  const authResult = await getSessionWithKeyId();
+  if (authResult) {
+    const permErr = await requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'posts_write');
+    if (permErr) return permErr;
   }
 
   const githubRepo = process.env.GITHUB_REPO;

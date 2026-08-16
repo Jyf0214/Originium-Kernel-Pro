@@ -1,11 +1,21 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getContentFile } from '@/lib/content';
 import { loadConfig, canAccess, hasDatabase } from '@/lib/config';
-import { getSession, isRootRole } from '@/lib/auth';
+import { getSession, isRootRole, getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/faces/[...slug]');
+
+/**
+ * API 密钥细粒度权限检查（联系人详情读取）
+ * Cookie 认证(浏览器)直接通过；密钥认证检查 posts_read 权限
+ */
+async function requireFacesDetailPerm(): Promise<NextResponse | null> {
+  const authResult = await getSessionWithKeyId();
+  if (!authResult) return null;
+  return requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'posts_read');
+}
 
 export async function GET(
   req: NextRequest,
@@ -13,6 +23,10 @@ export async function GET(
 ) {
   try {
   const { slug } = await params;
+
+  // API 密钥认证的请求需 posts_read 权限
+  const permErr = await requireFacesDetailPerm();
+  if (permErr) return permErr;
 
   // 路径遍历防护：拒绝包含 .. 的 slug 段
   if (slug.some(s => s === '..' || s === '.' || s.includes('\0'))) {
@@ -50,10 +64,16 @@ export async function GET(
 
   logger.info('GET', '联系人读取成功', { fullPath });
   // 返回联系人数据，包含原始 Markdown 内容
+  // 内容随登录态变化（私有规则），禁止 CDN 共享缓存
   return NextResponse.json({
     ...file,
     // 原始 Markdown 内容（Front Matter + 正文），读取失败时为空字符串
     rawContent: file.raw ?? '',
+  }, {
+    headers: {
+      'Cache-Control': 'private, no-cache, no-store',
+      'Vary': 'Cookie',
+    },
   });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);

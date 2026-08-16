@@ -1,17 +1,28 @@
-import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { isRootRole, type getSession } from '@/lib/auth';
+import { isRootRole, getSessionWithKeyId, requireApiKeyPermission, type getSession } from '@/lib/auth';
 import { getUserAvatar } from '@/lib/config';
 import { getAccessibleContent } from '@/lib/content-access';
 import type { ContentFile } from '@/types/content';
 import { getDraft, saveDraft } from '@/lib/draft-storage';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
+import { updateFileInGithub, composeFileContent } from '@/lib/github';
+import { getEnvConfig } from '@/lib/env';
 import { rateLimit } from '@/lib/rate-limit';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/articles');
+
+/**
+ * API 密钥细粒度权限检查（文章读写）
+ * Cookie 认证(浏览器)直接通过；密钥认证检查 posts_* 权限
+ */
+async function requireArticlePerm(action: 'posts_read' | 'posts_write' | 'posts_delete'): Promise<NextResponse | null> {
+  const authResult = await getSessionWithKeyId();
+  if (!authResult) return null;
+  return requireApiKeyPermission(authResult.session, authResult.currentKeyId, action);
+}
 
 /**
  * Articles API
@@ -75,6 +86,10 @@ async function loadDrafts(
 
 export const GET = apiHandler('GET', { label: getTranslate('api.articles.articleList'), requireAuth: false }, async (req, _ctx, session) => {
   logger.info('GET', '获取文章列表');
+  // API 密钥认证的请求需 posts_read 权限（未认证请求不受限）
+  const denied = await requireArticlePerm('posts_read');
+  if (denied) return denied;
+
   // 读取查询参数
   const authorFilter = req.nextUrl.searchParams.get('author');
 
@@ -136,7 +151,6 @@ interface ArticleMetaForPublish {
  * 将已发布文章推送到 GitHub 并更新数据库
  */
 async function handlePublishedPost(
-  req: NextRequest,
   articleMeta: ArticleMetaForPublish,
   content: string,
   meta: {
@@ -149,28 +163,30 @@ async function handlePublishedPost(
   const postSlug = meta.slug ?? `/${articleMeta.authorName}/${articleMeta.id}`;
   const filePath = `posts${postSlug}.md`;
 
-  const ghResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'create',
+  const env = getEnvConfig();
+  if (!env.githubRepo || !env.githubToken) {
+    logger.error('POST', 'GitHub 配置缺失');
+    return NextResponse.json({ error: getTranslate('api.github.missingConfig') }, { status: 500 });
+  }
+
+  try {
+    await updateFileInGithub({
+      repo: env.githubRepo,
+      token: env.githubToken,
       path: filePath,
-      frontMatter: buildPostFrontMatter({
+      content: await composeFileContent(undefined, buildPostFrontMatter({
         title: articleMeta.title,
         author: articleMeta.authorName,
         date: meta.now,
         tags: articleMeta.tags,
         coverImage: meta.coverImage,
         description: meta.description,
-      }),
-      body: content || '',
+      }), content || ''),
       message: `feat: publish post "${articleMeta.title}"`,
-    }),
-  });
-
-  if (!ghResponse.ok) {
-    const error = await ghResponse.json();
-    return NextResponse.json({ error: error.error ?? getTranslate('api.articles.publishFailed') }, { status: 500 });
+    });
+  } catch (error: unknown) {
+    logger.error('POST', '发布文章失败', { error: error instanceof Error ? error.message : String(error) });
+    return NextResponse.json({ error: getTranslate('api.articles.publishFailed') }, { status: 500 });
   }
 
   const db = getDb();
@@ -181,7 +197,16 @@ async function handlePublishedPost(
   return NextResponse.json({ success: true, id: articleMeta.id, slug: postSlug });
 }
 
+/** 校验 slug 是否含非法字符（路径穿越防护），合法返回 true */
+function isValidSlugChars(slug: string | undefined): boolean {
+  return !slug || (!slug.includes('..') && !slug.includes('/') && !slug.startsWith('.'));
+}
+
 export const POST = apiHandler('POST', { label: getTranslate('api.articles.createArticle'), requireAuth: true }, async (req, _ctx, session) => {
+  // API 密钥认证的请求需 posts_write 权限
+  const denied = await requireArticlePerm('posts_write');
+  if (denied) return denied;
+
   const rl = rateLimit(`${session!.uid}:articles-write`, 20, 60 * 1000);
   if (!rl.allowed) {
     return NextResponse.json({ error: getTranslate('api.common.rateLimited') }, { status: 429 });
@@ -207,12 +232,12 @@ export const POST = apiHandler('POST', { label: getTranslate('api.articles.creat
     updatedAt: now,
   };
 
-  if (slug && (slug.includes('..') || slug.includes('/') || slug.startsWith('.'))) {
+  if (!isValidSlugChars(slug)) {
     return NextResponse.json({ error: getTranslate('api.articles.invalidSlugChars') }, { status: 400 });
   }
 
   if (status === 'published') {
-    return handlePublishedPost(req, articleMeta, content, { coverImage, description, slug, now });
+    return handlePublishedPost(articleMeta, content, { coverImage, description, slug, now });
   }
 
   const db = getDb();

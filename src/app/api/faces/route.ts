@@ -1,12 +1,24 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getContentFiles, getContentIndexes } from '@/lib/content';
 import { loadConfig, canAccess, hasDatabase } from '@/lib/config';
-import { type SessionPayload, getSession, isRootRole } from '@/lib/auth';
+import { type SessionPayload, getSession, isRootRole, getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
 import { rateLimit } from '@/lib/rate-limit';
+import { getEnvConfig } from '@/lib/env';
+import { getFileFromGithub, updateFileInGithub, deleteFileFromGithub, composeFileContent } from '@/lib/github';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/faces');
+
+/**
+ * API 密钥细粒度权限检查（通讯录读写）
+ * Cookie 认证(浏览器)直接通过；密钥认证检查 posts_* 权限
+ */
+async function requireFacesPerm(action: 'posts_read' | 'posts_write'): Promise<NextResponse | null> {
+  const authResult = await getSessionWithKeyId();
+  if (!authResult) return null;
+  return requireApiKeyPermission(authResult.session, authResult.currentKeyId, action);
+}
 
 /** 单个文件的访问权限检查 */
 async function isFileAccessible(
@@ -31,6 +43,10 @@ async function isFileAccessible(
  */
 export async function GET() {
   try {
+    // API 密钥认证的请求需 posts_read 权限
+    const denied = await requireFacesPerm('posts_read');
+    if (denied) return denied;
+
     const config = await loadConfig();
     const session = await getSession();
     const isAuthenticated = !!session;
@@ -73,8 +89,12 @@ export async function GET() {
     })),
     site: config.site,
     }, {
-      // 通讯录缓存：管理员响应不缓存，普通用户 CDN 缓存 600s
-      headers: { 'Cache-Control': isAdmin ? 'private, no-cache' : 'public, s-maxage=600, stale-while-revalidate=1200' },
+      // 通讯录内容随登录态变化（私有规则），禁止 CDN 共享缓存，
+      // 否则登录用户的数据会缓存给未登录用户（泄露）或反之
+      headers: {
+        'Cache-Control': 'private, no-cache, no-store',
+        'Vary': 'Cookie',
+      },
     });
   } catch (error) {
     logger.error('GET', '获取通讯录列表失败', { error: error instanceof Error ? error.message : String(error) });
@@ -101,24 +121,17 @@ function generateSlug(name: string): string {
 /**
  * 从 GitHub 读取文件内容和元数据
  */
-async function getFileFromGitHub(req: NextRequest, filePath: string): Promise<{ sha: string; email: string; raw: string } | null> {
-  const url = new URL(req.nextUrl.origin + '/api/github');
-  url.searchParams.set('path', filePath);
-  
-  const response = await fetch(url.toString(), {
-    headers: { 'Cookie': req.headers.get('cookie') ?? '' },
-  });
-
-  if (!response.ok) {
-    if (response.status === 404) return null;
-    throw new Error(getTranslate('api.faces.readFileFailed'));
-  }
-
-  const data = await response.json();
+async function getFileFromGitHub(filePath: string): Promise<{ sha: string; email: string; raw: string } | null> {
+  const env = getEnvConfig();
+  if (!env.githubRepo || !env.githubToken) return null;
+  const fileData = await getFileFromGithub(env.githubRepo, env.githubToken, filePath);
+  if (!fileData) return null;
+  const matter = await import('gray-matter');
+  const { data: frontMatter } = matter.default(fileData.content);
   return {
-    sha: data.sha,
-    email: data.frontMatter?.email ?? '',
-    raw: data.raw,
+    sha: fileData.sha,
+    email: typeof frontMatter.email === 'string' ? frontMatter.email : '',
+    raw: fileData.content,
   };
 }
 
@@ -149,60 +162,70 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }
 
+  // API 密钥认证的请求需 posts_write 权限
+  const denied = await requireFacesPerm('posts_write');
+  if (denied) return denied;
+
   const rl = rateLimit(`${session.uid}:faces-write`, 30, 60 * 1000);
   if (!rl.allowed) {
     return NextResponse.json({ error: getTranslate('api.common.rateLimited') }, { status: 429 });
   }
 
   try {
-    logger.info('POST', '创建联系人');
-    const { name, email, phone, group, content } = await req.json();
-
-    const validationError = validateNameAndGroup(name, group);
-    if (validationError) {
-      logger.warn('POST', '输入校验失败');
-      return validationError;
-    }
-
-    const slug = generateSlug(name);
-    const filePath = `faces/${group}/${slug}.md`;
-    const now = new Date().toISOString();
-
-    const frontMatter = {
-      title: name,
-      name,
-      email: email ?? '',
-      phone: phone ?? '',
-      group,
-      date: now,
-    };
-
-    const message = `feat: add contact "${name}"`;
-
-    const ghResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'create',
-        path: filePath,
-        frontMatter,
-        body: content ?? '',
-        message,
-      }),
-    });
-
-    if (!ghResponse.ok) {
-      const error = await ghResponse.json();
-      logger.error('POST', '创建联系人失败', { error: error.error });
-      return NextResponse.json({ error: error.error ?? getTranslate('api.faces.createFailed') }, { status: 500 });
-    }
-
-    logger.info('POST', '联系人创建成功', { slug: `/${group}/${slug}` });
-    return NextResponse.json({ success: true, slug: `/${group}/${slug}` });
+    return await handleCreateContact(req);
   } catch (error: unknown) {
     logger.error('POST', '创建联系人失败', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: getTranslate('api.faces.createFailed') }, { status: 500 });
   }
+}
+
+/** 执行创建联系人（含输入校验与 GitHub 写入） */
+async function handleCreateContact(req: NextRequest): Promise<NextResponse> {
+  logger.info('POST', '创建联系人');
+  const { name, email, phone, group, content } = await req.json();
+
+  const validationError = validateNameAndGroup(name, group);
+  if (validationError) {
+    logger.warn('POST', '输入校验失败');
+    return validationError;
+  }
+
+  const slug = generateSlug(name);
+  const filePath = `faces/${group}/${slug}.md`;
+  const now = new Date().toISOString();
+
+  const frontMatter = {
+    title: name,
+    name,
+    email: email ?? '',
+    phone: phone ?? '',
+    group,
+    date: now,
+  };
+
+  const message = `feat: add contact "${name}"`;
+
+  const env = getEnvConfig();
+  if (!env.githubRepo || !env.githubToken) {
+    logger.error('POST', 'GitHub 配置缺失');
+    return NextResponse.json({ error: getTranslate('api.github.missingConfig') }, { status: 500 });
+  }
+
+  try {
+    await updateFileInGithub({
+      repo: env.githubRepo,
+      token: env.githubToken,
+      path: filePath,
+      content: await composeFileContent(undefined, frontMatter, content ?? ''),
+      message,
+    });
+  } catch (error: unknown) {
+    logger.error('POST', '创建联系人失败', { error: error instanceof Error ? error.message : String(error) });
+    return NextResponse.json({ error: getTranslate('api.faces.createFailed') }, { status: 500 });
+  }
+
+  logger.info('POST', '联系人创建成功', { slug: `/${group}/${slug}` });
+  return NextResponse.json({ success: true, slug: `/${group}/${slug}` });
 }
 
 /**
@@ -229,7 +252,6 @@ function buildFrontMatter(
  * 处理联系人重命名（路径变更）：创建新文件 + 删除旧文件
  */
 async function handleRenameContact(
-  req: NextRequest,
   opts: {
     name: string;
     group: string;
@@ -238,39 +260,31 @@ async function handleRenameContact(
     oldFilePath: string;
     frontMatter: Record<string, unknown>;
     content: string;
-    sha: string;
   },
 ) {
-  const ghCreateResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'create',
-      path: opts.newFilePath,
-      frontMatter: opts.frontMatter,
-      body: opts.content || '',
-      message: `update: move contact "${opts.name}" to ${opts.newFilePath}`,
-    }),
-  });
-
-  if (!ghCreateResponse.ok) {
-    const error = await ghCreateResponse.json();
-    return NextResponse.json({ error: error.error ?? getTranslate('api.faces.updateFailed') }, { status: 500 });
+  const env = getEnvConfig();
+  if (!env.githubRepo || !env.githubToken) {
+    logger.error('PATCH', 'GitHub 配置缺失');
+    return NextResponse.json({ error: getTranslate('api.github.missingConfig') }, { status: 500 });
   }
 
-  const ghDeleteResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'delete',
-      path: opts.oldFilePath,
-      message: `delete: remove old file ${opts.oldFilePath}`,
-      sha: opts.sha,
-    }),
-  });
+  try {
+    await updateFileInGithub({
+      repo: env.githubRepo,
+      token: env.githubToken,
+      path: opts.newFilePath,
+      content: await composeFileContent(undefined, opts.frontMatter, opts.content),
+      message: `update: move contact "${opts.name}" to ${opts.newFilePath}`,
+    });
+  } catch (error: unknown) {
+    logger.error('PATCH', '创建新联系人失败', { error: error instanceof Error ? error.message : String(error) });
+    return NextResponse.json({ error: getTranslate('api.faces.updateFailed') }, { status: 500 });
+  }
 
-  if (!ghDeleteResponse.ok) {
-    logger.error('PATCH', '删除旧文件失败，联系人可能出现重复', { oldFilePath: opts.oldFilePath });
+  try {
+    await deleteFileFromGithub(env.githubRepo, env.githubToken, opts.oldFilePath);
+  } catch (error: unknown) {
+    logger.error('PATCH', '删除旧文件失败，联系人可能出现重复', { oldFilePath: opts.oldFilePath, error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: getTranslate('api.faces.renameFailed') }, { status: 500 });
   }
 
@@ -281,7 +295,6 @@ async function handleRenameContact(
  * 处理联系人原地更新（路径不变）
  */
 async function handleUpdateContact(
-  req: NextRequest,
   opts: {
     name: string;
     group: string;
@@ -289,26 +302,25 @@ async function handleUpdateContact(
     oldFilePath: string;
     frontMatter: Record<string, unknown>;
     content: string;
-    sha: string;
   },
 ) {
-  const ghResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'update',
-      path: opts.oldFilePath,
-      frontMatter: opts.frontMatter,
-      body: opts.content || '',
-      message: `update: update contact "${opts.name}"`,
-      sha: opts.sha,
-    }),
-  });
+  const env = getEnvConfig();
+  if (!env.githubRepo || !env.githubToken) {
+    logger.error('PATCH', 'GitHub 配置缺失');
+    return NextResponse.json({ error: getTranslate('api.github.missingConfig') }, { status: 500 });
+  }
 
-  if (!ghResponse.ok) {
-    const error = await ghResponse.json();
-    logger.error('PATCH', '更新联系人失败', { error: error.error });
-    return NextResponse.json({ error: error.error ?? getTranslate('api.faces.updateFailed') }, { status: 500 });
+  try {
+    await updateFileInGithub({
+      repo: env.githubRepo,
+      token: env.githubToken,
+      path: opts.oldFilePath,
+      content: await composeFileContent(undefined, opts.frontMatter, opts.content),
+      message: `update: update contact "${opts.name}"`,
+    });
+  } catch (error: unknown) {
+    logger.error('PATCH', '更新联系人失败', { error: error instanceof Error ? error.message : String(error) });
+    return NextResponse.json({ error: getTranslate('api.faces.updateFailed') }, { status: 500 });
   }
 
   logger.info('PATCH', '更新联系人成功', { slug: `/${opts.group}/${opts.newSlug}` });
@@ -343,6 +355,10 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }
 
+  // API 密钥认证的请求需 posts_write 权限
+  const denied = await requireFacesPerm('posts_write');
+  if (denied) return denied;
+
   if (session) {
     const rl = rateLimit(`${session.uid}:faces-write`, 30, 60 * 1000);
     if (!rl.allowed) return NextResponse.json({ error: getTranslate('api.common.rateLimited') }, { status: 429 });
@@ -370,21 +386,20 @@ async function handlePatchContact(req: NextRequest, body: Record<string, unknown
     const content = body.content !== undefined && body.content !== null ? String(body.content) : undefined;
 
     const oldFilePath = `faces${slug}.md`;
-    const fileData = await getFileFromGitHub(req, oldFilePath);
+    const fileData = await getFileFromGitHub(oldFilePath);
     if (!fileData) {
       logger.warn('PATCH', '联系人不存在', { slug });
       return NextResponse.json({ error: getTranslate('api.faces.contactNotFound') }, { status: 404 });
     }
 
-    const { sha } = fileData;
     const newSlug = generateSlug(name);
     const newFilePath = `faces/${group}/${newSlug}.md`;
     const frontMatter = buildFrontMatter(name, email, phone, group, new Date().toISOString());
 
     if (newFilePath !== oldFilePath) {
-      return handleRenameContact(req, { name, group, newSlug, newFilePath, oldFilePath, frontMatter, content: content ?? '', sha });
+      return handleRenameContact({ name, group, newSlug, newFilePath, oldFilePath, frontMatter, content: content ?? '' });
     }
-    return handleUpdateContact(req, { name, group, newSlug, oldFilePath, frontMatter, content: content ?? '', sha });
+    return handleUpdateContact({ name, group, newSlug, oldFilePath, frontMatter, content: content ?? '' });
   } catch (error: unknown) {
     logger.error('PATCH', '更新联系人失败', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: getTranslate('api.faces.updateFailed') }, { status: 500 });
@@ -401,61 +416,64 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }
 
+  // API 密钥认证的请求需 posts_write 权限
+  const denied = await requireFacesPerm('posts_write');
+  if (denied) return denied;
+
   const rl = rateLimit(`${session.uid}:faces-write`, 30, 60 * 1000);
   if (!rl.allowed) {
     return NextResponse.json({ error: getTranslate('api.common.rateLimited') }, { status: 429 });
   }
 
   try {
-    const { slug } = await req.json();
-
-    if (!slug) {
-      logger.warn('DELETE', '缺少联系人路径');
-      return NextResponse.json({ error: getTranslate('api.faces.missingSlug') }, { status: 400 });
-    }
-
-    // 防止路径穿越攻击：slug 必须是 /group/name 格式
-    if (!/^\/[\w-]+\/[\w-]+$/.test(slug) || /\.\./.test(slug)) {
-      return NextResponse.json({ error: getTranslate('api.faces.invalidSlug') }, { status: 400 });
-    }
-
-    const filePath = `faces${slug}.md`;
-
-    // 使用统一的 /api/github 端点读取文件
-    const fileData = await getFileFromGitHub(req, filePath);
-    if (!fileData) {
-      logger.warn('DELETE', '联系人不存在', { slug });
-      return NextResponse.json({ error: getTranslate('api.faces.contactNotFound') }, { status: 404 });
-    }
-
-    const { sha } = fileData;
-
-    if (!canManageFace(session)) {
-      logger.warn('DELETE', '无权删除联系人', { slug });
-      return NextResponse.json({ error: getTranslate('api.faces.noDeletePermission') }, { status: 403 });
-    }
-
-    const ghResponse = await fetch(`${req.nextUrl.origin}/api/github`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'delete',
-        path: filePath,
-        message: `delete: delete contact ${slug}`,
-        sha,
-      }),
-    });
-
-    if (!ghResponse.ok) {
-      const error = await ghResponse.json();
-      logger.error('DELETE', '删除联系人失败', { error: error.error });
-      return NextResponse.json({ error: error.error ?? getTranslate('api.faces.deleteFailed') }, { status: 500 });
-    }
-
-    logger.info('DELETE', '删除联系人成功', { slug });
-    return NextResponse.json({ success: true });
+    return await handleDeleteContact(req, session);
   } catch (error: unknown) {
     logger.error('DELETE', '删除联系人失败', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: getTranslate('api.faces.deleteFailed') }, { status: 500 });
   }
+}
+
+/** 执行删除联系人（含 slug 校验与 GitHub 删除） */
+async function handleDeleteContact(req: NextRequest, session: SessionPayload): Promise<NextResponse> {
+  const { slug } = await req.json();
+
+  if (!slug) {
+    logger.warn('DELETE', '缺少联系人路径');
+    return NextResponse.json({ error: getTranslate('api.faces.missingSlug') }, { status: 400 });
+  }
+
+  // 防止路径穿越攻击：slug 必须是 /group/name 格式
+  if (!/^\/[\w-]+\/[\w-]+$/.test(slug) || /\.\./.test(slug)) {
+    return NextResponse.json({ error: getTranslate('api.faces.invalidSlug') }, { status: 400 });
+  }
+
+  const filePath = `faces${slug}.md`;
+
+  // 从 GitHub 直接读取文件（内部直调，不走 HTTP 端点）
+  const fileData = await getFileFromGitHub(filePath);
+  if (!fileData) {
+    logger.warn('DELETE', '联系人不存在', { slug });
+    return NextResponse.json({ error: getTranslate('api.faces.contactNotFound') }, { status: 404 });
+  }
+
+  if (!canManageFace(session)) {
+    logger.warn('DELETE', '无权删除联系人', { slug });
+    return NextResponse.json({ error: getTranslate('api.faces.noDeletePermission') }, { status: 403 });
+  }
+
+  const env = getEnvConfig();
+  if (!env.githubRepo || !env.githubToken) {
+    logger.error('DELETE', 'GitHub 配置缺失');
+    return NextResponse.json({ error: getTranslate('api.github.missingConfig') }, { status: 500 });
+  }
+
+  try {
+    await deleteFileFromGithub(env.githubRepo, env.githubToken, filePath);
+  } catch (error: unknown) {
+    logger.error('DELETE', '删除联系人失败', { error: error instanceof Error ? error.message : String(error) });
+    return NextResponse.json({ error: getTranslate('api.faces.deleteFailed') }, { status: 500 });
+  }
+
+  logger.info('DELETE', '删除联系人成功', { slug });
+  return NextResponse.json({ success: true });
 }
