@@ -5,7 +5,9 @@ import dynamic from 'next/dynamic';
 import { ArrowLeft, QrCode } from 'lucide-react';
 import Link from 'next/link';
 import { ClientEnhancer } from '@/components/MarkdownRenderer/ClientEnhancer';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { ArticleEncryption } from '@/components/ArticleEncryption';
+import type { ArticleCryptoPayload } from '@/lib/article-crypto';
 import { ReadingProgressBar } from '@/components/ui/ReadingProgressBar';
 import { ContinueReadingPrompt } from '@/components/ui/ContinueReadingPrompt';
 import { ScrollToTop } from '@/components/ui/ScrollToTop';
@@ -68,6 +70,7 @@ export function PostDetailBody({
   isEncrypted,
   isHidden,
   passwordHash,
+  encryptedPayload,
   seriesInfo,
   htmlContent,
 }: {
@@ -94,6 +97,8 @@ export function PostDetailBody({
   isHidden?: boolean;
   /** 密码哈希值（SHA-256） */
   passwordHash?: string;
+  /** 加密文章的密文参数（构建时识别，仅下发密文） */
+  encryptedPayload?: ArticleCryptoPayload | null;
   /** 系列文章导航信息 */
   seriesInfo?: { seriesName: string; posts: { slug: string; title: string; isCurrent: boolean }[] };
   /** 构建时预渲染的 HTML 内容 */
@@ -169,17 +174,17 @@ export function PostDetailBody({
         )}
 
         <div ref={contentRef}>
-          {/* 加密文章：显示密码验证界面；验证成功后显示内容 */}
+          {/* 加密文章：显示密码验证界面；验证成功后解密并用 MarkdownRenderer 渲染 */}
           {isEncrypted && decrypted === null ? (
             <ArticleEncryption
               passwordHash={passwordHash ?? ''}
-              encryptedContent={file.content}
+              encryptedPayload={encryptedPayload ?? null}
               onDecrypted={setDecrypted}
             />
           ) : (
             <>
-              <div
-                className="prose prose-zinc dark:prose-invert max-w-none overflow-x-auto
+              {decrypted !== null ? (
+                <div className="prose prose-zinc dark:prose-invert max-w-none overflow-x-auto
                   prose-headings:tracking-tight prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100
                   prose-h2:mt-14 prose-h2:mb-6 prose-h2:pb-3 prose-h2:border-b prose-h2:border-zinc-200 dark:prose-h2:border-zinc-700
                   prose-h3:mt-10 prose-h3:mb-4 prose-h3:pl-3 prose-h3:border-l-[3px] prose-h3:border-zinc-900 dark:prose-h3:border-zinc-300
@@ -193,8 +198,32 @@ export function PostDetailBody({
                   prose-img:rounded-2xl prose-img:border prose-img:border-zinc-100 dark:prose-img:border-zinc-700
                   prose-hr:border-zinc-100 dark:prose-hr:border-zinc-700 prose-hr:my-12
                   prose-pre:bg-zinc-50 dark:prose-pre:bg-zinc-900 prose-pre:text-zinc-800 dark:prose-pre:text-zinc-200 prose-pre:border prose-pre:border-zinc-200 dark:prose-pre:border-zinc-700 prose-pre:rounded-xl prose-pre:shadow-sm"
-                dangerouslySetInnerHTML={{ __html: htmlContent ?? '' }}
-              />
+                >
+                  <MarkdownRenderer
+                    content={decrypted}
+                    highlight={appConfig.highlight}
+                    wikiLinkMap={_wikiLinkMap}
+                  />
+                </div>
+              ) : (
+                <div
+                  className="prose prose-zinc dark:prose-invert max-w-none overflow-x-auto
+                  prose-headings:tracking-tight prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100
+                  prose-h2:mt-14 prose-h2:mb-6 prose-h2:pb-3 prose-h2:border-b prose-h2:border-zinc-200 dark:prose-h2:border-zinc-700
+                  prose-h3:mt-10 prose-h3:mb-4 prose-h3:pl-3 prose-h3:border-l-[3px] prose-h3:border-zinc-900 dark:prose-h3:border-zinc-300
+                  prose-h4:mt-8 prose-h4:mb-3 prose-h4:text-zinc-600 dark:prose-h4:text-zinc-400
+                  prose-p:leading-[1.7] prose-p:text-[15px]
+                  prose-a:font-semibold prose-a:underline prose-a:decoration-zinc-300 dark:prose-a:decoration-zinc-600 prose-a:underline-offset-2 hover:prose-a:decoration-zinc-900 dark:hover:prose-a:decoration-zinc-300
+                  prose-strong:font-bold
+                  prose-code:bg-zinc-100 dark:prose-code:bg-zinc-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-[0.875em] prose-code:font-normal prose-code:before:content-none prose-code:after:content-none
+                  prose-blockquote:border-zinc-900 dark:prose-blockquote:border-zinc-400 prose-blockquote:bg-zinc-50 dark:prose-blockquote:bg-zinc-800 prose-blockquote:rounded-r-2xl prose-blockquote:py-1 prose-blockquote:not-italic
+                  prose-li:text-[15px]
+                  prose-img:rounded-2xl prose-img:border prose-img:border-zinc-100 dark:prose-img:border-zinc-700
+                  prose-hr:border-zinc-100 dark:prose-hr:border-zinc-700 prose-hr:my-12
+                  prose-pre:bg-zinc-50 dark:prose-pre:bg-zinc-900 prose-pre:text-zinc-800 dark:prose-pre:text-zinc-200 prose-pre:border prose-pre:border-zinc-200 dark:prose-pre:border-zinc-700 prose-pre:rounded-xl prose-pre:shadow-sm"
+                  dangerouslySetInnerHTML={{ __html: htmlContent ?? '' }}
+                />
+              )}
               <ClientEnhancer containerRef={contentRef} />
             </>
           )}
@@ -283,8 +312,8 @@ export function PostDetailBody({
         <LazyGiscus slug={fullPath} />
       </LazyLoad>
 
-      {/* 字数统计 — enable 总开关 + 三子开关分别展示 */}
-      {(() => {
+      {/* 字数统计 — enable 总开关 + 三子开关分别展示；加密文章不展示（字数无从统计） */}
+      {!isEncrypted && (() => {
         const stats = wordcount?.enable === true
           ? [
               wordcount.postWordcount ? t('posts.wordCountLabel', { count: wordCount.toLocaleString() }) : null,

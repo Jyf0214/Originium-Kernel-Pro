@@ -58,10 +58,13 @@ export default async function RootLayout({children}: {children: React.ReactNode}
             }}
           />
         )}
-        {/* 字体族：从构建时配置读取 fontFamily 并设置 CSS 变量（仅注入非空值） */}
+        {/* 字体族：从构建时配置读取 fontFamily 并设置 CSS 变量（仅注入非空值）
+        值经 JSON.stringify 转义 + < 转义，配合 schema 层非法字符校验双保险，
+        防止配置值逃逸出字符串字面量注入任意 JS */}
         {(() => {
           const f = config.appearance?.fontFamily;
           if (!f) return null;
+          const toJsString = (v: string) => JSON.stringify(v).replace(/</g, '\\u003c');
           const pairs: [string, string][] = [
             ['--font-body', f.body],
             ['--font-sans', f.sans],
@@ -73,7 +76,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
           return (
             <script
               dangerouslySetInnerHTML={{
-                __html: pairs.map(([k, v]) => `document.documentElement.style.setProperty('${k}','${v}')`).join(';'),
+                __html: pairs.map(([k, v]) => `document.documentElement.style.setProperty('${k}',${toJsString(v)})`).join(';'),
               }}
             />
           );

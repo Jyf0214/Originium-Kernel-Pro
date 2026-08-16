@@ -967,7 +967,6 @@
       "missingSlug": "Missing contact path",
       "nameAndGroupRequired": "Name and group are required",
       "noDeletePermission": "No permission to delete this contact",
-      "readFileFailed": "Failed to read file",
       "renameFailed": "Rename failed: old file deletion failed, contact may be duplicated",
       "updateFailed": "Failed to update contact"
     },
@@ -1597,7 +1596,8 @@
       "passwordError": "Incorrect password",
       "passwordPlaceholder": "Enter password",
       "successLoading": "Verified, loading content...",
-      "verifying": "Verifying..."
+      "verifying": "Verifying...",
+      "legacyFormatError": "This article has not been upgraded to the encrypted format yet. Please contact the administrator."
     },
     "articleExpiredBanner": {
       "closeHint": "Dismiss",
@@ -1816,6 +1816,7 @@
       "authorSection": "Author of this article",
       "copyrightAuthorLine": "Copyright of this article belongs to the author",
       "faviconLocalPath": "favicon must be a local path under the public directory (starting with /), external URLs are not supported",
+      "fontFamilyInvalid": "Font family contains invalid characters (; < and backslash are not allowed)",
       "licenseAgreementPrefix": "License: ",
       "licensePrefix": "License: ",
       "original": "Original",
@@ -1847,11 +1848,14 @@
       "webdavNotConfigured": "WebDAV backend not configured"
     },
     "permissions": {
+      "groupAudit": "Audit Logs",
       "groupMedia": "Media Files",
       "groupPosts": "Posts",
       "groupSettings": "Site Settings",
       "groupStats": "Statistics & Search",
       "groupStorage": "File Storage",
+      "groupUsers": "User Management",
+      "auditRead": "View audit logs",
       "mediaDelete": "Delete media",
       "mediaRead": "View media",
       "mediaWrite": "Upload/edit media",
@@ -1864,7 +1868,9 @@
       "statsRead": "View statistics",
       "storageDelete": "Delete files",
       "storageRead": "Browse files",
-      "storageWrite": "Upload/create files"
+      "storageWrite": "Upload/create files",
+      "userRead": "View users",
+      "userWrite": "Manage users"
     },
     "storage": {
       "b2AuthFailed": "B2 authentication failed (HTTP {status})",

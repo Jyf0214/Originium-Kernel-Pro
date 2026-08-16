@@ -15,11 +15,69 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import remarkRehype from 'remark-rehype';
 import rehypeRaw from 'rehype-raw';
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
+import type { Schema } from 'hast-util-sanitize';
 import rehypeKatex from 'rehype-katex';
 import rehypePrismPlus from 'rehype-prism-plus';
 import rehypeStringify from 'rehype-stringify';
 import { getTranslate } from '@/i18n/translate';
 import { slugify } from './slugify';
+
+/* ── HTML 净化白名单 ── */
+
+/**
+ * 在 rehypeRaw 之后执行 HTML 净化，剥离 on* 事件属性、javascript: 协议
+ * 与不在白名单内的标签（iframe/video/audio 仅放行 https/http 资源）。
+ * className 必须放行：代码块增强、mermaid 容器等样式类由本管线注入。
+ */
+const SANITIZE_SCHEMA: Schema = {
+  ...defaultSchema,
+  attributes: {
+    ...(defaultSchema.attributes ?? {}),
+    '*': [...(defaultSchema.attributes?.['*'] ?? []), 'className', 'data-theme', 'data-shrinkable', 'data-height-limit'],
+    img: [...(defaultSchema.attributes?.img ?? []), 'alt', 'title', 'width', 'height', 'loading', 'referrerPolicy', 'srcSet', 'className'],
+    a: [...(defaultSchema.attributes?.a ?? []), 'href', 'title', 'target', 'rel', 'download', 'className'],
+    // URL 属性只列属性名，协议限制统一走顶层 protocols（按属性名匹配，
+    // 值白名单数组会误伤带 query/哈希的正常 URL）
+    iframe: ['src', 'title', 'width', 'height', 'allow', 'allowFullScreen', 'className'],
+    video: ['src', 'controls', 'poster', 'width', 'height', 'loop', 'muted', 'autoPlay', 'playsInline', 'className'],
+    audio: ['src', 'controls', 'loop', 'muted', 'className'],
+    source: ['src', 'srcSet', 'type', 'media', 'sizes'],
+    details: [...(defaultSchema.attributes?.details ?? []), 'open', 'className'],
+    summary: ['className'],
+    th: [...(defaultSchema.attributes?.th ?? []), 'align', 'className'],
+    td: [...(defaultSchema.attributes?.td ?? []), 'align', 'className'],
+  },
+  // 协议白名单：扩展 media 资源属性（src/href/cite/longDesc 默认已有）
+  protocols: {
+    ...(defaultSchema.protocols ?? {}),
+    poster: ['http', 'https'],
+    srcSet: ['http', 'https'],
+  },
+};
+
+/**
+ * 剥离 rehype-raw 解析后仍残留的 raw 节点（解析失败/异常片段可能绕过 sanitize
+ * 直接进入字符串化阶段，raw 节点会被原样输出）。
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- hast 树遍历必须用 any
+function rehypeStripRawNodes(): any {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (tree: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function walk(node: any) {
+      if (!node || typeof node !== 'object') return;
+      if (node.type === 'raw') {
+        // 仅保留纯文本子内容，移除未解析的原始 HTML
+        node.type = 'text';
+        node.value = String(node.value ?? '');
+        return;
+      }
+      if (Array.isArray(node.children)) node.children.forEach(walk);
+    }
+    walk(tree);
+  };
+}
 
 /* ── Wiki 链接预处理 ── */
 
@@ -346,6 +404,9 @@ export async function renderMarkdownToHtml(
     .use(remarkMath)
     .use(remarkRehype)
     .use(rehypeRaw)
+    // 净化原始 HTML：剥离事件属性 / javascript: 协议 / 白名单外标签
+    .use(rehypeSanitize, SANITIZE_SCHEMA)
+    .use(rehypeStripRawNodes)
     .use(rehypeKatex)
     .use(rehypePrismPlus, { showLineNumbers: true, ignoreMissing: true })
     .use(rehypeInlineCodeStyle)

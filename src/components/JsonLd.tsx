@@ -58,7 +58,8 @@ export function JsonLd({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      // 转义 `<` 防止标题/描述等字段含 `</script>` 时闭合脚本标签注入
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, '\\u003c') }}
     />
   );
 }

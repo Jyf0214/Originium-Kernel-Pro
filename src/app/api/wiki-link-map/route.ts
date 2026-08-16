@@ -14,8 +14,9 @@ import { buildWikiLinkMap } from '@/lib/content-registry';
 import { apiHandler } from '@/lib/api-handler';
 import { getTranslate } from '@/i18n/translate';
 
-export const GET = apiHandler('GET', { label: getTranslate('api.wikiLinkMap.label'), requireAuth: true }, () => {
-  const map = buildWikiLinkMap();
+export const GET = apiHandler('GET', { label: getTranslate('api.wikiLinkMap.label'), requireAuth: true }, async () => {
+  // 需认证访问；映射已过滤目录级私有与 config access 规则私有内容
+  const map = await buildWikiLinkMap();
   return NextResponse.json(map, {
     headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' },
   });

@@ -12,7 +12,9 @@
  * 其引用关系通过 API 在运行时动态解析。
  */
 
-import { getContentFiles, type ContentFile } from './content';
+import { getContentFiles, getContentIndexes, type ContentFile } from './content';
+import { canAccess } from './config';
+import { hasDatabase } from './db';
 
 /** 内容注册表条目 */
 export interface RegistryEntry {
@@ -241,13 +243,49 @@ export function getOutgoingReferences(
  * 用于传递给客户端 MarkdownRenderer，
  * 在客户端完成 [[标题]] → 链接的预处理。
  *
+ * 过滤不可公开访问的条目：
+ * - 目录级私有（index.md 标记 public: false，isPrivateSlug 判定）
+ * - config.yaml access 规则判定为不可访问的内容（如 faces 全私有）
+ * 避免 [[标题]] 链接导出私有内容的路径与标题。
+ *
  * @returns JSON 安全的映射对象，可直接序列化到 props
  */
-export function buildWikiLinkMap(): Record<string, { url: string; title: string }> {
+export async function buildWikiLinkMap(): Promise<Record<string, { url: string; title: string }>> {
   const reg = getContentRegistry();
+  // 目录索引：slug → public 标记，用于过滤目录级私有的条目
+  const indexPublic = new Map<string, boolean>();
+  for (const idx of getContentIndexes('posts')) {
+    indexPublic.set(idx.slug, idx.public);
+    indexPublic.set('/posts' + idx.slug, idx.public);
+  }
+  for (const idx of getContentIndexes('faces')) {
+    indexPublic.set(idx.slug, idx.public);
+    indexPublic.set('/faces' + idx.slug, idx.public);
+  }
+
   const map: Record<string, { url: string; title: string }> = {};
+  const pending: { lowerTitle: string; entry: RegistryEntry }[] = [];
 
   for (const [lowerTitle, entry] of reg.titleMap) {
+    // 目录级私有：slug 所在目录的 index.md 标记 public:false
+    const dirSlug = '/' + entry.slug.split('/').filter(Boolean).slice(0, -1).join('/');
+    const isDirPrivate = indexPublic.get(dirSlug) === false;
+    if (isDirPrivate) continue;
+    pending.push({ lowerTitle, entry });
+  }
+
+  // config.yaml access 规则过滤（async，构建期与 API 运行时均按 hasDatabase 判定）
+  const accessResults = await Promise.all(
+    pending.map(async ({ entry }) =>
+      canAccess(entry.section, entry.slug, false, hasDatabase()),
+    ),
+  );
+
+  for (let i = 0; i < pending.length; i++) {
+    if (!accessResults[i]) continue;
+    const item = pending[i];
+    if (!item) continue;
+    const { lowerTitle, entry } = item;
     const url =
       entry.section === 'posts'
         ? `/posts${entry.slug}`

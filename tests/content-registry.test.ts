@@ -58,7 +58,19 @@ vi.mock('../src/lib/content', () => ({
     if (section === 'faces') return facesFiles;
     return [];
   }),
+  // 无目录索引时所有文件视为公开，目录级私有过滤不生效
+  getContentIndexes: vi.fn(() => []),
 }));
+
+// config access 规则在测试环境中一律放行（真实规则由 config.yaml 驱动，
+// 已在页面层/API 层过滤，此处只验证映射构建逻辑）
+vi.mock('../src/lib/config', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    canAccess: vi.fn(() => true),
+  };
+});
 
 beforeEach(() => {
   vi.resetModules();
@@ -185,21 +197,21 @@ describe('getOutgoingReferences', () => {
 });
 
 describe('buildWikiLinkMap', () => {
-  test('应返回标题到 URL 的映射', () => {
-    const map = buildWikiLinkMap();
+  test('应返回标题到 URL 的映射', async () => {
+    const map = await buildWikiLinkMap();
     expect(typeof map).toBe('object');
     expect(Object.keys(map).length).toBeGreaterThan(0);
   });
 
-  test('映射键应为小写', () => {
-    const map = buildWikiLinkMap();
+  test('映射键应为小写', async () => {
+    const map = await buildWikiLinkMap();
     for (const key of Object.keys(map)) {
       expect(key).toBe(key.toLowerCase());
     }
   });
 
-  test('映射值应包含 url 和 title', () => {
-    const map = buildWikiLinkMap();
+  test('映射值应包含 url 和 title', async () => {
+    const map = await buildWikiLinkMap();
     const entry = map['北京之行'];
     expect(entry).toBeDefined();
     expect(entry?.url).toBe('/posts/travel-in-China/beijing');

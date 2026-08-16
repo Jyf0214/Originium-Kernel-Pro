@@ -10,6 +10,7 @@ import { Tag } from '@/components/ui/Tag';
 import { cn } from '@/lib/ui';
 import { EASE_STANDARD } from '@/components/ui/motion';
 import { useI18n } from '@/hooks/use-i18n';
+import { decryptArticle, type ArticleCryptoPayload } from '@/lib/article-crypto';
 
 /**
  * 将输入文本通过 Web Crypto API 进行 SHA-256 哈希
@@ -26,59 +27,65 @@ async function sha256Hex(message: string): Promise<string> {
 }
 
 interface ArticleEncryptionProps {
-  /** 存储在 frontmatter 中的密码哈希值 */
+  /** 存储在 frontmatter 中的密码哈希值（仅用于密码正确性校验） */
   passwordHash: string;
-  /** 验证成功后调用，传入解密后的内容 */
+  /** 密文参数（构建时识别，仅下发密文不下发明文） */
+  encryptedPayload: ArticleCryptoPayload | null;
+  /** 验证并解密成功后调用，传入明文 Markdown 内容 */
   onDecrypted: (content: string) => void;
-  /** 原始文章内容（加密前） */
-  encryptedContent: string;
   className?: string;
 }
 
 /**
  * 文章加密密码验证组件
  * - 居中卡片布局，锁图标 + 密码输入框
- * - 使用 Web Crypto SHA-256 验证密码
+ * - SHA-256 校验密码正确性后，PBKDF2 + AES-GCM 解密正文
  * - AnimatePresence 过渡动画
- * 注意：密码验证完全在客户端进行，适用于静态站点场景
- * 密码哈希存储在文章 frontmatter 中，验证通过后显示解密内容
+ * 注意：密码校验与解密完全在客户端进行，适用于静态站点场景；
+ * 站点只下发密文，密钥由密码派生，无后门。
  */
 export function ArticleEncryption({
   passwordHash,
+  encryptedPayload,
   onDecrypted,
-  encryptedContent,
   className,
 }: ArticleEncryptionProps) {
   const { t } = useI18n();
   const [inputValue, setInputValue] = useState('');
-  const [error, setError] = useState(false);
+  const [errorKind, setErrorKind] = useState<'wrong-password' | 'no-cipher' | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [stage, setStage] = useState<'input' | 'success'>('input');
 
   const handleVerify = useCallback(async () => {
     if (!inputValue.trim()) return;
+    // 无密文参数（旧格式遗留：frontmatter 有 password 但正文未加密）时无法解密，必须明确报错
+    if (!encryptedPayload) {
+      setErrorKind('no-cipher');
+      return;
+    }
 
     setVerifying(true);
-    setError(false);
+    setErrorKind(null);
 
     try {
       const hash = await sha256Hex(inputValue.trim());
-      if (hash === passwordHash) {
-        setStage('success');
-        // 动画完成后回调
-        setTimeout(() => {
-          onDecrypted(encryptedContent);
-        }, 600);
-      } else {
-        setError(true);
+      if (hash !== passwordHash) {
+        setErrorKind('wrong-password');
+        return;
       }
+      const plain = await decryptArticle(inputValue.trim(), encryptedPayload);
+      setStage('success');
+      // 动画完成后回调
+      setTimeout(() => {
+        onDecrypted(plain);
+      }, 600);
     } catch {
-      // Web Crypto API 不可用时的降级处理
-      setError(true);
+      // Web Crypto API 不可用或密文损坏时明确报错，不静默通过
+      setErrorKind('wrong-password');
     } finally {
       setVerifying(false);
     }
-  }, [inputValue, passwordHash, onDecrypted, encryptedContent]);
+  }, [inputValue, passwordHash, encryptedPayload, onDecrypted]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {
@@ -131,20 +138,20 @@ export function ArticleEncryption({
                     value={inputValue}
                     onChange={(e) => {
                       setInputValue(e.target.value);
-                      setError(false);
+                      setErrorKind(null);
                     }}
                     onKeyDown={handleKeyDown}
                     size="lg"
                     rounded="lg"
                     ring="strong"
-                    error={error ? t('components.articleEncryption.passwordError') : undefined}
+                    error={errorKind ? t('components.articleEncryption.passwordError') : undefined}
                     autoFocus
                   />
                 </div>
 
                 {/* 错误提示 */}
                 <AnimatePresence>
-                  {error && (
+                  {errorKind && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
@@ -152,7 +159,9 @@ export function ArticleEncryption({
                       transition={{ duration: 0.2 }}
                     >
                       <Tag variant="danger" size="sm">
-                        {t('components.articleEncryption.passwordError')}
+                        {errorKind === 'no-cipher'
+                          ? t('components.articleEncryption.legacyFormatError')
+                          : t('components.articleEncryption.passwordError')}
                       </Tag>
                     </motion.div>
                   )}

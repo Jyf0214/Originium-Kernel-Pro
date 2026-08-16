@@ -4,9 +4,12 @@ import type { Metadata } from 'next';
 import { getContentFile, getContentFiles, getContentIndexes, filterPublicFiles, getAllSlugs, getAdjacentPosts } from '@/lib/content';
 import { buildWikiLinkMap, getBacklinks, getOutgoingReferences } from '@/lib/content-registry';
 import { computeTotalWordCount } from '@/lib/content-stats';
-import { loadConfig } from '@/lib/config';
+import { loadConfig, canAccess, filterAccessibleSlugs } from '@/lib/config';
 import { getAuthorByName } from '@/lib/authors';
 import { getSiteUrl } from '@/lib/site-url';
+import { parseEncryptedArticle } from '@/lib/article-crypto';
+import { hasDatabase } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 
 import { isPrivateSlug } from './_lib/post-utils';
 import { getRelatedPosts } from './_lib/related-posts';
@@ -24,14 +27,25 @@ interface PageProps {
   params: Promise<{ slug: string[] }>;
 }
 
-// 静态导出模式：所有公开文章预渲染为静态 HTML
-// 私有文章在构建时也会被预渲染，但不包含实际内容
+/**
+ * 静态导出构建标记：output: export 模式禁止调用 cookies()，
+ * 构建期一律按"未登录"处理（私有文章已由 generateStaticParams 过滤）
+ */
+const isStaticExportBuild = process.env.NEXT_STATIC_EXPORT === 'true' || process.env.GITHUB_PAGES === 'true';
 
-export function generateStaticParams() {
+// 静态导出模式：所有公开文章预渲染为静态 HTML
+// 私有文章（目录级 index.md public:false 或 config access 规则私有）不预渲染，访问返回 404
+
+export async function generateStaticParams() {
   const slugs = getAllSlugs('posts');
-  return slugs
-    .filter((slug) => !isPrivateSlug(slug))
-    .map((slug) => ({ slug: slug.slice(1).split('/') }));
+  // 目录级私有过滤后，再按 config access 规则过滤（构建期 hasDb=false，
+  // 规则私有文章同样排除，避免明文 HTML 进入构建产物）
+  const publicSlugs = await filterAccessibleSlugs(
+    'posts',
+    slugs.filter((slug) => !isPrivateSlug(slug)),
+    false,
+  );
+  return publicSlugs.map((slug) => ({ slug: slug.slice(1).split('/') }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -39,6 +53,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const fullPath = '/' + slug.join('/');
   const file = getContentFile('posts', fullPath);
   if (!file) return { title: getTranslate('posts.notFound') };
+
+  // 私有文章（config access 规则或目录级私有）不输出 description，
+  // 避免正文摘要经 metadata 泄露
+  const hasDb = hasDatabase();
+  const isAuthed = hasDb && !isStaticExportBuild ? !!(await getSession()) : false;
+  const accessible = await canAccess('posts', fullPath, isAuthed, hasDb);
+  if (!accessible) {
+    return { title: getTranslate('posts.notFound') };
+  }
+
   return {
     title: `${file.meta.title} - Originium Kernel`,
     description: file.meta.description ?? file.content.slice(0, 160),
@@ -51,6 +75,13 @@ export default async function PostDetailPage({ params }: PageProps) {
 
   const file = getContentFile('posts', fullPath);
   if (!file) notFound();
+
+  // 权限检查：config access 规则判定不可访问时拒绝（服务器模式需登录，
+  // 静态导出构建时 hasDb=false，规则私有文章不会被预渲染）
+  const hasDb = hasDatabase();
+  const isAuthed = hasDb && !isStaticExportBuild ? !!(await getSession()) : false;
+  const accessible = await canAccess('posts', fullPath, isAuthed, hasDb);
+  if (!accessible) notFound();
 
   const viewModel = await buildViewModel(slug, fullPath, file.content, file.meta);
 
@@ -111,21 +142,31 @@ async function buildViewModel(
   meta: Record<string, unknown>,
 ) {
   const appConfig = await loadConfig();
-  const stats = computeWordStats(content);
+  // 文章加密：读取 frontmatter 中的 password 字段（SHA-256 哈希值）
+  const passwordHash = typeof meta.password === 'string' ? meta.password : '';
+  // 识别并解析密文参数（正文为 aes_gcm:v2: 前缀即密文）
+  const encryptedPayload = parseEncryptedArticle(content);
+  // 有密码标记但正文未加密（旧格式遗留）时也按加密处理，避免明文外泄
+  const isEncrypted = !!passwordHash;
+
+  // 加密文章：正文不下发、不预渲染 HTML（密文仅用于客户端解密），字数统计无从计算
+  const stats = isEncrypted
+    ? { wordCount: 0, readingTime: 0, headingCount: 0 }
+    : computeWordStats(content);
   const tocConfig = buildTocConfig(appConfig);
-  const wikiLinkMap = buildWikiLinkMap();
+  const wikiLinkMap = await buildWikiLinkMap();
 
   // 构建时预渲染 Markdown → HTML（使 curl / AI 爬虫可获取完整正文）
   // highlight 配置控制代码块：语言徽章 / 复制 / 折叠 / 换行 / 主题
-  const htmlContent = await renderMarkdownToHtml(content, { wikiLinkMap, highlight: appConfig.highlight });
+  // 加密文章跳过渲染，正文改由客户端验证密码后解密渲染
+  const htmlContent = isEncrypted
+    ? ''
+    : await renderMarkdownToHtml(content, { wikiLinkMap, highlight: appConfig.highlight });
   const backlinks = getBacklinks('posts', fullPath);
   const outgoingRefs = getOutgoingReferences('posts', fullPath);
   const authorName = typeof meta.author === 'string' ? meta.author : '';
   const authorInfo = getAuthorByName(authorName);
 
-  // 文章加密：读取 frontmatter 中的 password 字段（SHA-256 哈希值）
-  const passwordHash = typeof meta.password === 'string' ? meta.password : '';
-  const isEncrypted = !!passwordHash;
   // 文章隐藏：读取 frontmatter 中的 hidden 字段
   const isHidden = meta.hidden === true;
 
@@ -173,6 +214,7 @@ async function buildViewModel(
     isEncrypted,
     isHidden,
     passwordHash,
+    encryptedPayload,
     // 多语言翻译映射（从 frontmatter translations 字段读取）
     translations: (meta.translations && typeof meta.translations === 'object')
       ? meta.translations as Record<string, string>

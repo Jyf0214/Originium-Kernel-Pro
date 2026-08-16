@@ -27,6 +27,15 @@ import { getTranslate } from '@/i18n/translate';
 const withFullDefault = <T extends z.ZodObject>(s: T): z.ZodDefault<T> =>
   s.default(s.parse({}) as never);
 
+/**
+ * 字体族字段 schema：限制非法字符（; < 反斜杠），
+ * 这些字符会被注入内联 script，必须拒绝，防止 CSS/JS 注入。
+ */
+const zFontFamilyItem = (fallback: string) =>
+  z.string().refine((v) => !/[;<\\]/.test(v), {
+    message: getTranslate('lib.config.fontFamilyInvalid'),
+  }).default(fallback);
+
 // ============================================================================
 // 基础枚举
 // ============================================================================
@@ -76,12 +85,14 @@ export const zAppearanceConfig = z.object({
     // display=标题/展示字体（font-display 类），
     // mono=等宽字体（font-mono 类，Markdown 代码块除外——代码块强制默认等宽），
     // ui=antd 等 UI 组件字体
-    body: z.string().default(''),
+    // 非法字符校验：字体值会被注入内联 <script> 拼接 JS，禁止 ; < 反斜杠，
+    // 防止 CSS/JS 注入（引号合法，CSS 字体名可用引号包裹）
+    body: zFontFamilyItem(''),
     // sans 默认即站点默认字体栈，未配置时保持 Tailwind/antd 默认
-    sans: z.string().default('-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'),
-    display: z.string().default(''),
-    mono: z.string().default(''),
-    ui: z.string().default(''),
+    sans: zFontFamilyItem('-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'),
+    display: zFontFamilyItem(''),
+    mono: zFontFamilyItem(''),
+    ui: zFontFamilyItem(''),
   })),
   background: withFullDefault(z.object({
     url: z.string().default(''),
