@@ -24,7 +24,11 @@ export type PermissionAction =
   // 统计
   | 'stats_read'
   // 搜索
-  | 'search';
+  | 'search'
+  // 审计日志
+  | 'audit_read'
+  // 用户管理
+  | 'user_read' | 'user_write';
 
 /** 操作权限分组(用于 UI 展示) */
 export const PERMISSION_GROUPS: {
@@ -67,6 +71,19 @@ export const PERMISSION_GROUPS: {
     actions: [
       { key: 'stats_read', label: getTranslate('lib.permissions.statsRead') },
       { key: 'search', label: getTranslate('lib.permissions.search') },
+    ],
+  },
+  {
+    label: getTranslate('lib.permissions.groupAudit'),
+    actions: [
+      { key: 'audit_read', label: getTranslate('lib.permissions.auditRead') },
+    ],
+  },
+  {
+    label: getTranslate('lib.permissions.groupUsers'),
+    actions: [
+      { key: 'user_read', label: getTranslate('lib.permissions.userRead') },
+      { key: 'user_write', label: getTranslate('lib.permissions.userWrite') },
     ],
   },
 ];

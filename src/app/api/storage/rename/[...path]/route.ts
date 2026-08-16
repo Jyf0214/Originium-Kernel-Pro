@@ -85,7 +85,7 @@ function parseRenameInput(
 
 export const POST = catchAllHandler<{ path: string[] }>(
   'POST',
-  { label: 'storage.rename', requireAdmin: true },
+  { label: 'storage.rename', requireRoot: true },
   async (req, context) => {
     if (!isStorageConfigured()) return storageNotConfigured()
 

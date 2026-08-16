@@ -205,6 +205,9 @@ describe('hasPermission', () => {
           settings_write: false,
           stats_read: false,
           search: false,
+          audit_read: false,
+          user_read: false,
+          user_write: false,
         },
       },
     };
@@ -229,6 +232,9 @@ describe('hasPermission', () => {
           settings_write: false,
           stats_read: false,
           search: false,
+          audit_read: false,
+          user_read: false,
+          user_write: false,
         },
       },
     };
@@ -278,6 +284,9 @@ describe('serializePermissions', () => {
         settings_write: false,
         stats_read: false,
         search: false,
+        audit_read: false,
+        user_read: false,
+        user_write: false,
       },
     };
     const json = serializePermissions(custom);

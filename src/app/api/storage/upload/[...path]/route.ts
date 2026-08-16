@@ -111,7 +111,7 @@ async function readBodyWithSizeLimit(
 
 export const POST = catchAllHandler<{ path: string[] }>(
   'POST',
-  { label: 'storage.upload', requireAdmin: true },
+  { label: 'storage.upload', requireRoot: true },
   async (req, context) => {
     if (!isStorageConfigured()) return storageNotConfigured()
 

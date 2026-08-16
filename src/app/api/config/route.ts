@@ -5,10 +5,22 @@ import { apiHandler } from '@/lib/api-handler';
 import { createApiLogger } from '@/lib/api-logger';
 import { zAppConfig } from '@/lib/config-schema';
 import { logAudit } from '@/lib/audit';
+import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
+import type { PermissionAction } from '@/lib/api-key-permissions';
 import { getTranslate } from '@/i18n/translate';
 import yaml from 'js-yaml';
 
 const logger = createApiLogger('/api/config');
+
+/**
+ * API 密钥细粒度权限检查（配置读写）
+ * Cookie 认证(浏览器)直接通过；密钥认证检查 settings_* 权限
+ */
+async function requireConfigPerm(action: PermissionAction): Promise<NextResponse | null> {
+  const authResult = await getSessionWithKeyId();
+  if (!authResult) return null;
+  return requireApiKeyPermission(authResult.session, authResult.currentKeyId, action);
+}
 
 /**
  * 通用配置段合并:override 存在时以 base 为基础展开 override。
@@ -111,8 +123,11 @@ function mergeAppConfig(
   };
 }
 
-export const POST = apiHandler('POST', { label: getTranslate('api.config.updateLabel'), requireAdmin: true }, async (req, _ctx, session) => {
+export const POST = apiHandler('POST', { label: getTranslate('api.config.updateLabel'), requireRoot: true }, async (req, _ctx, session) => {
   logger.info('POST', '开始更新配置', { role: session?.role });
+
+  const denied = await requireConfigPerm('settings_write');
+  if (denied) return denied;
 
   const rawConfig = await req.json() as Partial<AppConfig>;
   // PUT 有 Zod 校验，POST 也必须有，防止非法配置写入
@@ -158,8 +173,11 @@ export const POST = apiHandler('POST', { label: getTranslate('api.config.updateL
  * （githubConfigured / _remoteConfig / _remoteConfigStatus / _remoteConfigError）。
  * 前端 dashboard 配置页与设置页依赖这些字段做差异对比。
  */
-export const GET = apiHandler('GET', { label: getTranslate('api.config.getLabel'), requireAdmin: true }, async () => {
+export const GET = apiHandler('GET', { label: getTranslate('api.config.getLabel'), requireRoot: true }, async () => {
   logger.info('GET', '获取当前配置');
+
+  const denied = await requireConfigPerm('settings_read');
+  if (denied) return denied;
 
   const config = await loadConfig();
   const repo = process.env.GITHUB_REPO;

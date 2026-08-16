@@ -25,7 +25,7 @@ const logger = createApiLogger('/api/storage/file')
 
 export const DELETE = catchAllHandler<{ path: string[] }>(
   'DELETE',
-  { label: 'storage.file.delete', requireAdmin: true },
+  { label: 'storage.file.delete', requireRoot: true },
   async (_req, context) => {
     if (!isStorageConfigured()) return storageNotConfigured()
 

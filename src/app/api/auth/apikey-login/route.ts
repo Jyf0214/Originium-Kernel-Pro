@@ -9,6 +9,7 @@
  */
 import { type NextRequest, NextResponse } from 'next/server';
 import { hashApiKey, createSession, createTempToken, normalizeRole } from '@/lib/auth';
+import { parsePermissions } from '@/lib/api-key-permissions';
 import { getDb } from '@/lib/db';
 import { createApiLogger } from '@/lib/api-logger';
 import { checkRateLimit } from '@/lib/rate-limit';
@@ -84,12 +85,17 @@ export async function POST(req: NextRequest) {
   const validRoles = ['user', 'admin', 'root', 'sudo'] as const;
   const safeRole = validRoles.includes(user.role as typeof validRoles[number]) ? normalizeRole(user.role) : 'user';
 
+  // 加载 API 密钥权限配置并写入 session，避免浏览器登录后拥有全部权限（绕过细粒度权限）
+  const permissions = parsePermissions(row.permissions);
+
   // 创建 Session Cookie
   await createSession({
     uid: user.uid,
     email: user.email,
     role: safeRole,
     userGroup: user.userGroup,
+    // permissions 为 null 表示全部权限(向后兼容)，与 API 密钥认证路径语义一致
+    ...(permissions ? { permissions } : {}),
   });
 
   logger.info('POST', 'API 密钥登录成功', { uid: user.uid });

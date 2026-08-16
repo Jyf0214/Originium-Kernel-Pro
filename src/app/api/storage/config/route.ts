@@ -12,7 +12,7 @@ const logger = createApiLogger('/api/storage/config')
 
 export const GET = apiHandler(
   'GET',
-  { label: 'storage.config', requireAdmin: true },
+  { label: 'storage.config', requireRoot: true },
   async () => {
     const denied = await requireApiKeyPerm('settings_read')
     if (denied) return denied

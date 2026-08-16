@@ -59,7 +59,7 @@ function parseMoveDestination(
 
 export const POST = catchAllHandler<{ path: string[] }>(
   'POST',
-  { label: 'storage.move', requireAdmin: true },
+  { label: 'storage.move', requireRoot: true },
   async (req, context) => {
     if (!isStorageConfigured()) return storageNotConfigured()
 

@@ -7,12 +7,12 @@ const logger = createApiLogger('/api/env-status');
 
 /**
  * 环境变量状态检查 API
- * 仅管理员可访问
+ * 仅 root（或 sudo 模式）可访问——环境变量存在性信息属于敏感配置
  *
  * 每个变量返回 descriptionKey（i18n 键），由前端 useI18n 解析，
  * 避免在服务端硬编码双语文案。
  */
-export const GET = apiHandler('GET', { label: getTranslate('api.envStatus.fetchStatus'), requireAdmin: true }, () => {
+export const GET = apiHandler('GET', { label: getTranslate('api.envStatus.fetchStatus'), requireRoot: true }, () => {
   logger.info('GET', '获取环境变量状态');
 
   const envStatus = {

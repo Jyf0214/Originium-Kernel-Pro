@@ -45,6 +45,7 @@ const PUBLIC_PATHS = new Set([
   '/api/posts/like',
   '/api/faces',
   '/api/feedback',
+  '/api/cleanup', // cron 触发（x-cron-secret 由路由内校验），无浏览器 session
   '/api/translations', // 公开文章翻译查询（路由设计为公开，读取公开文章索引）
 ]);
 
@@ -58,6 +59,12 @@ const PUBLIC_PREFIXES = [
 function isPublicPath(pathname: string): boolean {
   if (PUBLIC_PATHS.has(pathname)) return true;
   return PUBLIC_PREFIXES.some(p => pathname.startsWith(p));
+}
+
+/** 是否为 API 密钥认证请求（Authorization: Bearer sk-xxx） */
+function isApiKeyRequest(request: NextRequest): boolean {
+  const authHeader = request.headers.get('authorization');
+  return !!authHeader?.startsWith('Bearer sk-');
 }
 
 function isAdminPath(pathname: string): boolean {
@@ -92,6 +99,12 @@ export async function middleware(request: NextRequest) {
 
   // 公开路径直接放行
   if (isPublicPath(pathname)) {
+    return NextResponse.next();
+  }
+
+  // API 密钥认证请求直接放行到路由层
+  // 密钥有效性、角色与细粒度权限由路由内的 getSession() / requireApiKeyPermission() 完整校验
+  if (isApiKeyRequest(request)) {
     return NextResponse.next();
   }
 

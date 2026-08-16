@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
 import { getDb } from '@/lib/db';
-import { getSession, isRootRole } from '@/lib/auth';
+import { getSession, isRootRole, getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { getEnvConfig } from '@/lib/env';
 import { DELETION_PERIOD_DAYS } from '@/lib/constants';
 import { createApiLogger } from '@/lib/api-logger';
@@ -31,6 +31,16 @@ async function isCleanupAuthorized(req: NextRequest): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * API 密钥细粒度权限检查（清理任务管理）
+ * Cookie 认证(浏览器)或 cron secret 请求不受影响；密钥认证检查 audit_read 权限
+ */
+async function requireCleanupPerm(): Promise<NextResponse | null> {
+  const authResult = await getSessionWithKeyId();
+  if (!authResult) return null;
+  return requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'audit_read');
 }
 
 /** 尝试删除 GitHub 上的文章文件 */
@@ -76,6 +86,10 @@ async function cleanupExpiredArticle(
 }
 
 export const POST = apiHandler('POST', { label: getTranslate('api.cleanup.cleanupExpiredArticles') }, async (req: NextRequest) => {
+  // API 密钥认证的请求需 audit_read 权限（cron secret 请求无密钥，不受影响）
+  const permErr = await requireCleanupPerm();
+  if (permErr) return permErr;
+
   if (!(await isCleanupAuthorized(req))) {
     logger.warn('POST', '未授权');
     return NextResponse.json({ error: getTranslate('api.cleanup.unauthorized') }, { status: 401 });
@@ -116,6 +130,10 @@ export const POST = apiHandler('POST', { label: getTranslate('api.cleanup.cleanu
  */
 export async function GET() {
   try {
+    // API 密钥认证的请求需 audit_read 权限
+    const permErr = await requireCleanupPerm();
+    if (permErr) return permErr;
+
     const session = await getSession();
     if (!session || (session.role !== 'admin' && !isRootRole(session.role))) {
       logger.warn('GET', '未授权', { role: session?.role });

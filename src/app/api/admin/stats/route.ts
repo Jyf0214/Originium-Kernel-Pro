@@ -12,7 +12,7 @@ function extractCategory(slug: string): string {
   return parts.length > 1 ? (parts[0] ?? getTranslate('api.stats.uncategorized')) : getTranslate('api.stats.root');
 }
 
-export const GET = apiHandler('GET', { label: getTranslate('api.admin.contentStats'), requireAdmin: true }, async () => {
+export const GET = apiHandler('GET', { label: getTranslate('api.admin.contentStats'), requireRoot: true }, async () => {
   // API 密钥权限检查
   const authResult = await getSessionWithKeyId();
   if (authResult) {

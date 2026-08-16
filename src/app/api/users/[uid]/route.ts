@@ -4,10 +4,20 @@ import { getUserAvatar } from '@/lib/config';
 import type { UserRole } from '@/lib/user';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler, getParam } from '@/lib/api-handler';
-import { isRootRole } from '@/lib/auth';
+import { isRootRole, getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/users/[uid]');
+
+/**
+ * API 密钥细粒度权限检查（用户管理）
+ * Cookie 认证(浏览器)直接通过；密钥认证检查 user_* 权限
+ */
+async function requireUsersPerm(action: 'user_read' | 'user_write'): Promise<NextResponse | null> {
+  const authResult = await getSessionWithKeyId();
+  if (!authResult) return null;
+  return requireApiKeyPermission(authResult.session, authResult.currentKeyId, action);
+}
 
 /** 校验角色变更权限，返回 null 表示通过，否则返回错误 Response */
 function validateRoleChange(
@@ -37,6 +47,9 @@ function validateRoleChange(
 export const GET = apiHandler('GET', { label: getTranslate('api.users.getUser'), requireAdmin: true }, async (req, context) => {
   const uid = await getParam(context, 'uid');
   logger.info('GET', '获取用户信息', { uid });
+  // API 密钥认证的请求需 user_read 权限
+  const denied = await requireUsersPerm('user_read');
+  if (denied) return denied;
   const db = getDb();
   const userStr = await db.get(`user:uid:${uid}`);
 
@@ -71,6 +84,9 @@ export const GET = apiHandler('GET', { label: getTranslate('api.users.getUser'),
 export const PATCH = apiHandler('PATCH', { label: getTranslate('api.users.updateUser'), requireAdmin: true }, async (req, context, session) => {
   const uid = await getParam(context, 'uid');
   logger.info('PATCH', '更新用户信息', { uid });
+  // API 密钥认证的请求需 user_write 权限
+  const denied = await requireUsersPerm('user_write');
+  if (denied) return denied;
   const db = getDb();
   const userStr = await db.get(`user:uid:${uid}`);
 

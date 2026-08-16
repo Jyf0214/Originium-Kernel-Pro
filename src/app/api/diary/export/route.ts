@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiHandler } from '@/lib/api-handler';
 import { decryptContentBatch } from '@/lib/diary-crypto';
+import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { getTranslate } from '@/i18n/translate';
 
 // 分批导出上限，防止内存耗尽
@@ -9,6 +10,13 @@ const BATCH_SIZE = 100;
 const MAX_ENTRIES = 10000;
 
 export const GET = apiHandler('GET', { label: getTranslate('api.diary.exportDiary'), requireAdmin: true, requireDb: true }, async () => {
+  // API 密钥认证的请求需 posts_read 权限
+  const authResult = await getSessionWithKeyId();
+  if (authResult) {
+    const denied = await requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'posts_read');
+    if (denied) return denied;
+  }
+
   // 预检：日记总数超限则拒绝导出，避免内存耗尽
   const totalCount = await prisma.diary.count();
   if (totalCount > MAX_ENTRIES) {

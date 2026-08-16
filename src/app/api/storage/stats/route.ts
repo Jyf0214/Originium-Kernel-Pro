@@ -256,7 +256,7 @@ async function collectStats(): Promise<StorageStatsResult> {
 
 export const GET = apiHandler(
   'GET',
-  { label: 'storage.stats', requireAdmin: true },
+  { label: 'storage.stats', requireRoot: true },
   async () => {
     if (!isStorageConfigured()) return storageNotConfigured()
 

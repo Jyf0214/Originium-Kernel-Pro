@@ -5,13 +5,28 @@ import { apiHandler, getParam } from '@/lib/api-handler';
 import { diaryReadGuard } from '@/lib/diary-guard';
 import { encryptContent, decryptContent } from '@/lib/diary-crypto';
 import { saveDiaryVersion } from '@/lib/diary-version';
+import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/diary/[id]');
 
+/**
+ * API 密钥细粒度权限检查（日记读写）
+ * Cookie 认证(浏览器)由 diaryReadGuard/requireAdmin 处理；密钥认证检查 posts_* 权限
+ */
+async function requireDiaryPerm(action: 'posts_read' | 'posts_write' | 'posts_delete'): Promise<NextResponse | null> {
+  const authResult = await getSessionWithKeyId();
+  if (!authResult) return null;
+  return requireApiKeyPermission(authResult.session, authResult.currentKeyId, action);
+}
+
 export const GET = apiHandler('GET', { label: getTranslate('api.diary.getDiary'), requireDb: true }, async (req, context) => {
   const guard = await diaryReadGuard();
   if (guard) return guard;
+
+  // API 密钥认证的请求需 posts_read 权限
+  const denied = await requireDiaryPerm('posts_read');
+  if (denied) return denied;
 
   const id = await getParam(context, 'id');
   const diary = await prisma.diary.findUnique({ where: { id } });
@@ -25,6 +40,10 @@ export const GET = apiHandler('GET', { label: getTranslate('api.diary.getDiary')
 });
 
 export const PUT = apiHandler('PUT', { label: getTranslate('api.diary.updateDiary'), requireAdmin: true, requireDb: true }, async (req, context) => {
+  // API 密钥认证的请求需 posts_write 权限
+  const denied = await requireDiaryPerm('posts_write');
+  if (denied) return denied;
+
   const id = await getParam(context, 'id');
   const { title, content, tags, date, group, references, scheduledAt } = await req.json();
   if (!title || !content) {
@@ -63,6 +82,10 @@ export const PUT = apiHandler('PUT', { label: getTranslate('api.diary.updateDiar
 });
 
 export const PATCH = apiHandler('PATCH', { label: getTranslate('api.diary.togglePin'), requireAdmin: true, requireDb: true }, async (req, context) => {
+  // API 密钥认证的请求需 posts_write 权限
+  const denied = await requireDiaryPerm('posts_write');
+  if (denied) return denied;
+
   const id = await getParam(context, 'id');
   const existing = await prisma.diary.findUnique({ where: { id } });
   if (!existing) {
@@ -80,6 +103,10 @@ export const PATCH = apiHandler('PATCH', { label: getTranslate('api.diary.toggle
 });
 
 export const DELETE = apiHandler('DELETE', { label: getTranslate('api.diary.deleteDiary'), requireAdmin: true, requireDb: true }, async (req, context) => {
+  // API 密钥认证的请求需 posts_delete 权限
+  const denied = await requireDiaryPerm('posts_delete');
+  if (denied) return denied;
+
   const id = await getParam(context, 'id');
   const existing = await prisma.diary.findUnique({ where: { id } });
   if (!existing) {

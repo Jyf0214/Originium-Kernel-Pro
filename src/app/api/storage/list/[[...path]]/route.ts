@@ -23,7 +23,7 @@ const logger = createApiLogger('/api/storage/list')
 
 export const GET = catchAllHandler<{ path?: string[] }>(
   'GET',
-  { label: 'storage.list', requireAdmin: true },
+  { label: 'storage.list', requireRoot: true },
   async (_req, context) => {
     if (!isStorageConfigured()) return storageNotConfigured()
 

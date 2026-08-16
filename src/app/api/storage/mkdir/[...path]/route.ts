@@ -28,7 +28,7 @@ import {
 
 export const POST = catchAllHandler<{ path: string[] }>(
   'POST',
-  { label: 'storage.mkdir', requireAdmin: true },
+  { label: 'storage.mkdir', requireRoot: true },
   async (_req, context) => {
     if (!isStorageConfigured()) return storageNotConfigured()
 

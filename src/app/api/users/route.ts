@@ -2,10 +2,20 @@ import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
-import { isRootRole } from '@/lib/auth';
+import { isRootRole, getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/users');
+
+/**
+ * API 密钥细粒度权限检查（用户管理）
+ * Cookie 认证(浏览器)直接通过；密钥认证检查 user_* 权限
+ */
+async function requireUsersPerm(action: 'user_read' | 'user_write'): Promise<NextResponse | null> {
+  const authResult = await getSessionWithKeyId();
+  if (!authResult) return null;
+  return requireApiKeyPermission(authResult.session, authResult.currentKeyId, action);
+}
 
 /**
  * Users API
@@ -103,6 +113,10 @@ async function listAllUsers(
 
 export const GET = apiHandler('GET', { label: getTranslate('api.users.getUserList'), requireAuth: true }, async (_req, _context, session) => {
   logger.info('GET', '获取用户列表');
+  // API 密钥认证的请求需 user_read 权限
+  const denied = await requireUsersPerm('user_read');
+  if (denied) return denied;
+
   const db = getDb();
   const { searchParams } = new URL(_req.url);
   const username = searchParams.get('username');

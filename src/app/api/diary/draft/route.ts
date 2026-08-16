@@ -2,9 +2,24 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { apiHandler } from '@/lib/api-handler';
 import { encryptContent, decryptContent } from '@/lib/diary-crypto';
+import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { getTranslate } from '@/i18n/translate';
 
+/**
+ * API 密钥细粒度权限检查（日记草稿）
+ * Cookie 认证(浏览器)由 requireAdmin 处理；密钥认证检查 posts_* 权限
+ */
+async function requireDiaryDraftPerm(action: 'posts_read' | 'posts_write'): Promise<NextResponse | null> {
+  const authResult = await getSessionWithKeyId();
+  if (!authResult) return null;
+  return requireApiKeyPermission(authResult.session, authResult.currentKeyId, action);
+}
+
 export const GET = apiHandler('GET', { label: getTranslate('api.diary.getDraft'), requireAdmin: true, requireDb: true }, async (req) => {
+  // API 密钥认证的请求需 posts_read 权限
+  const denied = await requireDiaryDraftPerm('posts_read');
+  if (denied) return denied;
+
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
 
@@ -57,6 +72,10 @@ export const GET = apiHandler('GET', { label: getTranslate('api.diary.getDraft')
 });
 
 export const POST = apiHandler('POST', { label: getTranslate('api.diary.saveDraft'), requireAdmin: true, requireDb: true }, async (req) => {
+  // API 密钥认证的请求需 posts_write 权限
+  const denied = await requireDiaryDraftPerm('posts_write');
+  if (denied) return denied;
+
   const { id, title, content, tags } = await req.json();
   const draftId = id ?? 'new';
 
@@ -77,6 +96,10 @@ export const POST = apiHandler('POST', { label: getTranslate('api.diary.saveDraf
 });
 
 export const DELETE = apiHandler('DELETE', { label: getTranslate('api.diary.deleteDraft'), requireAdmin: true, requireDb: true }, async (req) => {
+  // API 密钥认证的请求需 posts_write 权限
+  const denied = await requireDiaryDraftPerm('posts_write');
+  if (denied) return denied;
+
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id') ?? 'new';
 

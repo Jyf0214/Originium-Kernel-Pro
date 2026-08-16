@@ -28,7 +28,7 @@ const logger = createApiLogger('/api/storage/folder')
 /** 读取单条文件夹元数据 */
 export const GET = catchAllHandler<{ path: string[] }>(
   'GET',
-  { label: 'storage.folder.get', requireAdmin: true },
+  { label: 'storage.folder.get', requireRoot: true },
   async (_req, context) => {
     if (!isStorageConfigured()) return storageNotConfigured()
     if (!getDb().prisma) return databaseNotConfigured()
@@ -108,7 +108,7 @@ async function mergePatchFields(
 /** 部分更新文件夹元数据(public / description) */
 export const PATCH = catchAllHandler<{ path: string[] }>(
   'PATCH',
-  { label: 'storage.folder.patch', requireAdmin: true },
+  { label: 'storage.folder.patch', requireRoot: true },
   async (req, context) => {
     if (!isStorageConfigured()) return storageNotConfigured()
     const prisma = getDb().prisma

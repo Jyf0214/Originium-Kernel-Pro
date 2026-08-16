@@ -18,7 +18,7 @@ const logger = createApiLogger('/api/storage/folders')
 
 export const GET = apiHandler(
   'GET',
-  { label: 'storage.folders', requireAdmin: true },
+  { label: 'storage.folders', requireRoot: true },
   async () => {
     if (!isStorageConfigured()) return storageNotConfigured()
     if (!getDb().prisma) return databaseNotConfigured()

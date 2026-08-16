@@ -207,7 +207,7 @@ async function scanDir(ctx: ScanContext, dirPath: string, depth: number): Promis
 
 export const GET = apiHandler(
   'GET',
-  { label: 'storage.search', requireAdmin: true },
+  { label: 'storage.search', requireRoot: true },
   async (req) => {
     if (!isStorageConfigured()) return storageNotConfigured()
 

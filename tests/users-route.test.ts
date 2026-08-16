@@ -16,6 +16,11 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('@/lib/auth', () => ({
   getSession: () => mocks._getSession(),
+  getSessionWithKeyId: async () => {
+    const session = await mocks._getSession();
+    return session ? { session, currentKeyId: null } : null;
+  },
+  requireApiKeyPermission: () => null,
   // 与 auth.ts isRootRole 等价：root/sudo 视为超级管理员（兼容存量数据）
   isRootRole: (role: string | undefined | null) => role === 'root' || role === 'sudo',
 }))

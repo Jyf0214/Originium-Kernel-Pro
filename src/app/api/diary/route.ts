@@ -5,9 +5,20 @@ import { apiHandler } from '@/lib/api-handler';
 import { diaryReadGuard } from '@/lib/diary-guard';
 import { encryptContent } from '@/lib/diary-crypto';
 import { saveDiaryVersion } from '@/lib/diary-version';
+import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/diary');
+
+/**
+ * API 密钥细粒度权限检查（日记读写）
+ * Cookie 认证(浏览器)由 diaryReadGuard/requireAdmin 处理；密钥认证检查 posts_* 权限
+ */
+async function requireDiaryPerm(action: 'posts_read' | 'posts_write'): Promise<NextResponse | null> {
+  const authResult = await getSessionWithKeyId();
+  if (!authResult) return null;
+  return requireApiKeyPermission(authResult.session, authResult.currentKeyId, action);
+}
 
 /** 构建排除定时未发布日记的过滤条件 */
 function scheduledFilter() {
@@ -22,6 +33,10 @@ function scheduledFilter() {
 export const GET = apiHandler('GET', { label: getTranslate('api.diary.getDiaryList'), requireDb: true }, async (req) => {
   const guard = await diaryReadGuard();
   if (guard) return guard;
+
+  // API 密钥认证的请求需 posts_read 权限
+  const denied = await requireDiaryPerm('posts_read');
+  if (denied) return denied;
 
   const { searchParams } = new URL(req.url);
   const search = searchParams.get('search')?.trim();
@@ -86,6 +101,10 @@ export const GET = apiHandler('GET', { label: getTranslate('api.diary.getDiaryLi
 });
 
 export const POST = apiHandler('POST', { label: getTranslate('api.diary.createDiary'), requireAdmin: true, requireDb: true }, async (req) => {
+  // API 密钥认证的请求需 posts_write 权限
+  const denied = await requireDiaryPerm('posts_write');
+  if (denied) return denied;
+
   const { title, content, tags, date, group, references: rawRefs, scheduledAt } = await req.json();
   const references = Array.isArray(rawRefs) ? rawRefs : [];
   if (!title || !content) {
