@@ -6,6 +6,7 @@ import { diaryReadGuard } from '@/lib/diary-guard';
 import { encryptContent, decryptContent } from '@/lib/diary-crypto';
 import { saveDiaryVersion } from '@/lib/diary-version';
 import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
+import { isScheduledPending } from '@/lib/diary-schedule';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/diary/[id]');
@@ -31,6 +32,11 @@ export const GET = apiHandler('GET', { label: getTranslate('api.diary.getDiary')
   const id = await getParam(context, 'id');
   const diary = await prisma.diary.findUnique({ where: { id } });
   if (!diary) {
+    return NextResponse.json({ error: getTranslate('api.diary.notFound') }, { status: 404 });
+  }
+
+  // 定时未到期日记对外不可见（与列表 scheduledFilter 保持一致），返回 404 避免泄露存在性
+  if (isScheduledPending(diary)) {
     return NextResponse.json({ error: getTranslate('api.diary.notFound') }, { status: 404 });
   }
 

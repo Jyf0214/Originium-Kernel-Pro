@@ -6,6 +6,7 @@ import { diaryReadGuard } from '@/lib/diary-guard';
 import { encryptContent } from '@/lib/diary-crypto';
 import { saveDiaryVersion } from '@/lib/diary-version';
 import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
+import { scheduledFilter } from '@/lib/diary-schedule';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/diary');
@@ -18,16 +19,6 @@ async function requireDiaryPerm(action: 'posts_read' | 'posts_write'): Promise<N
   const authResult = await getSessionWithKeyId();
   if (!authResult) return null;
   return requireApiKeyPermission(authResult.session, authResult.currentKeyId, action);
-}
-
-/** 构建排除定时未发布日记的过滤条件 */
-function scheduledFilter() {
-  return {
-    OR: [
-      { scheduledAt: null },
-      { scheduledAt: { lte: new Date() } },
-    ],
-  };
 }
 
 export const GET = apiHandler('GET', { label: getTranslate('api.diary.getDiaryList'), requireDb: true }, async (req) => {

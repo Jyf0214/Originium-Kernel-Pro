@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { apiHandler } from '@/lib/api-handler';
 import { decryptContentBatch } from '@/lib/diary-crypto';
 import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
+import { scheduledFilter } from '@/lib/diary-schedule';
 import { getTranslate } from '@/i18n/translate';
 
 // 分批导出上限，防止内存耗尽
@@ -17,8 +18,8 @@ export const GET = apiHandler('GET', { label: getTranslate('api.diary.exportDiar
     if (denied) return denied;
   }
 
-  // 预检：日记总数超限则拒绝导出，避免内存耗尽
-  const totalCount = await prisma.diary.count();
+  // 预检：可导出日记总数超限则拒绝导出，避免内存耗尽（同样排除定时未到期日记）
+  const totalCount = await prisma.diary.count({ where: scheduledFilter() });
   if (totalCount > MAX_ENTRIES) {
     return NextResponse.json(
       { error: getTranslate('api.diary.exportLimitExceeded', { count: totalCount, max: MAX_ENTRIES }) },
@@ -29,9 +30,10 @@ export const GET = apiHandler('GET', { label: getTranslate('api.diary.exportDiar
   const parts: string[] = [];
   let exportedCount = 0;
 
-  // 分批读取并解密，避免一次性加载全部日记到内存
+  // 分批读取并解密，避免一次性加载全部日记到内存；排除定时未到期日记
   for (let offset = 0; offset < totalCount; offset += BATCH_SIZE) {
     const batch = await prisma.diary.findMany({
+      where: scheduledFilter(),
       orderBy: { date: 'desc' },
       skip: offset,
       take: BATCH_SIZE,
