@@ -468,6 +468,9 @@ export function useStorageState(): UseStorageState {
         });
         message.success(getTranslate('storage.renameSuccess'));
         closeDialog();
+        // 刷新当前目录条目：重命名当前目录下的子项时 currentPath 不变，
+        // 依赖路径变化的 effect 不会触发，必须主动刷新列表
+        await loadEntries(currentPath);
         return true;
       } catch (err) {
         if (err instanceof ApiError) {
@@ -482,7 +485,7 @@ export function useStorageState(): UseStorageState {
         return false;
       }
     },
-    [configured, closeDialog]
+    [configured, closeDialog, loadEntries, currentPath]
   );
 
   const moveFileItemCallback = useCallback(

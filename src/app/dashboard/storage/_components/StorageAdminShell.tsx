@@ -181,7 +181,8 @@ export function StorageAdminShell() {
 
   // 文件/文件夹卡片单击选中后重命名
   const handleCardRename = (entry: { basename: string; filename: string }) => {
-    handleOpenRename(entry.filename);
+    // 与删除/移动一致：拼接 currentPath 前缀，避免非根目录下定位到根目录同名路径
+    handleOpenRename(state.currentPath ? `${state.currentPath}/${entry.filename}` : entry.filename);
   };
 
   const handleRename = async (newName: string) => {
@@ -528,7 +529,13 @@ export function StorageAdminShell() {
 
       <StorageMoveDialog
         open={state.dialog === 'move'}
-        currentPath={moveTarget?.filename ?? ''}
+        currentPath={
+          moveTarget
+            ? state.currentPath
+              ? `${state.currentPath}/${moveTarget.filename}`
+              : moveTarget.filename
+            : ''
+        }
         folders={state.folders}
         title={labels.moveToTitle}
         selectFolderLabel={labels.moveToSelectFolder}
