@@ -3,6 +3,7 @@ import { timingSafeEqual } from 'crypto';
 import { getDb } from '@/lib/db';
 import { getSession, isRootRole, getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { getEnvConfig } from '@/lib/env';
+import { deleteFileFromGithub } from '@/lib/github';
 import { DELETION_PERIOD_DAYS } from '@/lib/constants';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
@@ -43,22 +44,11 @@ async function requireCleanupPerm(): Promise<NextResponse | null> {
   return requireApiKeyPermission(authResult.session, authResult.currentKeyId, 'audit_read');
 }
 
-/** 尝试删除 GitHub 上的文章文件 */
-async function tryDeleteGithubFile(slug: string, title: string, id: string): Promise<void> {
+/** 尝试删除 GitHub 上的文章文件；文件不存在(404)视为已删除，网络/API 错误抛出由调用方保留记录等待下次重试 */
+async function tryDeleteGithubFile(slug: string): Promise<void> {
   const env = getEnvConfig();
   if (!env.githubRepo || !env.githubToken) return;
-  const [owner = '', repo = ''] = env.githubRepo.split('/');
-  const { Octokit } = await import('octokit');
-  const octokit = new Octokit({ auth: env.githubToken });
-  const filePath = `posts${slug}.md`;
-  const resp = await octokit.rest.repos.getContent({ owner, repo, path: filePath });
-  if ('sha' in resp.data) {
-    await octokit.rest.repos.deleteFile({
-      owner, repo, path: filePath,
-      message: `cleanup: delete expired article "${title || id}"`,
-      sha: resp.data.sha,
-    });
-  }
+  await deleteFileFromGithub(env.githubRepo, env.githubToken, `posts${slug}.md`);
 }
 
 /** 判断文章是否已过期并执行清理 */
@@ -75,7 +65,7 @@ async function cleanupExpiredArticle(
   if (now <= requestedAt + periodMs) return false;
 
   if (article.slug && typeof article.slug === 'string') {
-    await tryDeleteGithubFile(article.slug, article.title ?? '', id);
+    await tryDeleteGithubFile(article.slug);
   }
   await db.del(`article:data:${id}`);
   await db.hdel('articles:index', id);

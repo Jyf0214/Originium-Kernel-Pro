@@ -1,24 +1,32 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { loadConfig, canAccess, hasDatabase, type AppConfig } from '@/lib/config';
-import { getDraft, saveDraft } from '@/lib/draft-storage';
+import { getDraft, saveDraft, deleteDraft } from '@/lib/draft-storage';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler, getParam } from '@/lib/api-handler';
-import { isRootRole, getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
-import { getFileFromGithub, updateFileInGithub, composeFileContent } from '@/lib/github';
+import { isRootRole, getSessionWithKeyId, requireApiKeyPermission, type getSession } from '@/lib/auth';
+import { getFileFromGithub, updateFileInGithub, deleteFileFromGithub, composeFileContent } from '@/lib/github';
 import { getEnvConfig } from '@/lib/env';
 import { getTranslate } from '@/i18n/translate';
+import { isValidPostSlug } from '@/lib/post-slug';
 
 const logger = createApiLogger('/api/articles/[id]');
 
 /**
  * API 密钥细粒度权限检查（文章读写）
  * Cookie 认证(浏览器)直接通过；密钥认证检查 posts_* 权限
+ * 返回 { session, error }：session 供公开 GET 路由识别登录态，error 非空时表示权限拒绝
  */
-async function requireArticlePerm(action: 'posts_read' | 'posts_write' | 'posts_delete'): Promise<NextResponse | null> {
+async function requireArticlePerm(action: 'posts_read' | 'posts_write' | 'posts_delete'): Promise<{
+  session: Awaited<ReturnType<typeof getSession>>;
+  error: NextResponse | null;
+}> {
   const authResult = await getSessionWithKeyId();
-  if (!authResult) return null;
-  return requireApiKeyPermission(authResult.session, authResult.currentKeyId, action);
+  if (!authResult) return { session: null, error: null };
+  return {
+    session: authResult.session,
+    error: await requireApiKeyPermission(authResult.session, authResult.currentKeyId, action),
+  };
 }
 
 /**
@@ -112,12 +120,13 @@ async function handleFileSystemLookup(
   });
 }
 
-export const GET = apiHandler('GET', { label: getTranslate('api.articles.fetchArticleDetail') }, async (req, context, session) => {
+export const GET = apiHandler('GET', { label: getTranslate('api.articles.fetchArticleDetail') }, async (req, context) => {
   const id = await getParam(context, 'id');
   logger.info('GET', '获取文章详情', { id });
-  // API 密钥认证的请求需 posts_read 权限
-  const denied = await requireArticlePerm('posts_read');
-  if (denied) return denied;
+  // session 在此自行获取：requireAuth 未开启时 apiHandler 不注入 session，
+  // 已发布文章公开可读，草稿详情仅作者/管理员可见（Cookie 或 API 密钥认证）
+  const { session, error } = await requireArticlePerm('posts_read');
+  if (error) return error;
   logger.info('GET', '读取文章详情', { id });
   const db = getDb();
 
@@ -125,7 +134,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.articles.fetchAr
   if (metaStr) {
     const meta = JSON.parse(metaStr) as Record<string, unknown>;
     if (meta.status === 'draft') {
-      // session 来自 apiHandler 注入（requireAuth=false 时为 undefined）
+      // session 来自 requireArticlePerm（未认证时为 null）
       if (!session || (meta.authorId !== session.uid && session.role !== 'admin' && !isRootRole(session.role))) {
         logger.warn('GET', '无权限查看草稿', { id, uid: session?.uid });
         return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
@@ -172,8 +181,8 @@ async function handlePublishArticle(
   db: ReturnType<typeof getDb>,
 ): Promise<NextResponse> {
   const postSlug = (body.slug as string) || (updated.slug as string) || `/${String(updated.authorName)}/${id}`;
-  // 路径穿越防护：拒绝含 .. 或 \ 的 slug
-  if (typeof postSlug !== 'string' || postSlug.includes('..') || postSlug.includes('\\')) {
+  // 路径穿越防护：与 POST 共用统一校验（拒绝 .. / 反斜杠 / 以 . 开头 / 双斜杠 / 尾斜杠）
+  if (!isValidPostSlug(postSlug)) {
     return NextResponse.json({ error: getTranslate('api.articles.invalidPath') }, { status: 400 });
   }
   const filePath = `posts${postSlug}.md`;
@@ -236,6 +245,8 @@ async function handleDraftSave(
   updated.content = '';
   await db.set(`article:data:${id}`, JSON.stringify(updated));
   await db.hset('articles:drafts', id, JSON.stringify(updated));
+  // 从回收站恢复后清理回收站索引，避免同一文章在列表与回收站重复出现
+  await db.hdel('articles:index', id);
 
   return NextResponse.json({ success: true });
 }
@@ -243,8 +254,8 @@ async function handleDraftSave(
 export const PATCH = apiHandler('PATCH', { label: getTranslate('api.articles.updateArticle'), requireAuth: true }, async (req, context, session) => {
   const id = await getParam(context, 'id');
   // API 密钥认证的请求需 posts_write 权限
-  const denied = await requireArticlePerm('posts_write');
-  if (denied) return denied;
+  const { error } = await requireArticlePerm('posts_write');
+  if (error) return error;
   const body = await req.json() as Record<string, unknown>;
   logger.info('PATCH', '更新文章', { id });
   const db = getDb();
@@ -295,11 +306,46 @@ async function moveToRecycleBin(
   return NextResponse.json({ success: true, message: getTranslate('api.articles.movedToRecycleBin') });
 }
 
+/** 永久删除文章（回收站内二次删除）：GitHub 文件 + 数据库记录 + 草稿内容 */
+async function permanentlyDeleteArticle(
+  id: string,
+  meta: Record<string, unknown>,
+  db: ReturnType<typeof getDb>,
+): Promise<NextResponse> {
+  // 删除 GitHub 上的文章文件（文件不存在视为已删除；网络/API 错误则报错保留记录以便重试）
+  if (meta.slug && typeof meta.slug === 'string') {
+    const env = getEnvConfig();
+    if (env.githubRepo && env.githubToken) {
+      try {
+        await deleteFileFromGithub(env.githubRepo, env.githubToken, `posts${meta.slug}.md`);
+      } catch (error: unknown) {
+        logger.error('DELETE', '删除 GitHub 文件失败', {
+          id, slug: meta.slug, error: error instanceof Error ? error.message : String(error),
+        });
+        return NextResponse.json({ error: getTranslate('api.articles.permanentDeleteFailed') }, { status: 500 });
+      }
+    }
+  }
+
+  await db.del(`article:data:${id}`);
+  await db.hdel('articles:index', id);
+  await db.hdel('articles:published', id);
+  await db.hdel('articles:drafts', id);
+  try {
+    await deleteDraft(id);
+  } catch (error: unknown) {
+    logger.warn('DELETE', '草稿内容清理失败', { id, error: error instanceof Error ? error.message : String(error) });
+  }
+
+  logger.info('DELETE', '文章已永久删除', { id });
+  return NextResponse.json({ success: true });
+}
+
 export const DELETE = apiHandler('DELETE', { label: getTranslate('api.articles.deleteArticle'), requireAuth: true }, async (req, context, session) => {
   const id = await getParam(context, 'id');
   // API 密钥认证的请求需 posts_delete 权限
-  const denied = await requireArticlePerm('posts_delete');
-  if (denied) return denied;
+  const { error } = await requireArticlePerm('posts_delete');
+  if (error) return error;
   logger.info('DELETE', '删除文章', { id });
   const db = getDb();
   const metaStr = await db.get(`article:data:${id}`);
@@ -343,6 +389,11 @@ export const DELETE = apiHandler('DELETE', { label: getTranslate('api.articles.d
   if (meta.authorId !== session!.uid && session!.role !== 'admin' && !isRootRole(session!.role)) {
     logger.warn('DELETE', '无权限', { id, authorId: meta.authorId, uid: session!.uid });
     return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
+  }
+
+  // 回收站内二次删除 = 永久删除（GitHub 文件 + 数据库记录）
+  if (meta.status === 'pending_deletion') {
+    return permanentlyDeleteArticle(id, meta, db);
   }
 
   return moveToRecycleBin(id, meta, db);

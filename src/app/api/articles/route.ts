@@ -11,17 +11,25 @@ import { updateFileInGithub, composeFileContent } from '@/lib/github';
 import { getEnvConfig } from '@/lib/env';
 import { rateLimit } from '@/lib/rate-limit';
 import { getTranslate } from '@/i18n/translate';
+import { isValidPostSlug } from '@/lib/post-slug';
 
 const logger = createApiLogger('/api/articles');
 
 /**
  * API 密钥细粒度权限检查（文章读写）
  * Cookie 认证(浏览器)直接通过；密钥认证检查 posts_* 权限
+ * 返回 { session, error }：session 供公开 GET 路由识别登录态，error 非空时表示权限拒绝
  */
-async function requireArticlePerm(action: 'posts_read' | 'posts_write' | 'posts_delete'): Promise<NextResponse | null> {
+async function requireArticlePerm(action: 'posts_read' | 'posts_write' | 'posts_delete'): Promise<{
+  session: Awaited<ReturnType<typeof getSession>>;
+  error: NextResponse | null;
+}> {
   const authResult = await getSessionWithKeyId();
-  if (!authResult) return null;
-  return requireApiKeyPermission(authResult.session, authResult.currentKeyId, action);
+  if (!authResult) return { session: null, error: null };
+  return {
+    session: authResult.session,
+    error: await requireApiKeyPermission(authResult.session, authResult.currentKeyId, action),
+  };
 }
 
 /**
@@ -84,11 +92,38 @@ async function loadDrafts(
   return drafts;
 }
 
-export const GET = apiHandler('GET', { label: getTranslate('api.articles.articleList'), requireAuth: false }, async (req, _ctx, session) => {
+/** 加载并过滤回收站文章（articles:index，仅已登录用户可查看） */
+async function loadRecycleBin(
+  session: Awaited<ReturnType<typeof getSession>>,
+  authorFilter: string | null,
+) {
+  if (!session) return [];
+  const db = getDb();
+  const index = await db.hgetall('articles:index');
+  const isAdmin = isRootRole(session.role) || session.role === 'admin';
+  const items: { id: string; [key: string]: unknown }[] = [];
+  for (const [id, data] of Object.entries(index)) {
+    try {
+      const meta = JSON.parse(data) as { authorId?: string; [key: string]: unknown };
+      if (isAdmin || meta.authorId === session.uid) {
+        items.push({ id, ...meta });
+      }
+    } catch {
+      logger.warn('loadRecycleBin', '跳过无法解析的回收站记录', { id });
+    }
+  }
+  if (authorFilter) {
+    return items.filter((d) => d.authorId === authorFilter);
+  }
+  return items;
+}
+
+export const GET = apiHandler('GET', { label: getTranslate('api.articles.articleList'), requireAuth: false }, async (req) => {
   logger.info('GET', '获取文章列表');
-  // API 密钥认证的请求需 posts_read 权限（未认证请求不受限）
-  const denied = await requireArticlePerm('posts_read');
-  if (denied) return denied;
+  // session 在此自行获取：requireAuth=false 时 apiHandler 不注入 session，
+  // 已发布文章公开可读，草稿/回收站仅登录用户（Cookie 或 API 密钥）可见
+  const { session, error } = await requireArticlePerm('posts_read');
+  if (error) return error;
 
   // 读取查询参数
   const authorFilter = req.nextUrl.searchParams.get('author');
@@ -106,11 +141,14 @@ export const GET = apiHandler('GET', { label: getTranslate('api.articles.article
 
   // 草稿：仅已登录用户可查看，非 admin/root 只能看到自己的草稿
   const drafts = isAuthenticated ? await loadDrafts(session, authorFilter) : [];
+  // 回收站：仅已登录用户可查看，非 admin/root 只能看到自己的回收站文章
+  const recycleBin = isAuthenticated ? await loadRecycleBin(session, authorFilter) : [];
 
   // 合并，按日期降序
   const all = [
     ...published,
     ...drafts.map((d) => ({ ...d, status: 'draft' })),
+    ...recycleBin,
   ].sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
     const dateA = a.date ? new Date(a.date as string).getTime() : 0;
     const dateB = b.date ? new Date(b.date as string).getTime() : 0;
@@ -197,15 +235,10 @@ async function handlePublishedPost(
   return NextResponse.json({ success: true, id: articleMeta.id, slug: postSlug });
 }
 
-/** 校验 slug 是否含非法字符（路径穿越防护），合法返回 true */
-function isValidSlugChars(slug: string | undefined): boolean {
-  return !slug || (!slug.includes('..') && !slug.includes('/') && !slug.startsWith('.'));
-}
-
 export const POST = apiHandler('POST', { label: getTranslate('api.articles.createArticle'), requireAuth: true }, async (req, _ctx, session) => {
   // API 密钥认证的请求需 posts_write 权限
-  const denied = await requireArticlePerm('posts_write');
-  if (denied) return denied;
+  const { error } = await requireArticlePerm('posts_write');
+  if (error) return error;
 
   const rl = rateLimit(`${session!.uid}:articles-write`, 20, 60 * 1000);
   if (!rl.allowed) {
@@ -232,7 +265,7 @@ export const POST = apiHandler('POST', { label: getTranslate('api.articles.creat
     updatedAt: now,
   };
 
-  if (!isValidSlugChars(slug)) {
+  if (!isValidPostSlug(slug)) {
     return NextResponse.json({ error: getTranslate('api.articles.invalidSlugChars') }, { status: 400 });
   }
 
