@@ -63,10 +63,10 @@ async function main() {
   if (databaseUrl) {
     let finalUrl = databaseUrl
     if (databaseUrl.startsWith('postgres')) {
-      // 替换或添加 sslmode=no-verify：云数据库自签名证书在 CI 环境不被信任
-      if (databaseUrl.includes('sslmode=')) {
-        finalUrl = databaseUrl.replace(/sslmode=[^&]*/, 'sslmode=no-verify')
-      } else {
+      // 仅在未显式指定 sslmode 时添加 sslmode=no-verify：
+      // 云数据库自签名证书在 CI 环境不被信任，但用户显式配置的 sslmode（如 disable）必须被尊重，
+      // 与 lib/db.ts 保持一致，避免本地无 SSL 实例连接失败
+      if (!databaseUrl.includes('sslmode=')) {
         const separator = databaseUrl.includes('?') ? '&' : '?'
         finalUrl = `${databaseUrl}${separator}sslmode=no-verify`
       }

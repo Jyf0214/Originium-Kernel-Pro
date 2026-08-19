@@ -8,7 +8,7 @@
  * 4. 如果为空 → 使用 avatar/ 中已有的头像文件
  * 5. 最终将 avatar/avatar.jpg 复制到 public/avatar.jpg 供前端使用
  */
-import { readFileSync, writeFileSync, copyFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, copyFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, extname } from 'node:path';
 
@@ -48,8 +48,8 @@ function copyToPublic(source) {
     mkdirSync(PUBLIC_DIR, { recursive: true });
   }
   copyFileSync(source, PUBLIC_OUTPUT);
-  const stat = readFileSync(PUBLIC_OUTPUT);
-  console.log(`[avatar] 已复制到 public/avatar.jpg (${stat.length} bytes)`);
+  const stat = statSync(PUBLIC_OUTPUT);
+  console.log(`[avatar] 已复制到 public/avatar.jpg (${stat.size} bytes)`);
 }
 
 // === 主流程 ===
@@ -62,6 +62,8 @@ if (url) {
       const res = await fetch(url, {
         headers: { 'User-Agent': 'OriginiumKernel/1.0' },
         redirect: 'follow',
+        // 15 秒超时：网络黑洞/DNS 挂起时快速失败走回退，避免构建无限期阻塞
+        signal: AbortSignal.timeout(15000),
       });
       if (!res.ok) {
         console.error(`[avatar] 下载失败: HTTP ${res.status} ${res.statusText}`);

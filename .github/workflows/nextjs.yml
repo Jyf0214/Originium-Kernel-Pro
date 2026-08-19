@@ -65,7 +65,10 @@ jobs:
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
       - name: Generate static data
-        run: node scripts/generate-navigation.mjs && node scripts/generate-pwa.mjs && node scripts/generate-site-config-ts.mjs && node scripts/generate-version.mjs
+        # 与本地 prebuild（download-avatar/generate-favicon/generate-navigation/generate-pwa/generate-site-config-ts）
+        # 及 build（generate-search-index/generate-tags/generate-version）保持一致，
+        # 否则 CI 产物缺失 avatar/favicon/搜索索引/标签数据
+        run: node scripts/download-avatar.mjs && node scripts/generate-favicon.mjs && node scripts/generate-navigation.mjs && node scripts/generate-pwa.mjs && node scripts/generate-site-config-ts.mjs && node scripts/generate-version.mjs && node scripts/generate-search-index.mjs && node scripts/generate-tags.mjs
       - name: Remove configure-pages generated next.config.js
         # configure-pages 会创建 CommonJS 格式的 next.config.js（module.exports），
         # 与 package.json 的 "type": "module" 冲突导致加载失败；
@@ -80,6 +83,8 @@ jobs:
         env:
           NEXT_STATIC_EXPORT: 'true'
           NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          # 静态导出构建期解析站点 URL（canonical/JSON-LD/feed），缺省会生成 example.com 占位
+          APP_URL: https://${{ github.repository_owner }}.github.io${{ steps.pages.outputs.base_path }}
       - name: Stamp SW cache version
         run: |
           HASH=$(echo "${{ github.sha }}" | cut -c1-7)
