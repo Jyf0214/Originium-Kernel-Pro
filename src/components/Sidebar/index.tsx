@@ -129,10 +129,12 @@ function Sidebar({ isOpen, onClose, databaseConfigured = true }: SidebarProps) {
 
   return (
     <>
-      {/* 桌面端侧栏：折叠/展开宽度切换 + 宽度过渡动画 */}
+      {/* 桌面端侧栏：折叠/展开宽度切换 + 阴影强度过渡（展开轻阴影、折叠深阴影悬浮感） */}
       <div
-        className={`hidden md:flex max-h-screen overflow-y-auto z-[100] bg-white dark:bg-zinc-900 flex-col transition-[width] duration-200 ease-in-out ${
-          hydrated && collapsed ? 'w-[68px]' : 'w-[280px]'
+        className={`hidden md:flex max-h-screen overflow-y-auto z-[100] bg-white dark:bg-zinc-900 flex-col transition-[width,box-shadow] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+          hydrated && collapsed
+            ? 'w-[68px] shadow-[12px_0_24px_-12px_rgba(0,0,0,0.2)] dark:shadow-[12px_0_24px_-12px_rgba(0,0,0,0.5)]'
+            : 'w-[280px] shadow-[6px_0_12px_-10px_rgba(0,0,0,0.08)] dark:shadow-[6px_0_12px_-10px_rgba(0,0,0,0.25)]'
         }`}
       >
         {renderContent(false, hydrated && collapsed)}
@@ -143,16 +145,21 @@ function Sidebar({ isOpen, onClose, databaseConfigured = true }: SidebarProps) {
       {typeof document !== 'undefined' &&
         createPortal(
           <>
-            {isOpen && (
-              <div
-                className="md:hidden fixed inset-0 bg-zinc-900/40 backdrop-blur-md z-[998] transition-opacity duration-300"
-                aria-hidden="true"
-                onClick={onClose}
-              />
-            )}
+            {/* 遮罩：保持挂载才能让 opacity 过渡生效（淡入淡出），与 Navbar 抽屉同一模式 */}
+            <div
+              className={`md:hidden fixed inset-0 bg-zinc-900/40 backdrop-blur-md z-[998] transition-opacity duration-300 ${
+                isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
+              aria-hidden="true"
+              onClick={onClose}
+            />
             <div
               id="primary-sidebar"
-              className="md:hidden fixed top-0 h-screen w-[300px] max-w-[85vw] overflow-y-auto z-[999] bg-white dark:bg-zinc-900 shadow-[20px_0_60px_-15px_rgba(0,0,0,0.3)] transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+              className={`md:hidden fixed top-0 h-screen w-[300px] max-w-[85vw] overflow-y-auto z-[999] bg-white dark:bg-zinc-900 transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                isOpen
+                  ? 'shadow-[16px_0_40px_-12px_rgba(0,0,0,0.22)] dark:shadow-[16px_0_40px_-12px_rgba(0,0,0,0.45)]'
+                  : 'shadow-none'
+              }`}
               style={{ left: 0, transform: isOpen ? 'translateX(0)' : 'translateX(-100%)' }}
             >
               {renderContent(true)}
