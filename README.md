@@ -47,9 +47,6 @@
 | 变量名 | 描述 | 必需 | 默认值 |
 |--------|------|------|--------|
 | `DATABASE_URL` | PostgreSQL 数据库连接字符串 | 是 | - |
-| `POSTGRES_URL` | PostgreSQL 连接地址（备选） | 否 | - |
-| `POSTGRES_PRISMA_URL` | PostgreSQL Prisma 专用连接地址 | 否 | - |
-| `POSTGRES_URL_NON_POOLING` | PostgreSQL 非连接池地址 | 否 | - |
 | `AUTH_SECRET` | JWT 签名密钥（至少 32 字符） | 是 | - |
 | `ADMIN_EMAIL` | 初始管理员邮箱 | 否 | - |
 | `ADMIN_PASSWORD` | 初始管理员密码 | 否 | - |

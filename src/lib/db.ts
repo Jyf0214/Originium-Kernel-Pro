@@ -11,12 +11,7 @@ process.env.PRISMA_HIDE_UPDATE_MESSAGE = 'true'
 
 // 获取数据库 URL
 function getDatabaseUrl(): string | undefined {
-  return (
-    process.env.DATABASE_URL ??
-    process.env.POSTGRES_URL ??
-    process.env.POSTGRES_PRISMA_URL ??
-    process.env.POSTGRES_URL_NON_POOLING
-  )
+  return process.env.DATABASE_URL
 }
 
 /**

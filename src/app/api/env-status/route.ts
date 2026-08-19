@@ -27,24 +27,6 @@ export const GET = apiHandler('GET', { label: getTranslate('api.envStatus.fetchS
           required: true,
           descriptionKey: 'env.vars.database.DATABASE_URL',
         },
-        {
-          name: 'POSTGRES_URL',
-          isSet: !!process.env.POSTGRES_URL,
-          required: false,
-          descriptionKey: 'env.vars.database.POSTGRES_URL',
-        },
-        {
-          name: 'POSTGRES_PRISMA_URL',
-          isSet: !!process.env.POSTGRES_PRISMA_URL,
-          required: false,
-          descriptionKey: 'env.vars.database.POSTGRES_PRISMA_URL',
-        },
-        {
-          name: 'POSTGRES_URL_NON_POOLING',
-          isSet: !!process.env.POSTGRES_URL_NON_POOLING,
-          required: false,
-          descriptionKey: 'env.vars.database.POSTGRES_URL_NON_POOLING',
-        },
       ],
     },
     auth: {

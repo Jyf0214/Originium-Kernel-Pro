@@ -40,16 +40,6 @@ export function FeatureDisabledView({ feature }: FeatureDisabledViewProps) {
               </code>
               <span className="ml-2 text-zinc-500">{getTranslate('components.FeatureDisabledView.recommended')}</span>
             </li>
-            <li>
-              <code className="rounded bg-white dark:bg-zinc-900 px-1.5 py-0.5 font-mono text-xs text-zinc-800 dark:text-zinc-200">
-                POSTGRES_URL
-              </code>
-            </li>
-            <li>
-              <code className="rounded bg-white dark:bg-zinc-900 px-1.5 py-0.5 font-mono text-xs text-zinc-800 dark:text-zinc-200">
-                POSTGRES_PRISMA_URL
-              </code>
-            </li>
           </ul>
         </div>
 

@@ -47,11 +47,7 @@ function isLegacyPassword(password) {
 }
 
 async function main() {
-  const databaseUrl = 
-    process.env.DATABASE_URL ||
-    process.env.POSTGRES_URL ||
-    process.env.POSTGRES_PRISMA_URL ||
-    process.env.POSTGRES_URL_NON_POOLING;
+  const databaseUrl = process.env.DATABASE_URL;
   
   if (process.env.SKIP_DB_INIT === 'true' || process.env.SKIP_DB_INIT === '1') {
     console.log(`[数据库初始化] SKIP_DB_INIT=${process.env.SKIP_DB_INIT}，跳过初始化`);
@@ -125,7 +121,7 @@ async function main() {
     const { PrismaClient } = await import('../prisma/generated/prisma/client')
     const { PrismaPg } = await import('@prisma/adapter-pg')
 
-    const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING
+    const databaseUrl = process.env.DATABASE_URL
     let prisma
     if (databaseUrl) {
       const adapter = new PrismaPg({ connectionString: databaseUrl })

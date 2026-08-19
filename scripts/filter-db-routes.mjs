@@ -125,12 +125,7 @@ const GITHUB_PAGES_REMOVE_PATHS = [
 ];
 
 function hasDatabase() {
-  return !!(
-    process.env.DATABASE_URL ??
-    process.env.POSTGRES_URL ??
-    process.env.POSTGRES_PRISMA_URL ??
-    process.env.POSTGRES_URL_NON_POOLING
-  );
+  return !!process.env.DATABASE_URL;
 }
 
 function isGitHubPages() {

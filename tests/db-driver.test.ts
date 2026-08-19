@@ -74,44 +74,16 @@ describe('hasDatabase()', () => {
     expect(hasDatabase()).toBe(true)
   })
 
-  test('有 POSTGRES_URL 时返回 true', async () => {
-    const { hasDatabase } = await importDbWithEnv({
-      DATABASE_URL: undefined,
-      POSTGRES_URL: 'postgres://localhost/test',
-    })
-    expect(hasDatabase()).toBe(true)
-  })
-
-  test('有 POSTGRES_PRISMA_URL 时返回 true', async () => {
-    const { hasDatabase } = await importDbWithEnv({
-      DATABASE_URL: undefined,
-      POSTGRES_PRISMA_URL: 'postgres://localhost/test',
-    })
-    expect(hasDatabase()).toBe(true)
-  })
-
-  test('有 POSTGRES_URL_NON_POOLING 时返回 true', async () => {
-    const { hasDatabase } = await importDbWithEnv({
-      DATABASE_URL: undefined,
-      POSTGRES_URL_NON_POOLING: 'postgres://localhost/test',
-    })
-    expect(hasDatabase()).toBe(true)
-  })
-
   test('无任何数据库 URL 时返回 false', async () => {
     const { hasDatabase } = await importDbWithEnv({
       DATABASE_URL: undefined,
-      POSTGRES_URL: undefined,
-      POSTGRES_PRISMA_URL: undefined,
-      POSTGRES_URL_NON_POOLING: undefined,
     })
     expect(hasDatabase()).toBe(false)
   })
 
-  test('DATABASE_URL 优先于 POSTGRES_URL', async () => {
+  test('仅 DATABASE_URL 决定 hasDatabase 结果', async () => {
     const { hasDatabase } = await importDbWithEnv({
       DATABASE_URL: 'postgres://primary/test',
-      POSTGRES_URL: 'postgres://secondary/test',
     })
     expect(hasDatabase()).toBe(true)
   })
@@ -344,9 +316,6 @@ describe('PrismaDriver 无数据库环境', () => {
     process.env = {
       ...savedEnv,
       DATABASE_URL: undefined,
-      POSTGRES_URL: undefined,
-      POSTGRES_PRISMA_URL: undefined,
-      POSTGRES_URL_NON_POOLING: undefined,
     }
     resetDbModules()
     mocks._PrismaClient.mockImplementation(function () { return createMockPrisma() })
@@ -531,9 +500,6 @@ describe('PrismaClient URL 处理', () => {
     process.env = {
       ...savedEnv,
       DATABASE_URL: undefined,
-      POSTGRES_URL: undefined,
-      POSTGRES_PRISMA_URL: undefined,
-      POSTGRES_URL_NON_POOLING: undefined,
     }
     resetDbModules()
     mocks._PrismaPg.mockImplementation(function (opts: { connectionString: string }) { return { connectionString: opts.connectionString } })

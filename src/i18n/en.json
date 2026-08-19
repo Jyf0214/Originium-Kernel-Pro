@@ -238,7 +238,7 @@
     "groups": {
       "database": {
         "name": "Database",
-        "desc": "PostgreSQL connection. At least one of DATABASE_URL or any POSTGRES_* variant must be set."
+        "desc": "PostgreSQL connection. Uses DATABASE_URL as the single connection entry point."
       },
       "auth": {
         "name": "Authentication",
@@ -279,10 +279,7 @@
     },
     "vars": {
       "database": {
-        "DATABASE_URL": "Primary PostgreSQL connection string used by Prisma at runtime and during migrations.",
-        "POSTGRES_URL": "Vercel Postgres pooled connection (auto-injected by Vercel when Vercel Postgres is provisioned).",
-        "POSTGRES_PRISMA_URL": "Vercel Postgres Prisma-optimized connection URL (auto-injected by Vercel).",
-        "POSTGRES_URL_NON_POOLING": "Vercel Postgres direct / non-pooled connection URL (auto-injected by Vercel, used for migrations)."
+        "DATABASE_URL": "Primary PostgreSQL connection string used by Prisma at runtime and during migrations."
       },
       "auth": {
         "AUTH_SECRET": "Secret used to sign JWT session tokens. Must be at least 32 characters; rotate to invalidate all existing sessions."

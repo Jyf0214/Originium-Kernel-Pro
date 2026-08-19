@@ -8,12 +8,7 @@ import { jwtVerify } from 'jose';
  * 仅使用 process.env，可在 Proxy / Edge Runtime 中安全运行。
  */
 function hasDatabase(): boolean {
-  return !!(
-    process.env.DATABASE_URL ??
-    process.env.POSTGRES_URL ??
-    process.env.POSTGRES_PRISMA_URL ??
-    process.env.POSTGRES_URL_NON_POOLING
-  );
+  return !!process.env.DATABASE_URL;
 }
 
 /** 无数据库时需要拦截的路径前缀 */
