@@ -82,12 +82,17 @@ function scanFiles(dir, baseDir, parentPublic) {
       // 权限过滤：private/hidden 文章不入索引（对齐 filterPublicFiles）
       if (data.public === false || data.hidden === true) continue;
 
+      // 加密文章（frontmatter 含 password 字段）：正文为密文，
+      // 不入索引（密文无搜索匹配价值，且避免密文随索引外泄），
+      // 标题/描述/标签仍可被搜索到（与列表页可见性一致）
+      const isEncrypted = typeof data.password === 'string' && data.password !== '';
+
       results.push({
         slug,
         title: String(data.title ?? ''),
         description: String(data.description ?? ''),
         tags: Array.isArray(data.tags) ? data.tags : [],
-        content: content.slice(0, CONTENT_SNIPPET_MAX),
+        content: isEncrypted ? '' : content.slice(0, CONTENT_SNIPPET_MAX),
       });
     }
   }

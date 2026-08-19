@@ -167,7 +167,7 @@ const nextConfig: NextConfig = {
       };
     }
 
-    // 生产环境: 移除 console 语句减小 bundle 体积
+    // 生产环境: 移除 console 语句减小 bundle 体积（保留 error/warn 便于线上排查）
     if (!dev && Array.isArray(config.optimization?.minimizer)) {
       for (const plugin of config.optimization.minimizer) {
         if (!plugin?.options) continue;
@@ -178,7 +178,8 @@ const nextConfig: NextConfig = {
           ...(terserOptions ?? {}),
           compress: {
             ...((terserOptions?.['compress'] as Record<string, unknown>) ?? {}),
-            drop_console: true,
+            drop_console: false,
+            pure_funcs: ['console.log', 'console.info', 'console.debug'],
           },
         };
       }
