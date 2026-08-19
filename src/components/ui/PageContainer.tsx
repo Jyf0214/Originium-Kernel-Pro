@@ -17,7 +17,8 @@ const maxWidthMap: Record<string, string> = {
 
 const paddingMap: Record<string, string> = {
   compact: 'px-4 sm:px-6 py-6 sm:py-10',
-  default: 'px-4 sm:p-6 md:p-10',
+  // 移动端必须自带垂直 padding：dashboard 布局中 TopHeader 下方的 main 无 padding
+  default: 'px-4 py-6 sm:p-6 md:p-10',
   wide: 'px-4 sm:px-6 py-12 md:py-20',
 };
 
