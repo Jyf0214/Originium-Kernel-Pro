@@ -45,6 +45,7 @@ export function EditFaceFormActions({
             variant="danger"
             icon={<Trash2 size={16} />}
             loading={deleting}
+            disabled={submitting}
             className="h-10 px-6 rounded-xl"
           >
             {t('common.delete')}
@@ -58,6 +59,7 @@ export function EditFaceFormActions({
           type="submit"
           icon={<Save size={16} />}
           loading={submitting}
+          disabled={deleting}
         >
           {t('common.save')}
         </Button>

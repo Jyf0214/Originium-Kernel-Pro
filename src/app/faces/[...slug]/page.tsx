@@ -152,6 +152,7 @@ export default function FaceDetailPage() {
 
   const [file, setFile] = React.useState<ContentFile | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [loadFailed, setLoadFailed] = React.useState(false);
   const [showRaw, setShowRaw] = React.useState(false);
   const [rawContent, setRawContent] = React.useState('');
 
@@ -167,9 +168,13 @@ export default function FaceDetailPage() {
           }
         } else if (res.status === 404) {
           setFile(null);
+        } else {
+          // 其它错误状态（500/403 等）：明确提示，不伪装成"页面不存在"
+          setLoadFailed(true);
         }
       } catch (err) {
         console.error('Failed to fetch face details:', err);
+        setLoadFailed(true);
         showError(t('faces.detailLoadFailed'));
       } finally {
         setLoading(false);
@@ -179,6 +184,21 @@ export default function FaceDetailPage() {
   }, [fullPath, t]);
 
   if (loading) return <LoadingView />;
+  if (loadFailed) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-zinc-50 dark:bg-zinc-900 text-center px-4">
+        <div className="w-14 h-14 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
+          <ArrowLeft size={24} className="text-red-400 rotate-180" />
+        </div>
+        <div>
+          <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">{t('faces.detailLoadFailed')}</p>
+          <Link href="/faces" className="mt-3 inline-block text-sm text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
+            {t('faces.backToFaces')}
+          </Link>
+        </div>
+      </div>
+    );
+  }
   if (!file) notFound();
 
   return (

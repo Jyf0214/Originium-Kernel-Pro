@@ -42,6 +42,8 @@ export const TocItem = React.memo(function TocItem({
               onClick={(e) => {
                 e.preventDefault();
                 document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
+                // 同步 URL hash：支持分享带锚点链接，浏览器后退/前进可回到锚点
+                history.replaceState(null, '', `#${item.id}`);
                 onLinkClick?.();
               }}
               className={`

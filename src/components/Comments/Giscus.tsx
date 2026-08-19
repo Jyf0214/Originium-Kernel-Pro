@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useThemeMode } from '@/hooks/use-theme-mode';
 
 export interface GiscusProps {
   /** 文章 slug（用于未来切换 data-mapping='specific' 时定位讨论） */
@@ -37,6 +38,10 @@ function readGiscusConfig() {
 export function Giscus({ slug }: GiscusProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const config = readGiscusConfig();
+  const { isDark } = useThemeMode();
+  // 实时主题：注入脚本 / 切换 iframe 主题时读取，避免 effect 依赖重注入
+  const themeRef = useRef<'light' | 'dark'>(isDark ? 'dark' : 'light');
+  themeRef.current = isDark ? 'dark' : 'light';
 
   // feature flag：四个变量必须都存在才加载 Giscus 客户端脚本
   const enabled =
@@ -68,7 +73,7 @@ export function Giscus({ slug }: GiscusProps) {
     script.setAttribute('data-reactions-enabled', '1');
     script.setAttribute('data-emit-metadata', '0');
     script.setAttribute('data-input-position', 'top');
-    script.setAttribute('data-theme', 'light');
+    script.setAttribute('data-theme', themeRef.current);
     script.setAttribute('data-lang', 'zh-CN');
 
     container.appendChild(script);
@@ -78,6 +83,17 @@ export function Giscus({ slug }: GiscusProps) {
       container.querySelectorAll('iframe').forEach(f => f.remove());
     };
   }, [enabled, config.repo, config.repoId, config.category, config.categoryId]);
+
+  // 主题切换后实时同步到已加载的 giscus iframe（官方 postMessage 协议）
+  useEffect(() => {
+    if (!enabled) return;
+    const iframe = containerRef.current?.querySelector<HTMLIFrameElement>('iframe.giscus-frame');
+    if (!iframe?.contentWindow) return;
+    iframe.contentWindow.postMessage(
+      { giscus: { setTheme: isDark ? 'dark' : 'light' } },
+      'https://github.com',
+    );
+  }, [enabled, isDark]);
 
   if (!enabled) {
     return null;

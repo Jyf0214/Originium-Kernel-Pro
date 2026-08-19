@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { List, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -8,6 +9,7 @@ import { TOC, buildTree, TocItem, useTocActive, extractHeadings } from '@/compon
 import { Hitokoto } from '@/components/Hitokoto';
 import { useAvailableWidth } from '@/hooks/use-available-width';
 import { useI18n } from '@/hooks/use-i18n';
+import { useInertBackground } from '@/hooks/use-inert-background';
 
 interface PostSidebarConfig {
   content: string;
@@ -34,6 +36,9 @@ function MobileTocDrawer({
   const headings = useMemo(() => extractHeadings(content), [content]);
   const tree = useMemo(() => buildTree(headings), [headings]);
   const activeId = useTocActive(headings);
+  const portalRef = useRef<HTMLDivElement>(null);
+  // 抽屉挂载期间背景置 inert，避免键盘焦点落入背景（聚焦陷阱）
+  useInertBackground(true, portalRef);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -53,51 +58,55 @@ function MobileTocDrawer({
   }, [onClose]);
 
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <motion.div
-        initial={{ x: '100%' }}
-        animate={{ x: 0 }}
-        exit={{ x: '100%' }}
-        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-        className="fixed top-0 right-0 bottom-0 w-[min(50vw,20rem)] z-50 bg-white dark:bg-zinc-900 shadow-2xl flex flex-col"
-      >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
-          <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
-            {t('posts.toc')}
-          </h4>
-          <Button
-            variant="ghost"
-            size="sm"
-            iconOnly
-            autoLoading={false}
-            onClick={onClose}
-            className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
-            aria-label={t('posts.closeToc')}
-            icon={<X size={16} />}
-          />
-        </div>
-        <div className="flex-1 overflow-y-auto px-4 py-3">
-          <TocItem
-            items={tree}
-            activeId={activeId}
-            numbering={number}
-            onLinkClick={handleLinkClick}
-          />
-        </div>
-        <div className="px-4 py-3 border-t border-zinc-100 dark:border-zinc-800 shrink-0">
-          <Hitokoto />
-        </div>
-      </motion.div>
-    </>
+    typeof document !== 'undefined' &&
+    createPortal(
+      <div ref={portalRef}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+        <motion.div
+          initial={{ x: '100%' }}
+          animate={{ x: 0 }}
+          exit={{ x: '100%' }}
+          transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+          className="fixed top-0 right-0 bottom-0 w-[min(50vw,20rem)] z-50 bg-white dark:bg-zinc-900 shadow-2xl flex flex-col"
+        >
+          <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
+              {t('posts.toc')}
+            </h4>
+            <Button
+              variant="ghost"
+              size="sm"
+              iconOnly
+              autoLoading={false}
+              onClick={onClose}
+              className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+              aria-label={t('posts.closeToc')}
+              icon={<X size={16} />}
+            />
+          </div>
+          <div className="flex-1 overflow-y-auto px-4 py-3">
+            <TocItem
+              items={tree}
+              activeId={activeId}
+              numbering={number}
+              onLinkClick={handleLinkClick}
+            />
+          </div>
+          <div className="px-4 py-3 border-t border-zinc-100 dark:border-zinc-800 shrink-0">
+            <Hitokoto />
+          </div>
+        </motion.div>
+      </div>,
+      document.body,
+    )
   );
 }
 
