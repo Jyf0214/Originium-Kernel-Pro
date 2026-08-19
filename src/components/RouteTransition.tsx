@@ -92,6 +92,7 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
       <AnimatePresence mode="wait">
         <motion.div
           key={key}
+          className="min-h-full"
           initial={mounted ? { opacity: 0, y: 6 } : false}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}

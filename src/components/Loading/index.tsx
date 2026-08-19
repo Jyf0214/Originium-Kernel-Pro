@@ -195,7 +195,7 @@ export function GlobalLoading(props: GlobalLoadingProps) {
   }, [sloganList]);
 
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="min-h-full w-full flex flex-col items-center justify-center gap-6">
       <LoadingRenderer finalType={resolved.type} finalColor={resolved.color} finalPosition={resolved.position} size={size} tip={tip} />
       {slogan && (
         <p className="text-sm text-zinc-400 select-none animate-pulse">
