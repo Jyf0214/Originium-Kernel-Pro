@@ -211,6 +211,15 @@ pre:hover .code-copy-btn {
   border-radius: 4px;
 }
 
+/* 输入类控件排除全局 outline：antd 自带 focus 边框，避免叠加出输入框外圈的粗黑框 */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role='combobox']:focus-visible,
+[contenteditable='true']:focus-visible {
+  outline: none;
+}
+
 /* 跳过链接动画 */
 .skip-link:focus {
   transform: translateY(0);
