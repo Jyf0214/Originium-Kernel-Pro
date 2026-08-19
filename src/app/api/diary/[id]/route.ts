@@ -7,6 +7,7 @@ import { encryptContent, decryptContent } from '@/lib/diary-crypto';
 import { saveDiaryVersion } from '@/lib/diary-version';
 import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { isScheduledPending } from '@/lib/diary-schedule';
+import { validateDiaryInput } from '@/lib/diary-input';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/diary/[id]');
@@ -51,10 +52,12 @@ export const PUT = apiHandler('PUT', { label: getTranslate('api.diary.updateDiar
   if (denied) return denied;
 
   const id = await getParam(context, 'id');
-  const { title, content, tags, date, group, references, scheduledAt } = await req.json();
-  if (!title || !content) {
-    return NextResponse.json({ error: getTranslate('api.diary.titleAndContentRequired') }, { status: 400 });
+  const body = await req.json() as Record<string, unknown>;
+  const validation = validateDiaryInput(body);
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
   }
+  const { title, content, tags, date, group, scheduledAt, references } = validation.value;
 
   const existing = await prisma.diary.findUnique({ where: { id } });
   if (!existing) {
@@ -63,25 +66,25 @@ export const PUT = apiHandler('PUT', { label: getTranslate('api.diary.updateDiar
 
   const encrypted = await encryptContent(content);
 
-  // 设置了定时发布时间 → 状态为 draft，否则为 published
-  const isScheduled = scheduledAt && new Date(scheduledAt) > new Date();
+  // 设置了定时发布时间 → 状态为 draft，否则为 published（非法时间已在校验层拦截）
+  const isScheduled = scheduledAt !== undefined && scheduledAt.getTime() > Date.now();
 
   const diary = await prisma.diary.update({
     where: { id },
     data: {
       title,
       content: encrypted,
-      tags: tags ?? [],
-      group: group ?? null,
-      references: references ?? [],
-      date: date ? new Date(date) : undefined,
+      tags,
+      group,
+      references,
+      date,
       status: isScheduled ? 'draft' : 'published',
-      scheduledAt: isScheduled ? new Date(scheduledAt) : null,
+      scheduledAt: isScheduled ? scheduledAt : null,
     },
   });
 
   // 更新成功后再保存版本快照，避免 update 失败时产生幽灵版本
-  await saveDiaryVersion(id, content, title, tags ?? []);
+  await saveDiaryVersion(id, content, title, tags);
 
   logger.info('PUT', '更新日记成功', { id, title, scheduled: isScheduled });
   return NextResponse.json({ diary });

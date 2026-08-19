@@ -7,6 +7,7 @@ import { encryptContent } from '@/lib/diary-crypto';
 import { saveDiaryVersion } from '@/lib/diary-version';
 import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { scheduledFilter } from '@/lib/diary-schedule';
+import { validateDiaryInput } from '@/lib/diary-input';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/diary');
@@ -96,32 +97,33 @@ export const POST = apiHandler('POST', { label: getTranslate('api.diary.createDi
   const denied = await requireDiaryPerm('posts_write');
   if (denied) return denied;
 
-  const { title, content, tags, date, group, references: rawRefs, scheduledAt } = await req.json();
-  const references = Array.isArray(rawRefs) ? rawRefs : [];
-  if (!title || !content) {
-    return NextResponse.json({ error: getTranslate('api.diary.titleAndContentRequired') }, { status: 400 });
+  const body = await req.json() as Record<string, unknown>;
+  const validation = validateDiaryInput(body);
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
   }
+  const { title, content, tags, date, group, scheduledAt, references } = validation.value;
 
   const encrypted = await encryptContent(content);
 
-  // 设置了定时发布时间 → 状态为 draft，否则为 published
-  const isScheduled = scheduledAt && new Date(scheduledAt) > new Date();
+  // 设置了定时发布时间 → 状态为 draft，否则为 published（非法时间已在校验层拦截）
+  const isScheduled = scheduledAt !== undefined && scheduledAt.getTime() > Date.now();
 
   const diary = await prisma.diary.create({
     data: {
       title,
       content: encrypted,
-      tags: tags ?? [],
-      group: group ?? null,
+      tags,
+      group,
       references,
-      date: date ? new Date(date) : undefined,
+      date,
       status: isScheduled ? 'draft' : 'published',
-      scheduledAt: isScheduled ? new Date(scheduledAt) : null,
+      scheduledAt: isScheduled ? scheduledAt : null,
     },
   });
 
   // 保存初始版本快照（加密前明文）
-  await saveDiaryVersion(diary.id, content, title, tags ?? []);
+  await saveDiaryVersion(diary.id, content, title, tags);
 
   logger.info('POST', '创建日记成功', { id: diary.id, title, scheduled: isScheduled });
   return NextResponse.json({ diary }, { status: 201 });

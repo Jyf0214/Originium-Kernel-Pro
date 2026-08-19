@@ -6,6 +6,9 @@ import { safeGetItem, safeSetItem, safeRemoveItem } from '@/lib/local-storage';
 /** 草稿每 2 秒自动保存的防抖间隔 */
 const AUTOSAVE_DEBOUNCE_MS = 2000;
 
+/** 本地草稿最长保留 7 天，过期自动清理，避免明文内容无限滞留 localStorage */
+const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
 const LS_KEY_PREFIX = 'diary:draft:';
 
 interface DraftData {
@@ -21,14 +24,22 @@ function loadLocalDraft(id: string): DraftData | null {
   const raw = safeGetItem(LS_KEY_PREFIX + id);
   if (!raw) return null;
   try {
-    return JSON.parse(raw);
+    const data = JSON.parse(raw) as DraftData;
+    // 过期草稿直接清理（无 savedAt 的旧格式数据同样视为过期）
+    if (!data.savedAt || Date.now() - new Date(data.savedAt).getTime() > DRAFT_TTL_MS) {
+      removeLocalDraft(id);
+      return null;
+    }
+    return data;
   } catch {
+    // 损坏数据同样清理，避免滞留
+    removeLocalDraft(id);
     return null;
   }
 }
 
 function saveLocalDraft(id: string, data: DraftData): void {
-  safeSetItem(LS_KEY_PREFIX + id, JSON.stringify(data));
+  safeSetItem(LS_KEY_PREFIX + id, JSON.stringify({ ...data, savedAt: new Date().toISOString() }));
 }
 
 function removeLocalDraft(id: string): void {
