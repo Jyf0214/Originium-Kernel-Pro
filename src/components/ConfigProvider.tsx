@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { ConfigProvider as AntdConfigProvider, theme, type ConfigProviderProps as AntdConfigProviderProps } from 'antd';
 import { useI18n } from '@/hooks/use-i18n';
+import { useThemeMode } from '@/hooks/use-theme-mode';
 
 type AntdLocale = NonNullable<AntdConfigProviderProps['locale']>;
 
@@ -18,10 +19,23 @@ interface ConfigProviderProps {
 
 /**
  * AntD Config Provider — 根据 i18n 语言偏好动态加载对应语言包
+ * 主题算法跟随站点 <html> 的 dark class（任意组件切换主题时经 MutationObserver 实时同步）
  */
 export function ConfigProvider({ children }: ConfigProviderProps) {
   const { locale } = useI18n();
+  const { isDark: initialDark } = useThemeMode();
   const [antdLocale, setAntdLocale] = useState<AntdLocale | undefined>(undefined);
+  const [isDark, setIsDark] = useState(initialDark);
+
+  // 监听 <html> 的 class 变化，确保 antd 主题与全站手动切换保持实时同步
+  useEffect(() => {
+    const html = document.documentElement;
+    const sync = () => setIsDark(html.classList.contains('dark'));
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(html, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -36,7 +50,7 @@ export function ConfigProvider({ children }: ConfigProviderProps) {
     <AntdConfigProvider
       locale={antdLocale}
       theme={{
-        algorithm: theme.defaultAlgorithm,
+        algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
           colorPrimary: '#18181b',
           colorSuccess: '#52c41a',
