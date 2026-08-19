@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createSession, verifyTempToken, clearTempToken, normalizeRole } from '@/lib/auth';
 import { getDb } from '@/lib/db';
-import { verifyTotp } from '@/lib/totp';
+import { verifyTotp, matchRecoveryCode } from '@/lib/totp';
 import { getUserAvatarAsync } from '@/lib/config';
 import { createApiLogger } from '@/lib/api-logger';
 import { checkRateLimit } from '@/lib/rate-limit';
@@ -19,6 +19,7 @@ interface KvUser {
   userGroup?: string;
   twoFactorEnabled?: boolean;
   twoFactorSecret?: string;
+  twoFactorRecoveryHashes?: string[];
 }
 
 /**
@@ -59,6 +60,38 @@ async function loadUserFor2FA(
 }
 
 /**
+ * 验证 TOTP 码或一次性恢复码
+ * 恢复码命中时从哈希数组移除该码并持久化（一次性消费），
+ * 消费落库成功后才会放行登录，避免并发重复使用同一恢复码
+ */
+async function verifyTokenOrRecovery(
+  token: string,
+  user: KvUser,
+): Promise<{ ok: true; viaRecovery: boolean } | { ok: false; error: NextResponse }> {
+  if (verifyTotp(token, user.twoFactorSecret!)) {
+    return { ok: true, viaRecovery: false };
+  }
+
+  const hashes = user.twoFactorRecoveryHashes ?? [];
+  if (hashes.length === 0) {
+    logger.warn('POST', 'TOTP 验证码错误', { uid: user.uid });
+    return { ok: false, error: NextResponse.json({ error: getTranslate('api.auth.invalidVerificationCode') }, { status: 400 }) };
+  }
+
+  const usedHash = matchRecoveryCode(token, hashes);
+  if (!usedHash) {
+    logger.warn('POST', 'TOTP/恢复码验证均失败', { uid: user.uid });
+    return { ok: false, error: NextResponse.json({ error: getTranslate('api.auth.invalidVerificationCode') }, { status: 400 }) };
+  }
+
+  const remaining = hashes.filter((h) => h !== usedHash);
+  user.twoFactorRecoveryHashes = remaining;
+  await getDb().set(`user:uid:${user.uid}`, JSON.stringify(user));
+  logger.warn('POST', '使用恢复码登录成功（剩余恢复码数量已减少）', { uid: user.uid, remaining: remaining.length });
+  return { ok: true, viaRecovery: true };
+}
+
+/**
  * POST /api/auth/2fa/login
  * 验证 TOTP 码后返回正式 JWT session
  * 请求体: { token: string, tempToken?: string }
@@ -95,12 +128,9 @@ export async function POST(req: NextRequest) {
     if (!userResult.ok) return userResult.error;
     const { user } = userResult;
 
-    // 验证 TOTP 码
-    const valid = verifyTotp(token, user.twoFactorSecret!);
-    if (!valid) {
-      logger.warn('POST', 'TOTP 验证码错误', { uid: user.uid });
-      return NextResponse.json({ error: getTranslate('api.auth.invalidVerificationCode') }, { status: 400 });
-    }
+    // 验证 TOTP 码；失败时尝试一次性恢复码（验证器丢失的恢复通道）
+    const verifyResult = await verifyTokenOrRecovery(token, user);
+    if (!verifyResult.ok) return verifyResult.error;
 
     // 验证通过，清除临时令牌并创建正式 session
     await clearTempToken();

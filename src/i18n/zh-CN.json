@@ -617,7 +617,12 @@
       "verifyFailed": "验证码错误或验证失败",
       "disableFailed": "关闭双因素认证失败",
       "enterCode": "请输入验证码",
-      "networkFailed": "网络请求失败"
+      "networkFailed": "网络请求失败",
+      "recoveryTitle": "备用恢复码",
+      "recoveryHint": "请立即保存以下恢复码（仅展示这一次）。验证器丢失或不可用时，可用恢复码登录，每个恢复码只能使用一次。",
+      "copyAll": "复制全部恢复码",
+      "copied": "已复制",
+      "copyFailed": "复制失败，请手动抄写"
     },
     "changePassword": {
       "title": "修改密码",

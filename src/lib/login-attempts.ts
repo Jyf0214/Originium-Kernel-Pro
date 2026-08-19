@@ -20,7 +20,8 @@ const LOCK_PREFIX = 'login:locked:';
 const FAIL_PREFIX = 'login:fail:';
 
 // 进程内快速失败计数（冷启动后归零，但锁定状态在 KV 中持久化）
-const failCounts = new Map<string, number>();
+// 每条记录携带时间戳，超时后清理，防止 Map 无限增长
+const failCounts = new Map<string, { count: number; ts: number }>();
 
 // 定期清理过期的进程内计数器，防止内存泄漏
 let lastCleanupTime = Date.now();
@@ -30,10 +31,10 @@ function cleanupStaleCounts(): void {
   const now = Date.now();
   if (now - lastCleanupTime < CLEANUP_INTERVAL_MS) return;
   lastCleanupTime = now;
-  // 清理已锁定的条目（锁定状态在 KV 中持久化，进程内计数器可安全丢弃）
-  for (const [key] of failCounts) {
-    // 如果计数已达到阈值，说明已写入 KV 锁定，进程内计数器可清理
-    if ((failCounts.get(key) ?? 0) >= LOCK_THRESHOLD) {
+  // 清理所有超过锁定时长的条目（锁定状态在 KV 中持久化，进程内计数器可安全丢弃），
+  // 未达阈值的失败记录同样会过期，避免 Map 随尝试过的邮箱数无限增长
+  for (const [key, entry] of failCounts) {
+    if (now - entry.ts >= LOCK_DURATION_MS) {
       failCounts.delete(key);
     }
   }
@@ -71,9 +72,10 @@ export async function recordLoginFailure(email: string): Promise<void> {
     if (Date.now() < lockedUntil) return; // 已锁定，不增加计数
   }
 
-  // 递增进程内计数
-  const current = (failCounts.get(key) ?? 0) + 1;
-  failCounts.set(key, current);
+  // 递增进程内计数（保留首次失败时间戳，用于过期清理）
+  const prev = failCounts.get(key);
+  const current = (prev?.count ?? 0) + 1;
+  failCounts.set(key, { count: current, ts: prev?.ts ?? Date.now() });
 
   // 达到阈值：写入 KV 锁定并告警
   if (current >= LOCK_THRESHOLD) {
@@ -118,5 +120,5 @@ export async function clearLoginAttempts(email: string): Promise<void> {
  */
 export function getLoginAttempts(email: string): number {
   const key = normalizeEmail(email);
-  return failCounts.get(key) ?? 0;
+  return failCounts.get(key)?.count ?? 0;
 }

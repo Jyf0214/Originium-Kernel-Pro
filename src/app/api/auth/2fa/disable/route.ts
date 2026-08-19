@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
       email: string;
       twoFactorEnabled?: boolean;
       twoFactorSecret?: string;
+      twoFactorRecoveryHashes?: string[];
     };
 
     if (!user.twoFactorEnabled) {
@@ -62,9 +63,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: getTranslate('api.auth.invalidVerificationCode') }, { status: 400 });
     }
 
-    // 禁用 2FA 并清除密钥
+    // 禁用 2FA 并清除密钥与恢复码
     user.twoFactorEnabled = false;
     user.twoFactorSecret = undefined;
+    user.twoFactorRecoveryHashes = undefined;
     await db.set(`user:uid:${session.uid}`, JSON.stringify(user));
 
     logger.info('POST', '2FA 已禁用', { uid: session.uid });

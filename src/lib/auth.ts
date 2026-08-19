@@ -304,8 +304,9 @@ async function isSessionRevoked(uid: string, sv: number): Promise<boolean> {
     svCache.set(uid, { sv, revoked, ts: now })
     return revoked
   } catch {
-    // 数据库不可用时，视为会话未吊销（JWT 本身是有效的，数据库检查是增强安全性）
-    return false
+    // 数据库不可用时失败安全：吊销状态未知即视为已吊销，拒绝放行
+    // （公开读接口不依赖会话，不受影响；写敏感操作在 DB 故障时本就不可用）
+    return true
   }
 }
 

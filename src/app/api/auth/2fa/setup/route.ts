@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { getDb } from '@/lib/db';
-import { generateTotpSecret, generateTotpUri } from '@/lib/totp';
+import { generateTotpSecret, generateTotpUri, generateRecoveryCodes, hashRecoveryCode } from '@/lib/totp';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { createApiLogger } from '@/lib/api-logger';
 import { getTranslate } from '@/i18n/translate';
@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
       email: string;
       twoFactorEnabled?: boolean;
       twoFactorSecret?: string;
+      twoFactorRecoveryHashes?: string[];
     };
 
     if (user.twoFactorEnabled) {
@@ -49,8 +50,13 @@ export async function POST(req: NextRequest) {
     const secret = generateTotpSecret();
     const otpauthUri = generateTotpUri(secret, user.email);
 
+    // 生成一次性恢复码：明文仅本次响应返回一次，存储侧只保留哈希
+    const recoveryCodes = generateRecoveryCodes();
+    const recoveryHashes = recoveryCodes.map(hashRecoveryCode);
+
     // 将密钥临时存入用户数据（尚未启用，等待 verify 确认）
     user.twoFactorSecret = secret;
+    user.twoFactorRecoveryHashes = recoveryHashes;
     await db.set(`user:uid:${session.uid}`, JSON.stringify(user));
 
     logger.info('POST', 'TOTP 密钥已生成', { uid: session.uid });
@@ -58,6 +64,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       otpauthUri,
+      recoveryCodes,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

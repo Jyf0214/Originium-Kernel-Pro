@@ -617,7 +617,12 @@
       "verifyFailed": "Invalid code or verification failed",
       "disableFailed": "Failed to disable two-factor authentication",
       "enterCode": "Please enter the verification code",
-      "networkFailed": "Network request failed"
+      "networkFailed": "Network request failed",
+      "recoveryTitle": "Recovery codes",
+      "recoveryHint": "Save these recovery codes now (shown only once). Use one to sign in if your authenticator is lost or unavailable; each code can be used only once.",
+      "copyAll": "Copy all recovery codes",
+      "copied": "Copied",
+      "copyFailed": "Copy failed, please write them down manually"
     },
     "changePassword": {
       "title": "Change Password",

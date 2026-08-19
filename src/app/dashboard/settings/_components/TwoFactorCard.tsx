@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { ShieldCheck, ShieldOff, Loader2, AlertCircle, Smartphone } from 'lucide-react';
+import { ShieldCheck, ShieldOff, Loader2, AlertCircle, Smartphone, Copy, Check, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ProCard } from '@/components/ui/ProCard';
 import { useAuth } from '@/hooks/use-auth';
@@ -12,7 +12,7 @@ import { message } from 'antd';
 /**
  * 双因素认证(2FA)管理卡片
  *
- * 启用流程：setup 获取 otpauthUri → 展示二维码 → 输入验证码 verify → 启用
+ * 启用流程：setup 获取 otpauthUri + 恢复码 → 展示二维码与恢复码 → 输入验证码 verify → 启用
  * 禁用流程：输入验证码 → disable → 禁用
  * 状态随 /api/auth/me 返回的 twoFactorEnabled 联动（useAuth.refresh 刷新）
  */
@@ -24,6 +24,8 @@ export function TwoFactorCard() {
 
   // 启用流程状态
   const [setupUri, setSetupUri] = useState<string | null>(null);
+  const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
+  const [recoveryCopied, setRecoveryCopied] = useState(false);
   const [setupToken, setSetupToken] = useState('');
   const [setupLoading, setSetupLoading] = useState(false);
   const [verifyLoading, setVerifyLoading] = useState(false);
@@ -35,6 +37,17 @@ export function TwoFactorCard() {
   const [error, setError] = useState<string | null>(null);
   const [showDisableInput, setShowDisableInput] = useState(false);
 
+  const copyRecoveryCodes = async () => {
+    if (recoveryCodes.length === 0) return;
+    try {
+      await navigator.clipboard.writeText(recoveryCodes.join('\n'));
+      setRecoveryCopied(true);
+      setTimeout(() => setRecoveryCopied(false), 2000);
+    } catch {
+      message.error(t('settings.twoFactor.copyFailed'));
+    }
+  };
+
   const startSetup = async () => {
     if (setupLoading) return;
     setSetupLoading(true);
@@ -44,6 +57,8 @@ export function TwoFactorCard() {
       const data = await res.json();
       if (res.ok && data.otpauthUri) {
         setSetupUri(data.otpauthUri);
+        setRecoveryCodes(Array.isArray(data.recoveryCodes) ? data.recoveryCodes : []);
+        setRecoveryCopied(false);
       } else {
         setError(data.error ?? t('settings.twoFactor.setupFailed'));
       }
@@ -73,6 +88,7 @@ export function TwoFactorCard() {
       if (res.ok && data.success) {
         message.success(t('settings.twoFactor.enableSuccess'));
         setSetupUri(null);
+        setRecoveryCodes([]);
         setSetupToken('');
         await refresh();
       } else {
@@ -199,9 +215,36 @@ export function TwoFactorCard() {
                   <p className="text-xs text-zinc-400">{t('settings.twoFactor.setupHint')}</p>
                 </div>
               </div>
+
+              {/* 一次性恢复码（仅本次展示，关闭后不再出现） */}
+              {recoveryCodes.length > 0 && (
+                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <KeyRound size={14} className="text-amber-600" />
+                    <p className="text-sm font-medium text-amber-800">{t('settings.twoFactor.recoveryTitle')}</p>
+                  </div>
+                  <p className="text-xs text-amber-700 mb-3">{t('settings.twoFactor.recoveryHint')}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {recoveryCodes.map((code) => (
+                      <code key={code} className="px-2 py-1.5 bg-white border border-amber-200 rounded text-xs font-mono text-amber-900 select-all">
+                        {code}
+                      </code>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={copyRecoveryCodes}
+                    className="mt-3 inline-flex items-center gap-1.5 text-xs text-amber-700 hover:text-amber-900 transition-colors"
+                  >
+                    {recoveryCopied ? <Check size={14} /> : <Copy size={14} />}
+                    {recoveryCopied ? t('settings.twoFactor.copied') : t('settings.twoFactor.copyAll')}
+                  </button>
+                </div>
+              )}
+
               <button
                 type="button"
-                onClick={() => { setSetupUri(null); setSetupToken(''); setError(null); }}
+                onClick={() => { setSetupUri(null); setRecoveryCodes([]); setSetupToken(''); setError(null); }}
                 className="mt-3 text-xs text-zinc-500 hover:text-zinc-700 transition-colors"
               >
                 {t('common.cancel')}

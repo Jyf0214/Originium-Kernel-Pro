@@ -78,8 +78,9 @@ function buildIssueBody(
   lines.push('---');
   lines.push('');
   lines.push(getTranslate('api.feedback.submitTimeLabel', { time: new Date().toISOString() }));
-  lines.push(getTranslate('api.feedback.ipMaskedLabel', { ip }));
-  lines.push(`**User-Agent**: ${userAgent.slice(0, 200)}`);
+  // Issue 可能进入公开仓库，IP 必须脱敏（与日志脱敏保持一致），UA 仅保留前 50 字符
+  lines.push(getTranslate('api.feedback.ipMaskedLabel', { ip: maskIp(ip) }));
+  lines.push(`**User-Agent**: ${userAgent.slice(0, 50)}`);
   return lines.join('\n');
 }
 
