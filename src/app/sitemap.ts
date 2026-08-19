@@ -25,7 +25,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${siteUrl}/faces`, lastModified: now, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${siteUrl}/about`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${siteUrl}/archives`, lastModified: now, changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${siteUrl}/travel`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
   ];
 
   const allFiles = getContentFiles('posts');

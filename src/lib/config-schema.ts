@@ -161,7 +161,6 @@ export const zNavMenuGroup = z.object({
 
 export const zNavConfig = z.object({
   enable: z.boolean().default(false),
-  travelling: z.boolean().default(false),
   clock: z.boolean().default(false),
   menu: z.array(zNavMenuGroup).default([]),
 });

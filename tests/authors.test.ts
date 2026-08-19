@@ -2,7 +2,7 @@
  * authors.ts 单元测试
  *
  * 覆盖范围:
- * - getAuthors 正常解析 YAML 作者列表
+ * - getAuthors 正常解析作者列表
  * - getAuthors YAML 文件不存在时返回空数组
  * - getAuthors YAML 非数组时返回空数组
  * - getAuthors 过滤无效条目（无 name 字段）
@@ -13,30 +13,34 @@
  * - getAuthorByName 空字符串返回 null
  * - 缓存行为（连续调用不重新读取文件）
  *
- * 数据隔离: 所有用例均通过 mock fs 注入固定 YAML 数据，
- * 不读取仓库真实的 authors/authors.yaml，避免测试依赖配置文件内容。
+ * 数据隔离: 通过 mock fs 与 mock js-yaml 注入固定数据，
+ * 不读取仓库真实的 authors/authors.yaml，也不加载 node_modules 中的
+ * js-yaml 真实实现，避免测试依赖配置文件内容与依赖包文件完整性。
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import fs from 'fs';
 
-/** 固定的作者配置数据（与真实配置结构等价，仅作测试夹具） */
-const authorsYaml = `
-- name: "__default__"
-  avatar: "/avatar.jpg"
-  enable: true
+/** mock js-yaml 的解析入口，由各用例直接控制返回值 */
+const mocks = vi.hoisted(() => ({
+  mockYamlLoad: vi.fn(),
+}));
 
-- name: "Jyf0214"
-  nickname: "九月风"
-  avatar: "https://avatars.githubusercontent.com/u/169313142?v=4"
-  location: "中国"
-  enable: true
-`;
+vi.mock('js-yaml', () => ({
+  default: { load: mocks.mockYamlLoad },
+}));
 
-/** 注入固定的作者配置文件内容 */
-function mockAuthorsFile(yaml: string = authorsYaml) {
+/** 固定作者数据（与真实配置结构等价，仅作测试夹具） */
+const mockAuthors = [
+  { name: '__default__', avatar: '/avatar.jpg', enable: true },
+  { name: 'Jyf0214', nickname: '九月风', avatar: 'https://avatars.githubusercontent.com/u/169313142?v=4', location: '中国', enable: true },
+];
+
+/** 注入固定的作者解析结果 */
+function mockAuthorsFile(data: unknown = mockAuthors) {
   vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-  vi.spyOn(fs, 'readFileSync').mockReturnValue(yaml);
+  vi.spyOn(fs, 'readFileSync').mockReturnValue('(mocked yaml)');
+  mocks.mockYamlLoad.mockReturnValue(data);
 }
 
 // 重置模块缓存，避免测试间缓存泄漏
@@ -45,7 +49,7 @@ beforeEach(() => {
 });
 
 describe('getAuthors', () => {
-  it('应从 YAML 解析出作者列表', async () => {
+  it('应解析出作者列表', async () => {
     mockAuthorsFile();
     const { getAuthors } = await import('@/lib/authors');
     const authors = getAuthors();
@@ -80,14 +84,12 @@ describe('getAuthors', () => {
   });
 
   it('应过滤无 name 字段的条目', async () => {
-    // 通过 mock fs 让读取返回包含无效条目的 YAML
-    const yaml = `
-- name: "valid"
-  nickname: "V"
-- nickname: "no-name"
-- name: "also-valid"
-`;
-    mockAuthorsFile(yaml);
+    // 注入包含无效条目的解析结果
+    mockAuthorsFile([
+      { name: 'valid', nickname: 'V' },
+      { nickname: 'no-name' },
+      { name: 'also-valid' },
+    ]);
 
     const { getAuthors } = await import('@/lib/authors');
     const authors = getAuthors();
@@ -98,14 +100,9 @@ describe('getAuthors', () => {
   });
 
   it('非字符串字段应被安全忽略', async () => {
-    const yaml = `
-- name: "test"
-  nickname: 123
-  avatar: true
-  location: null
-  skills: "not-array"
-`;
-    mockAuthorsFile(yaml);
+    mockAuthorsFile([
+      { name: 'test', nickname: 123, avatar: true, location: null, skills: 'not-array' },
+    ]);
 
     const { getAuthors } = await import('@/lib/authors');
     const authors = getAuthors();
@@ -119,15 +116,9 @@ describe('getAuthors', () => {
   });
 
   it('skills 数组中非字符串元素应被过滤', async () => {
-    const yaml = `
-- name: "skiller"
-  skills:
-    - "React"
-    - 42
-    - "TypeScript"
-    - null
-`;
-    mockAuthorsFile(yaml);
+    mockAuthorsFile([
+      { name: 'skiller', skills: ['React', 42, 'TypeScript', null] },
+    ]);
 
     const { getAuthors } = await import('@/lib/authors');
     const authors = getAuthors();
@@ -175,11 +166,7 @@ describe('getAuthorByName', () => {
   });
 
   it('无 __default__ 条目且无匹配时返回 null', async () => {
-    const yaml = `
-- name: "only-one"
-  nickname: "Solo"
-`;
-    mockAuthorsFile(yaml);
+    mockAuthorsFile([{ name: 'only-one', nickname: 'Solo' }]);
 
     const { getAuthorByName } = await import('@/lib/authors');
     const author = getAuthorByName('nonexistent');
@@ -198,7 +185,7 @@ describe('getAuthorByName', () => {
   });
 });
 
-describe('getAuthors — YAML 异常情况', () => {
+describe('getAuthors — 异常情况', () => {
   it('YAML 文件不存在时返回空数组', async () => {
     vi.spyOn(fs, 'existsSync').mockReturnValue(false);
     const { getAuthors } = await import('@/lib/authors');
@@ -208,8 +195,9 @@ describe('getAuthors — YAML 异常情况', () => {
 
   it('YAML 内容非数组时返回空数组', async () => {
     vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-    // 返回一个合法 YAML 但解析结果不是数组
-    vi.spyOn(fs, 'readFileSync').mockReturnValue('key: value\nother: data');
+    vi.spyOn(fs, 'readFileSync').mockReturnValue('(mocked yaml)');
+    // 解析结果不是数组
+    mocks.mockYamlLoad.mockReturnValue({ key: 'value', other: 'data' });
     const { getAuthors } = await import('@/lib/authors');
     expect(getAuthors()).toEqual([]);
     vi.restoreAllMocks();

@@ -14,7 +14,6 @@ export interface NavMenuGroupData {
 
 export interface NavConfigData {
   enable: boolean;
-  travelling: boolean;
   clock: boolean;
   menu: NavMenuGroupData[];
 }
@@ -145,11 +144,10 @@ export function buildAuthConfig(data: Record<string, unknown>): ConfigState['aut
 export function buildNavConfig(data: Record<string, unknown>): ConfigState['nav'] {
   const navData = data.nav as Record<string, unknown> | undefined;
   if (!navData) {
-    return { enable: false, travelling: false, clock: false, menu: [] };
+    return { enable: false, clock: false, menu: [] };
   }
   return {
     enable: (navData.enable as boolean) ?? false,
-    travelling: (navData.travelling as boolean) ?? false,
     clock: (navData.clock as boolean) ?? false,
     menu: (navData.menu as NavMenuGroupData[]) ?? [],
   };

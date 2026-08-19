@@ -1475,9 +1475,7 @@
       "navMenu": "Navigation menu",
       "noGroups": "No menu groups yet, click the button above to add",
       "showClock": "Show clock",
-      "showClockHint": "Show current time in the navbar",
-      "travelMode": "Travel mode",
-      "travelModeHint": "Show travel-related badges"
+      "showClockHint": "Show current time in the navbar"
     },
     "PostEditConfig": {
       "enableOnlineEdit": "Enable online editing",
@@ -1534,9 +1532,7 @@
       "searchShortcut": "Search (Ctrl+K)",
       "shortcutsHelp": "Keyboard shortcuts help",
       "shortcutsTitle": "Shortcuts (?)",
-      "tags": "Tags",
-      "travel": "Travel",
-      "travelling": "Travelling"
+      "tags": "Tags"
     },
     "PostLikeButton": {
       "like": "Like",
@@ -1742,14 +1738,6 @@
     "noTagsHint": "Tags appear here once you add them to your posts",
     "statSummary": "{tagCount} tags, {postCount} posts",
     "title": "Tags"
-  },
-  "travel": {
-    "metaDescription": "Every place we have been",
-    "metaTitle": "Travel Footprints - Originium Kernel",
-    "noPlaces": "No travel records",
-    "noPlacesHint": "No travel places yet, go explore the world",
-    "subtitle": "Every place we have been",
-    "title": "Travel Footprints"
   },
   "kaomoji": {
     "delete": {

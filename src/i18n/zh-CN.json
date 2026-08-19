@@ -1475,9 +1475,7 @@
       "navMenu": "导航菜单",
       "noGroups": "暂无菜单分组，点击上方按钮添加",
       "showClock": "显示时钟",
-      "showClockHint": "导航栏显示当前时间",
-      "travelMode": "旅行模式",
-      "travelModeHint": "显示旅行相关标识"
+      "showClockHint": "导航栏显示当前时间"
     },
     "PostEditConfig": {
       "enableOnlineEdit": "启用在线编辑",
@@ -1534,9 +1532,7 @@
       "searchShortcut": "搜索 (Ctrl+K)",
       "shortcutsHelp": "快捷键帮助",
       "shortcutsTitle": "快捷键 (?)",
-      "tags": "标签",
-      "travel": "旅行足迹",
-      "travelling": "旅行中"
+      "tags": "标签"
     },
     "PostLikeButton": {
       "like": "点赞",
@@ -1742,14 +1738,6 @@
     "noTagsHint": "给文章添加标签后，它们会出现在这里",
     "statSummary": "共 {tagCount} 个标签，{postCount} 篇帖子",
     "title": "标签"
-  },
-  "travel": {
-    "metaDescription": "记录走过的每一个地方",
-    "metaTitle": "旅行足迹 - Originium Kernel",
-    "noPlaces": "暂无旅行记录",
-    "noPlacesHint": "还没有添加旅行地点，去探索世界吧",
-    "subtitle": "记录走过的每一个地方",
-    "title": "旅行足迹"
   },
   "kaomoji": {
     "delete": {

@@ -93,7 +93,6 @@ export interface NavMenuGroup {
 
 export interface NavConfig {
   enable: boolean;
-  travelling: boolean;
   clock: boolean;
   menu: NavMenuGroup[];
 }

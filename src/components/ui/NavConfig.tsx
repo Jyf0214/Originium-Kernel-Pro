@@ -20,7 +20,6 @@ interface NavMenuGroupData {
 
 interface NavConfigData {
   enable: boolean;
-  travelling: boolean;
   clock: boolean;
   menu: NavMenuGroupData[];
 }
@@ -74,20 +73,12 @@ export default function NavConfig({ config, onChange }: NavConfigProps) {
         onChange={v => onChange({ ...config, enable: v })}
       />
 
-      <div className="flex gap-4">
-        <ToggleField
-          label={t('components.NavConfig.travelMode')}
-          description={t('components.NavConfig.travelModeHint')}
-          checked={config.travelling}
-          onChange={v => onChange({ ...config, travelling: v })}
-        />
-        <ToggleField
-          label={t('components.NavConfig.showClock')}
-          description={t('components.NavConfig.showClockHint')}
-          checked={config.clock}
-          onChange={v => onChange({ ...config, clock: v })}
-        />
-      </div>
+      <ToggleField
+        label={t('components.NavConfig.showClock')}
+        description={t('components.NavConfig.showClockHint')}
+        checked={config.clock}
+        onChange={v => onChange({ ...config, clock: v })}
+      />
 
       <div className="border-t border-zinc-100 pt-4">
         <div className="flex items-center justify-between mb-3">

@@ -63,7 +63,6 @@ avatar:
   url: ''
 nav:
   enable: true
-  travelling: true
   clock: true
   menu:
     - title: 网页

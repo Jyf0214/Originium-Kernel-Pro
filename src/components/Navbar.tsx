@@ -12,7 +12,7 @@ import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { useInertBackground } from '@/hooks/use-inert-background';
-import { Clock, MapPin, Search, Sun, Moon, Monitor, Keyboard, Menu, X, Home, FileText, Info, Hash, Archive, Lock } from 'lucide-react';
+import { Clock, Search, Sun, Moon, Monitor, Keyboard, Menu, X, Home, FileText, Info, Hash, Archive, Lock } from 'lucide-react';
 import { useThemeMode } from '@/hooks/use-theme-mode';
 import { usePathname } from 'next/navigation';
 import LanguageSwitcher from '@/components/LanguageSwitcher/index';
@@ -167,7 +167,6 @@ function DrawerContent({
         <DrawerLink href="/posts" pathname={pathname} icon={<FileText size={18} />} label={t('sidebar.posts')} onClick={closeDrawer} />
         <DrawerLink href="/archives" pathname={pathname} icon={<Archive size={18} />} label={t('components.Navbar.archives')} onClick={closeDrawer} />
         <DrawerLink href="/tags" pathname={pathname} icon={<Hash size={18} />} label={t('components.Navbar.tags')} onClick={closeDrawer} />
-        <DrawerLink href="/travel" pathname={pathname} icon={<MapPin size={18} />} label={t('components.Navbar.travel')} onClick={closeDrawer} />
         <DrawerLink href="/about" pathname={pathname} icon={<Info size={18} />} label={t('components.Navbar.about')} onClick={closeDrawer} />
         {user && (
           <DrawerLink href="/posts/private" pathname={pathname} icon={<Lock size={18} />} label={t('components.Navbar.privatePosts')} onClick={closeDrawer} />
@@ -176,20 +175,12 @@ function DrawerContent({
 
       {/* 底部 */}
       <div className="border-t border-zinc-100 dark:border-zinc-800 px-5 py-4 space-y-4">
-        {(navConfig?.travelling || (navConfig?.clock && time)) && (
+        {navConfig?.clock && time && (
           <div className="flex items-center gap-3 text-xs text-zinc-400 dark:text-zinc-500">
-            {navConfig?.travelling && (
-              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400">
-                <MapPin size={12} />
-                {t('components.Navbar.travelling')}
-              </span>
-            )}
-            {navConfig?.clock && time && (
               <span className="flex items-center gap-1 font-mono">
                 <Clock size={12} />
                 {time}
               </span>
-            )}
           </div>
         )}
         <Hitokoto />

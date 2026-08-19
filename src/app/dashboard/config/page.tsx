@@ -42,7 +42,6 @@ export default function ConfigPage() {
     avatar: { url: '' },
     nav: {
       enable: false,
-      travelling: false,
       clock: false,
       menu: [],
     },
