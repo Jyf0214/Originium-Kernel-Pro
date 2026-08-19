@@ -12,7 +12,7 @@ import { type ReactNode } from 'react';
 /** 输入框/选择器尺寸档位（sm=h-9 / md=h-10 / lg=h-11 / xl=h-12） */
 export type FormSize = 'sm' | 'md' | 'lg' | 'xl';
 
-/** 圆角档位（sm=rounded-lg / md=rounded-xl / lg=rounded-2xl / full=rounded-full / none=rounded-none） */
+/** 圆角档位（sm=rounded-md / md=rounded-lg / lg=rounded-xl / full=rounded-full / none=rounded-none） */
 export type FormRounded = 'sm' | 'md' | 'lg' | 'full' | 'none';
 
 /** 焦点环强度（default=ring-1 zinc-400 / strong=ring-2 zinc-900） */
@@ -32,9 +32,9 @@ export const sizeStyles: Record<FormSize, string> = {
 
 /** 圆角映射 */
 export const roundedStyles: Record<FormRounded, string> = {
-  sm: 'rounded-lg',
-  md: 'rounded-xl',
-  lg: 'rounded-2xl',
+  sm: 'rounded-md',
+  md: 'rounded-lg',
+  lg: 'rounded-xl',
   full: 'rounded-full',
   none: 'rounded-none',
 };

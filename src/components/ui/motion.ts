@@ -78,16 +78,16 @@ export const modalOverlayTransition: Transition = {
 
 /** 卡片进场/退场（从下方滑入 + 淡入，退场向上滑出） */
 export const cardVariants: Variants = {
-  initial: { opacity: 0, y: 20 },
+  initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -10 },
+  exit: { opacity: 0, y: -6 },
 };
 
 /** 紧凑列表项进场/退场（较小的位移幅度） */
 export const compactCardVariants: Variants = {
-  initial: { opacity: 0, y: 10 },
+  initial: { opacity: 0, y: 6 },
   animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -6 },
+  exit: { opacity: 0, y: -4 },
 };
 
 /** 卡片标准过渡配置 */

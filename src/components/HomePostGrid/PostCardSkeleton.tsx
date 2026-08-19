@@ -21,15 +21,15 @@ export function PostCardSkeleton({ index = 1 }: PostCardSkeletonProps) {
   const descWidth = descWidths[index % 3];
 
   return (
-    <div className="bg-white dark:bg-zinc-800 rounded-[2rem] border-2 border-zinc-50 dark:border-zinc-700 overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-zinc-800 rounded-2xl border-2 border-zinc-50 dark:border-zinc-700 overflow-hidden shadow-sm">
       {/* 图片区域 */}
       <Skeleton className="w-full aspect-video rounded-none" />
       {/* 内容区域 */}
       <div className="px-5 py-4 flex flex-col gap-3">
         {/* 标签占位 */}
         <div className="flex gap-1.5 mb-1">
-          <Skeleton className="w-12 h-5 rounded-full" />
-          <Skeleton className="w-16 h-5 rounded-full" />
+          <Skeleton className="w-12 h-5 rounded" />
+          <Skeleton className="w-16 h-5 rounded" />
         </div>
         {/* 标题 — 2 行（宽度随 index 错落） */}
         <Skeleton className={`${titleWidth} h-5`} />

@@ -144,7 +144,7 @@ export const PostCard = React.memo(function PostCard({
       animate="animate"
       exit="exit"
       transition={{ duration: 0.3, delay: staggerDelay(index, 0.05) }}
-      className={`group bg-white dark:bg-zinc-800 rounded-2xl sm:rounded-[2rem] overflow-hidden transition-all duration-500 shadow-none sm:shadow-sm hover:shadow-xl hover:shadow-zinc-100 dark:hover:shadow-zinc-900 ui-interactive ${isRowLayout ? 'flex' : 'flex flex-col'} ${borderClass}`}
+      className={`group bg-white dark:bg-zinc-800 rounded-2xl overflow-hidden transition-all duration-300 shadow-none sm:shadow-sm hover:shadow-lg hover:shadow-zinc-100 dark:hover:shadow-zinc-900 ui-interactive ${isRowLayout ? 'flex' : 'flex flex-col'} ${borderClass}`}
     >
       <PostCardCover post={post} coverConfig={coverConfig} defaultCover={defaultCover} />
       <PostCardBody post={post} locale={locale} t={t} position={coverConfig?.position} hasCover={isVerticalCover} postMeta={postMeta} />

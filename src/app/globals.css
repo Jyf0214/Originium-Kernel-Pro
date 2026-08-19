@@ -70,7 +70,7 @@ article header h1 {
 }
 
 .dark .prose a {
-  color: var(--main-tone, #93c5fd);
+  color: var(--main-tone, #a1a1aa);
 }
 
 .prose blockquote {
@@ -348,7 +348,7 @@ pre:hover .code-copy-btn {
   will-change: transform;
 }
 .ui-interactive:hover {
-  transform: translateY(-2px) scale(1.02);
+  transform: translateY(-1px) scale(1.01);
 }
 .ui-interactive:active {
   transform: translateY(0) scale(0.98);

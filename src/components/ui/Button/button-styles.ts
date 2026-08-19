@@ -37,9 +37,9 @@ export const responsiveIconSize: Record<ButtonSize, string> = {
 };
 
 export const roundedStyles: Record<ButtonRounded, string> = {
-  sm: 'rounded-lg',
-  md: 'rounded-xl',
-  lg: 'rounded-2xl',
+  sm: 'rounded-md',
+  md: 'rounded-lg',
+  lg: 'rounded-xl',
   full: 'rounded-full',
   none: 'rounded-none',
 };

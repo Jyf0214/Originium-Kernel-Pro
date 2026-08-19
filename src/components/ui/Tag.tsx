@@ -16,10 +16,10 @@ const variantStyles: Record<TagVariant, string> = {
 };
 
 const sizeStyles: Record<TagSize, string> = {
-  xs: 'px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full',
+  xs: 'px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded',
   sm: 'px-2 py-0.5 text-xs rounded',
-  md: 'px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full',
-  lg: 'px-4 py-1.5 text-sm font-medium rounded-full',
+  md: 'px-3 py-1 text-xs font-bold uppercase tracking-widest rounded',
+  lg: 'px-4 py-1.5 text-sm font-medium rounded',
 };
 
 export interface TagProps {

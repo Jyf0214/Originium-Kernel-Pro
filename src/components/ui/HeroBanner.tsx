@@ -51,7 +51,7 @@ const sizeMap = {
   },
 };
 
-/** 默认渐变背景 —— 3 种颜色缓慢流动 */
+/** 默认渐变背景 —— 深色 zinc 静态渐变 */
 const DEFAULT_GRADIENT =
   'linear-gradient(135deg, #18181b 0%, #3f3f46 25%, #292524 50%, #3f3f46 75%, #18181b 100%)';
 
@@ -121,26 +121,7 @@ export function HeroBanner({
     <>
       <motion.section
         className={`relative w-full overflow-hidden rounded-2xl sm:rounded-3xl ${sizeStyle.padding} px-6 sm:px-8 ${className}`}
-        style={
-          hasGradient
-            ? {
-                background: gradient ?? DEFAULT_GRADIENT,
-                backgroundSize: '400% 400%',
-              }
-            : undefined
-        }
-        animate={
-          hasGradient
-            ? {
-                backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-              }
-            : undefined
-        }
-        transition={
-          hasGradient
-            ? { duration: 18, ease: 'easeInOut', repeat: Infinity }
-            : undefined
-        }
+        style={hasGradient ? { background: gradient ?? DEFAULT_GRADIENT } : undefined}
       >
         {/* 背景图 + 遮罩 */}
         {backgroundImage && (
