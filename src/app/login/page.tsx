@@ -100,11 +100,11 @@ function LoginForm() {
   };
 
   const inputStyle = {
-    padding: '14px 16px',
-    height: 56,
+    padding: '12px 16px',
+    height: 48,
     fontSize: 16,
     lineHeight: 1.6,
-    borderRadius: 12,
+    borderRadius: 8,
   };
 
   const renderEmailStep = () => (
@@ -132,7 +132,7 @@ function LoginForm() {
       <Form form={form} layout="vertical" onFinish={handleCheckUser}>
         <Form.Item
           name="login"
-          style={{ marginBottom: 0 }}
+          style={{ marginBottom: 12 }}
           rules={[{ required: true, message: t('auth.inputEmailOrUsername') }]}
         >
           <Input
@@ -152,6 +152,16 @@ function LoginForm() {
             }
           />
         </Form.Item>
+        <Button
+          variant="primary"
+          size="lg"
+          block
+          type="submit"
+          loading={loading}
+          autoLoading={false}
+        >
+          {t('auth.nextStep')}
+        </Button>
       </Form>
     </AuthCard>
   );
@@ -183,7 +193,7 @@ function LoginForm() {
         <Form.Item
           name="password"
           rules={[{ required: true, message: t('auth.inputPassword') }]}
-          style={{ marginBottom: 0 }}
+          style={{ marginBottom: 12 }}
         >
           <Input.Password
             placeholder={t('auth.inputPassword')}
@@ -202,6 +212,16 @@ function LoginForm() {
             }
           />
         </Form.Item>
+        <Button
+          variant="primary"
+          size="lg"
+          block
+          type="submit"
+          loading={loading}
+          autoLoading={false}
+        >
+          {t('auth.login')}
+        </Button>
       </Form>
     </AuthCard>
   );
@@ -227,7 +247,7 @@ function LoginForm() {
         <Form.Item
           name="key"
           rules={[{ required: true, message: t('auth.inputApiKey') }]}
-          style={{ marginBottom: 0 }}
+          style={{ marginBottom: 12 }}
         >
           <Input
             placeholder="sk-..."
@@ -246,6 +266,16 @@ function LoginForm() {
             }
           />
         </Form.Item>
+        <Button
+          variant="primary"
+          size="lg"
+          block
+          type="submit"
+          loading={loading}
+          autoLoading={false}
+        >
+          {t('auth.login')}
+        </Button>
       </Form>
     </AuthCard>
   );

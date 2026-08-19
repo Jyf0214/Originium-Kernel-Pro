@@ -64,11 +64,11 @@ function TwoFactorForm() {
   }, [callbackUrl, router, t]);
 
   const inputStyle = {
-    padding: '14px 16px',
-    height: 56,
+    padding: '12px 16px',
+    height: 48,
     fontSize: 16,
     lineHeight: 1.6,
-    borderRadius: 12,
+    borderRadius: 8,
   };
 
   return (
@@ -99,7 +99,7 @@ function TwoFactorForm() {
         <Form form={form} layout="vertical" onFinish={handleVerify}>
           <Form.Item
             name="code"
-            style={{ marginBottom: 0 }}
+            style={{ marginBottom: 12 }}
             rules={[
               { required: true, message: t('auth.inputVerificationCode') },
               { len: 6, message: t('auth.codeMustBe6Digits') },
@@ -129,6 +129,16 @@ function TwoFactorForm() {
               }
             />
           </Form.Item>
+          <Button
+            variant="primary"
+            size="lg"
+            block
+            type="submit"
+            loading={loading}
+            autoLoading={false}
+          >
+            {t('auth.verify')}
+          </Button>
         </Form>
       </AuthCard>
     </AuthLayout>

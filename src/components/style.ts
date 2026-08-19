@@ -14,6 +14,7 @@ export const authStyles = {
     border: '1px solid var(--ant-color-border-secondary)',
     borderRadius: 'var(--ant-border-radius)',
     background: 'var(--ant-color-bg-container)',
+    boxShadow: '0 3px 1px -1px rgba(26,26,26,0.06)',
   } satisfies CSSProperties,
   innerLight: {
     position: 'relative',
@@ -21,5 +22,6 @@ export const authStyles = {
     border: '1px solid var(--ant-color-border)',
     borderRadius: 'var(--ant-border-radius)',
     background: 'var(--ant-color-bg-container)',
+    boxShadow: '0 3px 1px -1px rgba(26,26,26,0.06)',
   } satisfies CSSProperties,
 } as const;

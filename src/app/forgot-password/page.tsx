@@ -45,11 +45,11 @@ export default function ForgotPasswordPage() {
   };
 
   const inputStyle = {
-    padding: '14px 16px',
-    height: 56,
+    padding: '12px 16px',
+    height: 48,
     fontSize: 16,
     lineHeight: 1.6,
-    borderRadius: 12,
+    borderRadius: 8,
   };
 
   if (emailSent) {
@@ -58,7 +58,7 @@ export default function ForgotPasswordPage() {
         <AuthCard
           footer={
             <div className="flex flex-col items-center gap-4 py-6">
-              <Button size="lg" block autoLoading={false} onClick={() => { setEmailSent(false); form.resetFields(); inputRef.current?.focus(); }}>
+              <Button variant="primary" size="lg" block autoLoading={false} onClick={() => { setEmailSent(false); form.resetFields(); inputRef.current?.focus(); }}>
                 {t('auth.resendEmail')}
               </Button>
               <Link href="/login">
@@ -99,7 +99,7 @@ export default function ForgotPasswordPage() {
         title={t('auth.forgotPasswordTitle')}
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Form.Item name="email" style={{ marginBottom: 0 }} rules={[
+          <Form.Item name="email" style={{ marginBottom: 12 }} rules={[
             { required: true, message: t('validation.required') },
             { type: 'email', message: t('validation.emailInvalid') },
           ]}>
@@ -114,6 +114,16 @@ export default function ForgotPasswordPage() {
               }
             />
           </Form.Item>
+          <Button
+            variant="primary"
+            size="lg"
+            block
+            type="submit"
+            loading={loading}
+            autoLoading={false}
+          >
+            {t('auth.sendResetLink')}
+          </Button>
         </Form>
       </AuthCard>
     </AuthLayout>

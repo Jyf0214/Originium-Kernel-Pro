@@ -72,11 +72,11 @@ function ResetPasswordForm() {
   };
 
   const inputStyle = {
-    padding: '14px 16px',
-    height: 56,
+    padding: '12px 16px',
+    height: 48,
     fontSize: 16,
     lineHeight: 1.6,
-    borderRadius: 12,
+    borderRadius: 8,
   };
 
   if (resetSuccess) {
@@ -131,7 +131,7 @@ function ResetPasswordForm() {
           ]}>
             <Input.Password placeholder={t('auth.newPassword')} ref={inputRef} size="large" prefix={<Lock size={16} className="mx-2 text-zinc-400" />} style={inputStyle} />
           </Form.Item>
-          <Form.Item name="confirmPassword" style={{ marginBottom: 0 }} rules={[
+          <Form.Item name="confirmPassword" style={{ marginBottom: 12 }} rules={[
             { required: true, message: t('validation.required') },
             ({ getFieldValue }) => ({
               validator(_, value) {
@@ -150,6 +150,16 @@ function ResetPasswordForm() {
               }
             />
           </Form.Item>
+          <Button
+            variant="primary"
+            size="lg"
+            block
+            type="submit"
+            loading={loading}
+            autoLoading={false}
+          >
+            {t('auth.resetPassword')}
+          </Button>
         </Form>
       </AuthCard>
     </AuthLayout>
