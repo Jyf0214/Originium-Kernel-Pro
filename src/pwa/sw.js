@@ -1,7 +1,9 @@
 /* eslint-disable no-console */
 // Originium Kernel — 原生 Service Worker
 // 缓存策略：静态资源 Cache-First / 页面导航 Network-First / 图片 Stale-While-Revalidate / API Network-Only
+// BASE_PATH 由 scripts/generate-pwa.mjs 在构建期注入（子路径部署如 GitHub Pages /repo）
 
+const BASE_PATH = '__BASE_PATH__';
 const CACHE_VERSION = 'originium-v1';
 const OFFLINE_CACHE = 'originium-offline-v1';
 const STATIC_CACHE = 'originium-static-v1';
@@ -13,10 +15,10 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(OFFLINE_CACHE).then((cache) => {
       return cache.addAll([
-        '/offline.html',
-        '/',
-        '/posts',
-        '/about',
+        `${BASE_PATH}/offline.html`,
+        `${BASE_PATH}/`,
+        `${BASE_PATH}/posts`,
+        `${BASE_PATH}/about`,
       ]).catch((err) => {
         console.warn('[SW] 预缓存部分页面失败（首次安装可忽略）:', err);
       });
@@ -52,10 +54,10 @@ function isNavigationRequest(request) {
     (request.method === 'GET' && request.headers.get('accept')?.includes('text/html'));
 }
 
-// 判断是否为静态资源（/_next/static/）
+// 判断是否为静态资源（/_next/static/，子路径部署时带 BASE_PATH 前缀）
 function isStaticAsset(request) {
   const url = new URL(request.url);
-  return url.pathname.startsWith('/_next/static/');
+  return url.pathname.startsWith(`${BASE_PATH}/_next/static/`);
 }
 
 // 判断是否为图片请求
@@ -66,7 +68,7 @@ function isImageRequest(request) {
 // 判断是否为 API 请求
 function isApiRequest(request) {
   const url = new URL(request.url);
-  return url.pathname.startsWith('/api/');
+  return url.pathname.startsWith(`${BASE_PATH}/api/`);
 }
 
 // Cache-First：静态资源长期缓存
@@ -99,7 +101,7 @@ async function networkFirst(request) {
     const cached = await caches.match(request);
     if (cached) return cached;
     // 回退到离线页面
-    const offlinePage = await caches.match('/offline.html');
+    const offlinePage = await caches.match(`${BASE_PATH}/offline.html`);
     return offlinePage || new Response('Offline', { status: 503 });
   }
 }

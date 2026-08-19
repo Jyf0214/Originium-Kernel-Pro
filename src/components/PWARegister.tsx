@@ -12,7 +12,7 @@ export function PWARegister() {
     if (!('serviceWorker' in navigator)) return;
 
     navigator.serviceWorker
-      .register('/sw.js')
+      .register(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/sw.js`)
       .then((registration) => {
         // 监听新 SW 激活，静默切换
         registration.addEventListener('updatefound', () => {

@@ -8,7 +8,7 @@
  * PWA 源文件缺失时直接报错，不允许静默跳过。
  */
 
-import { mkdir, copyFile, access } from 'fs/promises';
+import { mkdir, copyFile, access, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 const root = process.cwd();
@@ -17,6 +17,9 @@ const targetDir = join(root, 'public');
 
 /** PWA 源文件清单（与 public/ 输出文件名一致） */
 const PWA_FILES = ['sw.js', 'manifest.json', 'offline.html'];
+
+/** 静态导出子路径（GitHub Pages /repo），空字符串表示根路径部署 */
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 async function main() {
   await mkdir(targetDir, { recursive: true });
@@ -28,10 +31,16 @@ async function main() {
     } catch {
       throw new Error(`[generate-pwa] PWA 源文件缺失: ${src}`);
     }
-    await copyFile(src, join(targetDir, file));
+    if (file === 'sw.js') {
+      // 注入 BASE_PATH：子路径部署时 SW 注册与缓存路径必须带前缀，否则 PWA 静默失效
+      const content = await readFile(src, 'utf-8');
+      await writeFile(join(targetDir, file), content.replaceAll('__BASE_PATH__', basePath));
+    } else {
+      await copyFile(src, join(targetDir, file));
+    }
   }
 
-  console.log(`[generate-pwa] 已生成 ${PWA_FILES.length} 个 PWA 文件到 public/`);
+  console.log(`[generate-pwa] 已生成 ${PWA_FILES.length} 个 PWA 文件到 public/${basePath ? `（basePath: ${basePath}）` : ''}`);
 }
 
 main().catch((err) => {
