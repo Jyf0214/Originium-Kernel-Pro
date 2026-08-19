@@ -1514,7 +1514,8 @@
       "playlist": "Playlist",
       "previous": "Previous",
       "toggleExpand": "Expand/Collapse",
-      "unknownTrack": "Unknown track"
+      "unknownTrack": "Unknown track",
+      "loadFailed": "Failed to load audio, please check the music URL configuration"
     },
     "Navbar": {
       "about": "About",
@@ -1686,7 +1687,9 @@
     "syncSuccess": "Config synced to GitHub"
   },
   "hitokoto": {
-    "refreshTitle": "Click to refresh hitokoto"
+    "refreshTitle": "Click to refresh hitokoto",
+    "loadFailed": "Failed to load, click to retry",
+    "retry": "Retry"
   },
   "postEditLink": {
     "edit": "Edit",
@@ -1831,6 +1834,8 @@
       "copyrightAuthorLine": "Copyright of this article belongs to the author",
       "faviconLocalPath": "favicon must be a local path under the public directory (starting with /), external URLs are not supported",
       "fontFamilyInvalid": "Font family contains invalid characters (; < and backslash are not allowed)",
+      "musicUrlInvalid": "Music URL must be an http(s) link or a site path starting with /",
+      "musicCoverInvalid": "Cover URL must be an http(s) link or a site path starting with /",
       "licenseAgreementPrefix": "License: ",
       "licensePrefix": "License: ",
       "original": "Original",

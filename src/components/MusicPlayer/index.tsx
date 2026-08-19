@@ -6,6 +6,7 @@ import { Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, ListMusic, X, Mus
 import { tooltipVariants, tooltipTransition, DURATION } from '@/components/ui/motion';
 import { useConfig } from '@/hooks/use-config';
 import { useI18n } from '@/hooks/use-i18n';
+import { showError } from '@/lib/error';
 
 function formatTime(sec: number): string {
   if (!Number.isFinite(sec)) return '0:00';
@@ -202,6 +203,7 @@ function PlayerControls({
 /** 主播放器 */
 export function MusicPlayer() {
   const { config } = useConfig();
+  const { t } = useI18n();
   const musicConfig = config?.music;
 
   const [expanded, setExpanded] = useState(false);
@@ -213,6 +215,10 @@ export function MusicPlayer() {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.7);
   const [muted, setMuted] = useState(false);
+
+  // 音量 ref：audio 重建时读取最新值，避免音量变化触发重建
+  const volumeRef = useRef(volume);
+  volumeRef.current = volume;
 
   const songs = musicConfig?.songs ?? [];
   const current = songs[currentIndex];
@@ -231,7 +237,7 @@ export function MusicPlayer() {
     if (!enabled) return;
     const audio = new Audio();
     audio.preload = 'metadata';
-    audio.volume = volume;
+    audio.volume = volumeRef.current;
     audioRef.current = audio;
 
     const onTimeUpdate = () => setProgress(audio.currentTime);
@@ -242,12 +248,20 @@ export function MusicPlayer() {
     };
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
+    // 音频加载/播放失败：回滚播放状态并显式提示，不允许静默无反应
+    const onError = () => {
+      setPlaying(false);
+      setProgress(0);
+      setDuration(0);
+      showError(t('components.MusicPlayer.loadFailed'));
+    };
 
     audio.addEventListener('timeupdate', onTimeUpdate);
     audio.addEventListener('loadedmetadata', onLoadedMetadata);
     audio.addEventListener('ended', onEnded);
     audio.addEventListener('play', onPlay);
     audio.addEventListener('pause', onPause);
+    audio.addEventListener('error', onError);
 
     return () => {
       audio.removeEventListener('timeupdate', onTimeUpdate);
@@ -255,11 +269,12 @@ export function MusicPlayer() {
       audio.removeEventListener('ended', onEnded);
       audio.removeEventListener('play', onPlay);
       audio.removeEventListener('pause', onPause);
+      audio.removeEventListener('error', onError);
       audio.pause();
       audioRef.current = null;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled]);
+    // 音量经 ref 读取，避免音量变化触发 audio 重建
+  }, [enabled, t]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -281,11 +296,17 @@ export function MusicPlayer() {
   const togglePlay = useCallback(() => {
     const audio = audioRef.current;
     if (audio?.paused) {
-      audio.play().catch(() => { /* ignore */ });
+      // 用户主动点击播放：失败必须显式提示，不允许静默无反应
+      audio.play().catch(() => {
+        setPlaying(false);
+        setProgress(0);
+        setDuration(0);
+        showError(t('components.MusicPlayer.loadFailed'));
+      });
     } else {
       audio?.pause();
     }
-  }, []);
+  }, [t]);
 
   const playPrev = useCallback(() => {
     setCurrentIndex((prev) => (prev - 1 + songs.length) % songs.length);

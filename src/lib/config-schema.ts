@@ -422,8 +422,9 @@ export const zFooterConfig = z.object({
 export const zMusicItem = z.object({
   name: z.string().default(''),
   artist: z.string().default(''),
-  url: z.string().default(''),
-  cover: z.string().default(''),
+  // 音频/封面需为绝对 http(s) URL 或站点内根路径（/xxx），拒绝裸字符串等无效输入
+  url: z.string().refine((v) => v === '' || /^(https?:\/\/|\/)/.test(v), { message: getTranslate('lib.config.musicUrlInvalid') }).default(''),
+  cover: z.string().refine((v) => v === '' || /^(https?:\/\/|\/)/.test(v), { message: getTranslate('lib.config.musicCoverInvalid') }).default(''),
 });
 
 export const zMusicConfig = z.object({

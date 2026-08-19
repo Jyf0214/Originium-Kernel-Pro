@@ -25,19 +25,25 @@ export function Hitokoto({ className }: HitokotoProps) {
   const { t } = useI18n();
   const [data, setData] = useState<HitokotoData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const fetchHitokoto = useCallback(async () => {
     setLoading(true);
+    setLoadFailed(false);
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 5000);
       const res = await fetch('https://v1.hitokoto.cn', { signal: controller.signal });
       clearTimeout(timer);
-      if (!res.ok) return;
+      if (!res.ok) {
+        setLoadFailed(true);
+        return;
+      }
       const json = (await res.json()) as HitokotoData;
       setData(json);
     } catch {
-      // API 不可达时静默处理，不显示任何内容
+      // 请求失败（网络/CSP/超时）：展示可见的失败态供重试，不允许静默消失
+      setLoadFailed(true);
     } finally {
       setLoading(false);
     }
@@ -50,7 +56,27 @@ export function Hitokoto({ className }: HitokotoProps) {
   const displayText = data?.hitokoto ?? '';
   const sourceText = data?.from_who ? `${data.from_who} —— ${data.from}` : data?.from ?? '';
 
-  // API 不可达时不渲染任何内容
+  // API 不可达时展示失败占位（点击可重试），不允许静默消失
+  if (!loading && !data && loadFailed) {
+    return (
+      <button
+        type="button"
+        onClick={fetchHitokoto}
+        className={cn(
+          'group flex items-center gap-2 cursor-pointer select-none w-full justify-center',
+          'bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-800 dark:to-zinc-850',
+          'rounded-full px-4 py-1.5 text-xs text-zinc-400 dark:text-zinc-500',
+          'border border-zinc-200/50 dark:border-zinc-700/50',
+          'hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors',
+          className,
+        )}
+        title={t('hitokoto.retry')}
+      >
+        {t('hitokoto.loadFailed')}
+      </button>
+    );
+  }
+
   if (!loading && !data) return null;
 
   return (

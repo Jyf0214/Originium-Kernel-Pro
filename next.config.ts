@@ -109,7 +109,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self'",
-              "connect-src 'self' https://vitals.vercel-insights.com",
+              "connect-src 'self' https://vitals.vercel-insights.com https://v1.hitokoto.cn",
               "frame-src https://giscus.app",
               "frame-ancestors 'none'",
               "base-uri 'self'",

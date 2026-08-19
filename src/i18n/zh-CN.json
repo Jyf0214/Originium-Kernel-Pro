@@ -1514,7 +1514,8 @@
       "playlist": "播放列表",
       "previous": "上一首",
       "toggleExpand": "展开/收起",
-      "unknownTrack": "未知曲目"
+      "unknownTrack": "未知曲目",
+      "loadFailed": "音频加载失败，请检查音乐地址配置"
     },
     "Navbar": {
       "about": "关于",
@@ -1686,7 +1687,9 @@
     "syncSuccess": "配置已同步到 GitHub"
   },
   "hitokoto": {
-    "refreshTitle": "点击刷新一言"
+    "refreshTitle": "点击刷新一言",
+    "loadFailed": "一言加载失败，点击重试",
+    "retry": "重试"
   },
   "postEditLink": {
     "edit": "编辑",
@@ -1831,6 +1834,8 @@
       "copyrightAuthorLine": "本文著作权归作者所有",
       "faviconLocalPath": "favicon 必须是 public 目录下的本地路径(以 / 开头),不支持外部 URL",
       "fontFamilyInvalid": "字体族配置包含非法字符(不允许 ; < 和反斜杠)",
+      "musicUrlInvalid": "音乐地址必须是 http(s) 链接或以 / 开头的站内路径",
+      "musicCoverInvalid": "封面地址必须是 http(s) 链接或以 / 开头的站内路径",
       "licenseAgreementPrefix": "许可协议: ",
       "licensePrefix": "许可: ",
       "original": "原创",
