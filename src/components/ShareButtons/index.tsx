@@ -104,7 +104,7 @@ export default function ShareButtons({
     return (
       <>
         <div className="fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col gap-3">
-          <div className="flex flex-col gap-2 bg-white/80 backdrop-blur-md rounded-2xl border border-zinc-200/60 p-2 shadow-lg">
+          <div className="flex flex-col gap-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-2xl border border-zinc-200/60 dark:border-zinc-700/60 p-2 shadow-lg">
             {displayPlatforms.slice(0, 5).map((p) => (
               <ShareButtonItem
                 key={p.id}
@@ -116,7 +116,7 @@ export default function ShareButtons({
                 onWeChat={handleWeChat}
               />
             ))}
-            <div className="w-full h-px bg-zinc-100 my-1" />
+            <div className="w-full h-px bg-zinc-100 dark:bg-zinc-700 my-1" />
             <ShareButtonItem
               platform={{
                 id: 'copy',

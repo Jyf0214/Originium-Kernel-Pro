@@ -32,6 +32,9 @@ export const SeriesNavigation = React.memo(function SeriesNavigation({ seriesNam
   const prevPost = currentIndex > 0 ? posts[currentIndex - 1] : null;
   const nextPost = currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null;
 
+  // 空系列不渲染，避免出现 “1 / 0” 无效计数
+  if (posts.length === 0) return null;
+
   return (
     <div className="bg-gradient-to-r from-zinc-50 to-zinc-100 dark:from-zinc-800 dark:to-zinc-850 rounded-2xl p-5 border border-zinc-200/50 dark:border-zinc-700/50 mb-8">
       {/* 标题栏 */}

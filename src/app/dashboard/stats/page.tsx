@@ -7,7 +7,7 @@ import { GlobalLoading } from '@/components/Loading';
 import ProCard from '@/components/ui/ProCard';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
-import { BarChart3, BookOpen, Users, PenLine, Type, Clock } from 'lucide-react';
+import { BarChart3, BookOpen, Users, PenLine, Type, Clock, ShieldX } from 'lucide-react';
 
 /* ---------- 类型 ---------- */
 
@@ -133,6 +133,18 @@ export default function StatsPage() {
   }, [authLoading, user, isRoot, fetchStats]);
 
   if (authLoading) return <GlobalLoading />;
+
+  // 非 root（含未登录）：明确提示无权限，不允许无限加载
+  if (!user || !isRoot) {
+    return (
+      <PageContainer maxWidth="6xl">
+        <div className="py-20 text-center">
+          <ShieldX size={36} className="mx-auto mb-3 text-zinc-300" />
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">{t('stats.noPermission')}</p>
+        </div>
+      </PageContainer>
+    );
+  }
 
   const tagMax = data ? Math.max(...data.topTags.map((tag) => tag.count), 1) : 1;
   const catMax = data ? Math.max(...data.categories.map(c => c.count), 1) : 1;

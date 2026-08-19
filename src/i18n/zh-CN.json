@@ -167,7 +167,8 @@
       "time": "时间",
       "title": "审计日志",
       "totalCount": "共 {count} 条记录",
-      "viewAdminRecords": "查看管理员操作记录"
+      "viewAdminRecords": "查看管理员操作记录",
+      "noPermission": "仅超级管理员可查看审计日志"
     }
   },
   "sidebar": {
@@ -1718,7 +1719,8 @@
     "topTags": "标签分布（Top 10）",
     "totalContent": "全部内容",
     "totalWords": "总字数",
-    "wordUnit": "字"
+    "wordUnit": "字",
+    "noPermission": "仅超级管理员可查看内容统计"
   },
   "tags": {
     "allPosts": "所有帖子",

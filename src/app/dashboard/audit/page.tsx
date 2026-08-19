@@ -7,7 +7,7 @@ import { GlobalLoading } from '@/components/Loading';
 import ProCard from '@/components/ui/ProCard';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { Button } from '@/components/ui/Button';
-import { ScrollText, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { ScrollText, ChevronLeft, ChevronRight, Search, ShieldX } from 'lucide-react';
 
 /* ---------- 类型 ---------- */
 
@@ -79,6 +79,18 @@ export default function AuditPage() {
   const totalPages = data ? Math.max(1, Math.ceil(data.total / pageSize)) : 1;
 
   if (authLoading) return <GlobalLoading />;
+
+  // 非 root（含未登录）：明确提示无权限，不允许无限加载
+  if (!user || !isRoot) {
+    return (
+      <PageContainer maxWidth="6xl">
+        <div className="py-20 text-center">
+          <ShieldX size={36} className="mx-auto mb-3 text-zinc-300" />
+          <p className="text-sm text-zinc-500">{t('dashboard.audit.noPermission')}</p>
+        </div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer maxWidth="6xl">
