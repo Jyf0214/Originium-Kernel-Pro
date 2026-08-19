@@ -1,16 +1,53 @@
 'use client';
 
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
-import { Save, Send, ArrowLeft, Image as ImageIcon, XCircle } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { ArrowLeft } from 'lucide-react';
 import { message } from 'antd';
 import { showError } from '@/lib/error';
 import { GlobalLoading } from '@/components/Loading';
 import Link from 'next/link';
+import {
+  SaveStatusBadge,
+  EditorActions,
+  EditorMetaSection,
+  EditorBodySection,
+  type ArticleFormData,
+} from './_components/editor-sections';
+
+/** 根据标题与作者名生成默认文章路径（与 buildSlug 的自动生成规则一致） */
+function buildAutoSlug(title: string, name: string): string {
+  const base = title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\u4e00-\u9fa5-]/g, '');
+  return `/${name}/${base}`;
+}
+
+/** 拉取文章详情并归一化为表单数据，失败返回 null */
+async function loadArticleForm(articleId: string): Promise<ArticleFormData | null> {
+  const res = await fetch(`/api/articles/${articleId}`);
+  if (!res.ok) return null;
+  const data = await res.json() as Record<string, unknown>;
+  return {
+    title: (data.title as string) ?? '',
+    content: (data.content as string) ?? '',
+    tags: ((data.tags as string[]) ?? []).join(', '),
+    coverImage: (data.coverImage as string) ?? (data.cover as string) ?? '',
+    description: (data.description as string) ?? '',
+    slug: (data.slug as string) ?? '',
+  };
+}
+
+/** 查询 GitHub 配置状态：返回是否已配置（GITHUB_REPO + GITHUB_TOKEN） */
+async function checkGithubConfig(): Promise<boolean> {
+  const res = await fetch('/api/env-status');
+  if (!res.ok) throw new Error('env-status failed');
+  const data = await res.json();
+  const githubVars = data.groups?.github?.variables ?? [];
+  const repoSet = githubVars.find((v: { name: string; isSet: boolean }) => v.name === 'GITHUB_REPO')?.isSet;
+  const tokenSet = githubVars.find((v: { name: string; isSet: boolean }) => v.name === 'GITHUB_TOKEN')?.isSet;
+  return !!(repoSet && tokenSet);
+}
 
 function EditorContent() {
   const searchParams = useSearchParams();
@@ -28,34 +65,36 @@ function EditorContent() {
     }
   }, [authLoading, user, isAdmin, router]);
 
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [tags, setTags] = useState('');
-  const [coverImage, setCoverImage] = useState('');
-  const [description, setDescription] = useState('');
-  const [slug, setSlug] = useState('');
+  const [form, setForm] = useState<ArticleFormData>({
+    title: '',
+    content: '',
+    tags: '',
+    coverImage: '',
+    description: '',
+    slug: '',
+  });
   const [savingDraft, setSavingDraft] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [fetching, setFetching] = useState(!!articleId);
   const [githubConfigured, setGithubConfigured] = useState(false);
+  // 已保存快照（用于检测未保存变更）与最近保存时间
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  // 移动端编辑/预览切换
+  const [previewMode, setPreviewMode] = useState<'edit' | 'preview'>('edit');
 
   useEffect(() => {
     if (articleId) {
-      const fetchArticle = async () => {
+      const load = async () => {
         setFetching(true);
         try {
-          const res = await fetch(`/api/articles/${articleId}`);
-          if (res.ok) {
-            const data = await res.json();
-            setTitle(data.title ?? '');
-            setContent(data.content ?? '');
-            setTags(data.tags?.join(', ') ?? '');
-            setCoverImage(data.coverImage ?? data.cover ?? '');
-            setDescription(data.description ?? '');
-            setSlug(data.slug ?? '');
-          } else {
+          const loaded = await loadArticleForm(articleId);
+          if (!loaded) {
             showError(t('editor.fetchFailed'));
+            return;
           }
+          setForm(loaded);
+          setSavedSnapshot(JSON.stringify(loaded));
         } catch (error) {
           console.error(t('editor.fetchFailed'), error);
           showError(t('editor.fetchFailed'));
@@ -63,33 +102,41 @@ function EditorContent() {
           setFetching(false);
         }
       };
-      void fetchArticle();
+      void load();
     }
 
     // 检查 GitHub 是否配置
-    const checkGithubConfig = async () => {
+    const checkConfig = async () => {
       try {
-        const res = await fetch('/api/env-status');
-        if (res.ok) {
-          const data = await res.json();
-          const githubVars = data.groups?.github?.variables ?? [];
-          const repoSet = githubVars.find((v: { name: string; isSet: boolean }) => v.name === 'GITHUB_REPO')?.isSet;
-          const tokenSet = githubVars.find((v: { name: string; isSet: boolean }) => v.name === 'GITHUB_TOKEN')?.isSet;
-          setGithubConfigured(!!(repoSet && tokenSet));
-        } else {
-          showError(t('editor.githubEnvLoadFailed'));
-        }
-      } catch (error) {
-        console.error(t('editor.githubConfigCheckFailed'), error);
+        setGithubConfigured(await checkGithubConfig());
+      } catch {
         showError(t('editor.githubConfigCheckFailed'));
       }
     };
-    void checkGithubConfig();
+    void checkConfig();
   }, [articleId, t]);
+
+  const setField = (key: keyof ArticleFormData) => (value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  /** 当前表单快照，与 savedSnapshot 比对判断是否有未保存变更 */
+  const currentSnapshot = JSON.stringify(form);
+  const isDirty = savedSnapshot !== null && currentSnapshot !== savedSnapshot;
+
+  /** 字数与预计阅读时长（中文约 400 字/分钟） */
+  const charCount = form.content.length;
+  const readMinutes = Math.max(1, Math.round(charCount / 400));
+
+  /** slug 为空时自动生成的路径预览 */
+  const autoSlugPreview = useMemo(() => {
+    if (form.slug || !form.title.trim()) return null;
+    return buildAutoSlug(form.title, user?.name ?? 'anonymous');
+  }, [form.slug, form.title, user?.name]);
 
   /** 生成并校验文章 slug */
   function buildSlug(): string | null {
-    const postSlug = slug || `/${user?.name ?? 'anonymous'}/${title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\u4e00-\u9fa5-]/g, '')}`;
+    const postSlug = form.slug || buildAutoSlug(form.title, user?.name ?? 'anonymous');
     if (!/^\/[\w\u4e00-\u9fa5-]+(\/[\w\u4e00-\u9fa5-]+)*$/.test(postSlug)) {
       showError(t('editor.invalidSlug'));
       return null;
@@ -98,23 +145,23 @@ function EditorContent() {
   }
 
   /**
-   * 保存草稿到数据库
+   * 保存草稿到数据库（成功后停留本页并记录保存时间，便于继续编辑）
    */
   const handleSaveDraft = async () => {
     if (!user) { message.warning(t('editor.pleaseLogin')); return; }
-    if (!title.trim() || !content.trim()) { message.warning(t('editor.titleContentRequired')); return; }
+    if (!form.title.trim() || !form.content.trim()) { message.warning(t('editor.titleContentRequired')); return; }
 
     setSavingDraft(true);
     try {
       const articleData = {
-        title,
-        content,
+        title: form.title,
+        content: form.content,
         status: 'draft',
         authorId: user.uid,
         authorName: user.displayName || user.name || 'Anonymous',
-        tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        coverImage,
-        description,
+        tags: form.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+        coverImage: form.coverImage,
+        description: form.description,
       };
 
       const method = articleId ? 'PATCH' : 'POST';
@@ -127,8 +174,9 @@ function EditorContent() {
       });
 
       if (res.ok) {
+        setSavedSnapshot(currentSnapshot);
+        setLastSavedAt(new Date());
         message.success(articleId ? t('editor.updateSuccess') : t('editor.saveSuccess'));
-        router.push('/dashboard/articles');
       } else {
         const data = await res.json();
         showError(`${t('editor.saveFailed')}: ${data.error ?? ''}`);
@@ -146,7 +194,7 @@ function EditorContent() {
    */
   const handlePublish = async () => {
     if (!user) { message.warning(t('editor.pleaseLogin')); return; }
-    if (!title.trim() || !content.trim()) { message.warning(t('editor.titleContentRequired')); return; }
+    if (!form.title.trim() || !form.content.trim()) { message.warning(t('editor.titleContentRequired')); return; }
 
     setPublishing(true);
     try {
@@ -154,15 +202,15 @@ function EditorContent() {
       if (!postSlug) { setPublishing(false); return; }
 
       const articleData = {
-        title,
-        content,
+        title: form.title,
+        content: form.content,
         status: 'published',
         slug: postSlug,
         authorId: user.uid,
         authorName: user.displayName || user.name || 'Anonymous',
-        tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        coverImage,
-        description,
+        tags: form.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+        coverImage: form.coverImage,
+        description: form.description,
       };
 
       const method = articleId ? 'PATCH' : 'POST';
@@ -194,140 +242,48 @@ function EditorContent() {
   if (!user || !isAdmin) return <GlobalLoading size="large" />;
 
   return (
-    <div className="max-w-5xl mx-auto p-6 md:p-10 min-h-screen flex flex-col overflow-hidden">
+    <div className="max-w-6xl mx-auto p-4 md:p-8 min-h-screen flex flex-col">
       {/* 顶部操作栏 */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <Link href="/dashboard/articles" className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors shrink-0">
           <ArrowLeft size={20} />
           <span className="hidden sm:inline">{t('editor.back')}</span>
         </Link>
-        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-          <Button
-            onClick={handleSaveDraft}
-            disabled={savingDraft || publishing}
-            loading={savingDraft}
-            variant="default"
-            size="md"
-            icon={<Save size={18} />}
-            className="hidden sm:inline-flex"
-          >
-            {t('editor.saveDraft')}
-          </Button>
-          <Button
-            onClick={handleSaveDraft}
-            disabled={savingDraft || publishing}
-            loading={savingDraft}
-            variant="default"
-            size="md"
-            icon={<Save size={18} />}
-            className="sm:hidden"
-            title={t('editor.saveDraft')}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs">
+          <SaveStatusBadge isDirty={isDirty} lastSavedAt={lastSavedAt} t={t} />
+          <EditorActions
+            savingDraft={savingDraft}
+            publishing={publishing}
+            githubConfigured={githubConfigured}
+            onSaveDraft={() => void handleSaveDraft()}
+            onPublish={() => void handlePublish()}
+            t={t}
           />
-          {githubConfigured ? (
-            <>
-              <Button
-                onClick={handlePublish}
-                disabled={savingDraft || publishing}
-                loading={publishing}
-                variant="primary"
-                size="md"
-                icon={<Send size={18} />}
-                className="hidden sm:inline-flex"
-              >
-                {t('editor.publish')}
-              </Button>
-              <Button
-                onClick={handlePublish}
-                disabled={savingDraft || publishing}
-                loading={publishing}
-                variant="primary"
-                size="md"
-                icon={<Send size={18} />}
-                className="sm:hidden"
-                title={t('editor.publish')}
-              />
-            </>
-          ) : (
-            <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 sm:px-4 py-2 rounded-lg">
-              <XCircle size={18} />
-              <span className="text-sm hidden sm:inline">{t('editor.githubNotConfigured')}</span>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* 编辑区域 */}
-      <div className="flex-1 flex flex-col gap-6">
-        <input
-          type="text"
-          placeholder={t('editor.titlePlaceholder')}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="text-4xl md:text-5xl font-display font-bold text-zinc-900 dark:text-zinc-100 bg-transparent border-none outline-none placeholder:text-zinc-300 dark:placeholder:text-zinc-600 w-full"
-        />
+      <EditorMetaSection
+        form={form}
+        setters={{
+          setTitle: setField('title'),
+          setSlug: setField('slug'),
+          setTags: setField('tags'),
+          setCoverImage: setField('coverImage'),
+          setDescription: setField('description'),
+        }}
+        autoSlugPreview={autoSlugPreview}
+        t={t}
+      />
 
-        {/* Slug / 封面 / 标签 */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-xs font-mono">/posts</span>
-            <Input
-              type="text"
-              placeholder={t('editor.slugPlaceholder')}
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              size="md"
-              rounded="md"
-              ring="strong"
-              className="pl-16 pr-4 font-mono"
-            />
-          </div>
-          <div className="flex-1 relative">
-            <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" size={18} />
-            <Input
-              type="text"
-              placeholder={t('editor.coverUrl')}
-              value={coverImage}
-              onChange={(e) => setCoverImage(e.target.value)}
-              size="md"
-              rounded="md"
-              ring="strong"
-              className="pl-10 px-4"
-            />
-          </div>
-          <div className="flex-1">
-            <Input
-              type="text"
-              placeholder={t('editor.tags')}
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              size="md"
-              rounded="md"
-              ring="strong"
-              className="px-4"
-            />
-          </div>
-        </div>
-
-        {/* 描述 */}
-        <Input
-          type="text"
-          placeholder={t('editor.descriptionPlaceholder')}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          size="md"
-          rounded="md"
-          ring="strong"
-          className="px-4"
-        />
-
-        {/* 内容编辑 */}
-        <textarea
-          placeholder={t('editor.contentPlaceholder')}
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className="flex-1 w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-6 text-zinc-800 dark:text-zinc-200 font-mono text-sm resize-none outline-none focus:border-zinc-400 dark:focus:border-zinc-500 transition-colors min-h-[300px] max-h-[70vh]"
-        />
-      </div>
+      <EditorBodySection
+        content={form.content}
+        onContentChange={setField('content')}
+        previewMode={previewMode}
+        onModeChange={setPreviewMode}
+        charCount={charCount}
+        readMinutes={readMinutes}
+        t={t}
+      />
     </div>
   );
 }
