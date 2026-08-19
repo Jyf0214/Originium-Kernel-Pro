@@ -1537,7 +1537,9 @@
     },
     "PostLikeButton": {
       "like": "Like",
-      "liked": "Liked"
+      "liked": "Liked",
+      "unavailable": "Likes are not supported on the static site",
+      "likeFailed": "Failed to like, please try again later"
     },
     "PostNavigation": {
       "articleNav": "Article navigation",

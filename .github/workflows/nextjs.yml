@@ -82,6 +82,8 @@ jobs:
         run: ${{ steps.detect-package-manager.outputs.runner }} node scripts/build-wrapper.mjs
         env:
           NEXT_STATIC_EXPORT: 'true'
+          # 前端构建期标记：静态导出下 /api 路由被移除，相关组件（点赞等）禁用
+          NEXT_PUBLIC_STATIC_EXPORT: 'true'
           NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
           # 静态导出构建期解析站点 URL（canonical/JSON-LD/feed），缺省会生成 example.com 占位
           APP_URL: https://${{ github.repository_owner }}.github.io${{ steps.pages.outputs.base_path }}

@@ -1537,7 +1537,9 @@
     },
     "PostLikeButton": {
       "like": "点赞",
-      "liked": "已点赞"
+      "liked": "已点赞",
+      "unavailable": "静态站点不支持点赞功能",
+      "likeFailed": "点赞失败，请稍后重试"
     },
     "PostNavigation": {
       "articleNav": "文章导航",
