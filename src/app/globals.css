@@ -81,18 +81,6 @@ article header h1 {
   border-left-color: var(--main-tone, #a1a1aa);
 }
 
-/* 按钮轻加载动画 — 柔和的呼吸脉冲，配合 opacity 变淡 */
-@keyframes btn-loading-pulse {
-  0%, 100% { opacity: 0.55; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.98); }
-}
-
-.animate-btn-loading {
-  animation: btn-loading-pulse 0.9s ease-in-out infinite;
-  pointer-events: none;
-  cursor: not-allowed;
-}
-
 /* 标题锚点复制按钮 */
 .anchor-copy-btn {
   position: absolute;

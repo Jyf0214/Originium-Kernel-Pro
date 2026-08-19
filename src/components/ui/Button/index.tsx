@@ -58,7 +58,6 @@ export const Button = memo(
         isIconOnly ? iconOnlySize[size] : sizePadding[size],
         roundedStyles[rounded ?? 'md'],
         block && 'w-full',
-        !!isLoading && 'animate-btn-loading',
         isResponsiveIcon && responsiveIconSize[size],
         className,
       );
