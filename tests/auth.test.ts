@@ -380,6 +380,27 @@ describe('requireAuth / requireAdmin / requireRoot', () => {
   });
 });
 
+describe('generateUID', () => {
+  it('格式为 UID-<36进制时间戳>-<8位大写 hex 随机段>', async () => {
+    const { generateUID } = await import('@/lib/auth');
+    expect(generateUID()).toMatch(/^UID-[0-9A-Z]+-[0-9A-F]{8}$/);
+  });
+
+  it('随机段长度为 8（48bit 熵）', async () => {
+    const { generateUID } = await import('@/lib/auth');
+    const uid = generateUID();
+    const randomPart = uid.split('-')[2]!;
+    expect(randomPart).toHaveLength(8);
+    expect(randomPart).toMatch(/^[0-9A-F]+$/);
+  });
+
+  it('连续调用生成不同 UID', async () => {
+    const { generateUID } = await import('@/lib/auth');
+    const seen = new Set(Array.from({ length: 100 }, () => generateUID()));
+    expect(seen.size).toBe(100);
+  });
+});
+
 describe('hasRole', () => {
   it('null session → 总是 false', async () => {
     const { hasRole } = await import('@/lib/auth');

@@ -464,7 +464,7 @@ export function requireApiKeyPermission(
 /** 生成唯一用户 ID */
 export function generateUID(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
-  const randomStr = crypto.randomBytes(3).toString('hex').substring(0, 5).toUpperCase();
+  const randomStr = crypto.randomBytes(6).toString('hex').substring(0, 8).toUpperCase();
   return `UID-${timestamp}-${randomStr}`;
 }
 

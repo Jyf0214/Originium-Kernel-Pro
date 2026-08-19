@@ -38,14 +38,14 @@ describe('generateUID', () => {
     expect(a).not.toBe(b);
   });
 
-  it('UID 格式应为 UID-<时间戳36进制>-<随机5字符>', async () => {
+  it('UID 格式应为 UID-<时间戳36进制>-<随机8字符>', async () => {
     const { generateUID } = await import('@/lib/auth');
     const uid = generateUID();
     const parts = uid.split('-');
     expect(parts.length).toBe(3);
     expect(parts[0]).toBe('UID');
     expect(parts[1]?.length).toBeGreaterThan(0);
-    expect(parts[2]?.length).toBe(5);
+    expect(parts[2]?.length).toBe(8);
   });
 });
 

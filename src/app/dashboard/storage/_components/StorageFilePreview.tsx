@@ -153,7 +153,7 @@ export function StorageFilePreview({ open, entry, appUrl, onClose }: Props) {
         <Button variant="ghost" size="sm" icon={<Copy size={14} />} onClick={handleCopy} autoLoading={false}>
           {t('storage.copyUrl')}
         </Button>
-        <Button variant="default" size="sm" icon={<ExternalLink size={14} />} onClick={() => window.open(publicUrl, '_blank')} autoLoading={false}>
+        <Button variant="default" size="sm" icon={<ExternalLink size={14} />} onClick={() => window.open(publicUrl, '_blank', 'noopener,noreferrer')} autoLoading={false}>
           {t('storage.openInNewWindow')}
         </Button>
         <Button variant="primary" size="sm" icon={<Download size={14} />} onClick={handleDownload} autoLoading={false}>

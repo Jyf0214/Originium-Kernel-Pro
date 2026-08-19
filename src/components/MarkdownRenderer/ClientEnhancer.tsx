@@ -71,7 +71,7 @@ export function ClientEnhancer({ containerRef }: { containerRef: React.RefObject
       if (target.tagName === 'IMG' && target.closest('.prose')) {
         const src = (target as HTMLImageElement).src;
         if (src) {
-          window.open(src, '_blank');
+          window.open(src, '_blank', 'noopener,noreferrer');
         }
         return;
       }
