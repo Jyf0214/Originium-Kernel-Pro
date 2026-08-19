@@ -1,5 +1,5 @@
 // SearchDialog 搜索状态与快捷键 hook
-// 封装：搜索状态、客户端搜索（直接读取 data/search-index.json）、键盘导航、ESC 关闭、body 滚动锁、初始聚焦、搜索历史。
+// 封装：搜索状态、客户端搜索（直接读取 search-index.json）、键盘导航、ESC 关闭、body 滚动锁、初始聚焦、搜索历史。
 
 'use client';
 
@@ -70,6 +70,9 @@ interface SearchIndexItem {
   content: string;
 }
 
+/** 静态导出子路径前缀（GitHub Pages /repo），根路径部署为空字符串 */
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+
 /** 模块级索引缓存，避免重复 fetch */
 let cachedIndex: SearchIndexItem[] | null = null;
 let indexFetchPromise: Promise<SearchIndexItem[]> | null = null;
@@ -79,7 +82,7 @@ async function loadSearchIndex(): Promise<SearchIndexItem[]> {
   if (cachedIndex) return cachedIndex;
   if (indexFetchPromise) return indexFetchPromise;
 
-  indexFetchPromise = fetch('/data/search-index.json')
+  indexFetchPromise = fetch(`${BASE_PATH}/search-index.json`)
     .then((res) => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return res.json() as Promise<SearchIndexItem[]>;
@@ -278,7 +281,7 @@ export function useSearch({ open, onClose }: UseSearchOptions): UseSearchReturn 
         const target = flatResults[selectedIndex];
         if (target) {
           const href = target.type === 'diary' ? target.slug : `/posts${target.slug}`;
-          window.location.href = href;
+          window.location.href = `${BASE_PATH}${href}`;
           onClose();
         }
       }
