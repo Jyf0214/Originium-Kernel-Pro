@@ -6,6 +6,8 @@ import { AlertTriangle, CheckCircle2, ChevronDown, Copy, RefreshCw, XCircle } fr
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { isI18nKey, type TFunc } from '@/i18n/keys';
+import { PageContainer } from '@/components/ui/PageContainer';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 /** 单个环境变量的声明状态（与 /api/env-status 响应结构一致） */
 interface EnvVariable {
@@ -183,23 +185,50 @@ function StatusStrip({ summary, t }: { summary: EnvStatusResponse['summary']; t:
       {items.map((item) => (
         <div
           key={item.label}
-          className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2.5 shadow-sm"
+          className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-3 shadow-sm"
         >
           <p className="text-[11px] text-zinc-400 dark:text-zinc-500">{item.label}</p>
-          <p className={`mt-0.5 text-xl font-black tabular-nums ${TONE_TEXT[item.tone]}`}>{item.value}</p>
+          <p className={`mt-0.5 text-lg sm:text-xl font-black tabular-nums ${TONE_TEXT[item.tone]}`}>{item.value}</p>
         </div>
       ))}
     </div>
   );
 }
 
-/** 加载态：居中转圈 */
-function LoadingBlock() {
+/** 加载态骨架屏：按页面真实结构渲染占位块（标题条 + 统计卡 + 分组卡） */
+function EnvSkeleton() {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-24">
-      <div className="w-8 h-8 rounded-full border-2 border-zinc-200 dark:border-zinc-700 border-t-zinc-500 dark:border-t-zinc-300 animate-spin" />
-      <p className="text-sm text-zinc-400">Loading...</p>
-    </div>
+    <PageContainer maxWidth="6xl">
+      <div className="space-y-5">
+        {/* 标题区 */}
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="h-4 w-64 max-w-full" />
+        </div>
+        {/* 统计条 4 卡 */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 rounded-2xl" />
+          ))}
+        </div>
+        {/* 分组卡 3 张 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 space-y-3"
+            >
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-4 w-12" />
+              </div>
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-2/3" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </PageContainer>
   );
 }
 
@@ -306,87 +335,95 @@ export default function EnvStatusPage() {
   const collapseAll = useCallback(() => setCollapsed(new Set(Object.keys(groups))), [groups]);
 
   if (authLoading || loading) {
-    return <LoadingBlock />;
+    return <EnvSkeleton />;
   }
   if (!isRoot) {
     return null;
   }
   if (error || !summary) {
-    return <ErrorBanner message={error ?? 'unknown'} retrying={loading} onRetry={() => void fetchStatus()} t={t} />;
+    return (
+      <PageContainer maxWidth="6xl">
+        <ErrorBanner message={error ?? 'unknown'} retrying={loading} onRetry={() => void fetchStatus()} t={t} />
+      </PageContainer>
+    );
   }
 
   return (
-    <div className="space-y-5">
-      <header className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">{t('env.title')}</h1>
-            <p className="mt-1 text-sm text-zinc-400">{t('env.subtitle')}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${
-                summary.isReady
-                  ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700/50'
-                  : 'bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-300 border-red-200 dark:border-red-700/50'
-              }`}
-            >
-              {summary.isReady ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
-              {summary.isReady ? t('env.ready') : t('env.notReady')}
-            </span>
+    <PageContainer maxWidth="6xl">
+      <div className="space-y-5">
+        <header className="space-y-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl md:text-2xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
+                  {t('env.title')}
+                </h1>
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${
+                    summary.isReady
+                      ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700/50'
+                      : 'bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-300 border-red-200 dark:border-red-700/50'
+                  }`}
+                >
+                  {summary.isReady ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
+                  {summary.isReady ? t('env.ready') : t('env.notReady')}
+                </span>
+              </div>
+              <p className="mt-1 text-sm text-zinc-400 dark:text-zinc-500">{t('env.subtitle')}</p>
+            </div>
             <button
               type="button"
               onClick={() => void fetchStatus()}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-medium hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-medium hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity shrink-0"
             >
               <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
               {t('env.refresh')}
             </button>
           </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={expandAll}
-            className="inline-flex items-center px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors"
-          >
-            {t('env.ui.expandAll')}
-          </button>
-          <button
-            type="button"
-            onClick={collapseAll}
-            className="inline-flex items-center px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors"
-          >
-            {t('env.ui.collapseAll')}
-          </button>
-        </div>
-      </header>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={expandAll}
+              className="inline-flex items-center px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors"
+            >
+              {t('env.ui.expandAll')}
+            </button>
+            <button
+              type="button"
+              onClick={collapseAll}
+              className="inline-flex items-center px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors"
+            >
+              {t('env.ui.collapseAll')}
+            </button>
+          </div>
+        </header>
 
-      <StatusStrip summary={summary} t={t} />
+        <StatusStrip summary={summary} t={t} />
 
-      {!summary.isReady && (
-        <div className="flex items-start gap-2 rounded-2xl border border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-950/40 px-4 py-3">
-          <AlertTriangle size={14} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
-          <p className="text-xs leading-relaxed text-amber-700 dark:text-amber-300">{t('env.redeployHint')}</p>
+        {!summary.isReady && (
+          <div className="flex items-start gap-2 rounded-2xl border border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-950/40 px-4 py-3">
+            <AlertTriangle size={14} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
+            <p className="text-xs leading-relaxed text-amber-700 dark:text-amber-300">{t('env.redeployHint')}</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+          {Object.entries(groups).map(([key, group]) => (
+            <EnvGroupCard
+              key={key}
+              group={group}
+              expanded={!collapsed.has(key)}
+              onToggle={() => toggleGroup(key)}
+              t={t}
+            />
+          ))}
         </div>
-      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
-        {Object.entries(groups).map(([key, group]) => (
-          <EnvGroupCard
-            key={key}
-            group={group}
-            expanded={!collapsed.has(key)}
-            onToggle={() => toggleGroup(key)}
-            t={t}
-          />
-        ))}
+        <footer className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-3 shadow-sm">
+          <p className="text-xs leading-relaxed text-zinc-400 dark:text-zinc-500">{t('env.tip')}</p>
+        </footer>
       </div>
-
-      <footer className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-3 shadow-sm">
-        <p className="text-xs leading-relaxed text-zinc-400 dark:text-zinc-500">{t('env.tip')}</p>
-      </footer>
-    </div>
+    </PageContainer>
   );
 }

@@ -228,12 +228,8 @@
       "optionalMissing": "可选缺失"
     },
     "ui": {
-      "deprecated": "已弃用",
-      "renamedTo": "已重命名为 {name}",
       "systemInjected": "自动注入",
       "systemInjectedHint": "此变量由运行时或平台自动设置，无需手动配置。",
-      "deprecatedHint": "此变量已弃用，将在后续版本移除。",
-      "renamedHint": "新名称为 {name}，建议迁移。",
       "allReady": "全部就绪",
       "missingCount": "{count} 项缺失",
       "expandAll": "全部展开",
@@ -339,8 +335,7 @@
         "VERCEL_URL": "当前 Vercel 构建的部署 URL（无协议）。作为 APP_URL 的兜底。",
         "VERCEL_PROJECT_PRODUCTION_URL": "Vercel 在自定义域名生效后注入的生产部署 URL，优先级高于 VERCEL_URL。"
       }
-    },
-    "summaryText": "已配置 {set}/{total} 个环境变量，必需项 {requiredSet}/{required}"
+    }
   },
   "error": {
     "500": "服务器错误",

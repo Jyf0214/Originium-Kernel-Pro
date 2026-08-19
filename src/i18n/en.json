@@ -228,12 +228,8 @@
       "optionalMissing": "Optional Missing"
     },
     "ui": {
-      "deprecated": "Deprecated",
-      "renamedTo": "Renamed to {name}",
       "systemInjected": "Auto-injected",
       "systemInjectedHint": "This variable is automatically set by the runtime / platform; no manual configuration required.",
-      "deprecatedHint": "This variable is deprecated and will be removed in a future release.",
-      "renamedHint": "The new name is {name}. Migration is recommended.",
       "allReady": "All ready",
       "missingCount": "{count} missing",
       "expandAll": "Expand all",
@@ -339,8 +335,7 @@
         "VERCEL_URL": "Deployment URL of the current Vercel build (no protocol). Used as a fallback for APP_URL.",
         "VERCEL_PROJECT_PRODUCTION_URL": "Production deployment URL injected by Vercel after a custom domain is attached. Preferred over VERCEL_URL."
       }
-    },
-    "summaryText": "Configured {set}/{total} variables, required {requiredSet}/{required}"
+    }
   },
   "error": {
     "500": "Server error",
