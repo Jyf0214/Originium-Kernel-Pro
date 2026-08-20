@@ -6,6 +6,7 @@ import { hashPassword } from '@/lib/hash';
 import { validatePasswordStrength } from '@/lib/auth';
 import { createApiLogger } from '@/lib/api-logger';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { logAudit } from '@/lib/audit';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/auth/reset-password');
@@ -102,6 +103,7 @@ export async function PUT(req: NextRequest) {
 
     if (!resetData) {
       logger.warn('PUT', '无效或过期的重置链接');
+      void logAudit('password_reset_failed', 'auth', '密码重置失败：无效或过期的重置链接', 'unknown');
       return NextResponse.json({ error: getTranslate('api.auth.invalidResetLink') }, { status: 400 });
     }
 
@@ -118,6 +120,7 @@ export async function PUT(req: NextRequest) {
     if (Date.now() > expiresAt) {
       await db.del(`reset:${token}`);
       logger.warn('PUT', '重置链接已过期', { uid });
+      void logAudit('password_reset_failed', 'auth', '密码重置失败：重置链接已过期', uid);
       return NextResponse.json({ error: getTranslate('api.auth.resetLinkExpired') }, { status: 400 });
     }
 
@@ -150,6 +153,7 @@ export async function PUT(req: NextRequest) {
     }
 
     logger.info('PUT', '密码重置成功', { uid });
+    void logAudit('password_reset', 'auth', '密码已通过重置链接修改', uid);
     return NextResponse.json({ success: true, message: getTranslate('api.auth.passwordResetSuccess') }, { status: 201 });
   } catch (error: unknown) {
     logger.error('PUT', '密码重置错误', { error: error instanceof Error ? error.message : String(error) });

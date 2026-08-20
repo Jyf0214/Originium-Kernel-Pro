@@ -4,6 +4,7 @@ import { getDb } from '@/lib/db';
 import { verifyTotp } from '@/lib/totp';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { createApiLogger } from '@/lib/api-logger';
+import { logAudit } from '@/lib/audit';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/auth/2fa/verify');
@@ -59,6 +60,7 @@ export async function POST(req: NextRequest) {
     const valid = verifyTotp(token, user.twoFactorSecret);
     if (!valid) {
       logger.warn('POST', 'TOTP 验证码错误', { uid: session.uid });
+      void logAudit('2fa_verify_failed', 'auth', '2FA 启用失败：TOTP 验证码错误', session.uid);
       return NextResponse.json({ error: getTranslate('api.auth.invalidVerificationCode') }, { status: 400 });
     }
 
@@ -67,6 +69,7 @@ export async function POST(req: NextRequest) {
     await db.set(`user:uid:${session.uid}`, JSON.stringify(user));
 
     logger.info('POST', '2FA 已启用', { uid: session.uid });
+    void logAudit('2fa_enabled', 'auth', '2FA 已启用', session.uid);
 
     return NextResponse.json({
       success: true,

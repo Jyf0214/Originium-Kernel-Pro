@@ -13,6 +13,7 @@ import { parsePermissions } from '@/lib/api-key-permissions';
 import { getDb } from '@/lib/db';
 import { createApiLogger } from '@/lib/api-logger';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { logAudit } from '@/lib/audit';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/auth/apikey-login');
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest) {
   const row = await db.prisma.apiKey.findUnique({ where: { key: hashed } });
   if (!row) {
     logger.warn('POST', 'API 密钥无效');
+    void logAudit('apikey_login_failed', 'auth', 'API 密钥登录失败：密钥无效', 'unknown');
     return NextResponse.json({ error: getTranslate('api.auth.invalidApiKey') }, { status: 401 });
   }
 
@@ -60,6 +62,7 @@ export async function POST(req: NextRequest) {
   const userRaw = await db.get(`user:uid:${row.uid}`);
   if (!userRaw) {
     logger.warn('POST', '关联用户不存在', { uid: row.uid });
+    void logAudit('apikey_login_failed', 'auth', 'API 密钥登录失败：关联用户不存在', 'unknown');
     return NextResponse.json({ error: getTranslate('api.auth.linkedUserNotFound') }, { status: 401 });
   }
 
@@ -99,6 +102,7 @@ export async function POST(req: NextRequest) {
   });
 
   logger.info('POST', 'API 密钥登录成功', { uid: user.uid });
+  void logAudit('apikey_login', 'auth', 'API 密钥登录成功', user.uid);
   return NextResponse.json({
     success: true,
     user: { email: user.email, role: user.role },

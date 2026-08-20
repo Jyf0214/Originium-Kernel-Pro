@@ -163,8 +163,10 @@ describe('i18n 硬编码中文字符串检测', () => {
 
     const hits: { file: string; line: number; text: string }[] = [];
     const chineseLiteralRe = /['"`][^'"`]*[\u4e00-\u9fa5]+[^'"`]*['"`]/;
-    // 排除日志输出（console.* 与项目内部 logger.*/log.*，均为调试日志非 UI 文案）
-    const logRe = /\b(?:console|logger|log)\.(log|warn|error|info|debug)/;
+    // 排除日志输出（console.* 与项目内部 logger.*/log.*）与审计记录
+    // （logAudit/auditDeleteResult 调用及其 okDetail/failDetail 参数对象），
+    // 均为系统内部日志/审计数据而非 UI 文案
+    const logRe = /\b(?:console|logger|log)\.(log|warn|error|info|debug)|\b(?:logAudit|auditDeleteResult)\(|(?:okDetail|failDetail):/;
 
     for (const f of files) {
       const lines = fs.readFileSync(f, 'utf8').split('\n');

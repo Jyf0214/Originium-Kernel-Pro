@@ -4,6 +4,7 @@ import { getDb } from '@/lib/db';
 import { generateTotpSecret, generateTotpUri, generateRecoveryCodes, hashRecoveryCode } from '@/lib/totp';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { createApiLogger } from '@/lib/api-logger';
+import { logAudit } from '@/lib/audit';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/auth/2fa/setup');
@@ -43,6 +44,7 @@ export async function POST(req: NextRequest) {
 
     if (user.twoFactorEnabled) {
       logger.warn('POST', '2FA 已启用，需先禁用再重新设置', { uid: session.uid });
+      void logAudit('2fa_setup_failed', 'auth', '2FA 设置失败：已启用', session.uid);
       return NextResponse.json({ error: getTranslate('api.auth.twoFactorAlreadyEnabled') }, { status: 400 });
     }
 
@@ -60,6 +62,7 @@ export async function POST(req: NextRequest) {
     await db.set(`user:uid:${session.uid}`, JSON.stringify(user));
 
     logger.info('POST', 'TOTP 密钥已生成', { uid: session.uid });
+    void logAudit('2fa_setup', 'auth', '2FA 设置：TOTP 密钥已生成，等待验证', session.uid);
 
     return NextResponse.json({
       success: true,

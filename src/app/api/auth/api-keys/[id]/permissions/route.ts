@@ -8,6 +8,7 @@ import { getSession } from '@/lib/auth';
 import { apiHandler, getParam } from '@/lib/api-handler';
 import { getDb } from '@/lib/db';
 import { parsePermissions, serializePermissions, type ApiKeyPermissions } from '@/lib/api-key-permissions';
+import { logAudit } from '@/lib/audit';
 import { getTranslate } from '@/i18n/translate';
 
 /** 获取指定密钥的权限 */
@@ -74,6 +75,7 @@ export const PATCH = apiHandler<{ id: string }>(
       // 确保只能修改自己的密钥
       const row = await db.prisma.apiKey.findUnique({ where: { id }, select: { uid: true } });
       if (row?.uid !== session.uid) {
+        void logAudit('api_key_permissions_update_failed', 'auth', '修改 API 密钥权限失败：密钥不存在或无权限', session.uid);
         return NextResponse.json({ error: getTranslate('api.auth.keyNotFound') }, { status: 404 });
       }
 
@@ -83,9 +85,11 @@ export const PATCH = apiHandler<{ id: string }>(
         data: { permissions: permissionsJson },
       });
 
+      void logAudit('api_key_permissions_update', 'auth', `修改 API 密钥权限：${id}`, session.uid);
       return NextResponse.json({ ok: true });
     } catch (err) {
       console.error('[api-keys.permissions.update] 更新失败', err);
+      void logAudit('api_key_permissions_update_failed', 'auth', '修改 API 密钥权限失败', session.uid);
       return NextResponse.json({ error: getTranslate('api.auth.updateFailed') }, { status: 500 });
     }
   }

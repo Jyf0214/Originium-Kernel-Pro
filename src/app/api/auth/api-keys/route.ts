@@ -8,6 +8,7 @@ import { getSession, hashApiKey, generateApiKey } from '@/lib/auth';
 import { apiHandler } from '@/lib/api-handler';
 import { getDb } from '@/lib/db';
 import { parsePermissions, serializePermissions, type ApiKeyPermissions } from '@/lib/api-key-permissions';
+import { logAudit } from '@/lib/audit';
 import { getTranslate } from '@/i18n/translate';
 
 /** 列出当前用户的 API 密钥(不返回明文) */
@@ -87,11 +88,13 @@ export const POST = apiHandler(
         select: { id: true, name: true, createdAt: true },
       });
       console.warn(`[api-keys.create] uid="${session.uid}" id=${row.id} name="${name}"`);
+      void logAudit('api_key_create', 'auth', `创建 API 密钥：${name}`, session.uid);
       // 明文仅此一次返回
       return NextResponse.json({ ...row, key: rawKey });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error(`[api-keys.create] uid="${session.uid}" error:`, msg);
+      void logAudit('api_key_create_failed', 'auth', '创建 API 密钥失败', session.uid);
       return NextResponse.json({ error: getTranslate('api.auth.createFailed') }, { status: 500 });
     }
   }
