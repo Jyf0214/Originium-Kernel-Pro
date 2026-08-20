@@ -1,6 +1,7 @@
 import React from 'react';
-import { Select, Input as AntInput } from 'antd';
+import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
 
 export interface FormFieldProps {
   label: string;
@@ -27,22 +28,25 @@ export default function FormField({
     <div className={className}>
       <label className="block text-sm font-medium mb-2">{label}</label>
       {type === 'textarea' && (
-        <AntInput.TextArea
+        <Textarea
           rows={rows}
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full"
+          minH={`min-h-[${rows * 24}px]`}
         />
       )}
       {type === 'select' && options && (
         <Select
           value={value}
-          onChange={onChange}
-          options={options}
-          style={{ width: '100%' }}
-          placement="bottomLeft"
-        />
+          onChange={e => onChange(e.target.value)}
+        >
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </Select>
       )}
       {type === 'text' && (
         <Input

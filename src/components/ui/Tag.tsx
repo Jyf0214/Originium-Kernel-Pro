@@ -1,4 +1,5 @@
 import { type ReactNode, type CSSProperties, type KeyboardEvent, memo } from 'react';
+import { X } from 'lucide-react';
 import { cn } from '@/lib/ui';
 
 type TagVariant = 'light' | 'dark' | 'outline' | 'emerald' | 'amber' | 'danger' | 'success' | 'warning';
@@ -29,12 +30,14 @@ export interface TagProps {
   className?: string;
   style?: CSSProperties;
   onClick?: () => void;
+  /** 提供后渲染右上角关闭按钮，点击触发（不冒泡到 onClick） */
+  onClose?: () => void;
 }
 
 /**
  * 自定义标签组件 — 支持 light/emerald/amber/danger 等变体
  */
-export const Tag = memo<TagProps>(({ children, variant = 'light', size = 'md', className, style, onClick }) => {
+export const Tag = memo<TagProps>(({ children, variant = 'light', size = 'md', className, style, onClick, onClose }) => {
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -48,14 +51,29 @@ export const Tag = memo<TagProps>(({ children, variant = 'light', size = 'md', c
     variantStyles[variant],
     sizeStyles[size],
     onClick && 'cursor-pointer ui-press',
-    !onClick && 'hover:brightness-95 dark:hover:brightness-110',
+    !onClick && !onClose && 'hover:brightness-95 dark:hover:brightness-110',
     className,
   );
 
-  if (onClick) {
+  const closeBtn = onClose && (
+    <span
+      role="button"
+      aria-label="close"
+      className="ml-1.5 -mr-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-current opacity-60 hover:opacity-100 hover:bg-current/10 cursor-pointer transition-opacity"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClose();
+      }}
+    >
+      <X size={10} />
+    </span>
+  );
+
+  if (onClick || onClose) {
     return (
       <button type="button" className={classes} style={style} onClick={onClick} onKeyDown={handleKeyDown}>
         {children}
+        {closeBtn}
       </button>
     );
   }
@@ -63,6 +81,7 @@ export const Tag = memo<TagProps>(({ children, variant = 'light', size = 'md', c
   return (
     <span className={classes} style={style}>
       {children}
+      {closeBtn}
     </span>
   );
 });
