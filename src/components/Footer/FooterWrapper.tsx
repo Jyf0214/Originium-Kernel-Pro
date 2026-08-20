@@ -14,7 +14,7 @@ function toFooterConfigData(appConfig: AppConfig): FooterConfigData | undefined 
   if (!footer) return undefined;
   return {
     owner: footer.owner,
-    customText: '',
+    customText: footer.customText,
     runtime: footer.runtime,
     socialLinks: footer.socialLinks,
     links: footer.links,

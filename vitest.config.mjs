@@ -12,10 +12,11 @@ export default defineConfig({
     exclude: ['.next/standalone/**', '**/node_modules/**', '**/dist/**'],
   },
   resolve: {
-    alias: {
-      '@': path.join(__dirname, 'src'),
-      '@/data': path.join(__dirname, 'data'),
-    },
+    alias: [
+      // 长前缀优先（'@/data' 必须先于 '@' 匹配，否则 '@/' 前缀会误解析到 src/data）
+      { find: '@/data', replacement: path.join(__dirname, 'data') },
+      { find: '@', replacement: path.join(__dirname, 'src') },
+    ],
   },
   coverage: {
     provider: 'v8',

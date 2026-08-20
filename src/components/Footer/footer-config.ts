@@ -94,7 +94,8 @@ export function resolveDefaults(config: FooterConfigData | null): ResolvedFooter
   return {
     links: resolveList(config?.links, DEFAULT_FOOTER_LINKS),
     badges: resolveList(config?.badges, DEFAULT_FOOTER_BADGES),
-    typedText: resolveList(config?.typedText, DEFAULT_FOOTER_TYPED_TEXTS),
+    // typedText 空数组表示关闭打字机（FooterBar 在 texts 为空时不渲染），仅 undefined 时回退默认三条
+    typedText: resolveVal(config?.typedText, DEFAULT_FOOTER_TYPED_TEXTS),
     typedTextPrefix: resolveVal(config?.typedTextPrefix, ''),
     typedTextSpeed: resolveVal(config?.typedTextSpeed, { type: 100, delete: 50, pause: 2000 }),
     scrollToTopText: resolveVal(config?.scrollToTopText, getTranslate('footerConfig.scrollToTop')),
