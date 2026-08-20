@@ -7,7 +7,9 @@ import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
 import { Plus, Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Input, Tag, message } from 'antd';
+import { message } from 'antd';
+import { Input } from '@/components/ui/Input';
+import { Tag } from '@/components/ui/Tag';
 import { CuteConfirm } from '@/components/ui/CuteConfirm';
 import { GlobalLoading } from '@/components/Loading';
 import { showError } from '@/lib/error';
@@ -136,8 +138,8 @@ export default function ArticlesPage() {
               placeholder={t('common.searchArticles')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="!pl-9 !h-9 !rounded-lg !text-sm"
-              size="middle"
+              className="pl-9"
+              size="sm"
               allowClear
             />
           </div>
@@ -160,12 +162,13 @@ export default function ArticlesPage() {
                 {/* 左侧：标题 + 状态 */}
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <Tag
-                    color={
+                    variant={
                       article.status === 'published' ? 'success'
-                      : article.status === 'pending_deletion' ? 'error'
+                      : article.status === 'pending_deletion' ? 'danger'
                       : 'warning'
                     }
-                    className="shrink-0 text-xs rounded-md !m-0"
+                    size="sm"
+                    className="shrink-0"
                   >
                     {article.status === 'published'
                       ? t('article.published')

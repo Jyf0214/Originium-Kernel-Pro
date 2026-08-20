@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select } from 'antd';
+import { Select } from '@/components/ui/Select';
 import { useI18n } from '@/hooks/use-i18n';
 import FormField from './FormField';
 
@@ -49,15 +49,13 @@ export default function SiteConfigForm({ config, onChange }: SiteConfigFormProps
         <label className="block text-sm font-medium mb-2">{t('config.language')}</label>
         <Select
           value={config.lang}
-          onChange={value => updateField('lang', value)}
-          options={[
-            { value: 'zh-CN', label: t('components.languageSwitcher.zhName') },
-            { value: 'en-US', label: 'English' },
-            { value: 'ja-JP', label: t('components.languageSwitcher.jaName') },
-          ]}
-          style={{ width: '100%' }}
-          placement="bottomLeft"
-        />
+          onChange={e => updateField('lang', e.target.value)}
+          rounded="md"
+        >
+          <option value="zh-CN">{t('components.languageSwitcher.zhName')}</option>
+          <option value="en-US">English</option>
+          <option value="ja-JP">{t('components.languageSwitcher.jaName')}</option>
+        </Select>
       </div>
     </div>
   );

@@ -3,9 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
+import { DURATION } from '@/components/ui/motion';
 import { Save, Trash2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { Input, Form, message } from 'antd';
+import { Form, message } from 'antd';
+import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
 import { Button } from '@/components/ui/Button';
 import { CuteConfirm } from '@/components/ui/CuteConfirm';
 import { Select } from '@/components/ui/Select';
@@ -138,7 +141,7 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: DURATION.SLOW }}
     >
       <Form
         form={form}
@@ -161,8 +164,8 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
           >
             <Input
               placeholder={t('auth.usernamePlaceholder')}
-              className="h-12 rounded-xl"
-              size="large"
+              size="xl"
+              rounded="lg"
             />
           </Form.Item>
 
@@ -175,8 +178,8 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
           >
             <Input
               placeholder={t('auth.inputEmailPlaceholder')}
-              className="h-12 rounded-xl"
-              size="large"
+              size="xl"
+              rounded="lg"
             />
           </Form.Item>
         </div>
@@ -188,8 +191,8 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
           >
             <Input
               placeholder={t('article.phonePlaceholder') ?? 'Phone'}
-              className="h-12 rounded-xl"
-              size="large"
+              size="xl"
+              rounded="lg"
             />
           </Form.Item>
 
@@ -216,10 +219,12 @@ export function FaceForm({ groups, faceData, isEdit = false }: FaceFormProps) {
           label={<span className="text-zinc-700 font-medium">{t('article.content')}</span>}
           name="content"
         >
-          <textarea
+          <Textarea
             placeholder={t('editor.contentPlaceholder')}
-            className="w-full min-h-[200px] rounded-xl border border-zinc-200 p-4 text-zinc-900 bg-white focus:outline-none focus:border-zinc-400 transition-colors resize-y"
-            style={{ fontSize: '16px', fontFamily: 'inherit' }}
+            rows={8}
+            minH="min-h-[200px]"
+            rounded="lg"
+            className="text-base"
           />
         </Form.Item>
 

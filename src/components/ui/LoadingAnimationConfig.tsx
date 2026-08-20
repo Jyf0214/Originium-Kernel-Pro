@@ -1,6 +1,7 @@
 import React from 'react';
-import { Select, ColorPicker } from 'antd';
+import { ColorPicker } from 'antd';
 import type { Color } from 'antd/es/color-picker';
+import { Select } from '@/components/ui/Select';
 import { getTranslate } from '@/i18n/translate';
 import { useI18n } from '@/hooks/use-i18n';
 
@@ -52,11 +53,13 @@ export default function LoadingAnimationConfig({
           <label className="block text-xs font-medium mb-2 text-zinc-500">{t('loadingPreview.animationType')}</label>
           <Select
             value={config.type}
-            onChange={v => onChange({ ...config, type: v })}
-            options={loadingTypeOptions}
-            style={{ width: '100%' }}
-            placement="bottomLeft"
-          />
+            onChange={e => onChange({ ...config, type: e.target.value as LoadingConfig['type'] })}
+            rounded="md"
+          >
+            {loadingTypeOptions.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </Select>
         </div>
         <div>
           <label className="block text-xs font-medium mb-2 text-zinc-500">{t('loadingPreview.colorLabel')}</label>
@@ -71,11 +74,13 @@ export default function LoadingAnimationConfig({
             <label className="block text-xs font-medium mb-2 text-zinc-500">{t('components.loadingAnimationConfig.position')}</label>
             <Select
               value={config.position}
-              onChange={v => onChange({ ...config, position: v })}
-              options={positionOptions}
-              style={{ width: '100%' }}
-              placement="bottomLeft"
-            />
+              onChange={e => onChange({ ...config, position: e.target.value as LoadingConfig['position'] })}
+              rounded="md"
+            >
+              {positionOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </Select>
           </div>
         )}
       </div>

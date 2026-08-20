@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { KeyRound, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { KeyRound, Loader2, AlertCircle } from 'lucide-react';
+import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { ProCard } from '@/components/ui/ProCard';
 import { useI18n } from '@/hooks/use-i18n';
@@ -18,9 +19,6 @@ export function ChangePasswordCard() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,44 +57,26 @@ export function ChangePasswordCard() {
     }
   };
 
-  const passwordInputCls =
-    'flex-1 px-3 py-2 pr-10 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-300';
-
   const renderPasswordField = ({
     label,
     value,
     onChange,
-    visible,
-    onToggleVisible,
     placeholder,
   }: {
     label: string;
     value: string;
     onChange: (v: string) => void;
-    visible: boolean;
-    onToggleVisible: () => void;
     placeholder: string;
   }) => (
     <div>
       <label className="block text-xs font-medium text-zinc-500 mb-1">{label}</label>
-      <div className="relative">
-        <input
-          type={visible ? 'text' : 'password'}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          autoComplete="new-password"
-          className={passwordInputCls}
-        />
-        <button
-          type="button"
-          onClick={onToggleVisible}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-600 transition-colors"
-          tabIndex={-1}
-        >
-          {visible ? <EyeOff size={14} /> : <Eye size={14} />}
-        </button>
-      </div>
+      <Input
+        password
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        autoComplete="new-password"
+      />
     </div>
   );
 
@@ -124,24 +104,18 @@ export function ChangePasswordCard() {
           label: t('settings.changePassword.currentLabel'),
           value: currentPassword,
           onChange: setCurrentPassword,
-          visible: showCurrent,
-          onToggleVisible: () => setShowCurrent((v) => !v),
           placeholder: t('settings.changePassword.currentPlaceholder'),
         })}
         {renderPasswordField({
           label: t('settings.changePassword.newLabel'),
           value: newPassword,
           onChange: setNewPassword,
-          visible: showNew,
-          onToggleVisible: () => setShowNew((v) => !v),
           placeholder: t('settings.changePassword.newPlaceholder'),
         })}
         {renderPasswordField({
           label: t('settings.changePassword.confirmLabel'),
           value: confirmPassword,
           onChange: setConfirmPassword,
-          visible: showConfirm,
-          onToggleVisible: () => setShowConfirm((v) => !v),
           placeholder: t('settings.changePassword.confirmPlaceholder'),
         })}
       </div>

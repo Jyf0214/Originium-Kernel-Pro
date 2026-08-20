@@ -4,7 +4,9 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
-import { Form, Input, Select, message } from 'antd';
+import { Form, Select, message } from 'antd';
+import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
 import { Button } from '@/components/ui/Button';
 import { Save, ArrowLeft, Lock } from 'lucide-react';
 import Link from 'next/link';
@@ -13,8 +15,6 @@ import { showError } from '@/lib/error';
 import { GlobalLoading } from '@/components/Loading';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
-
-const { TextArea } = Input;
 
 /** 新建联系人表单值 */
 interface NewFaceFormValues {
@@ -158,7 +158,7 @@ export default function NewFacePage() {
             >
               <Input
                 placeholder={t('faces.namePlaceholder')}
-                className="h-10 rounded-lg text-sm border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 focus:border-zinc-900"
+                rounded="md"
               />
             </Form.Item>
 
@@ -184,7 +184,7 @@ export default function NewFacePage() {
             >
               <Input
                 placeholder={t('faces.descriptionPlaceholder')}
-                className="h-10 rounded-lg text-sm border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 focus:border-zinc-900"
+                rounded="md"
               />
             </Form.Item>
 
@@ -194,11 +194,10 @@ export default function NewFacePage() {
               rules={[{ required: true, message: t('faces.contentRequired') }]}
               extra={t('faces.contentHint')}
             >
-              <TextArea
+              <Textarea
                 placeholder={t('faces.contentPlaceholder')}
-                className="rounded-lg text-sm border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 focus:border-zinc-900"
                 rows={12}
-                style={{ fontFamily: 'inherit', resize: 'vertical' }}
+                rounded="md"
               />
             </Form.Item>
 

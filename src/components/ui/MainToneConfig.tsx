@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select } from 'antd';
+import { Select } from '@/components/ui/Select';
 import ToggleField from './ToggleField';
 import { useI18n } from '@/hooks/use-i18n';
 
@@ -33,12 +33,13 @@ export default function MainToneConfig({ config, onChange }: MainToneConfigProps
         <label className="block text-sm font-medium mb-2">{t('components.MainToneConfig.mode')}</label>
         <Select
           value={config.mode}
-          onChange={v => onChange({ ...config, mode: v })}
-          options={modeOptions}
-          style={{ width: '100%' }}
-          className="!rounded-lg"
-          placement="bottomLeft"
-        />
+          onChange={e => onChange({ ...config, mode: e.target.value as MainToneConfigData['mode'] })}
+          rounded="md"
+        >
+          {modeOptions.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </Select>
         <p className="text-xs text-zinc-400 mt-1">
           {t('components.MainToneConfig.modeDesc')}
         </p>

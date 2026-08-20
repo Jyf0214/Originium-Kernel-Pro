@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Modal, Input } from 'antd';
+import { Modal } from 'antd';
+import { Input } from '@/components/ui/Input';
 import { ShieldCheck, ShieldAlert, LogOut, KeyRound } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useI18n } from '@/hooks/use-i18n';
@@ -137,14 +138,15 @@ function SudoModeButton({ collapsed }: SudoModeButtonProps) {
             </div>
           </div>
 
-          <Input.Password
+          <Input
+            password
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            onPressEnter={handleEnter}
+            onKeyDown={(e) => { if (e.key === 'Enter') void handleEnter(); }}
             placeholder={t('auth.sudoModePasswordPlaceholder')}
             disabled={submitting}
             autoFocus
-            size="large"
+            size="lg"
           />
 
           <button

@@ -3,7 +3,8 @@
 import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Input, Form, message } from 'antd';
+import { Form, message } from 'antd';
+import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { showError } from '@/lib/error';
 import { ChevronRight, Lock, ArrowLeft, CheckCircle } from 'lucide-react';
@@ -19,7 +20,7 @@ function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams?.get('token');
-  const inputRef = useRef<React.ComponentRef<typeof Input>>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { t } = useI18n();
 
   useEffect(() => {
@@ -69,14 +70,6 @@ function ResetPasswordForm() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const inputStyle = {
-    padding: '12px 16px',
-    height: 48,
-    fontSize: 16,
-    lineHeight: 1.6,
-    borderRadius: 8,
   };
 
   if (resetSuccess) {
@@ -129,7 +122,7 @@ function ResetPasswordForm() {
             { required: true, message: t('validation.required') },
             { min: 8, message: t('validation.passwordTooShort') },
           ]}>
-            <Input.Password placeholder={t('auth.newPassword')} ref={inputRef} size="large" prefix={<Lock size={16} className="mx-2 text-zinc-400" />} style={inputStyle} />
+            <Input password placeholder={t('auth.newPassword')} ref={inputRef} size="xl" className="text-base" prefix={<Lock size={16} className="text-zinc-400" />} />
           </Form.Item>
           <Form.Item name="confirmPassword" style={{ marginBottom: 12 }} rules={[
             { required: true, message: t('validation.required') },
@@ -140,11 +133,12 @@ function ResetPasswordForm() {
               },
             }),
           ]}>
-            <Input.Password
+            <Input
+              password
               placeholder={t('auth.confirmNewPassword')}
-              size="large"
-              prefix={<Lock size={16} className="mx-2 text-zinc-400" />}
-              style={inputStyle}
+              size="xl"
+              className="text-base"
+              prefix={<Lock size={16} className="text-zinc-400" />}
               suffix={
                 <Button icon={<ChevronRight size={14} />} loading={loading} disabled={loading} title={t('auth.resetPassword')} variant="filled" onClick={() => form.submit()} />
               }

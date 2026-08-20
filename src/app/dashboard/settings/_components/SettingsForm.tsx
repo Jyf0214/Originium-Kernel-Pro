@@ -1,15 +1,13 @@
 'use client';
 
-import { Form, Input } from 'antd';
+import { Form } from 'antd';
 import { AtSign, Image as ImageIcon, Save, User } from 'lucide-react';
 import type { FormInstance } from 'antd/es/form/Form';
 import { useI18n } from '@/hooks/use-i18n';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { SettingsFormField } from './SettingsFormField';
 import type { SettingsFormValues } from '../_lib/types';
-
-const inputClassName =
-  '!h-10 !rounded-lg !text-sm !border-zinc-200 hover:!border-zinc-300 focus:!border-zinc-900';
 
 interface SettingsFormProps {
   form: FormInstance<SettingsFormValues>;
@@ -41,7 +39,7 @@ export function SettingsForm({ form, loading, onSubmit }: SettingsFormProps) {
       >
         <Input
           placeholder={t('settings.avatarUrlPlaceholder')}
-          className={inputClassName}
+          rounded="md"
           allowClear
         />
       </SettingsFormField>
@@ -59,7 +57,7 @@ export function SettingsForm({ form, loading, onSubmit }: SettingsFormProps) {
       >
         <Input
           placeholder={t('settings.usernamePlaceholder')}
-          className={inputClassName}
+          rounded="md"
         />
       </SettingsFormField>
 
@@ -72,7 +70,7 @@ export function SettingsForm({ form, loading, onSubmit }: SettingsFormProps) {
       >
         <Input
           placeholder={t('settings.displayNamePlaceholder')}
-          className={inputClassName}
+          rounded="md"
         />
       </SettingsFormField>
 

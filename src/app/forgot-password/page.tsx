@@ -2,7 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Input, Form, message } from 'antd';
+import { Form, message } from 'antd';
+import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { showError } from '@/lib/error';
 import { ChevronRight, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
@@ -15,7 +16,7 @@ export default function ForgotPasswordPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [sentEmail, setSentEmail] = useState('');
   const [form] = Form.useForm();
-  const inputRef = useRef<React.ComponentRef<typeof Input>>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { t } = useI18n();
 
   useEffect(() => { inputRef.current?.focus(); }, []);
@@ -42,14 +43,6 @@ export default function ForgotPasswordPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const inputStyle = {
-    padding: '12px 16px',
-    height: 48,
-    fontSize: 16,
-    lineHeight: 1.6,
-    borderRadius: 8,
   };
 
   if (emailSent) {
@@ -106,9 +99,9 @@ export default function ForgotPasswordPage() {
             <Input
               placeholder={t('auth.inputEmailPlaceholder')}
               ref={inputRef}
-              size="large"
-              prefix={<Mail size={16} className="mx-2 text-zinc-400" />}
-              style={inputStyle}
+              size="xl"
+              className="text-base"
+              prefix={<Mail size={16} className="text-zinc-400" />}
               suffix={
                 <Button icon={<ChevronRight size={14} />} loading={loading} disabled={loading} title={t('auth.sendResetLink')} variant="filled" onClick={() => form.submit()} />
               }

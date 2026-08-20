@@ -1,5 +1,6 @@
 import React from 'react';
-import { Select, InputNumber } from 'antd';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { getTranslate } from '@/i18n/translate';
 import ToggleField from './ToggleField';
 
@@ -33,12 +34,13 @@ export default function CodeBlockConfig({ config, onChange }: CodeBlockConfigPro
         <label className="block text-sm font-medium mb-2">{getTranslate('components.CodeBlockConfig.highlightTheme')}</label>
         <Select
           value={config.theme}
-          onChange={v => onChange({ ...config, theme: v })}
-          options={themeOptions}
-          style={{ width: '100%' }}
-          className="!rounded-lg"
-          placement="bottomLeft"
-        />
+          onChange={e => onChange({ ...config, theme: e.target.value })}
+          rounded="md"
+        >
+          {themeOptions.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </Select>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -67,12 +69,13 @@ export default function CodeBlockConfig({ config, onChange }: CodeBlockConfigPro
 
       <div>
         <label className="block text-sm font-medium mb-2">{getTranslate('components.CodeBlockConfig.heightLimit')}</label>
-        <InputNumber
+        <Input
+          type="number"
           value={config.heightLimit}
-          onChange={v => onChange({ ...config, heightLimit: v ?? 330 })}
+          onChange={e => onChange({ ...config, heightLimit: e.target.value === '' ? 330 : Number(e.target.value) })}
           min={0}
           max={9999}
-          className="!w-full !rounded-lg"
+          rounded="md"
         />
         <p className="text-xs text-zinc-400 mt-1">{getTranslate('components.CodeBlockConfig.noLimit')}</p>
       </div>

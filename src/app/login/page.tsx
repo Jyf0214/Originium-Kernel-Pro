@@ -3,7 +3,8 @@
 import React, { Suspense, useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Input, Form, message } from 'antd';
+import { Form, message } from 'antd';
+import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { ChevronRight, Key, Lock, Mail } from 'lucide-react';
 import { useAuth, TwoFactorRequiredError } from '@/hooks/use-auth';
@@ -35,7 +36,7 @@ function LoginForm() {
   const { login } = useAuth();
   const [form] = Form.useForm();
   const [apiKeyForm] = Form.useForm();
-  const inputRef = useRef<React.ComponentRef<typeof Input>>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { t } = useI18n();
 
   const callbackUrl = sanitizeCallbackUrl(searchParams?.get('callbackUrl') ?? null);
@@ -99,14 +100,6 @@ function LoginForm() {
     setEmail('');
   };
 
-  const inputStyle = {
-    padding: '12px 16px',
-    height: 48,
-    fontSize: 16,
-    lineHeight: 1.6,
-    borderRadius: 8,
-  };
-
   const renderEmailStep = () => (
     <AuthCard
       footer={
@@ -138,9 +131,9 @@ function LoginForm() {
           <Input
             placeholder={t('auth.inputEmailOrUsername')}
             ref={inputRef}
-            size="large"
-            prefix={<Mail size={16} className="mx-2 text-zinc-400" />}
-            style={inputStyle}
+            size="xl"
+            className="text-base"
+            prefix={<Mail size={16} className="text-zinc-400" />}
             suffix={
               <Button
                 icon={<ChevronRight size={14} />}
@@ -195,12 +188,13 @@ function LoginForm() {
           rules={[{ required: true, message: t('auth.inputPassword') }]}
           style={{ marginBottom: 12 }}
         >
-          <Input.Password
+          <Input
+            password
             placeholder={t('auth.inputPassword')}
             ref={inputRef}
-            size="large"
-            prefix={<Lock size={16} className="mx-2 text-zinc-400" />}
-            style={inputStyle}
+            size="xl"
+            className="text-base"
+            prefix={<Lock size={16} className="text-zinc-400" />}
             suffix={
               <Button
                 icon={<ChevronRight size={14} />}
@@ -252,9 +246,9 @@ function LoginForm() {
           <Input
             placeholder="sk-..."
             ref={inputRef}
-            size="large"
-            prefix={<Key size={16} className="mx-2 text-zinc-400" />}
-            style={inputStyle}
+            size="xl"
+            className="text-base"
+            prefix={<Key size={16} className="text-zinc-400" />}
             suffix={
               <Button
                 icon={<ChevronRight size={14} />}

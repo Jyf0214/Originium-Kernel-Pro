@@ -1,5 +1,7 @@
 import React from 'react';
-import { Select, Tag } from 'antd';
+import { Select } from '@/components/ui/Select';
+import { Input } from '@/components/ui/Input';
+import { Tag } from '@/components/ui/Tag';
 import { Button } from '@/components/ui/Button';
 import { Plus } from 'lucide-react';
 import { getTranslate } from '@/i18n/translate';
@@ -65,24 +67,26 @@ export default function CoverConfig({ config, onChange }: CoverConfigProps) {
         <label className="block text-sm font-medium mb-2">{t('components.CoverConfig.coverPosition')}</label>
         <Select
           value={config.position}
-          onChange={v => onChange({ ...config, position: v })}
-          options={positionOptions}
-          style={{ width: '100%' }}
-          className="!rounded-lg"
-          placement="bottomLeft"
-        />
+          onChange={e => onChange({ ...config, position: e.target.value as CoverConfigData['position'] })}
+          rounded="md"
+        >
+          {positionOptions.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </Select>
       </div>
 
       <div>
         <label className="block text-sm font-medium mb-2">{t('components.CoverConfig.defaultCover')}</label>
         <div className="flex items-center gap-2 mb-3">
-          <input
+          <Input
             type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addCover()}
             placeholder={t('components.CoverConfig.coverPlaceholder')}
-            className="flex-1 h-9 px-3 border border-zinc-200 rounded-lg text-sm outline-none focus:border-zinc-400"
+            size="sm"
+            className="text-sm"
           />
           <Button size="sm" icon={<Plus size={14} />} onClick={addCover} autoLoading={false} className="rounded-lg shrink-0">
             {t('components.CoverConfig.add')}
@@ -90,7 +94,7 @@ export default function CoverConfig({ config, onChange }: CoverConfigProps) {
         </div>
         <div className="flex flex-wrap gap-2">
           {config.defaultCover.map(url => (
-            <Tag key={url} closable onClose={() => removeCover(url)} className="rounded-lg text-sm max-w-[300px] truncate">
+            <Tag key={url} onClose={() => removeCover(url)} variant="light" size="sm" className="max-w-[300px]">
               {url}
             </Tag>
           ))}

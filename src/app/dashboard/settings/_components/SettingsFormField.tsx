@@ -1,10 +1,8 @@
 'use client';
 
-import { Form, Input } from 'antd';
+import { Form } from 'antd';
+import { Input } from '@/components/ui/Input';
 import type { SettingsFormFieldProps } from '../_lib/types';
-
-const inputClassName =
-  '!h-10 !rounded-lg !text-sm !border-zinc-200 hover:!border-zinc-300 focus:!border-zinc-900';
 
 /**
  * 适配 antd Form 的统一表单项：左侧图标 + 标签 + 额外说明。
@@ -36,7 +34,7 @@ export function SettingsFormField({
       {children ?? (
         <Input
           placeholder={placeholder}
-          className={inputClassName}
+          rounded="md"
           allowClear
         />
       )}

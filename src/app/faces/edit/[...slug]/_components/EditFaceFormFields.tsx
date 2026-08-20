@@ -1,13 +1,12 @@
 'use client';
 
-import { Form, Input, Select } from 'antd';
-
+import { Form } from 'antd';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
 import type { GroupOption } from '../_lib/types';
 import type { TFunc } from '@/i18n/keys';
 
-const { TextArea } = Input;
-
-const INPUT_CLASS = 'h-10 rounded-lg text-sm border-zinc-200 hover:border-zinc-300 focus:border-zinc-900';
 const LABEL_CLASS = 'text-zinc-700 font-medium';
 
 /** 姓名 + 邮箱 */
@@ -21,7 +20,7 @@ export function NameEmailFields({ t }: { t: TFunc }) {
       >
         <Input
           placeholder={t('auth.usernamePlaceholder')}
-          className={INPUT_CLASS}
+          rounded="md"
         />
       </Form.Item>
 
@@ -32,7 +31,7 @@ export function NameEmailFields({ t }: { t: TFunc }) {
       >
         <Input
           placeholder={t('auth.inputEmailPlaceholder')}
-          className={INPUT_CLASS}
+          rounded="md"
         />
       </Form.Item>
     </div>
@@ -55,7 +54,7 @@ export function PhoneGroupFields({
       >
         <Input
           placeholder={t('article.phonePlaceholder') || 'Phone'}
-          className={INPUT_CLASS}
+          rounded="md"
         />
       </Form.Item>
 
@@ -65,14 +64,18 @@ export function PhoneGroupFields({
         rules={[{ required: true, message: t('validation.required') }]}
       >
         <Select
-          placeholder={t('faces.groupName')}
-          className="h-10 rounded-lg text-sm"
-          placement="bottomLeft"
-          options={groups.map((group) => ({
-            value: group.groupName,
-            label: group.title || group.groupName,
-          }))}
-        />
+          size="md"
+          rounded="md"
+        >
+          <option value="" disabled hidden>
+            {t('faces.groupName')}
+          </option>
+          {groups.map((group) => (
+            <option key={group.groupName} value={group.groupName}>
+              {group.title || group.groupName}
+            </option>
+          ))}
+        </Select>
       </Form.Item>
     </div>
   );
@@ -85,11 +88,11 @@ export function ContentField({ t }: { t: TFunc }) {
       label={<span className={LABEL_CLASS}>{t('article.content')}</span>}
       name="content"
     >
-      <TextArea
+      <Textarea
         placeholder={t('editor.contentPlaceholder')}
-        className="rounded-lg text-sm border-zinc-200 hover:border-zinc-300 focus:border-zinc-900"
-        autoSize={{ minRows: 6 }}
-        style={{ fontFamily: 'inherit', resize: 'vertical' }}
+        rows={6}
+        minH="min-h-[144px]"
+        rounded="md"
       />
     </Form.Item>
   );

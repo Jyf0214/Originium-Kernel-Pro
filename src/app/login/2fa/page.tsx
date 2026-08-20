@@ -2,7 +2,8 @@
 
 import React, { Suspense, useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Input, Form, message } from 'antd';
+import { Form, message } from 'antd';
+import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { ChevronRight, ShieldCheck } from 'lucide-react';
 import { GlobalLoading } from '@/components/Loading';
@@ -29,7 +30,7 @@ function TwoFactorForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [form] = Form.useForm();
-  const inputRef = useRef<React.ComponentRef<typeof Input>>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { t } = useI18n();
 
   const callbackUrl = sanitizeCallbackUrl(searchParams?.get('callbackUrl') ?? null);
@@ -62,14 +63,6 @@ function TwoFactorForm() {
       setLoading(false);
     }
   }, [callbackUrl, router, t]);
-
-  const inputStyle = {
-    padding: '12px 16px',
-    height: 48,
-    fontSize: 16,
-    lineHeight: 1.6,
-    borderRadius: 8,
-  };
 
   return (
     <AuthLayout>
@@ -109,15 +102,9 @@ function TwoFactorForm() {
             <Input
               placeholder="000000"
               ref={inputRef}
-              size="large"
+              size="xl"
               maxLength={6}
-              style={{
-                ...inputStyle,
-                textAlign: 'center',
-                fontSize: 24,
-                letterSpacing: '0.5em',
-                fontFamily: 'monospace',
-              }}
+              className="text-center text-2xl tracking-[0.5em] font-mono"
               suffix={
                 <Button
                   icon={<ChevronRight size={14} />}

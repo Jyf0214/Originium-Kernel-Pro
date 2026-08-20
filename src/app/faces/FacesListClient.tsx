@@ -3,9 +3,9 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
-import { cardVariants } from '@/components/ui/motion';
+import { cardVariants, DURATION } from '@/components/ui/motion';
 import { Search, Users, UserCircle } from 'lucide-react';
-import { Input } from 'antd';
+import { Input } from '@/components/ui/Input';
 import { useI18n } from '@/hooks/use-i18n';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Tag } from '@/components/ui/Tag';
@@ -84,9 +84,9 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
             placeholder={t('faces.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-12 h-10 text-sm w-full rounded-xl bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 focus:border-zinc-900 dark:focus:border-zinc-500 transition-colors"
-            variant="outlined"
-            prefix={<span className="w-3" />}
+            allowClear
+            rounded="md"
+            className="pl-12 w-full"
           />
         </div>
       </div>
@@ -133,7 +133,7 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
               initial="initial"
               animate="animate"
               exit="exit"
-              transition={{ duration: 0.2 }}
+              transition={{ duration: DURATION.MID }}
               className="group bg-white dark:bg-zinc-800 rounded-none sm:rounded-2xl border-b border-zinc-100 sm:border sm:border-zinc-100 dark:border-zinc-700 p-4 sm:p-6 overflow-hidden hover:shadow-xl hover:shadow-zinc-200/50 dark:hover:shadow-zinc-900/50 hover:-translate-y-1 transition-all duration-300"
             >
               <Link href={`/faces${face.slug}`} className="block">
@@ -174,7 +174,7 @@ export function FacesListClient({ faces, groups }: FacesListClientProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: DURATION.SLOW }}
           >
             <EmptyState
               variant="card"

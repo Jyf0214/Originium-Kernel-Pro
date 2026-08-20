@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { useI18n } from '@/hooks/use-i18n';
 import { getTranslate } from '@/i18n/translate';
 import { GlobalLoading } from '@/components/Loading';
-import { Card, ColorPicker, Select } from 'antd';
+import { Card, ColorPicker } from 'antd';
+import { Select } from '@/components/ui/Select';
 import { Loader2, CircleDot, Sparkles, Orbit, Waves, ArrowLeft, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import type { Color } from 'antd/es/color-picker';
@@ -337,12 +338,15 @@ export default function LoadingPreviewPage() {
           <div className="flex flex-wrap items-center gap-6">
             <Select
               value={loadingPosition}
-              onChange={(value: LoadingPosition) => setLoadingPosition(value)}
-              options={positionOptions}
-              style={{ width: 200 }}
-              size="large"
-              placement="bottomLeft"
-            />
+              onChange={e => setLoadingPosition(e.target.value as LoadingPosition)}
+              size="lg"
+              className="w-[200px]"
+              rounded="md"
+            >
+              {positionOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </Select>
             <div className="text-sm text-zinc-400 dark:text-zinc-500">
               {t('loadingPreview.config')}: <code className="bg-zinc-100 px-2 py-1 rounded ml-1">appearance.loading.position = &quot;{loadingPosition}&quot;</code>
             </div>

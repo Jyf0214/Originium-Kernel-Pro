@@ -1,5 +1,5 @@
 import React from 'react';
-import { InputNumber } from 'antd';
+import { Input } from '@/components/ui/Input';
 import { getTranslate } from '@/i18n/translate';
 import ToggleField from './ToggleField';
 
@@ -36,12 +36,13 @@ export default function CopyConfig({ config, onChange }: CopyConfigProps) {
 
         <div>
           <label className="block text-sm font-medium mb-2">{getTranslate('components.CopyConfig.minCharCount')}</label>
-          <InputNumber
+          <Input
+            type="number"
             value={config.copyright.limitCount}
-            onChange={v => onChange({ ...config, copyright: { ...config.copyright, limitCount: v ?? 50 } })}
+            onChange={e => onChange({ ...config, copyright: { ...config.copyright, limitCount: e.target.value === '' ? 50 : Number(e.target.value) } })}
             min={0}
             max={9999}
-            className="!w-full !rounded-lg"
+            rounded="md"
           />
           <p className="text-xs text-zinc-400 mt-1">{getTranslate('components.CopyConfig.minCharCountDesc')}</p>
         </div>

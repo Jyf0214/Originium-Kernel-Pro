@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select } from 'antd';
+import { Select } from '@/components/ui/Select';
 import ToggleField from './ToggleField';
 import { useI18n } from '@/hooks/use-i18n';
 
@@ -62,26 +62,28 @@ function MetaItemEditor({
         <div>
           <label className="block text-xs font-medium mb-1">{t('components.PostMetaConfig.dateType')}</label>
           <Select
-            size="small"
+            size="sm"
             value={config.dateType}
-            onChange={v => onChange({ ...config, dateType: v })}
-            options={dateTypeOptions}
-            style={{ width: '100%' }}
-            className="!rounded-lg"
-            placement="bottomLeft"
-          />
+            onChange={e => onChange({ ...config, dateType: e.target.value })}
+            rounded="md"
+          >
+            {dateTypeOptions.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </Select>
         </div>
         <div>
           <label className="block text-xs font-medium mb-1">{t('components.PostMetaConfig.dateFormat')}</label>
           <Select
-            size="small"
+            size="sm"
             value={config.dateFormat}
-            onChange={v => onChange({ ...config, dateFormat: v })}
-            options={prefix === t('components.PostMetaConfig.homePage') ? dateFormatOptions : postDateFormatOptions}
-            style={{ width: '100%' }}
-            className="!rounded-lg"
-            placement="bottomLeft"
-          />
+            onChange={e => onChange({ ...config, dateFormat: e.target.value })}
+            rounded="md"
+          >
+            {(prefix === t('components.PostMetaConfig.homePage') ? dateFormatOptions : postDateFormatOptions).map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </Select>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
