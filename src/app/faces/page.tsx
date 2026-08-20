@@ -11,7 +11,6 @@ import { showError } from '@/lib/error';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
-import Footer from '@/components/Footer';
 
 export default function FacesPage() {
   const [data, setData] = React.useState<{faces: FaceItem[], groups: GroupItem[]}>({faces: [], groups: []});
@@ -71,7 +70,6 @@ export default function FacesPage() {
         />
         <FacesListClient faces={data.faces || []} groups={data.groups || []} />
       </PageContainer>
-      <Footer />
     </div>
   );
 }

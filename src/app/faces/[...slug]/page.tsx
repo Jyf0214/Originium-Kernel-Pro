@@ -8,7 +8,6 @@ import { BacklinkPanel } from '@/components/BacklinkPanel';
 import Link from 'next/link';
 import { ArrowLeft, Code, Eye, Pencil } from 'lucide-react';
 import { GlobalLoading } from '@/components/Loading';
-import Footer from '@/components/Footer';
 import { TOC } from '@/components/ui/TOC';
 import { notFound, useParams } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
@@ -228,7 +227,6 @@ export default function FaceDetailPage() {
           />
         )}
       </PageContainer>
-      <Footer />
     </div>
   );
 }
