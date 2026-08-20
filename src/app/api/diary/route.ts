@@ -8,6 +8,7 @@ import { saveDiaryVersion } from '@/lib/diary-version';
 import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { scheduledFilter } from '@/lib/diary-schedule';
 import { validateDiaryInput } from '@/lib/diary-input';
+import { logAudit } from '@/lib/audit';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/diary');
@@ -92,7 +93,7 @@ export const GET = apiHandler('GET', { label: getTranslate('api.diary.getDiaryLi
   return NextResponse.json({ diaries, groups: allGroups.map((g) => g.group).filter(Boolean) });
 });
 
-export const POST = apiHandler('POST', { label: getTranslate('api.diary.createDiary'), requireAdmin: true, requireDb: true }, async (req) => {
+export const POST = apiHandler('POST', { label: getTranslate('api.diary.createDiary'), requireAdmin: true, requireDb: true }, async (req, _ctx, session) => {
   // API 密钥认证的请求需 posts_write 权限
   const denied = await requireDiaryPerm('posts_write');
   if (denied) return denied;
@@ -100,6 +101,7 @@ export const POST = apiHandler('POST', { label: getTranslate('api.diary.createDi
   const body = await req.json() as Record<string, unknown>;
   const validation = validateDiaryInput(body);
   if (!validation.ok) {
+    void logAudit('diary_create_failed', 'diary', '创建日记失败：输入校验未通过', session!.uid);
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
   const { title, content, tags, date, group, scheduledAt, references } = validation.value;
@@ -126,5 +128,6 @@ export const POST = apiHandler('POST', { label: getTranslate('api.diary.createDi
   await saveDiaryVersion(diary.id, content, title, tags);
 
   logger.info('POST', '创建日记成功', { id: diary.id, title, scheduled: isScheduled });
+  void logAudit('diary_create', 'diary', `创建日记：${title}`, session!.uid);
   return NextResponse.json({ diary }, { status: 201 });
 });

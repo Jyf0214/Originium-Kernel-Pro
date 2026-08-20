@@ -10,6 +10,7 @@ import { apiHandler } from '@/lib/api-handler';
 import { updateFileInGithub, composeFileContent } from '@/lib/github';
 import { getEnvConfig } from '@/lib/env';
 import { rateLimit } from '@/lib/rate-limit';
+import { logAudit } from '@/lib/audit';
 import { getTranslate } from '@/i18n/translate';
 import { isValidPostSlug } from '@/lib/post-slug';
 
@@ -266,11 +267,18 @@ export const POST = apiHandler('POST', { label: getTranslate('api.articles.creat
   };
 
   if (!isValidPostSlug(slug)) {
+    void logAudit('article_create_failed', 'posts', `创建文章失败：slug 含非法字符（${title}）`, session!.uid);
     return NextResponse.json({ error: getTranslate('api.articles.invalidSlugChars') }, { status: 400 });
   }
 
   if (status === 'published') {
-    return handlePublishedPost(articleMeta, content, { coverImage, description, slug, now });
+    const resp = await handlePublishedPost(articleMeta, content, { coverImage, description, slug, now });
+    if (!resp.ok) {
+      void logAudit('article_publish_failed', 'posts', `发布文章失败：${title}`, session!.uid);
+    } else {
+      void logAudit('article_create', 'posts', `发布文章：${title}`, session!.uid);
+    }
+    return resp;
   }
 
   const db = getDb();
@@ -281,5 +289,6 @@ export const POST = apiHandler('POST', { label: getTranslate('api.articles.creat
   await db.set(`article:data:${id}`, JSON.stringify(draftMeta));
   await db.hset('articles:drafts', id, JSON.stringify(draftMeta));
 
+  void logAudit('article_create', 'posts', `创建草稿：${title}`, session!.uid);
   return NextResponse.json({ success: true, id });
 });

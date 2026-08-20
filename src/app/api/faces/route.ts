@@ -6,6 +6,7 @@ import { createApiLogger } from '@/lib/api-logger';
 import { rateLimit } from '@/lib/rate-limit';
 import { getEnvConfig } from '@/lib/env';
 import { getFileFromGithub, updateFileInGithub, deleteFileFromGithub, composeFileContent } from '@/lib/github';
+import { logAudit } from '@/lib/audit';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/faces');
@@ -172,9 +173,16 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    return await handleCreateContact(req);
+    const resp = await handleCreateContact(req);
+    if (!resp.ok) {
+      void logAudit('face_create_failed', 'faces', '创建联系人失败', session.uid);
+    } else {
+      void logAudit('face_create', 'faces', '创建联系人', session.uid);
+    }
+    return resp;
   } catch (error: unknown) {
     logger.error('POST', '创建联系人失败', { error: error instanceof Error ? error.message : String(error) });
+    void logAudit('face_create_failed', 'faces', '创建联系人失败', session.uid);
     return NextResponse.json({ error: getTranslate('api.faces.createFailed') }, { status: 500 });
   }
 }
@@ -373,7 +381,13 @@ export async function PATCH(req: NextRequest) {
   const patchErr = validatePatchInput(body);
   if (patchErr) return patchErr;
 
-  return handlePatchContact(req, body);
+  const resp = await handlePatchContact(req, body);
+  if (!resp.ok) {
+    void logAudit('face_update_failed', 'faces', `更新联系人失败：${String(body.slug ?? '')}`, session?.uid ?? 'unknown');
+  } else {
+    void logAudit('face_update', 'faces', `更新联系人：${String(body.slug ?? '')}`, session?.uid ?? 'unknown');
+  }
+  return resp;
 }
 
 async function handlePatchContact(req: NextRequest, body: Record<string, unknown>): Promise<NextResponse> {
@@ -426,9 +440,16 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    return await handleDeleteContact(req, session);
+    const resp = await handleDeleteContact(req, session);
+    if (!resp.ok) {
+      void logAudit('face_delete_failed', 'faces', '删除联系人失败', session.uid);
+    } else {
+      void logAudit('face_delete', 'faces', '删除联系人', session.uid);
+    }
+    return resp;
   } catch (error: unknown) {
     logger.error('DELETE', '删除联系人失败', { error: error instanceof Error ? error.message : String(error) });
+    void logAudit('face_delete_failed', 'faces', '删除联系人失败', session.uid);
     return NextResponse.json({ error: getTranslate('api.faces.deleteFailed') }, { status: 500 });
   }
 }

@@ -7,6 +7,7 @@ import { apiHandler, getParam } from '@/lib/api-handler';
 import { isRootRole, getSessionWithKeyId, requireApiKeyPermission, type getSession } from '@/lib/auth';
 import { getFileFromGithub, updateFileInGithub, deleteFileFromGithub, composeFileContent } from '@/lib/github';
 import { getEnvConfig } from '@/lib/env';
+import { logAudit } from '@/lib/audit';
 import { getTranslate } from '@/i18n/translate';
 import { isValidPostSlug } from '@/lib/post-slug';
 
@@ -263,12 +264,14 @@ export const PATCH = apiHandler('PATCH', { label: getTranslate('api.articles.upd
 
   if (!metaStr) {
     logger.warn('PATCH', '文章不存在', { id });
+    void logAudit('article_update_failed', 'posts', `更新文章失败：文章不存在（${id}）`, session!.uid);
     return NextResponse.json({ error: getTranslate('api.articles.notFound') }, { status: 404 });
   }
 
   const meta = JSON.parse(metaStr) as Record<string, unknown>;
 
   if (!checkArticlePermission(meta, session!)) {
+    void logAudit('article_update_failed', 'posts', `更新文章失败：无权限（${id}）`, session!.uid);
     return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }
 
@@ -282,11 +285,37 @@ export const PATCH = apiHandler('PATCH', { label: getTranslate('api.articles.upd
       description: typeof body.description === 'string' ? body.description : meta.description,
       updatedAt: new Date().toISOString(),
     };
-    return handlePublishArticle(body, updated, id, db);
+    const resp = await handlePublishArticle(body, updated, id, db);
+    if (!resp.ok) {
+      void logAudit('article_publish_failed', 'posts', `发布文章失败：${id}`, session!.uid);
+    } else {
+      void logAudit('article_update', 'posts', `发布文章：${id}`, session!.uid);
+    }
+    return resp;
   }
 
-  return handleDraftSave(body, meta, id, db);
+  const resp = await handleDraftSave(body, meta, id, db);
+  if (!resp.ok) {
+    void logAudit('article_update_failed', 'posts', `更新草稿失败：${id}`, session!.uid);
+  } else {
+    void logAudit('article_update', 'posts', `更新草稿：${id}`, session!.uid);
+  }
+  return resp;
 });
+
+/** 记录文章删除审计并透传响应（成功/失败各记一次，避免 handler 复杂度超标） */
+function auditDeleteResult(
+  resp: NextResponse,
+  entries: { ok: string; fail: string; okDetail: string; failDetail: string },
+  userId: string,
+): NextResponse {
+  if (resp.ok) {
+    void logAudit(entries.ok, 'posts', entries.okDetail, userId);
+  } else {
+    void logAudit(entries.fail, 'posts', entries.failDetail, userId);
+  }
+  return resp;
+}
 
 /** 将文章移入回收站（统一入口） */
 async function moveToRecycleBin(
@@ -353,6 +382,7 @@ export const DELETE = apiHandler('DELETE', { label: getTranslate('api.articles.d
   // 数据库无记录 → 文件系统发布的文章，构造元数据后移入回收站
   if (!metaStr) {
     if (session!.role !== 'admin' && !isRootRole(session!.role)) {
+      void logAudit('article_delete_failed', 'posts', `删除文章失败：无权限（${id}）`, session!.uid);
       return NextResponse.json({ error: getTranslate('api.articles.noDeletePermission') }, { status: 403 });
     }
     const { getContentFile } = await import('@/lib/content');
@@ -360,6 +390,7 @@ export const DELETE = apiHandler('DELETE', { label: getTranslate('api.articles.d
     const file = getContentFile('posts', slug);
     if (!file) {
       logger.warn('DELETE', '文章不存在', { id });
+      void logAudit('article_delete_failed', 'posts', `删除文章失败：文章不存在（${id}）`, session!.uid);
       return NextResponse.json({ error: getTranslate('api.articles.notFound') }, { status: 404 });
     }
 
@@ -374,7 +405,11 @@ export const DELETE = apiHandler('DELETE', { label: getTranslate('api.articles.d
       tags: file.meta.tags ?? [],
       createdAt: file.meta.date ?? new Date().toISOString(),
     };
-    return moveToRecycleBin(id, meta, db);
+    return auditDeleteResult(
+      await moveToRecycleBin(id, meta, db),
+      { ok: 'article_delete', fail: 'article_delete_failed', okDetail: `文章移入回收站：${id}`, failDetail: `文章移入回收站失败：${id}` },
+      session!.uid,
+    );
   }
 
   let meta: Record<string, unknown>;
@@ -382,19 +417,29 @@ export const DELETE = apiHandler('DELETE', { label: getTranslate('api.articles.d
     meta = JSON.parse(metaStr);
   } catch {
     logger.warn('DELETE', '文章数据解析失败', { id });
+    void logAudit('article_delete_failed', 'posts', `删除文章失败：数据损坏（${id}）`, session!.uid);
     return NextResponse.json({ error: getTranslate('api.articles.dataCorrupted') }, { status: 500 });
   }
 
   // 所有角色统一移入回收站
   if (meta.authorId !== session!.uid && session!.role !== 'admin' && !isRootRole(session!.role)) {
     logger.warn('DELETE', '无权限', { id, authorId: meta.authorId, uid: session!.uid });
+    void logAudit('article_delete_failed', 'posts', `删除文章失败：无权限（${id}）`, session!.uid);
     return NextResponse.json({ error: getTranslate('api.common.unauthorized') }, { status: 403 });
   }
 
   // 回收站内二次删除 = 永久删除（GitHub 文件 + 数据库记录）
   if (meta.status === 'pending_deletion') {
-    return permanentlyDeleteArticle(id, meta, db);
+    return auditDeleteResult(
+      await permanentlyDeleteArticle(id, meta, db),
+      { ok: 'article_delete_permanent', fail: 'article_delete_permanent_failed', okDetail: `永久删除文章：${id}`, failDetail: `永久删除文章失败：${id}` },
+      session!.uid,
+    );
   }
 
-  return moveToRecycleBin(id, meta, db);
+  return auditDeleteResult(
+    await moveToRecycleBin(id, meta, db),
+    { ok: 'article_delete', fail: 'article_delete_failed', okDetail: `文章移入回收站：${id}`, failDetail: `文章移入回收站失败：${id}` },
+    session!.uid,
+  );
 });
