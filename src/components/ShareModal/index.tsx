@@ -71,7 +71,7 @@ export default function ShareModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: DURATION.MID }}
         >
           {/* 遮罩层 */}
           <motion.div
