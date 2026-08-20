@@ -9,6 +9,7 @@
  */
 import { NextResponse } from 'next/server'
 import { createApiLogger } from '@/lib/api-logger'
+import { logAudit } from '@/lib/audit'
 import { getTranslate } from '@/i18n/translate'
 import {
   MAX_UPLOAD_SIZE,
@@ -112,7 +113,8 @@ async function readBodyWithSizeLimit(
 export const POST = catchAllHandler<{ path: string[] }>(
   'POST',
   { label: 'storage.upload', requireRoot: true },
-  async (req, context) => {
+  async (req, context, session) => {
+    const auditUser = session?.uid ?? 'unknown'
     if (!isStorageConfigured()) return storageNotConfigured()
 
     const denied = await requireApiKeyPerm('storage_write')
@@ -120,22 +122,35 @@ export const POST = catchAllHandler<{ path: string[] }>(
 
     const parts = await getPathParts(context)
     const rel = resolveStoragePath(parts)
-    if (!isValidStoragePath(rel) || rel === '') return invalidPathResponse()
+    if (!isValidStoragePath(rel) || rel === '') {
+      void logAudit('storage_upload_failed', 'storage', `上传文件失败：路径非法（${rel}）`, auditUser)
+      return invalidPathResponse()
+    }
 
     const blocked = validateUploadExtension(rel)
-    if (blocked) return blocked
+    if (blocked) {
+      void logAudit('storage_upload_failed', 'storage', `上传文件失败：扩展名被阻止（${rel}）`, auditUser)
+      return blocked
+    }
 
     const target = buildWebDavTarget(parts)
 
     const rejected = rejectIfOversized(req.headers.get('content-length'))
-    if (rejected) return rejected
+    if (rejected) {
+      void logAudit('storage_upload_failed', 'storage', `上传文件失败：超过大小上限（${target}）`, auditUser)
+      return rejected
+    }
 
     if (!req.body) {
+      void logAudit('storage_upload_failed', 'storage', `上传文件失败：请求体为空（${target}）`, auditUser)
       return NextResponse.json({ error: getTranslate('api.storage.emptyRequestBody') }, { status: 400 })
     }
 
     const result = await readBodyWithSizeLimit(req.body, target)
-    if (result instanceof NextResponse) return result
+    if (result instanceof NextResponse) {
+      void logAudit('storage_upload_failed', 'storage', `上传文件失败：读取请求体失败（${target}）`, auditUser)
+      return result
+    }
     const { buffer, bytesReceived } = result
 
     try {
@@ -143,10 +158,12 @@ export const POST = catchAllHandler<{ path: string[] }>(
       await provider.putFileContents(target, buffer, { headers: { overwrite: 'true' } })
     } catch (err) {
       logger.error('POST', `target="${target}" 写入失败`, { error: (err as Error).message })
+      void logAudit('storage_upload_failed', 'storage', `上传文件失败：${target}`, auditUser)
       return storageErrorResponse(err, getTranslate('api.storage.opUpload'))
     }
 
     logger.info('POST', `target="${target}" size=${bytesReceived} bytes`)
+    void logAudit('storage_upload', 'storage', `上传文件：${target}（${bytesReceived} 字节）`, auditUser)
     return NextResponse.json({
       path: target,
       size: bytesReceived,

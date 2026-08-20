@@ -8,6 +8,7 @@ import { ApiErr } from '@/lib/api-handler'
 import { createApiLogger } from '@/lib/api-logger'
 import { getDb } from '@/lib/db'
 import { hashPassword } from '@/lib/hash'
+import { logAudit } from '@/lib/audit'
 import { getTranslate } from '@/i18n/translate'
 import {
   catchAllHandler,
@@ -109,7 +110,8 @@ async function mergePatchFields(
 export const PATCH = catchAllHandler<{ path: string[] }>(
   'PATCH',
   { label: 'storage.folder.patch', requireRoot: true },
-  async (req, context) => {
+  async (req, context, session) => {
+    const auditUser = session?.uid ?? 'unknown'
     if (!isStorageConfigured()) return storageNotConfigured()
     const prisma = getDb().prisma
     if (!prisma) return databaseNotConfigured()
@@ -119,20 +121,30 @@ export const PATCH = catchAllHandler<{ path: string[] }>(
 
     const parts = await getPathParts(context)
     const path = resolveStoragePath(parts)
-    if (!isValidStoragePath(path)) return invalidPathResponse()
+    if (!isValidStoragePath(path)) {
+      void logAudit('storage_folder_update_failed', 'storage', `更新文件夹元数据失败：路径非法（${path}）`, auditUser)
+      return invalidPathResponse()
+    }
 
     const existing = await readFolderMeta(path)
-    if (!existing) return ApiErr.notFound(getTranslate('api.storage.folderMetaNotFound'))
+    if (!existing) {
+      void logAudit('storage_folder_update_failed', 'storage', `更新文件夹元数据失败：文件夹不存在（${path}）`, auditUser)
+      return ApiErr.notFound(getTranslate('api.storage.folderMetaNotFound'))
+    }
 
     let parsed: Record<string, unknown>
     try {
       parsed = (await req.json()) as Record<string, unknown>
     } catch {
+      void logAudit('storage_folder_update_failed', 'storage', `更新文件夹元数据失败：请求体格式错误（${path}）`, auditUser)
       return ApiErr.badRequest(getTranslate('api.storage.invalidJson'))
     }
 
     const validation = validatePatchFields(parsed)
-    if (validation.error) return validation.error
+    if (validation.error) {
+      void logAudit('storage_folder_update_failed', 'storage', `更新文件夹元数据失败：字段校验未通过（${path}）`, auditUser)
+      return validation.error
+    }
 
     const { nextPublic, nextDescription, nextPassword, passwordChanged } =
       await mergePatchFields(parsed, existing)
@@ -149,6 +161,7 @@ export const PATCH = catchAllHandler<{ path: string[] }>(
     })
 
     logger.info('PATCH', `path="${path}" public=${nextPublic} password=${passwordChanged ? '已更新' : '未变'}`)
+    void logAudit('storage_folder_update', 'storage', `更新文件夹元数据：${path}`, auditUser)
     return NextResponse.json({
       path: updated.path,
       public: updated.public,

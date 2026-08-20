@@ -7,6 +7,7 @@
  */
 import { NextResponse } from 'next/server'
 import { createApiLogger } from '@/lib/api-logger'
+import { logAudit } from '@/lib/audit'
 import { getTranslate } from '@/i18n/translate'
 import {
   buildWebDavTarget,
@@ -60,7 +61,8 @@ function parseMoveDestination(
 export const POST = catchAllHandler<{ path: string[] }>(
   'POST',
   { label: 'storage.move', requireRoot: true },
-  async (req, context) => {
+  async (req, context, session) => {
+    const auditUser = session?.uid ?? 'unknown'
     if (!isStorageConfigured()) return storageNotConfigured()
 
     const denied = await requireApiKeyPerm('storage_write')
@@ -68,19 +70,29 @@ export const POST = catchAllHandler<{ path: string[] }>(
 
     const parts = await getPathParts(context)
     const srcRel = resolveStoragePath(parts)
-    if (srcRel === '') return rootNotAllowedResponse()
-    if (!isValidStoragePath(srcRel)) return invalidPathResponse()
+    if (srcRel === '') {
+      void logAudit('storage_move_failed', 'storage', '移动失败：不能操作根目录', auditUser)
+      return rootNotAllowedResponse()
+    }
+    if (!isValidStoragePath(srcRel)) {
+      void logAudit('storage_move_failed', 'storage', `移动失败：路径非法（${srcRel}）`, auditUser)
+      return invalidPathResponse()
+    }
 
     // 解析请求体
     let body: Record<string, unknown>
     try {
       body = (await req.json()) as Record<string, unknown>
     } catch {
+      void logAudit('storage_move_failed', 'storage', `移动失败：请求体格式错误（${srcRel}）`, auditUser)
       return NextResponse.json({ error: getTranslate('api.common.invalidBody') }, { status: 400 })
     }
 
     const destResult = parseMoveDestination(body, srcRel)
-    if (destResult instanceof NextResponse) return destResult
+    if (destResult instanceof NextResponse) {
+      void logAudit('storage_move_failed', 'storage', `移动失败：目标路径校验未通过（${srcRel}）`, auditUser)
+      return destResult
+    }
     const { destRel } = destResult
 
     const oldTarget = buildWebDavTarget(parts)
@@ -91,6 +103,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
     try {
       const provider = await getStorageProvider()
       await provider.stat(newTarget)
+      void logAudit('storage_move_failed', 'storage', `移动失败：目标已存在（${destRel}）`, auditUser)
       return NextResponse.json({ error: getTranslate('api.storage.targetExists') }, { status: 409 })
     } catch {
       // stat 失败说明目标不存在，可以安全移动
@@ -101,6 +114,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
       await provider.moveFile(oldTarget, newTarget)
     } catch (err) {
       logger.error('POST', `target="${oldTarget}" → "${newTarget}" 失败`, { error: (err as Error).message })
+      void logAudit('storage_move_failed', 'storage', `移动失败：${srcRel} → ${destRel}`, auditUser)
       return storageErrorResponse(err, getTranslate('api.storage.opMove'))
     }
 
@@ -113,6 +127,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
     }
 
     logger.info('POST', `"${srcRel}" → "${destRel}" 移动成功`)
+    void logAudit('storage_move', 'storage', `移动：${srcRel} → ${destRel}`, auditUser)
 
     return NextResponse.json({ path: destRel })
   }

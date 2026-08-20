@@ -7,6 +7,7 @@
  */
 import { NextResponse } from 'next/server'
 import { createApiLogger } from '@/lib/api-logger'
+import { logAudit } from '@/lib/audit'
 import { getTranslate } from '@/i18n/translate'
 import {
   buildWebDavTarget,
@@ -86,7 +87,8 @@ function parseRenameInput(
 export const POST = catchAllHandler<{ path: string[] }>(
   'POST',
   { label: 'storage.rename', requireRoot: true },
-  async (req, context) => {
+  async (req, context, session) => {
+    const auditUser = session?.uid ?? 'unknown'
     if (!isStorageConfigured()) return storageNotConfigured()
 
     const denied = await requireApiKeyPerm('storage_write')
@@ -94,24 +96,37 @@ export const POST = catchAllHandler<{ path: string[] }>(
 
     const parts = await getPathParts(context)
     const rel = resolveStoragePath(parts)
-    if (rel === '') return rootNotAllowedResponse()
-    if (!isValidStoragePath(rel)) return invalidPathResponse()
+    if (rel === '') {
+      void logAudit('storage_rename_failed', 'storage', '重命名失败：不能操作根目录', auditUser)
+      return rootNotAllowedResponse()
+    }
+    if (!isValidStoragePath(rel)) {
+      void logAudit('storage_rename_failed', 'storage', `重命名失败：路径非法（${rel}）`, auditUser)
+      return invalidPathResponse()
+    }
 
     // 解析请求体
     let body: Record<string, unknown>
     try {
       body = (await req.json()) as Record<string, unknown>
     } catch {
+      void logAudit('storage_rename_failed', 'storage', `重命名失败：请求体格式错误（${rel}）`, auditUser)
       return NextResponse.json({ error: getTranslate('api.common.invalidBody') }, { status: 400 })
     }
 
     const parseResult = parseRenameInput(body, rel)
-    if (parseResult instanceof NextResponse) return parseResult
+    if (parseResult instanceof NextResponse) {
+      void logAudit('storage_rename_failed', 'storage', `重命名失败：名称校验未通过（${rel}）`, auditUser)
+      return parseResult
+    }
     const { newName, newRel, segments } = parseResult
 
     // 检查目标是否已存在（数据库 + 存储层双重检查）
     const conflict = await assertTargetAvailable(newRel, segments, newName)
-    if (conflict) return conflict
+    if (conflict) {
+      void logAudit('storage_rename_failed', 'storage', `重命名失败：目标已存在（${newRel}）`, auditUser)
+      return conflict
+    }
 
     const oldTarget = buildWebDavTarget(parts)
     // 构建新目标路径:替换最后一段
@@ -123,6 +138,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
       await provider.moveFile(oldTarget, newTarget)
     } catch (err) {
       logger.error('POST', `target="${oldTarget}" → "${newTarget}" 失败`, { error: (err as Error).message })
+      void logAudit('storage_rename_failed', 'storage', `重命名失败：${rel} → ${newRel}`, auditUser)
       return storageErrorResponse(err, getTranslate('api.storage.opRename'))
     }
 
@@ -134,6 +150,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
     }
 
     logger.info('POST', `"${rel}" → "${newRel}" 重命名成功`)
+    void logAudit('storage_rename', 'storage', `重命名：${rel} → ${newRel}`, auditUser)
 
     // 返回更新后的元数据
     const meta = await readFolderMeta(newRel)

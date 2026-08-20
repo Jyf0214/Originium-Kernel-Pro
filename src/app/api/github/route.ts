@@ -5,6 +5,7 @@ import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
 import { composeFileContent } from '@/lib/github';
 import { getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
+import { logAudit } from '@/lib/audit';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/github');
@@ -82,7 +83,7 @@ async function executeDeleteAction(
   return NextResponse.json({ success: true });
 }
 
-export const POST = apiHandler('POST', { label: getTranslate('api.github.operation'), requireAdmin: true }, async (req) => {
+export const POST = apiHandler('POST', { label: getTranslate('api.github.operation'), requireAdmin: true }, async (req, _ctx, session) => {
   const { action, path, content, message, frontMatter, body } = await req.json();
   logger.info('POST', '开始 GitHub 操作', { action, path });
 
@@ -92,12 +93,14 @@ export const POST = apiHandler('POST', { label: getTranslate('api.github.operati
 
   if (!action || !path) {
     logger.warn('POST', '缺少必需参数');
+    void logAudit('github_operation_failed', 'github', 'GitHub 操作失败：缺少必需参数', session!.uid);
     return NextResponse.json({ error: getTranslate('api.github.missingParams') }, { status: 400 });
   }
 
   // 路径守卫：非字符串直接拒绝（数组/对象的 includes 语义不同，可绕过检查）；
   // 拒绝含 .. 或 \ 的路径；仅允许白名单目录（posts/ faces/ config.yaml）
   if (typeof path !== 'string' || path.includes('..') || path.includes('\\') || path.startsWith('/') || !isAllowedRepoPath(path)) {
+    void logAudit('github_operation_failed', 'github', `GitHub 操作失败：路径非法（${String(path)}）`, session!.uid);
     return NextResponse.json({ error: getTranslate('api.storage.invalidFilePath') }, { status: 400 });
   }
 
@@ -110,7 +113,13 @@ export const POST = apiHandler('POST', { label: getTranslate('api.github.operati
     : undefined;
 
   if (action === 'delete') {
-    return executeDeleteAction(octokit, owner, repo, path, { sha, message });
+    const resp = await executeDeleteAction(octokit, owner, repo, path, { sha, message });
+    if (!resp.ok) {
+      void logAudit('github_operation_failed', 'github', `GitHub 操作失败：${String(action)} ${path}`, session!.uid);
+    } else {
+      void logAudit('github_operation', 'github', `GitHub 操作成功：${String(action)} ${path}`, session!.uid);
+    }
+    return resp;
   }
 
   const fileContent = await composeFileContent(content, frontMatter, body);
@@ -122,6 +131,7 @@ export const POST = apiHandler('POST', { label: getTranslate('api.github.operati
   });
 
   logger.info('POST', '文件操作成功', { action, path });
+  void logAudit('github_operation', 'github', `GitHub 操作成功：${String(action)} ${path}`, session!.uid);
   return NextResponse.json({ success: true, sha: result.data.content?.sha });
 });
 

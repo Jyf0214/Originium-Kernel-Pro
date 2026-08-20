@@ -1,13 +1,14 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
 import { getDb } from '@/lib/db';
-import { getSession, isRootRole, getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
+import { type SessionPayload, getSession, isRootRole, getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
 import { getEnvConfig } from '@/lib/env';
 import { deleteFileFromGithub } from '@/lib/github';
 import { DELETION_PERIOD_DAYS } from '@/lib/constants';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler } from '@/lib/api-handler';
 import { deleteDraft } from '@/lib/draft-storage';
+import { logAudit } from '@/lib/audit';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/cleanup');
@@ -19,18 +20,19 @@ const logger = createApiLogger('/api/cleanup');
  * This should be called periodically (e.g., daily) by a cron scheduler
  */
 
-async function isCleanupAuthorized(req: NextRequest): Promise<boolean> {
+async function isCleanupAuthorized(req: NextRequest): Promise<{ session: SessionPayload | null; authorized: boolean }> {
   const session = await getSession();
   if (session && (session.role === 'admin' || isRootRole(session.role))) {
-    return true;
+    return { session, authorized: true };
   }
   const cronSecret = req.headers.get('x-cron-secret');
   const expectedSecret = process.env.CRON_SECRET;
-  if (!cronSecret || !expectedSecret) return false;
+  if (!cronSecret || !expectedSecret) return { session: null, authorized: false };
   try {
-    return timingSafeEqual(Buffer.from(cronSecret), Buffer.from(expectedSecret));
+    const authorized = timingSafeEqual(Buffer.from(cronSecret), Buffer.from(expectedSecret));
+    return { session: null, authorized };
   } catch {
-    return false;
+    return { session: null, authorized: false };
   }
 }
 
@@ -80,8 +82,10 @@ export const POST = apiHandler('POST', { label: getTranslate('api.cleanup.cleanu
   const permErr = await requireCleanupPerm();
   if (permErr) return permErr;
 
-  if (!(await isCleanupAuthorized(req))) {
+  const { session, authorized } = await isCleanupAuthorized(req);
+  if (!authorized) {
     logger.warn('POST', '未授权');
+    void logAudit('cleanup_failed', 'posts', '清理过期文章失败：未授权', session?.uid ?? 'unknown');
     return NextResponse.json({ error: getTranslate('api.cleanup.unauthorized') }, { status: 401 });
   }
 
@@ -106,6 +110,7 @@ export const POST = apiHandler('POST', { label: getTranslate('api.cleanup.cleanu
   }
 
   logger.info('POST', '清理任务完成', { deletedCount: deleted.length, errorCount: errors.length });
+  void logAudit('cleanup', 'posts', `清理过期文章完成：删除 ${deleted.length} 篇`, session?.uid ?? 'unknown');
   return NextResponse.json({
     success: true,
     message: getTranslate('api.cleanup.completed', { count: deleted.length }),

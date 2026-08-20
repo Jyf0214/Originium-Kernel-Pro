@@ -6,6 +6,7 @@
 import { NextResponse } from 'next/server'
 import { createApiLogger } from '@/lib/api-logger'
 import { getDb } from '@/lib/db'
+import { logAudit } from '@/lib/audit'
 import { getTranslate } from '@/i18n/translate'
 
 const logger = createApiLogger('storage.mkdir')
@@ -29,7 +30,8 @@ import {
 export const POST = catchAllHandler<{ path: string[] }>(
   'POST',
   { label: 'storage.mkdir', requireRoot: true },
-  async (_req, context) => {
+  async (_req, context, session) => {
+    const auditUser = session?.uid ?? 'unknown'
     if (!isStorageConfigured()) return storageNotConfigured()
 
     const denied = await requireApiKeyPerm('storage_write')
@@ -40,8 +42,14 @@ export const POST = catchAllHandler<{ path: string[] }>(
 
     const parts = await getPathParts(context)
     const rel = resolveStoragePath(parts)
-    if (rel === '') return rootNotAllowedResponse()
-    if (!isValidStoragePath(rel)) return invalidPathResponse()
+    if (rel === '') {
+      void logAudit('storage_mkdir_failed', 'storage', '创建文件夹失败：不能操作根目录', auditUser)
+      return rootNotAllowedResponse()
+    }
+    if (!isValidStoragePath(rel)) {
+      void logAudit('storage_mkdir_failed', 'storage', `创建文件夹失败：路径非法（${rel}）`, auditUser)
+      return invalidPathResponse()
+    }
     const target = buildWebDavTarget(parts)
 
     // 先在存储后端上真实创建,失败直接返回
@@ -50,6 +58,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
       await provider.createDirectory(target, { recursive: true })
     } catch (err) {
       logger.error('POST', `target="${target}" 存储后端创建失败`, { error: (err as Error).message })
+      void logAudit('storage_mkdir_failed', 'storage', `创建文件夹失败：${target}`, auditUser)
       return storageErrorResponse(err, getTranslate('api.storage.opCreateDirectory'))
     }
 
@@ -80,6 +89,7 @@ export const POST = catchAllHandler<{ path: string[] }>(
         }
 
     logger.info('POST', `target="${target}" 元数据已写入`)
+    void logAudit('storage_mkdir', 'storage', `创建文件夹：${target}`, auditUser)
     return NextResponse.json(meta)
   }
 )

@@ -5,6 +5,7 @@ import type { UserRole } from '@/lib/user';
 import { createApiLogger } from '@/lib/api-logger';
 import { apiHandler, getParam } from '@/lib/api-handler';
 import { isRootRole, getSessionWithKeyId, requireApiKeyPermission } from '@/lib/auth';
+import { logAudit } from '@/lib/audit';
 import { getTranslate } from '@/i18n/translate';
 
 const logger = createApiLogger('/api/users/[uid]');
@@ -92,6 +93,7 @@ export const PATCH = apiHandler('PATCH', { label: getTranslate('api.users.update
 
   if (!userStr) {
     logger.warn('PATCH', '用户不存在', { uid });
+    void logAudit('user_update_failed', 'users', `更新用户失败：用户不存在（${uid}）`, session!.uid);
     return NextResponse.json({ error: getTranslate('api.auth.userNotFound') }, { status: 404 });
   }
 
@@ -99,6 +101,7 @@ export const PATCH = apiHandler('PATCH', { label: getTranslate('api.users.update
   try {
     user = JSON.parse(userStr);
   } catch {
+    void logAudit('user_update_failed', 'users', `更新用户失败：数据损坏（${uid}）`, session!.uid);
     return NextResponse.json({ error: getTranslate('api.user.dataCorrupted') }, { status: 500 });
   }
   const body = await req.json();
@@ -107,7 +110,10 @@ export const PATCH = apiHandler('PATCH', { label: getTranslate('api.users.update
 
   if (role !== undefined) {
     const roleErr = await validateRoleChange(role, user, session);
-    if (roleErr) return roleErr;
+    if (roleErr) {
+      void logAudit('user_update_failed', 'users', `更新用户失败：角色变更被拒绝（${uid} → ${String(role)}）`, session!.uid);
+      return roleErr;
+    }
     user.role = role;
   }
 
@@ -125,6 +131,7 @@ export const PATCH = apiHandler('PATCH', { label: getTranslate('api.users.update
   }
 
   logger.info('PATCH', '用户更新成功', { uid });
+  void logAudit('user_update', 'users', `更新用户：${uid}`, session!.uid);
   return NextResponse.json({
     uid: user.uid,
     name: user.name,
