@@ -2,7 +2,7 @@
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { EASE_STANDARD } from '@/components/ui/motion';
+import { DURATION, EASE_FAST, EASE_STANDARD } from '@/components/ui/motion';
 
 const PROGRESS_STEPS = [10, 30, 60, 80] as const;
 
@@ -72,7 +72,7 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
           <motion.div
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: DURATION.MID }}
             className="fixed top-0 left-0 right-0 z-[9999] h-[3px] bg-transparent"
           >
             <motion.div
@@ -82,7 +82,7 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
               }}
               initial={{ width: '0%' }}
               animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
+              transition={{ duration: DURATION.SLOW, ease: EASE_FAST }}
             />
           </motion.div>
         )}
@@ -96,7 +96,7 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
           initial={mounted ? { opacity: 0, y: 6 } : false}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.3, ease: EASE_STANDARD }}
+          transition={{ duration: DURATION.SLOW, ease: EASE_STANDARD }}
         >
           {children}
         </motion.div>

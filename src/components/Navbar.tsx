@@ -1,17 +1,16 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { UserMenu } from '@/components/UserMenu';
 import { Hitokoto } from '@/components/Hitokoto';
 import { Button } from '@/components/ui/Button';
+import { Drawer } from '@/components/ui/Drawer';
 import { useI18n } from '@/hooks/use-i18n';
 import { useAuth } from '@/hooks/use-auth';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
-import { useInertBackground } from '@/hooks/use-inert-background';
 import { Clock, Search, Sun, Moon, Monitor, Keyboard, Menu, X, Home, FileText, Info, Hash, Archive, Lock } from 'lucide-react';
 import { useThemeMode } from '@/hooks/use-theme-mode';
 import { usePathname } from 'next/navigation';
@@ -265,8 +264,6 @@ export function Navbar({ navConfig: navConfigProp, databaseConfigured = true }: 
   const pathname = usePathname();
   const { mode, cycle } = useThemeMode();
   const state = useNavbarState(navConfigProp);
-  const drawerRef = useRef<HTMLDivElement>(null);
-  useInertBackground(state.drawerOpen, drawerRef);
 
   const isAdminPage = ADMIN_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
@@ -325,35 +322,24 @@ export function Navbar({ navConfig: navConfigProp, databaseConfigured = true }: 
         icon={<Search size={22} />}
       />
 
-      {/* 遮罩 + 抽屉：经 portal 挂到 body 下，打开时背景置 inert（useInertBackground） */}
-      {typeof document !== 'undefined' &&
-        createPortal(
-          <div ref={drawerRef}>
-            <div
-              className={`fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
-                state.drawerOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-              }`}
-              onClick={state.closeDrawer}
-            />
-
-            {/* 抽屉 */}
-            <div
-              className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] z-[80] bg-white dark:bg-zinc-900 shadow-2xl border-l border-zinc-200 dark:border-zinc-700 transform transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-                state.drawerOpen ? 'translate-x-0' : 'translate-x-full'
-              }`}
-            >
-              <DrawerContent
-                pathname={pathname}
-                navConfig={state.navConfig}
-                time={state.time}
-                databaseConfigured={databaseConfigured}
-                t={t}
-                closeDrawer={state.closeDrawer}
-              />
-            </div>
-          </div>,
-          document.body,
-        )}
+      {/* 遮罩 + 抽屉：经 portal 挂到 body 下，打开时背景置 inert（Drawer 内置） */}
+      <Drawer
+        open={state.drawerOpen}
+        onClose={state.closeDrawer}
+        side="right"
+        widthClass="w-80 max-w-[85vw]"
+        overlayZ="z-[70]"
+        panelZ="z-[80]"
+      >
+        <DrawerContent
+          pathname={pathname}
+          navConfig={state.navConfig}
+          time={state.time}
+          databaseConfigured={databaseConfigured}
+          t={t}
+          closeDrawer={state.closeDrawer}
+        />
+      </Drawer>
 
       <SearchDialog open={state.searchOpen} onClose={() => state.setSearchOpen(false)} />
       <KeyboardShortcutsHelp open={state.shortcutsOpen} onClose={() => state.setShortcutsOpen(false)} />

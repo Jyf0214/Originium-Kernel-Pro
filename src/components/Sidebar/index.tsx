@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import { useAuth } from '@/hooks/use-auth';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useI18n } from '@/hooks/use-i18n';
+import { Drawer } from '@/components/ui/Drawer';
 import SidebarHeader from './SidebarHeader';
 import SidebarUserMenu from './SidebarUserMenu';
 import SidebarGroup from './SidebarGroup';
@@ -142,31 +142,20 @@ function Sidebar({ isOpen, onClose, databaseConfigured = true }: SidebarProps) {
       {/* 移动端遮罩与抽屉：Portal 到 body。
           侧栏可能被渲染在 display:none 的父容器内（如三栏布局移动端隐藏左栏），
           若不脱离父容器，fixed 子元素会被一并隐藏导致抽屉无法打开 */}
-      {typeof document !== 'undefined' &&
-        createPortal(
-          <>
-            {/* 遮罩：保持挂载才能让 opacity 过渡生效（淡入淡出），与 Navbar 抽屉同一模式 */}
-            <div
-              className={`md:hidden fixed inset-0 bg-zinc-900/40 backdrop-blur-md z-[998] transition-opacity duration-300 ${
-                isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-              }`}
-              aria-hidden="true"
-              onClick={onClose}
-            />
-            <div
-              id="primary-sidebar"
-              className={`md:hidden fixed top-0 h-screen w-[300px] max-w-[85vw] overflow-y-auto z-[999] bg-white dark:bg-zinc-900 transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-                isOpen
-                  ? 'shadow-[16px_0_40px_-12px_rgba(0,0,0,0.22)] dark:shadow-[16px_0_40px_-12px_rgba(0,0,0,0.45)]'
-                  : 'shadow-none'
-              }`}
-              style={{ left: 0, transform: isOpen ? 'translateX(0)' : 'translateX(-100%)' }}
-            >
-              {renderContent(true)}
-            </div>
-          </>,
-          document.body,
-        )}
+      <Drawer
+        open={isOpen}
+        onClose={onClose}
+        side="left"
+        widthClass="w-[300px] max-w-[85vw]"
+        overlayZ="z-[998]"
+        panelZ="z-[999]"
+        overlayClassName="md:hidden bg-zinc-900/40 backdrop-blur-md"
+        panelClassName="md:hidden shadow-[16px_0_40px_-12px_rgba(0,0,0,0.22)] dark:shadow-[16px_0_40px_-12px_rgba(0,0,0,0.45)]"
+      >
+        <div id="primary-sidebar" className="flex flex-col h-full">
+          {renderContent(true)}
+        </div>
+      </Drawer>
     </>
   );
 }

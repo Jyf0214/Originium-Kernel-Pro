@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { BookOpen, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion } from 'motion/react';
+import { DURATION } from '@/components/ui/motion';
 import { cn } from '@/lib/ui';
 
 /** 上一篇/下一篇导航按钮基础样式 */
@@ -55,7 +56,7 @@ export const SeriesNavigation = React.memo(function SeriesNavigation({ seriesNam
             key={post.slug}
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.05 }}
+            transition={{ duration: DURATION.SLOW, delay: index * 0.05 }}
           >
             <Link
               href={`/posts${post.slug}`}

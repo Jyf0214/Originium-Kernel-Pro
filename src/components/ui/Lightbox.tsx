@@ -102,7 +102,7 @@ export function Lightbox({ images, alts, initialIndex, onClose, isOpen = true }:
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3, ease: EASE_STANDARD }}
+          transition={{ duration: DURATION.SLOW, ease: EASE_STANDARD }}
           className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/80"
           onClick={onClose}
         >
@@ -145,7 +145,7 @@ export function Lightbox({ images, alts, initialIndex, onClose, isOpen = true }:
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3, ease: EASE_STANDARD }}
+                transition={{ duration: DURATION.SLOW, ease: EASE_STANDARD }}
                 className="max-w-[85vw] max-h-[75vh] object-contain select-none"
                 onClick={(e) => e.stopPropagation()}
                 draggable={false}

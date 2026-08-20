@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { DURATION } from '@/components/ui/motion';
 import { cn } from '@/lib/ui';
 import { useI18n } from '@/hooks/use-i18n';
 import { showError } from '@/lib/error';
@@ -123,7 +124,7 @@ export function PostLikeButton({ slug, initialCount = 0 }: PostLikeButtonProps) 
           initial={{ y: -10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 10, opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: DURATION.MID }}
           className="font-medium tabular-nums"
         >
           {count}

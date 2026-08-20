@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tag } from 'antd';
+import { Tag } from '@/components/ui/Tag';
 import { Plus } from 'lucide-react';
 import ToggleField from './ToggleField';
 import { Button } from '@/components/ui/Button';
@@ -58,7 +58,7 @@ export default function MournConfig({ config, onChange }: MournConfigProps) {
         </div>
         <div className="flex flex-wrap gap-2">
           {config.days.map(d => (
-            <Tag key={d} closable onClose={() => removeDay(d)} className="rounded-lg text-sm">
+            <Tag key={d} onClose={() => removeDay(d)} variant="light" size="sm">
               {d}
             </Tag>
           ))}

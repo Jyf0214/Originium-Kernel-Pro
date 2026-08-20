@@ -5,7 +5,7 @@ import { ArrowUp } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Tag } from '@/components/ui/Tag';
 import { Button } from '@/components/ui/Button';
-import { EASE_STANDARD } from '@/components/ui/motion';
+import { DURATION, EASE_STANDARD } from '@/components/ui/motion';
 import { cn } from '@/lib/ui';
 import { useI18n } from '@/hooks/use-i18n';
 import type { AuthorInfo } from '@/types/author';
@@ -35,7 +35,7 @@ export const PostSidebarCard = React.memo(function PostSidebarCard({
     <motion.aside
       initial={{ opacity: 0, x: 30 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5, ease: EASE_STANDARD }}
+      transition={{ duration: DURATION.SLOW, ease: EASE_STANDARD }}
       className={cn(
         'sticky top-24 bg-white dark:bg-zinc-800',
         'rounded-2xl border border-zinc-100 dark:border-zinc-700',

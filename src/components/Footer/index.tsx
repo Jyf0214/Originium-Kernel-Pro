@@ -11,6 +11,7 @@ import { motion } from 'motion/react';
 import { FooterLinkGroups, FooterBadges } from './FooterLinks';
 import { FooterRuntimeStatus } from './FooterBrand';
 import { FooterBar } from './FooterCopyright';
+import { DURATION, EASE_STANDARD } from '@/components/ui/motion';
 import {
   useFooterConfig,
   resolveDefaults,
@@ -20,7 +21,7 @@ import type { FooterConfigData } from './types';
 // 区块统一的进入动画变体
 const footerSectionVariants = {
   hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
+  visible: { opacity: 1, y: 0, transition: { duration: DURATION.SLOW, ease: EASE_STANDARD } },
 };
 
 interface FooterProps {

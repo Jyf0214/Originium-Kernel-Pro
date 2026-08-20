@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
+import { DURATION, EASE_STANDARD } from '@/components/ui/motion';
 import { Button } from '@/components/ui/Button';
 import type { ButtonVariant } from '@/components/ui/Button';
 
@@ -145,7 +146,7 @@ export function HeroBanner({
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: 'easeOut' }}
+                transition={{ duration: DURATION.SLOW, ease: EASE_STANDARD }}
               >
                 {renderContent()}
               </motion.div>

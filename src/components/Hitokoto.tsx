@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/lib/ui';
-import { EASE_STANDARD } from '@/components/ui/motion';
+import { DURATION, EASE_STANDARD } from '@/components/ui/motion';
 import { useI18n } from '@/hooks/use-i18n';
 
 /** 一言 API 返回数据结构 */
@@ -102,7 +102,7 @@ export function Hitokoto({ className }: HitokotoProps) {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.3, ease: EASE_STANDARD }}
+            transition={{ duration: DURATION.SLOW, ease: EASE_STANDARD }}
             className="truncate max-w-[60vw] md:max-w-[40vw]"
           >
             {displayText}

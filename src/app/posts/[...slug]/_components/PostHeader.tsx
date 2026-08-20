@@ -5,7 +5,7 @@ import { motion, type Variants } from 'motion/react';
 import Image from 'next/image';
 import { Calendar, User } from 'lucide-react';
 import { useCoverParallax } from '@/hooks/use-cover-parallax';
-import { EASE_STANDARD } from '@/components/ui/motion';
+import { DURATION, EASE_STANDARD } from '@/components/ui/motion';
 import { useI18n } from '@/hooks/use-i18n';
 import type { AuthorInfo } from '@/types/author';
 
@@ -99,7 +99,7 @@ const containerVariants: Variants = {
 
 const itemVariants: Variants = {
   hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE_STANDARD } },
+  visible: { opacity: 1, y: 0, transition: { duration: DURATION.SLOW, ease: EASE_STANDARD } },
 };
 
 /* ── 封面背景层 ── */

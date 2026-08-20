@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Tag } from '@/components/ui/Tag';
 import { cn } from '@/lib/ui';
-import { EASE_STANDARD } from '@/components/ui/motion';
+import { DURATION, EASE_STANDARD } from '@/components/ui/motion';
 import { useI18n } from '@/hooks/use-i18n';
 import { decryptArticle, type ArticleCryptoPayload } from '@/lib/article-crypto';
 
@@ -106,7 +106,7 @@ export function ArticleEncryption({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
-            transition={{ duration: 0.4, ease: EASE_STANDARD }}
+            transition={{ duration: DURATION.SLOW, ease: EASE_STANDARD }}
           >
             <ProCard className="w-full max-w-md shadow-lg">
               <div className="flex flex-col items-center gap-6 py-4">
@@ -156,7 +156,7 @@ export function ArticleEncryption({
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
+                      transition={{ duration: DURATION.MID }}
                     >
                       <Tag variant="danger" size="sm">
                         {errorKind === 'no-cipher'
@@ -187,7 +187,7 @@ export function ArticleEncryption({
             key="decryption-success"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, ease: EASE_STANDARD }}
+            transition={{ duration: DURATION.SLOW, ease: EASE_STANDARD }}
             className="flex flex-col items-center gap-3"
           >
             <motion.div

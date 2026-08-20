@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { DURATION } from '@/components/ui/motion';
 import { cn } from '@/lib/ui';
 import { useI18n } from '@/hooks/use-i18n';
 
@@ -47,7 +48,7 @@ export function ArticleExpiredBanner({ date, slug }: ArticleExpiredBannerProps) 
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: DURATION.SLOW }}
           className={cn(
             'bg-amber-50 dark:bg-amber-900/20',
             'border border-amber-200 dark:border-amber-800',

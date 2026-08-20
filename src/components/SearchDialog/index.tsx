@@ -5,7 +5,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'motion/react';
-import { modalContentVariants, modalTransition, DURATION } from '@/components/ui/motion';
+import { modalContentVariants, modalTransition, DURATION, EASE_STANDARD } from '@/components/ui/motion';
 
 import { SearchEmpty } from './SearchEmpty';
 import { SearchHistory } from './SearchHistory';
@@ -26,7 +26,7 @@ const listVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 8 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' as const } },
+  visible: { opacity: 1, y: 0, transition: { duration: DURATION.MID, ease: EASE_STANDARD } },
 } as const;
 
 export function SearchDialog({ open, onClose }: SearchDialogProps) {
